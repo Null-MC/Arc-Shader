@@ -3,6 +3,6 @@
 #define RENDER_VERTEX
 #define WORLD_OVERWORLD
 
-#include "lib/common.glsl"
 #include "overworld.glsl"
-#include "program/gbuffers_textured.glsl"
+#include "lib/common.glsl"
+#include "program/deferred.glsl"

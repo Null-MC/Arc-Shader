@@ -1,7 +1,6 @@
 #extension GL_ARB_gpu_shader5 : enable
 
-#define RENDER_TEXTURED
-#undef PARALLAX_ENABLED
+#define RENDER_WATER
 
 varying vec2 lmcoord;
 varying vec2 texcoord;
@@ -9,9 +8,22 @@ varying vec4 glcolor;
 varying vec3 viewPos;
 varying vec3 viewNormal;
 varying float geoNoL;
-flat varying vec3 worldNormal;
+varying mat3 matTBN;
+varying vec3 tanViewPos;
+
+#ifdef PARALLAX_ENABLED
+    varying mat2 atlasBounds;
+    varying vec2 localCoord;
+#endif
 
 #ifdef SHADOW_ENABLED
+    uniform vec3 sunPosition;
+    uniform vec3 moonPosition;
+    uniform vec3 upPosition;
+
+    varying vec3 tanLightPos;
+    flat varying vec3 skyLightColor;
+
 	#if SHADOW_TYPE == 3
 		varying vec3 shadowPos[4];
         varying vec3 shadowParallaxPos[4];
@@ -20,13 +32,30 @@ flat varying vec3 worldNormal;
         flat varying int shadowCascade;
 	#elif SHADOW_TYPE != 0
 		varying vec4 shadowPos;
-        varying vec4 shadowParallaxPos[4];
+        varying vec4 shadowParallaxPos;
 	#endif
 #endif
 
 #ifdef RENDER_VERTEX
+	in vec4 mc_Entity;
+	in vec3 vaPosition;
+    in vec4 at_tangent;
+	in vec3 at_midBlock;
+
+    #ifdef PARALLAX_ENABLED
+        in vec4 mc_midTexCoord;
+    #endif
+
 	uniform mat4 gbufferModelView;
 	uniform mat4 gbufferModelViewInverse;
+	//uniform float frameTimeCounter;
+	uniform vec3 cameraPosition;
+
+    #if MC_VERSION >= 11700
+    	uniform vec3 chunkOffset;
+    #endif
+
+	//#include "/lib/waving.glsl"
 
 	#ifdef SHADOW_ENABLED
 		uniform mat4 shadowModelView;
@@ -35,8 +64,6 @@ flat varying vec3 worldNormal;
 		uniform float far;
 
 		#if SHADOW_TYPE == 3
-			attribute vec3 at_midBlock;
-
             #ifdef IS_OPTIFINE
                 uniform mat4 gbufferPreviousModelView;
             #endif
@@ -51,7 +78,11 @@ flat varying vec3 worldNormal;
 		#endif
 	#endif
 
+    #include "/lib/lighting/sky.glsl"
+	//#include "/lib/lighting/basic_forward.glsl"
+    //#include "/lib/lighting/pbr_forward.glsl"
     #include "/lib/lighting/basic.glsl"
+    #include "/lib/lighting/pbr.glsl"
 
 
 	void main() {
@@ -61,19 +92,30 @@ flat varying vec3 worldNormal;
 
         mat3 matViewTBN;
         BasicVertex(matViewTBN);
+        PbrVertex(matViewTBN);
 
-        worldNormal = mat3(gbufferModelViewInverse) * viewNormal;
+        skyLightColor = GetSkyLightColor();
 	}
 #endif
 
 #ifdef RENDER_FRAG
 	uniform sampler2D texture;
+    uniform sampler2D normals;
+    uniform sampler2D specular;
 	uniform sampler2D lightmap;
+    uniform sampler2D gcolor;
 
-    #if MC_VERSION >= 11700
-        uniform float alphaTestRef;
-    #endif
-	
+    // #if MC_VERSION >= 11700
+    //     uniform float alphaTestRef;
+    // #endif
+
+    uniform int fogMode;
+    uniform float fogStart;
+    uniform float fogEnd;
+    uniform int fogShape;
+    uniform vec3 fogColor;
+    uniform vec3 skyColor;
+
 	#ifdef SHADOW_ENABLED
 		uniform sampler2D shadowcolor0;
         uniform sampler2DShadow shadowtex0;
@@ -105,27 +147,37 @@ flat varying vec3 worldNormal;
 			#include "/lib/shadows/csm_render.glsl"
 		#elif SHADOW_TYPE != 0
 			uniform mat4 shadowProjection;
-		
+
 			#include "/lib/shadows/basic.glsl"
 		#endif
 	#endif
 
-    #include "/lib/lighting/basic_gbuffers.glsl"
+    #ifdef PARALLAX_ENABLED
+        uniform ivec2 atlasSize;
+
+        #include "/lib/parallax.glsl"
+    #endif
+
+    #include "/lib/lighting/fog.glsl"
+    #include "/lib/lighting/material.glsl"
+    #include "/lib/lighting/material_reader.glsl"
+	//#include "/lib/lighting/basic_forward.glsl"
+    #include "/lib/lighting/pbr_forward.glsl"
 
 
 	void main() {
-        float shadow;
-        vec4 colorMap, lightMap;
+        //float shadow;
+        //vec4 colorMap, normalMap, specularMap, lightMap;
+        //mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
 
-        mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
-        BasicLighting(dFdXY, colorMap, shadow);
+        vec4 final = PbrLighting();
 
-        lightMap = vec4(lmcoord, shadow, 0.0);
+        //lightMap = vec4(lmcoord, shadow, 0.0);
 
-    /* DRAWBUFFERS:0123 */
-        gl_FragData[0] = colorMap; //gcolor
-        gl_FragData[1] = vec4(worldNormal, 1.0); //gdepth
-        gl_FragData[2] = vec4(0.0, 0.0, 0.0, 1.0); //gnormal
-        gl_FragData[3] = lightMap; //composite
+    /* DRAWBUFFERS:0 */
+        gl_FragData[0] = final; //gcolor
+        //gl_FragData[1] = normalMap; //gdepth
+        //gl_FragData[2] = specularMap; //gnormal
+        //gl_FragData[3] = lightMap; //composite
 	}
 #endif

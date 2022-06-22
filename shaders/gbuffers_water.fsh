@@ -5,4 +5,4 @@
 
 #include "lib/common.glsl"
 #include "overworld.glsl"
-#include "program/gbuffers_entities.glsl"
+#include "program/gbuffers_water.glsl"

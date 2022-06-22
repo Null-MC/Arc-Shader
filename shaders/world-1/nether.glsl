@@ -4,3 +4,4 @@
 
 // AUTOMATIC SETTINGS
 // You shouldn't have to touch these...
+//#undef SHADOW_ENABLED

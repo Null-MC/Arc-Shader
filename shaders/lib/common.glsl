@@ -1,4 +1,5 @@
-#define SHADOW_TYPE 3 // [0 1 2 3]
+#define SHADOW_TYPE 0 // [0 1 2 3]
+#define IS_OPTIFINE
 
 // Shadow Options
 //#define SHADOW_EXCLUDE_ENTITIES
@@ -13,22 +14,38 @@
 #define SHADOW_FILTER 0 // [0 1 2]
 #define SHADOW_PCF_SIZE 0.015 // [0.005 0.010 0.015 0.020 0.025 0.030 0.035 0.040 0.045 0.050 0.055 0.060 0.065 0.070 0.075 0.080 0.085 0.090 0.095 0.100]
 #define SHADOW_PCF_SAMPLES 12 // [12 24 36]
+#define SHADOW_ENABLE_HWCOMP
+
 
 // World Options
 #define ENABLE_WAVING
 
+
+// Parallax Options
+#define PARALLAX_ENABLED
+#define PARALLAX_DISTANCE 40.0
+#define PARALLAX_SHADOWS_ENABLED
+#define PARALLAX_SLOPE_NORMALS
+#define PARALLAX_DEPTH 0.25 // [0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
+#define PARALLAX_SAMPLES 64 // [32 64 128 256]
+#define PARALLAX_SHADOW_SAMPLES 64 // [32 64 128 256]
+
+
 // Debug Options
 #define DEBUG_SHADOW_BUFFER 0 // [0 1 2 3]
 //#define DEBUG_CASCADE_TINT
-#define DEBUG_CSM_FRUSTUM
+//#define DEBUG_CSM_FRUSTUM
 
 
 // INTERNAL SETTINGS
-#define LIGHTING_TYPE 0 // [0 1 2]
+#define SHADOW_ENABLED
 #define SHADOW_BASIC_BIAS 0.035
 #define SHADOW_DISTORTED_BIAS 0.005
 #define SHADOW_CSM_FIT_FARSCALE 1.1
 #define SHADOW_CSM_FITSCALE 0.1
+//#define PARALLAX_USE_TEXELFETCH
+//#define PARALLAX_SHADOW_FIX
+#define PARALLAX_SOFTSHADOW_FACTOR 1.0
 #define LOD_TINT_FACTOR 0.4
 #define CSM_PLAYER_ID 0
 
@@ -36,6 +53,18 @@
 #define EPSILON 1e-6
 #define GAMMA 2.2
 
+const float InvPI = 1.0 / PI;
+const vec3 luma_factor = vec3(0.2126f, 0.7152f, 0.0722f);
+
+
+#if MC_VERSION < 11700
+    const float alphaTestRef = 0.1;
+    //const vec3 chunkOffset = vec3(0.0);
+#endif
+
+// #ifdef WORLD_NETHER
+//     #undef SHADOW_ENABLED
+// #endif
 
 #if SHADOW_TYPE != 1 && SHADOW_TYPE != 2
 	#undef SHADOW_DISTORT_FACTOR
@@ -47,10 +76,24 @@
 // 	#undef SHADOW_CSM_TIGHTEN
 // #endif
 
-#if SHADOW_TYPE == 3 && defined SHADOW_CSM_TIGHTEN && !defined SHADOW_EXCLUDE_ENTITIES
-	#define SHADOW_EXCLUDE_ENTITIES
+// #if defined IS_OPTIFINE && SHADOW_TYPE == 3 && defined SHADOW_CSM_TIGHTEN && !defined SHADOW_EXCLUDE_ENTITIES
+// 	#define SHADOW_EXCLUDE_ENTITIES
+// #endif
+
+#ifndef PARALLAX_ENABLED
+    #undef PARALLAX_SLOPE_NORMALS
+    #undef PARALLAX_SHADOWS_ENABLED
 #endif
 
+#ifdef SHADOW_EXCLUDE_ENTITIES
+#endif
+#ifdef SHADOW_EXCLUDE_FOLIAGE
+#endif
+
+
+float RGBToLinear(const in float color) {
+    return pow(color, GAMMA);
+}
 
 vec3 RGBToLinear(const in vec3 color) {
 	return pow(color, vec3(GAMMA));
@@ -58,6 +101,10 @@ vec3 RGBToLinear(const in vec3 color) {
 
 vec3 LinearToRGB(const in vec3 color) {
 	return pow(color, vec3(1.0 / GAMMA));
+}
+
+float luminance(const in vec3 color) {
+   return dot(color, luma_factor);
 }
 
 float expStep(float x)

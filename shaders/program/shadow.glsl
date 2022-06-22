@@ -1,18 +1,11 @@
+#extension GL_ARB_gpu_shader5 : enable
+
 #define RENDER_SHADOW
 
 /*
 const int shadowtex0Format = R32F;
 const int shadowtex1Format = R32F;
 */
-
-//fix artifacts when colored shadows are enabled
-//const bool generateShadowMipmap = false;
-//const bool shadowcolor0Nearest = false;
-const bool shadowHardwareFiltering = true;
-const bool shadowtex0Mipmap = false;
-const bool shadowtex0Nearest = false;
-const bool shadowtex1Mipmap = false;
-const bool shadowtex1Nearest = false;
 
 const float shadowDistanceRenderMul = 1.0;
 
@@ -22,7 +15,8 @@ varying vec2 texcoord;
 varying vec4 glcolor;
 
 #if SHADOW_TYPE == 3
-	flat varying vec2 shadowTilePos;
+    varying float cascadeSizes[4];
+	flat varying vec2 shadowCascadePos;
 #endif
 
 #ifdef RENDER_VERTEX
@@ -33,7 +27,12 @@ varying vec4 glcolor;
 	uniform mat4 shadowModelViewInverse;
 	uniform float frameTimeCounter;
 	uniform vec3 cameraPosition;
-	uniform vec3 chunkOffset;
+
+    #if MC_VERSION >= 11700
+        uniform vec3 chunkOffset;
+    #else
+        uniform mat4 gbufferModelViewInverse;
+    #endif
 
 	#include "/lib/waving.glsl"
 
@@ -42,11 +41,14 @@ varying vec4 glcolor;
 		uniform float near;
 		uniform float far;
 
-		// uniform mat4 gbufferModelView;
-		// uniform mat4 gbufferProjection;
-		// NOTE: We are using the previous gbuffer matrices cause the current ones don't work in shadow pass
-		uniform mat4 gbufferPreviousModelView;
-		uniform mat4 gbufferPreviousProjection;
+        #ifdef IS_OPTIFINE
+            // NOTE: We are using the previous gbuffer matrices cause the current ones don't work in shadow pass
+            uniform mat4 gbufferPreviousModelView;
+            uniform mat4 gbufferPreviousProjection;
+        #else
+            uniform mat4 gbufferModelView;
+            uniform mat4 gbufferProjection;
+        #endif
 
 		#include "/lib/shadows/csm.glsl"
 	#elif SHADOW_TYPE != 0
@@ -59,12 +61,12 @@ varying vec4 glcolor;
 		lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
 		glcolor = gl_Color;
 
-		#if defined SHADOW_EXCLUDE_ENTITIES
+		#ifdef SHADOW_EXCLUDE_ENTITIES
 			if (mc_Entity.x == 0.0) {
 				gl_Position = vec4(10.0);
 
 				#if SHADOW_TYPE == 3
-					shadowTilePos = vec2(1.0);
+					shadowCascadePos = vec2(10.0);
 				#endif
 
 				return;
@@ -76,7 +78,7 @@ varying vec4 glcolor;
 				gl_Position = vec4(10.0);
 
 				#if SHADOW_TYPE == 3
-					shadowTilePos = vec2(1.0);
+					shadowCascadePos = vec2(10.0);
 				#endif
 			}
 			else {
@@ -90,16 +92,26 @@ varying vec4 glcolor;
 		#endif
 
 		#if SHADOW_TYPE == 3
-			mat4 matShadowProjection[4];
-			PrepareCascadeMatrices(matShadowProjection);
+            cascadeSizes[0] = GetCascadeDistance(0);
+            cascadeSizes[1] = GetCascadeDistance(1);
+            cascadeSizes[2] = GetCascadeDistance(2);
+            cascadeSizes[3] = GetCascadeDistance(3);
 
-			int shadowTile = GetShadowTile(matShadowProjection);
-			shadowTilePos = GetShadowTilePos(shadowTile);
-			gl_Position = matShadowProjection[shadowTile] * (gl_ModelViewMatrix * pos);
+			mat4 matShadowProjections[4];
+            matShadowProjections[0] = GetShadowCascadeProjectionMatrix(0);
+            matShadowProjections[1] = GetShadowCascadeProjectionMatrix(1);
+            matShadowProjections[2] = GetShadowCascadeProjectionMatrix(2);
+            matShadowProjections[3] = GetShadowCascadeProjectionMatrix(3);
+
+			int shadowCascade = GetShadowCascade(matShadowProjections);
+			shadowCascadePos = GetShadowCascadeClipPos(shadowCascade);
+			gl_Position = matShadowProjections[shadowCascade] * (gl_ModelViewMatrix * pos);
 
 			gl_Position.xy = gl_Position.xy * 0.5 + 0.5;
-			gl_Position.xy = gl_Position.xy * 0.5 + shadowTilePos;
+			gl_Position.xy = gl_Position.xy * 0.5 + shadowCascadePos;
 			gl_Position.xy = gl_Position.xy * 2.0 - 1.0;
+
+            //if (shadowCascade != 1) gl_Position = vec4(vec3(10.0), 1.0);
 		#else
 			gl_Position = gl_ProjectionMatrix * (gl_ModelViewMatrix * pos);
 
@@ -121,10 +133,9 @@ varying vec4 glcolor;
 
 	void main() {
 		#if SHADOW_TYPE == 3
-			vec2 p = gl_FragCoord.xy / shadowMapResolution - shadowTilePos;
-
-			if (p.x < 0 || p.x >= 0.5) discard;
-			if (p.y < 0 || p.y >= 0.5) discard;
+			vec2 screenCascadePos = gl_FragCoord.xy / shadowMapSize - shadowCascadePos;
+			if (screenCascadePos.x < 0 || screenCascadePos.x >= 0.5
+             || screenCascadePos.y < 0 || screenCascadePos.y >= 0.5) discard;
 		#endif
 
 		vec4 color = texture2D(texture, texcoord) * glcolor;

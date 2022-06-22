@@ -1,3 +1,10 @@
+screen.WORLD_OPTIONS=World Options
+screen.WORLD_OPTIONS.comment=Options for everything else.
+
+option.ENABLE_WAVING=Waving Plants
+option.ENABLE_WAVING.comment=When enabled, plants will wave using artificial wind.
+
+
 option.SHADOW_TYPE=Shadow Type
 option.SHADOW_TYPE.comment=The type of shadow mapping to use.
 value.SHADOW_TYPE.0=None
@@ -87,12 +94,27 @@ option.SHADOW_PCF_SIZE.comment=The radius of the shadow blurring using a block-s
 option.SHADOW_PCF_SAMPLES=PCF Samples
 option.SHADOW_PCF_SAMPLES.comment=The number of samples to use when blurring.
 
+option.SHADOW_ENABLE_HWCOMP=HW-Accelerated
+option.SHADOW_ENABLE_HWCOMP.comment=When enabled, shadows will leverage hardware-filtering for better quality and performance. NOTE: May only work on NVidia!
 
-screen.WORLD_OPTIONS=World Options
-screen.WORLD_OPTIONS.comment=Options for everything else.
 
-option.ENABLE_WAVING=Waving Plants
-option.ENABLE_WAVING.comment=When enabled, plants will wave using artificial wind.
+screen.MATERIAL_OPTIONS=Materials
+screen.MATERIAL_OPTIONS.comment=Options for PBR materials.
+
+
+screen.PARALLAX_OPTIONS=Parallax
+screen.PARALLAX_OPTIONS.comment=Options for Parallax Occlusion Mapping (POM).
+
+option.PARALLAX_ENABLED=Enabled
+
+option.PARALLAX_SHADOWS_ENABLED=Shadows
+option.PARALLAX_SHADOWS_ENABLED.comment=When enabled, displaced pixels will cast shadows.
+
+option.PARALLAX_SLOPE_NORMALS=Slope Normals
+option.PARALLAX_SLOPE_NORMALS.comment=When enabled, the vertical walls between pixels will be given proper normals.
+
+option.PARALLAX_DEPTH=Depth
+option.PARALLAX_DEPTH.comment=The maximum amount of displacement.
 
 
 screen.DEBUG_OPTIONS=Debug Options
@@ -105,5 +127,6 @@ value.DEBUG_SHADOW_BUFFER.1=shadowcolor0
 value.DEBUG_SHADOW_BUFFER.2=shadowtex0
 value.DEBUG_SHADOW_BUFFER.3=shadowtex1
 
-option.DEBUG_CASCADE_TINT=Tint Cascades
-option.DEBUG_CASCADE_TINT.comment=When enabled, shadow casters will show their cascade level by tint coloring. Applies to CSM only.
+
+option.IS_OPTIFINE=Using Optifine?
+option.IS_OPTIFINE.comment=Optifine currently has a bug with the gbuffer matrices in the shadow pass that requires a workaround using the previous-frame matrices. Disable this workaround if you are using Iris.

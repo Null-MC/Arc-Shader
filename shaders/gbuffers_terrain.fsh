@@ -3,6 +3,6 @@
 #define RENDER_FRAG
 #define WORLD_OVERWORLD
 
-#include "overworld.glsl"
 #include "lib/common.glsl"
+#include "overworld.glsl"
 #include "program/gbuffers_terrain.glsl"

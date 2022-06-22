@@ -55,7 +55,13 @@ vec3 fbm(vec3 pos) {
 vec3 GetWavingOffset() {
     float range = (mc_Entity.x == 10002.0 || mc_Entity.x == 10004.0) ? 0.01 : 0.06;
 
-	vec3 worldPos = vaPosition.xyz + chunkOffset + cameraPosition;
+    #if MC_VERSION >= 11700
+        vec3 worldPos = vaPosition.xyz + chunkOffset + cameraPosition;
+    #else
+        // TODO: FIX THIS!!!
+        vec3 worldPos = cameraPosition;
+    #endif
+
 	vec3 hash = mod(fbm(worldPos) * 2.0 * PI + 1.2 * frameTimeCounter, 2.0 * PI);
 	vec3 offset = sin(hash) * range;
 

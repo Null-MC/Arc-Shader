@@ -1,3 +1,3 @@
-# Just Another Shader
+# Bullet Shader
 
 Work in progress...

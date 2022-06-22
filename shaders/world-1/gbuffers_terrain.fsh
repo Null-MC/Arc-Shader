@@ -1,8 +1,8 @@
 #version 120
 
 #define RENDER_FRAG
-#define WORLD_END
+#define WORLD_NETHER
 
-#include "end.glsl"
 #include "/lib/common.glsl"
+#include "nether.glsl"
 #include "/program/gbuffers_terrain.glsl"
