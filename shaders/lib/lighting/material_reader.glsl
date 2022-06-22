@@ -7,7 +7,8 @@
         material.occlusion = normalMap.a;
         material.smoothness = specularMap.r;
         material.f0 = specularMap.g * step(specularMap.g, 0.9);
-        material.hcm = max(int(floor(specularMap.g * 255.0 - 229.5)), -1);
+        //material.hcm = max(int(floor(specularMap.g * 255.0 - 229.5)), -1);
+        material.hcm = int(floor(specularMap.g * 255.0 - 229.5));
         material.porosity = specularMap.b * 4.0 * step(specularMap.b, 0.25);
         material.scattering = max(specularMap.b - 0.25, 0.0) * (1.0 / 0.75);
         material.emission = specularMap.a * step(specularMap.a, 1.0 - EPSILON);
@@ -35,7 +36,8 @@
     	material.occlusion = normalMap.b;
     	material.smoothness = specularMap.r;
     	material.f0 = specularMap.g * step(specularMap.g, 0.9);
-    	material.hcm = int(max(specularMap.g * 255.0 - 229.5, -0.5));
+    	//material.hcm = int(max(specularMap.g * 255.0 - 229.5, -0.5));
+        material.hcm = int(floor(specularMap.g * 255.0 - 229.5));
     	material.porosity = specularMap.b * 4.0 * step(specularMap.b, 0.25);
     	material.scattering = max(specularMap.b - 0.25, 0.0) * (1.0 / 0.75);
     	material.emission = specularMap.a * step(specularMap.a, 1.0 - EPSILON);
