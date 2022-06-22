@@ -88,7 +88,7 @@ varying vec3 tanViewPos;
     uniform sampler2D specular;
 	uniform sampler2D lightmap;
 
-    #if MC_VERSION >= 11700
+    #if MC_VERSION >= 11700 && defined IS_OPTIFINE
         uniform float alphaTestRef;
     #endif
 	

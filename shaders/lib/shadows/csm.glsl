@@ -204,7 +204,7 @@ vec2 GetShadowCascadeClipPos(const in int tile) {
                 if (mc_Entity.x == 0.0) return vec3(0.0);
             #endif
 
-            #if MC_VERSION >= 11700
+            #if MC_VERSION >= 11700 && defined IS_OPTIFINE
                 vec3 midBlockPosition = floor(vaPosition + chunkOffset + at_midBlock / 64.0 + fract(cameraPosition));
 
                 #ifdef RENDER_SHADOW

@@ -71,7 +71,7 @@ flat varying vec3 worldNormal;
 	uniform sampler2D texture;
 	uniform sampler2D lightmap;
 
-    #if MC_VERSION >= 11700
+    #if MC_VERSION >= 11700 && defined IS_OPTIFINE
         uniform float alphaTestRef;
     #endif
 	

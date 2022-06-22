@@ -55,7 +55,7 @@ vec3 fbm(vec3 pos) {
 vec3 GetWavingOffset() {
     float range = (mc_Entity.x == 10002.0 || mc_Entity.x == 10004.0) ? 0.01 : 0.06;
 
-    #if MC_VERSION >= 11700
+    #if MC_VERSION >= 11700 && defined IS_OPTIFINE
         vec3 worldPos = vaPosition.xyz + chunkOffset + cameraPosition;
     #else
         // TODO: FIX THIS!!!

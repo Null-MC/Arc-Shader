@@ -57,7 +57,7 @@ const float InvPI = 1.0 / PI;
 const vec3 luma_factor = vec3(0.2126f, 0.7152f, 0.0722f);
 
 
-#if MC_VERSION < 11700
+#if MC_VERSION < 11700 || !defined IS_OPTIFINE
     const float alphaTestRef = 0.1;
     //const vec3 chunkOffset = vec3(0.0);
 #endif
