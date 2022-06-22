@@ -16,12 +16,6 @@
         vec4 specularMap = texture2DLod(colortex2, texcoord, 0);
         vec4 lightingMap = texture2DLod(colortex3, texcoord, 0);
 
-        float blockLight = lightingMap.x - (0.5/16.0) / (15.0/16.0);
-        float skyLight = lightingMap.y - (0.5/16.0) / (15.0/16.0);
-
-        //blockLight *= blockLight;
-        //skyLight *= skyLight;
-
         vec3 clipPos = vec3(texcoord, screenDepth) * 2.0 - 1.0;
         vec4 viewPos = (gbufferProjectionInverse * vec4(clipPos, 1.0));
         viewPos.xyz /= viewPos.w;
@@ -46,6 +40,12 @@
             float LoH = 1.0;
         #endif
 
+        float blockLight = (lightingMap.x - (0.5/16.0)) / (15.0/16.0);
+        float skyLight = (lightingMap.y - (0.5/16.0)) / (15.0/16.0);
+
+        //blockLight *= blockLight;
+        //skyLight *= skyLight;
+
         //vec3 worldViewDir = -normalize(viewPos.xyz);
         float NoV = max(dot(worldNormal, localViewDir), 0.0);
 
@@ -60,7 +60,7 @@
         float rough = 1.0 - material.smoothness;
         float roughL = rough * rough;
 
-        vec3 ambient = minLight + 0.3 * material.albedo.rgb * max(blockLight, skyLight) * material.occlusion;
+        vec3 ambient = material.albedo.rgb * max(blockLight, 0.3 * skyLight) * material.occlusion;
 
         vec3 diffuse = material.albedo.rgb * Diffuse_Burley(NoL, NoV, LoH, roughL) * lightColor;
 
@@ -87,7 +87,9 @@
             vec3 specular = vec3(0.0);
         #endif
 
-        vec3 emissive = material.albedo.rgb * material.emission;
+        ambient += material.albedo.rgb * minLight;
+
+        vec3 emissive = material.albedo.rgb * material.emission * 16.0;
 
         vec3 final = ambient + diffuse + specular + emissive;
 
