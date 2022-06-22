@@ -36,7 +36,7 @@
                 viewTangent.y, viewBinormal.y, viewNormal.y,
                 viewTangent.z, viewBinormal.z, viewNormal.z);
 
-            #ifdef SHADOW_ENABLED
+            #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
                 tanLightPos = viewTBN * shadowLightPosition;
 
                 vec3 lightDir = normalize(shadowLightPosition);

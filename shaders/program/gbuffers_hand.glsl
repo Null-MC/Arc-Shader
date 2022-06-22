@@ -16,7 +16,7 @@ varying vec3 tanViewPos;
     varying vec2 localCoord;
 #endif
 
-#ifdef SHADOW_ENABLED
+#if defined SHADOW_ENABLED && SHADOW_TYPE != 0
     varying vec3 tanLightPos;
 
 	#if SHADOW_TYPE == 3
@@ -25,7 +25,7 @@ varying vec3 tanViewPos;
 		varying vec2 shadowProjectionSizes[4];
         varying float cascadeSizes[4];
         flat varying int shadowCascade;
-	#elif SHADOW_TYPE != 0
+	#else
 		varying vec4 shadowPos;
         varying vec4 shadowParallaxPos;
 	#endif
@@ -63,6 +63,7 @@ varying vec3 tanViewPos;
 			#include "/lib/shadows/csm_render.glsl"
 		#elif SHADOW_TYPE != 0
 			#include "/lib/shadows/basic.glsl"
+            #include "/lib/shadows/basic_render.glsl"
 		#endif
 	#endif
 	
@@ -124,6 +125,7 @@ varying vec3 tanViewPos;
 			uniform mat4 shadowProjection;
 		
 			#include "/lib/shadows/basic.glsl"
+            #include "/lib/shadows/basic_render.glsl"
 		#endif
 	#endif
 

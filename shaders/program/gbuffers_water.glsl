@@ -75,6 +75,7 @@ varying vec3 tanViewPos;
 			#include "/lib/shadows/csm_render.glsl"
 		#elif SHADOW_TYPE != 0
 			#include "/lib/shadows/basic.glsl"
+            #include "/lib/shadows/basic_render.glsl"
 		#endif
 	#endif
 
@@ -116,7 +117,7 @@ varying vec3 tanViewPos;
     uniform vec3 fogColor;
     uniform vec3 skyColor;
 
-	#ifdef SHADOW_ENABLED
+	#if defined SHADOW_ENABLED && SHADOW_TYPE != 0
 		uniform sampler2D shadowcolor0;
         uniform sampler2DShadow shadowtex0;
 		uniform sampler2D shadowtex1;
@@ -145,10 +146,11 @@ varying vec3 tanViewPos;
 		#if SHADOW_TYPE == 3
 			#include "/lib/shadows/csm.glsl"
 			#include "/lib/shadows/csm_render.glsl"
-		#elif SHADOW_TYPE != 0
+		#else
 			uniform mat4 shadowProjection;
 
 			#include "/lib/shadows/basic.glsl"
+            #include "/lib/shadows/basic_render.glsl"
 		#endif
 	#endif
 

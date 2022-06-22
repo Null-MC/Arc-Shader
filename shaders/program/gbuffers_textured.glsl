@@ -11,16 +11,16 @@ varying vec3 viewNormal;
 varying float geoNoL;
 flat varying vec3 worldNormal;
 
-#ifdef SHADOW_ENABLED
+#if defined SHADOW_ENABLED && SHADOW_TYPE != 0
 	#if SHADOW_TYPE == 3
 		varying vec3 shadowPos[4];
         varying vec3 shadowParallaxPos[4];
 		varying vec2 shadowProjectionSizes[4];
         varying float cascadeSizes[4];
         flat varying int shadowCascade;
-	#elif SHADOW_TYPE != 0
+	#else
 		varying vec4 shadowPos;
-        varying vec4 shadowParallaxPos[4];
+        varying vec4 shadowParallaxPos;
 	#endif
 #endif
 
@@ -28,7 +28,7 @@ flat varying vec3 worldNormal;
 	uniform mat4 gbufferModelView;
 	uniform mat4 gbufferModelViewInverse;
 
-	#ifdef SHADOW_ENABLED
+	#if defined SHADOW_ENABLED && SHADOW_TYPE != 0
 		uniform mat4 shadowModelView;
 		uniform mat4 shadowProjection;
 		uniform vec3 shadowLightPosition;
@@ -46,8 +46,9 @@ flat varying vec3 worldNormal;
 
 			#include "/lib/shadows/csm.glsl"
 			#include "/lib/shadows/csm_render.glsl"
-		#elif SHADOW_TYPE != 0
+		#else
 			#include "/lib/shadows/basic.glsl"
+            #include "/lib/shadows/basic_render.glsl"
 		#endif
 	#endif
 
@@ -74,7 +75,7 @@ flat varying vec3 worldNormal;
         uniform float alphaTestRef;
     #endif
 	
-	#ifdef SHADOW_ENABLED
+	#if defined SHADOW_ENABLED && SHADOW_TYPE != 0
 		uniform sampler2D shadowcolor0;
         uniform sampler2DShadow shadowtex0;
 		uniform sampler2D shadowtex1;
@@ -103,10 +104,11 @@ flat varying vec3 worldNormal;
 		#if SHADOW_TYPE == 3
 			#include "/lib/shadows/csm.glsl"
 			#include "/lib/shadows/csm_render.glsl"
-		#elif SHADOW_TYPE != 0
+		#else
 			uniform mat4 shadowProjection;
 		
 			#include "/lib/shadows/basic.glsl"
+            #include "/lib/shadows/basic_render.glsl"
 		#endif
 	#endif
 

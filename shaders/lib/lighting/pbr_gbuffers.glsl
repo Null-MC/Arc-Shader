@@ -49,7 +49,7 @@
         const float minSkylightThreshold = 1.0 / 32.0 + EPSILON;
         shadow = step(minSkylightThreshold, lmcoord.y);
 
-        #ifdef SHADOW_ENABLED
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
             shadow *= step(EPSILON, geoNoL);
 
             vec3 tanLightDir = normalize(tanLightPos);
@@ -59,7 +59,7 @@
             #if SHADOW_TYPE == 3
                 vec3 _shadowPos[4] = shadowPos;
             #else
-                vec3 _shadowPos = shadowPos;
+                vec4 _shadowPos = shadowPos;
             #endif
 
             #if defined PARALLAX_ENABLED && defined PARALLAX_SHADOW_FIX

@@ -71,7 +71,7 @@
 
         vec3 lmValue = vec3(1.0);
         if (shadow > EPSILON) {
-            #ifdef SHADOW_ENABLED
+            #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
                 shadow *= GetShadowing(shadowPos);
 
                 #if SHADOW_COLORS == 1

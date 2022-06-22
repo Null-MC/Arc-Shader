@@ -70,6 +70,7 @@ varying vec3 tanViewPos;
 			#include "/lib/shadows/csm_render.glsl"
 		#elif SHADOW_TYPE != 0
 			#include "/lib/shadows/basic.glsl"
+            #include "/lib/shadows/basic_render.glsl"
 		#endif
 	#endif
 
@@ -131,6 +132,7 @@ varying vec3 tanViewPos;
 			uniform mat4 shadowProjection;
 
 			#include "/lib/shadows/basic.glsl"
+            #include "/lib/shadows/basic_render.glsl"
 		#endif
 	#endif
 

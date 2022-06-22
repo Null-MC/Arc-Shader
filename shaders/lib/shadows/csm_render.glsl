@@ -82,41 +82,40 @@ const float tile_dist_bias_factor = 0.012288;
 	const int pcf_max = 4;
 
     #if !defined SHADOW_ENABLE_HWCOMP || SHADOW_FILTER == 2
-    	float SampleDepth(const in vec3 shadowPos[4], const in vec2 offset, const in int tile) {
+    	float SampleDepth(const in vec2 shadowPos, const in vec2 offset) {
     		//#if SHADOW_COLORS == 0
     		//	return texture2D(shadowtex0, shadowPos[tile].xy + offset).r;
     		//#else
-    			return texture2D(shadowtex1, shadowPos[tile].xy + offset).r;
+    			return texture2D(shadowtex1, shadowPos + offset).r;
     		//#endif
     	}
 
-    	float GetNearestDepth(const in vec3 shadowPos[4], const in vec2 blockOffset, out int tile) {
+    	float GetNearestDepth(const in vec3 shadowPos[4], const in vec2 blockOffset, out int cascade) {
     		float depth = 1.0;
-    		tile = -1;
+    		cascade = -1;
 
     		float shadowResScale = tile_dist_bias_factor * shadowPixelSize;
-    		float texSize = shadowMapSize * 0.5;
+            float cascadeTexSize = shadowMapSize * 0.5;
 
-    		float texDepth;
     		for (int i = 0; i < 4; i++) {
-    			// Ignore if outside tile bounds
+    			// Ignore if outside cascade bounds
     			vec2 shadowTilePos = GetShadowCascadeClipPos(i);
     			if (shadowPos[i].x < shadowTilePos.x || shadowPos[i].x >= shadowTilePos.x + 0.5) continue;
     			if (shadowPos[i].y < shadowTilePos.y || shadowPos[i].y >= shadowTilePos.y + 0.5) continue;
 
-    			vec2 pixelPerBlockScale = (texSize / shadowProjectionSizes[i]) * shadowPixelSize;
+    			vec2 pixelPerBlockScale = (cascadeTexSize / shadowProjectionSizes[i]) * shadowPixelSize;
     			
     			vec2 pixelOffset = blockOffset * pixelPerBlockScale;
-    			texDepth = SampleDepth(shadowPos, pixelOffset, i);
+    			float texDepth = SampleDepth(shadowPos[i].xy, pixelOffset);
 
     			if (i != shadowCascade) {
     				vec2 ratio = (shadowProjectionSizes[shadowCascade] / shadowProjectionSizes[i]) * shadowPixelSize;
 
     				vec4 samples;
-    				samples.x = SampleDepth(shadowPos, pixelOffset + vec2(-1.0, 0.0)*ratio, i);
-    				samples.y = SampleDepth(shadowPos, pixelOffset + vec2( 1.0, 0.0)*ratio, i);
-    				samples.z = SampleDepth(shadowPos, pixelOffset + vec2( 0.0,-1.0)*ratio, i);
-    				samples.w = SampleDepth(shadowPos, pixelOffset + vec2( 0.0, 1.0)*ratio, i);
+    				samples.x = SampleDepth(shadowPos[i].xy, pixelOffset + vec2(-1.0, 0.0)*ratio);
+    				samples.y = SampleDepth(shadowPos[i].xy, pixelOffset + vec2( 1.0, 0.0)*ratio);
+    				samples.z = SampleDepth(shadowPos[i].xy, pixelOffset + vec2( 0.0,-1.0)*ratio);
+    				samples.w = SampleDepth(shadowPos[i].xy, pixelOffset + vec2( 0.0, 1.0)*ratio);
 
     				texDepth = min(texDepth, samples.x);
     				texDepth = min(texDepth, samples.y);
@@ -124,16 +123,22 @@ const float tile_dist_bias_factor = 0.012288;
     				texDepth = min(texDepth, samples.w);
     			}
 
-    			float bias = cascadeSizes[shadowCascade] * shadowResScale * SHADOW_BIAS_SCALE;
+    			//float bias = cascadeSizes[shadowCascade] * shadowResScale * SHADOW_BIAS_SCALE;
     			// TODO: BIAS NEEDS TO BE BASED ON DISTANCE
     			// In theory that should help soften the transition between cascades
 
     			// TESTING: reduce the depth-range for the nearest cascade only
     			//if (i == 0) bias *= 0.5;
 
-    			if (texDepth < shadowPos[i].z - min(bias / geoNoL, 0.1) && texDepth < depth) {
+                float blocksPerPixelScale = max(shadowProjectionSizes[i].x, shadowProjectionSizes[i].y) / cascadeTexSize;
+
+                float zRangeBias = 0.00001;
+                float xySizeBias = blocksPerPixelScale * tile_dist_bias_factor;
+                float bias = mix(xySizeBias, zRangeBias, geoNoL) * SHADOW_BIAS_SCALE;
+
+    			if (texDepth < shadowPos[i].z - bias && texDepth < depth) {
     				depth = texDepth;
-    				tile = i;
+    				cascade = i;
     			}
     		}
 
@@ -213,13 +218,12 @@ const float tile_dist_bias_factor = 0.012288;
         #endif
     #elif SHADOW_FILTER != 0
         float GetShadowing_PCF(const in vec3 shadowPos[4], const in float blockRadius, const in int sampleCount) {
-            int tile;
-            float texDepth;
             float shadow = 0.0;
             for (int i = 0; i < sampleCount; i++) {
+                int cascade;
                 vec2 blockOffset = poissonDisk[i] * blockRadius;
-                float texDepth = GetNearestDepth(shadowPos, blockOffset, tile);
-                shadow += step(texDepth + EPSILON, shadowPos[tile].z);
+                float texDepth = GetNearestDepth(shadowPos, blockOffset, cascade);
+                shadow += step(texDepth + EPSILON, shadowPos[cascade].z);
             }
 
             //if (sampleCount == 1) return shadow;
