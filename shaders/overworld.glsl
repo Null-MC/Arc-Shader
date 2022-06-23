@@ -21,3 +21,5 @@ const bool shadowHardwareFiltering1 = true;
 
 const vec4 shadowcolor0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const vec4 shadowcolor1ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
+
+const float ambientOcclusionLevel = 0.5f;
