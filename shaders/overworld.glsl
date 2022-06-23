@@ -11,11 +11,13 @@ const float shadowPixelSize = 1.0 / shadowMapSize;
 
 //const bool shadowcolor0Nearest = false;
 
-
-// FOR HW FILTERING ONLY
 const bool generateShadowMipmap = false;
-const bool shadowHardwareFiltering0 = true;
 const bool shadowtex0Mipmap = false;
-const bool shadowtex0Nearest = false;
+const bool shadowtex0Nearest = true;
+const bool shadowHardwareFiltering0 = false;
 const bool shadowtex1Mipmap = false;
-const bool shadowtex1Nearest = true;
+const bool shadowtex1Nearest = false;
+const bool shadowHardwareFiltering1 = true;
+
+const vec4 shadowcolor0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
+const vec4 shadowcolor1ClearColor = vec4(0.0, 0.0, 0.0, 0.0);

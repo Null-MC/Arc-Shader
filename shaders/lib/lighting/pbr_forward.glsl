@@ -7,11 +7,6 @@
 
     vec4 PbrLighting() {
         vec2 atlasCoord = texcoord;
-        float blockLight = lmcoord.x - (0.5/16.0) / (15.0/16.0);
-        float skyLight = lmcoord.y - (0.5/16.0) / (15.0/16.0);
-
-        blockLight *= blockLight;
-        skyLight *= skyLight;
 
         #ifdef PARALLAX_ENABLED
             float texDepth = 1.0;
@@ -34,20 +29,37 @@
         PbrMaterial material;
         PopulateMaterial(atlasCoord, material);
 
+        bool isWater = false;
         #ifndef RENDER_WATER
             if (material.albedo.a < alphaTestRef) discard;
+        #else
+            if (materialId == 1) {
+                isWater = true;
+                //material.albedo = vec4(0.2, 0.4, 0.8, 1.0);
+                material.f0 = 0.02;
+                material.smoothness = 0.96;
+                material.normal = vec3(0.0, 0.0, 1.0);
+            }
         #endif
 
         #ifdef PARALLAX_SLOPE_NORMALS
-            float dO = max(texDepth - traceCoordDepth.z, 0.0);
-            if (dO >= 0.95 / 255.0) {
-                #ifdef PARALLAX_USE_TEXELFETCH
-                    material.normal = GetParallaxSlopeNormal(atlasCoord, traceCoordDepth.z, tanViewDir);
-                #else
-                    material.normal = GetParallaxSlopeNormal(atlasCoord, dFdXY, traceCoordDepth.z, tanViewDir);
-                #endif
+            if (!isWater) {
+                float dO = max(texDepth - traceCoordDepth.z, 0.0);
+                if (dO >= 0.95 / 255.0) {
+                    #ifdef PARALLAX_USE_TEXELFETCH
+                        material.normal = GetParallaxSlopeNormal(atlasCoord, traceCoordDepth.z, tanViewDir);
+                    #else
+                        material.normal = GetParallaxSlopeNormal(atlasCoord, dFdXY, traceCoordDepth.z, tanViewDir);
+                    #endif
+                }
             }
         #endif
+        
+        float blockLight = (lmcoord.x - (0.5/16.0)) / (15.0/16.0);
+        float skyLight = (lmcoord.y - (0.5/16.0)) / (15.0/16.0);
+
+        blockLight *= blockLight;
+        skyLight *= skyLight;
 
         float shadow = step(EPSILON, geoNoL) * step(1.0 / 32.0, skyLight);
         vec3 lightColor = skyLightColor;
@@ -69,7 +81,7 @@
             #endif
         #endif
 
-        vec3 lmValue = vec3(1.0);
+        //vec3 lmValue = vec3(1.0);
         if (shadow > EPSILON) {
             #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
                 shadow *= GetShadowing(shadowPos);
@@ -88,22 +100,60 @@
                 skyLight = max(skyLight, shadow);
             #endif
         }
-        //else {
-        //    skyLight = 0.0;
-        //}
 
-        vec4 final = material.albedo;
+        vec3 _viewNormal = normalize(viewNormal);
+        vec3 viewDir = -normalize(viewPos); // vec3(0.0, 0.0, 1.0);
 
-        vec2 ambientLMCoord = vec2(blockLight, skyLight) * (15.0/16.0) + (0.5/16.0);
-        vec3 ambientLM = RGBToLinear(texture2D(lightmap, ambientLMCoord).rgb);
+        #ifdef SHADOW_ENABLED
+            vec3 viewLightDir = normalize(shadowLightPosition);
+            //float NoL = max(dot(_viewNormal, viewLightDir), 0.0);
 
-        // vec2 lmSkyCoord = vec2(0.0, skyLight * (15.0/16.0)) + (0.5/16.0);
-        // vec3 lightSky = RGBToLinear(texture2D(lightmap, lmSkyCoord).rgb);
+            vec3 viewHalfDir = normalize(viewLightDir + viewDir);
+            float LoH = max(dot(viewLightDir, viewHalfDir), 0.0);
+        #else
+            //float NoL = 1.0;
+            float LoH = 1.0;
+        #endif
 
-        vec3 ambient = minLight + 0.3 * ambientLM * material.occlusion;
-        vec3 diffuse = max(NoL, 0.0) * lightColor * shadow;
-        float emissive = material.emission;
-        final.rgb *= (ambient + diffuse + emissive);
+        float NoV = max(dot(_viewNormal, viewDir), 0.0);
+
+        float rough = 1.0 - material.smoothness;
+        float roughL = rough * rough;
+
+        vec3 ambient = material.albedo.rgb * max(blockLight, 0.3 * skyLight) * material.occlusion;
+
+        vec3 diffuse = material.albedo.rgb * Diffuse_Burley(NoL, NoV, LoH, roughL) * lightColor;
+
+        #ifdef SHADOW_ENABLED
+            float NoH = max(dot(_viewNormal, viewHalfDir), 0.0);
+            float VoH = max(dot(viewDir, viewHalfDir), 0.0);
+
+            vec3 specular;
+            if (material.hcm >= 0) {
+                vec3 iorN, iorK;
+                GetHCM_IOR(material.albedo.rgb, material.hcm, iorN, iorK);
+                specular = SpecularConductor_BRDF(iorN, iorK, LoH, NoH, VoH, roughL) * lightColor;
+
+                if (material.hcm < 8)
+                    specular *= material.albedo.rgb;
+
+                ambient *= 0.2;
+                diffuse *= 0.2;
+            }
+            else {
+                specular = Specular_BRDF(material.f0, LoH, NoH, VoH, roughL) * lightColor;
+            }
+        #else
+            vec3 specular = vec3(0.0);
+        #endif
+
+        ambient += material.albedo.rgb * minLight;
+
+        vec3 emissive = material.albedo.rgb * material.emission * 16.0;
+
+        vec4 final;
+        final.rgb = ambient + diffuse + specular + emissive;
+        final.a = material.albedo.a + luminance(specular);
 
         #ifdef RENDER_WATER
             ApplyFog(final, viewPos, EPSILON);

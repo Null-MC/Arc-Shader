@@ -76,22 +76,23 @@ flat varying vec3 worldNormal;
     #endif
 	
 	#if defined SHADOW_ENABLED && SHADOW_TYPE != 0
-		uniform sampler2D shadowcolor0;
-        uniform sampler2DShadow shadowtex0;
-		uniform sampler2D shadowtex1;
+        uniform sampler2D shadowcolor0;
+        uniform sampler2D shadowtex0;
 
-        // #ifdef SHADOW_ENABLE_HWCOMP
-        //     #if SHADOW_FILTER == 2
-        //         uniform sampler2DShadow shadow;
-        //         uniform sampler2D shadowtex0;
-        //     #else
-        //         uniform sampler2DShadow shadowtex0;
-        //     #endif
-        // #else
-        //     uniform sampler2D shadowtex0;
-        // #endif
+        #ifdef SHADOW_ENABLE_HWCOMP
+            #ifndef IS_OPTIFINE
+                uniform sampler2DShadow shadowtex1HW;
+                uniform sampler2D shadowtex1;
+            #else
+                uniform sampler2DShadow shadowtex1;
+            #endif
+        #else
+            uniform sampler2D shadowtex1;
+        #endif
 		
 		uniform vec3 shadowLightPosition;
+        uniform float near;
+        uniform float far;
 
 		#if SHADOW_PCF_SAMPLES == 12
 			#include "/lib/shadows/poisson_12.glsl"

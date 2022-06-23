@@ -93,7 +93,10 @@
 
         vec3 final = ambient + diffuse + specular + emissive;
 
-        ApplyFog(final, viewPos.xyz);
+        #ifdef IS_OPTIFINE
+            // Iris doesn't currently support fog in deferred
+            ApplyFog(final, viewPos.xyz);
+        #endif
 
         return final;
     }

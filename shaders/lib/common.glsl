@@ -1,4 +1,4 @@
-#define SHADOW_TYPE 0 // [0 1 2 3]
+#define SHADOW_TYPE 2 // [0 1 2 3]
 #define IS_OPTIFINE
 
 // Shadow Options
@@ -46,7 +46,7 @@
 //#define PARALLAX_USE_TEXELFETCH
 //#define PARALLAX_SHADOW_FIX
 #define PARALLAX_SOFTSHADOW_FACTOR 1.0
-#define LOD_TINT_FACTOR 0.4
+//#define LOD_TINT_FACTOR 0.4
 #define CSM_PLAYER_ID 0
 
 #define PI 3.1415926538

@@ -18,47 +18,52 @@
 
 			shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
 
-            // TODO: Get shadow position with max parallax offset
-            shadowParallaxPos = shadowPos;
+            #if defined PARALLAX_ENABLED && !defined RENDER_SHADOW && defined PARALLAX_SHADOW_FIX
+                // TODO: Get shadow position with max parallax offset
+                shadowParallaxPos = (matShadowProjections * vec4(parallaxShadowViewPos, 1.0)).xyz;
+                shadowParallaxPos.xyz = shadowParallaxPos.xyz * 0.5 + 0.5;
+            #endif
 		}
-		// else {
-		// 	#ifdef RENDER_TEXTURED
-		// 		shadowPos = vec3(0.0);
-		// 	#else
-		// 		shadowPos = vec4(0.0);
-		// 	#endif
-		// }
 	}
 #endif
 
 #ifdef RENDER_FRAG
-	#if SHADOW_COLORS == 1
-		vec3 GetShadowColor() {
-			//when colored shadows are enabled and there's nothing OPAQUE between us and the sun,
-			//perform a 2nd check to see if there's anything translucent between us and the sun.
-			if (texture2D(shadowtex0, shadowPos.xy).r >= shadowPos.z) return vec3(1.0);
+	// #if SHADOW_COLORS == 1
+	// 	vec3 GetShadowColor() {
+	// 		//when colored shadows are enabled and there's nothing OPAQUE between us and the sun,
+	// 		//perform a 2nd check to see if there's anything translucent between us and the sun.
+	// 		if (texture2D(shadowtex0, shadowPos.xy).r >= shadowPos.z) return vec3(1.0);
 
-			//surface has translucent object between it and the sun. modify its color.
-			//if the block light is high, modify the color less.
-			vec4 shadowLightColor = texture2D(shadowcolor0, shadowPos.xy);
-			vec3 color = RGBToLinear(shadowLightColor.rgb);
+	// 		//surface has translucent object between it and the sun. modify its color.
+	// 		//if the block light is high, modify the color less.
+	// 		vec4 shadowLightColor = texture2D(shadowcolor0, shadowPos.xy);
+	// 		vec3 color = RGBToLinear(shadowLightColor.rgb);
 
-			//make colors more intense when the shadow light color is more opaque.
-			return mix(vec3(1.0), color, shadowLightColor.a);
-		}
-	#endif
+	// 		//make colors more intense when the shadow light color is more opaque.
+	// 		return mix(vec3(1.0), color, shadowLightColor.a);
+	// 	}
+	// #endif
 
-    #if !defined SHADOW_ENABLE_HWCOMP || SHADOW_FILTER == 2
-    	float SampleDepth(const in vec4 shadowPos, const in vec2 offset) {
+    // float GetShadowSSS() {
+    //     return texture2D(shadowcolor0, shadowPos.xy).r;
+    // }
+
+	float SampleDepth(const in vec4 shadowPos, const in vec2 offset) {
+        #if !defined IS_OPTIFINE && defined SHADOW_ENABLE_HWCOMP
             return texture2D(shadowtex1, shadowPos.xy + offset * shadowPos.w).r;
-    	}
-    #endif
+        #else
+            return texture2D(shadowtex0, shadowPos.xy + offset * shadowPos.w).r;
+        #endif
+	}
 
     #ifdef SHADOW_ENABLE_HWCOMP
         // returns: [0] when depth occluded, [1] otherwise
         float CompareDepth(const in vec4 shadowPos, const in vec2 offset) {
-            return shadow2D(shadowtex0, shadowPos.xyz + vec3(offset * shadowPos.w, 0.0)).r;
-            //return shadow2DProj(shadowtex0, shadowPos + vec4(offset * shadowPos.w, 0.0, 0.0)).r;
+            #ifndef IS_OPTIFINE
+                return shadow2D(shadowtex1HW, shadowPos.xyz + vec3(offset * shadowPos.w, 0.0)).r;
+            #else
+                return shadow2D(shadowtex1, shadowPos.xyz + vec3(offset * shadowPos.w, 0.0)).r;
+            #endif
         }
 
         #if SHADOW_FILTER != 0
@@ -85,16 +90,6 @@
                 }
 
                 return shadow / sampleCount;
-
-                // if (sampleCount <= 1) return shadow;
-
-                // #if SHADOW_FILTER == 1
-                //     float f = 1.0 - max(geoNoL, 0.0);
-                //     f = clamp(shadow / sampleCount - 0.7*f, 0.0, 1.0) * (1.0 + (1.0/0.3) * f);
-                //     return clamp(f, 0.0, 1.0);
-                // #else
-                //     return expStep(shadow / sampleCount);
-                // #endif
             }
         #endif
     #endif
@@ -119,21 +114,20 @@
 
 	#if SHADOW_FILTER == 2
 		// PCF + PCSS
-		//#define PCSS_NEAR 1.0
 		#define SHADOW_BLOCKER_SAMPLES 12
 		//#define SHADOW_LIGHT_SIZE 0.0002
 
 		float FindBlockerDistance(const in vec4 shadowPos, const in vec2 pixelRadius, const in int sampleCount) {
 			//float radius = SearchWidth(uvLightSize, shadowPos.z);
 			//float radius = 6.0; //SHADOW_LIGHT_SIZE * (shadowPos.z - PCSS_NEAR) / shadowPos.z;
-			float avgBlockerDistance = 0;
+			float avgBlockerDistance = 0.0;
 			int blockers = 0;
 
 			for (int i = 0; i < sampleCount; i++) {
 				vec2 pixelOffset = poissonDisk[i] * pixelRadius;
 				float texDepth = SampleDepth(shadowPos, pixelOffset);
 
-				if (texDepth < shadowPos.z) { // - directionalLightShadowMapBias
+				if (texDepth < shadowPos.z) {
 					avgBlockerDistance += texDepth;
 					blockers++;
 				}
@@ -172,10 +166,30 @@
 		}
 	#elif SHADOW_FILTER == 0
 		// Unfiltered
+        // float linearizeDepth(float depth, float near, float far) {
+        //     // Convert depth back to NDC depth
+        //     depth = depth * 2 - 1;
+        //     return 2 * far * near / (far + near - depth * (far - near));
+        // }
+
+        // float linearizeDepthFast(float depth, float near, float far) {
+        //     return (near * far) / (depth * (near - far) + far);
+        // }
+
 		float GetShadowing(const in vec4 shadowPos) {
             #ifdef SHADOW_ENABLE_HWCOMP
                 return CompareDepth(shadowPos, vec2(0.0));
             #else
+                // float texDepth = SampleDepth(shadowPos, vec2(0.0));
+                // float shadowDepth = linearizeDepth(shadowPos.z, near, far);
+                // texDepth = linearizeDepth(texDepth, near, far * 2.0);
+
+                // float sss = GetShadowSSS();
+
+                // float lit = step(shadowDepth, texDepth);
+                // float lit_sss = step(shadowDepth, texDepth + 0.0008 * sss);
+                // return mix(lit, lit_sss, 0.6 * sss);
+
                 float texDepth = SampleDepth(shadowPos, vec2(0.0));
                 return step(shadowPos.z, texDepth);
             #endif

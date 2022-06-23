@@ -10,6 +10,7 @@ varying vec3 viewNormal;
 varying float geoNoL;
 varying mat3 matTBN;
 varying vec3 tanViewPos;
+flat varying int materialId;
 
 #ifdef PARALLAX_ENABLED
     varying mat2 atlasBounds;
@@ -96,6 +97,11 @@ varying vec3 tanViewPos;
         PbrVertex(matViewTBN);
 
         skyLightColor = GetSkyLightColor();
+
+        if (mc_Entity.x == 100.0)
+            materialId = 1;
+        else
+            materialId = 0;
 	}
 #endif
 
@@ -106,10 +112,6 @@ varying vec3 tanViewPos;
 	uniform sampler2D lightmap;
     uniform sampler2D gcolor;
 
-    // #if MC_VERSION >= 11700
-    //     uniform float alphaTestRef;
-    // #endif
-
     uniform int fogMode;
     uniform float fogStart;
     uniform float fogEnd;
@@ -119,21 +121,18 @@ varying vec3 tanViewPos;
 
 	#if defined SHADOW_ENABLED && SHADOW_TYPE != 0
 		uniform sampler2D shadowcolor0;
-        uniform sampler2DShadow shadowtex0;
-		uniform sampler2D shadowtex1;
+        uniform sampler2D shadowtex0;
 
-        // #ifdef SHADOW_ENABLE_HWCOMP
-        //     #if SHADOW_FILTER == 2
-        //         uniform sampler2DShadow shadow;
-        //         uniform sampler2D shadowtex0;
-        //     #else
-        //         uniform sampler2DShadow shadowtex0;
-        //     #endif
-        // #else
-        //     uniform sampler2D shadowtex0;
-        // #endif
+        #if !defined IS_OPTIFINE && defined SHADOW_ENABLE_HWCOMP
+            uniform sampler2DShadow shadowtex1HW;
+            uniform sampler2D shadowtex1;
+        #else
+            uniform sampler2DShadow shadowtex1;
+        #endif
 		
 		uniform vec3 shadowLightPosition;
+        uniform float near;
+        uniform float far;
 
 		#if SHADOW_PCF_SAMPLES == 12
 			#include "/lib/shadows/poisson_12.glsl"
@@ -164,13 +163,24 @@ varying vec3 tanViewPos;
     #include "/lib/lighting/material.glsl"
     #include "/lib/lighting/material_reader.glsl"
 	//#include "/lib/lighting/basic_forward.glsl"
+    #include "/lib/lighting/hcm.glsl"
+    #include "/lib/lighting/pbr.glsl"
     #include "/lib/lighting/pbr_forward.glsl"
 
 
+    // vec4 PbrWater() {
+    //     return vec4();
+    // }
+
 	void main() {
-        //float shadow;
-        //vec4 colorMap, normalMap, specularMap, lightMap;
-        //mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
+        //vec4 final;
+        //if (mc_Entity.x == 100.0) {
+            // Water
+            //final = PbrWater();
+        //}
+        // else {
+        //     final = PbrLighting();
+        // }
 
         vec4 final = PbrLighting();
 

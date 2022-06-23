@@ -5,6 +5,8 @@
 /*
 const int shadowtex0Format = R32F;
 const int shadowtex1Format = R32F;
+const int shadowcolor0Format = R8;
+const int shadowcolor1Format = R8;
 */
 
 const float shadowDistanceRenderMul = 1.0;
@@ -127,8 +129,9 @@ varying vec4 glcolor;
 #endif
 
 #ifdef RENDER_FRAG
-	uniform sampler2D lightmap;
+	//uniform sampler2D lightmap;
 	uniform sampler2D texture;
+    uniform sampler2D specular;
 
 
 	void main() {
@@ -138,8 +141,10 @@ varying vec4 glcolor;
              || screenCascadePos.y < 0 || screenCascadePos.y >= 0.5) discard;
 		#endif
 
-		vec4 color = texture2D(texture, texcoord) * glcolor;
+		float colorMapA = texture2D(texture, texcoord).a * glcolor.a;
+        float specularMapB = texture2D(specular, texcoord).b;
+        float sss = max(specularMapB - 0.25, 0.0) * (1.0 / 0.75);
 
-		gl_FragData[0] = color;
+		gl_FragData[0] = vec4(sss, 0.0, 0.0, colorMapA);
 	}
 #endif
