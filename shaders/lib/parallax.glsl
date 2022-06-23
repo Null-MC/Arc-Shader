@@ -16,30 +16,61 @@ vec2 GetLocalCoord(const in vec2 atlasCoord) {
     vec2 stepCoord = tanViewDir.xy * PARALLAX_DEPTH / (1.0 + tanViewDir.z * PARALLAX_SAMPLES);
     float stepDepth = 1.0 / PARALLAX_SAMPLES;
 
+    #ifdef PARALLAX_SMOOTH
+        vec2 atlasPixelSize = 1.0 / atlasSize;
+        float prevTexDepth = 1.0;
+    #endif
+
     int i;
     //int sampleCount = PARALLAX_SAMPLES;
     texDepth = 1.0;
     for (i = 0; i <= PARALLAX_SAMPLES; i++) {
         vec2 traceAtlasCoord = GetAtlasCoord(localCoord - i * stepCoord);
 
-        #ifdef PARALLAX_USE_TEXELFETCH
-            texDepth = texelFetch(normals, ivec2(traceAtlasCoord * atlasSize), 0).a;
+        #ifdef PARALLAX_SMOOTH
+            texDepth = SampleLinear(normals, traceAtlasCoord, atlasPixelSize, 3);
         #else
-            texDepth = texture2DGrad(normals, traceAtlasCoord, dFdXY[0], dFdXY[1]).a;
+            #ifdef PARALLAX_USE_TEXELFETCH
+                texDepth = texelFetch(normals, ivec2(traceAtlasCoord * atlasSize), 0).a;
+            #else
+                texDepth = texture2DGrad(normals, traceAtlasCoord, dFdXY[0], dFdXY[1]).a;
+            #endif
         #endif
 
         if (texDepth >= 1.0 - i * stepDepth) break;
         //sampleCount *= int(step(texDepth, 1.0 - i * stepDepth));
+
+        #ifdef PARALLAX_SMOOTH
+            prevTexDepth = texDepth;
+        #endif
     }
 
-    //i -= 1;
-
     int pI = max(i - 1, 0);
-    traceDepth.xy = localCoord - pI * stepCoord;
-    traceDepth.z = 1.0 - pI * stepDepth;
+    //traceDepth.xy = localCoord - pI * stepCoord;
+    //traceDepth.z = 1.0 - pI * stepDepth;
+
+    #ifdef PARALLAX_SMOOTH
+        vec2 currentTraceOffset = localCoord - i * stepCoord;
+        float currentTraceDepth = 1.0 - i * stepDepth;
+        vec2 prevTraceOffset = localCoord - pI * stepCoord;
+        float prevTraceDepth = 1.0 - pI * stepDepth;
+
+        float t = (prevTraceDepth - prevTexDepth) / max(texDepth - prevTexDepth + prevTraceDepth - currentTraceDepth, EPSILON);
+        traceDepth.xy = mix(prevTraceOffset, currentTraceOffset, t);
+        traceDepth.z = mix(prevTraceDepth, currentTraceDepth, t);
+    #else
+        // shadow_tex.xy = prevTraceOffset;
+        // shadow_tex.z = prevTraceDepth;
+        traceDepth.xy = localCoord - pI * stepCoord;
+        traceDepth.z = 1.0 - pI * stepDepth;
+    #endif
 
     //return GetAtlasCoord(localCoord - i * stepCoord);
-    return i == 0 ? texcoord : GetAtlasCoord(localCoord - i * stepCoord);
+    #ifdef PARALLAX_SMOOTH
+        return i == 0 ? texcoord : GetAtlasCoord(traceDepth.xy);
+    #else
+        return i == 0 ? texcoord : GetAtlasCoord(localCoord - i * stepCoord);
+    #endif
 }
 
 #ifdef PARALLAX_USE_TEXELFETCH
@@ -52,16 +83,28 @@ vec2 GetLocalCoord(const in vec2 atlasCoord) {
 
     float skip = floor(traceTex.z * PARALLAX_SHADOW_SAMPLES + 0.5) / PARALLAX_SHADOW_SAMPLES;
 
+    #ifdef PARALLAX_SMOOTH
+        vec2 atlasPixelSize = 1.0 / atlasSize;
+    #endif
+
     int i;
     float shadow = 1.0;
     for (i = 1; i + skip < PARALLAX_SHADOW_SAMPLES && shadow > 0.001; i++) {
         float traceDepth = traceTex.z + i * stepDepth;
         vec2 atlasCoord = GetAtlasCoord(traceTex.xy + i * stepCoord);
 
-        #ifdef PARALLAX_USE_TEXELFETCH
-            float texDepth = texelFetch(normals, ivec2(atlasCoord * atlasSize), 0).a;
+        #ifdef PARALLAX_SMOOTH
+            float texDepth = SampleLinear(normals, atlasCoord, atlasPixelSize, 3);
         #else
-            float texDepth = texture2DGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).a;
+            #ifdef PARALLAX_USE_TEXELFETCH
+                float texDepth = texelFetch(normals, ivec2(atlasCoord * atlasSize), 0).a;
+            #else
+                float texDepth = texture2DGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).a;
+            #endif
+        #endif
+
+        #ifdef PARALLAX_USE_TEXELFETCH
+        #else
         #endif
 
         #ifdef PARALLAX_SOFTSHADOW

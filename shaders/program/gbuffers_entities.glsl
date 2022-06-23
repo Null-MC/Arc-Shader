@@ -133,6 +133,10 @@ varying vec3 tanViewPos;
     #ifdef PARALLAX_ENABLED
         uniform ivec2 atlasSize;
 
+        #ifdef PARALLAX_SMOOTH
+            #include "/lib/linearSampler.glsl"
+        #endif
+
         #include "/lib/parallax.glsl"
     #endif
 

@@ -29,7 +29,12 @@
             if (colorMap.a < alphaTestRef) discard;
         #endif
 
-        normalMap.xyw = texture2DGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).rgb;
+        #ifdef PARALLAX_SMOOTH
+            normalMap.xyw = SampleLinearRGB(normals, atlasCoord, 1.0 / atlasSize);
+        #else
+            normalMap.xyw = texture2DGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).rgb;
+        #endif
+
         specularMap = texture2DGrad(specular, atlasCoord, dFdXY[0], dFdXY[1]);
 
         normalMap.xy = normalMap.xy * 2.0 - 1.0;

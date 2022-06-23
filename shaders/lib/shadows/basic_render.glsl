@@ -133,6 +133,7 @@
 				}
 			}
 
+            if (blockers == sampleCount) return 1.0;
 			return blockers > 0 ? avgBlockerDistance / blockers : -1.0;
 		}
 
@@ -144,12 +145,13 @@
 			if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) blockerSampleCount = 1;
 			float blockerDistance = FindBlockerDistance(shadowPos, pixelRadius, blockerSampleCount);
 			if (blockerDistance < 0.0) return 1.0;
+            if (blockerDistance == 1.0) return 0.0;
 
 			// penumbra estimation
 			float penumbraWidth = (shadowPos.z - blockerDistance) / blockerDistance;
 
 			// percentage-close filtering
-			pixelRadius *= min(penumbraWidth * 40.0, 1.0); // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
+			pixelRadius *= min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0); // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
 
 			int pcfSampleCount = POISSON_SAMPLES;
 			if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) pcfSampleCount = 1;

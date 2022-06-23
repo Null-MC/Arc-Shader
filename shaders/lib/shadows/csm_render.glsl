@@ -122,7 +122,7 @@ const float tile_dist_bias_factor = 0.012288;
     float GetCascadeBias(const in int cascade) {
         float blocksPerPixelScale = max(shadowProjectionSizes[cascade].x, shadowProjectionSizes[cascade].y) / cascadeTexSize;
 
-        #if SHADOW_FILTER != 0
+        #if SHADOW_FILTER == 1
             float zRangeBias = 0.00004;
             float xySizeBias = blocksPerPixelScale * tile_dist_bias_factor * 4.0;
         #else
@@ -247,6 +247,7 @@ const float tile_dist_bias_factor = 0.012288;
 				}
 			}
 
+            if (blockers == sampleCount) return 1.0;
 			return blockers > 0 ? avgBlockerDistance / blockers : -1.0;
 		}
 
@@ -255,12 +256,13 @@ const float tile_dist_bias_factor = 0.012288;
 			int blockerSampleCount = SHADOW_BLOCKER_SAMPLES;
 			float blockerDistance = FindBlockerDistance(shadowPos, SHADOW_PCF_SIZE, blockerSampleCount);
 			if (blockerDistance <= 0.0) return 1.0;
+            if (blockerDistance == 1.0) return 0.0;
 
 			// penumbra estimation
 			float penumbraWidth = (shadowPos[shadowCascade].z - blockerDistance) / blockerDistance;
 
 			// percentage-close filtering
-			float blockRadius = clamp(penumbraWidth * 75.0, 0.0, 1.0) * SHADOW_PCF_SIZE; // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
+			float blockRadius = min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0) * SHADOW_PCF_SIZE; // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
 
             int pcfSampleCount = POISSON_SAMPLES;
 			vec2 pixelRadius = GetPixelRadius(vec2(blockRadius));
