@@ -1,6 +1,8 @@
 #ifdef RENDER_VERTEX
 	void ApplyShadows(const in vec3 viewPos) {
-		if (geoNoL > 0.0) {
+        #ifndef SSS_ENABLED
+    		if (geoNoL > 0.0) {
+        #endif
 			vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
 
 			shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
@@ -23,7 +25,9 @@
                 shadowParallaxPos = (matShadowProjections * vec4(parallaxShadowViewPos, 1.0)).xyz;
                 shadowParallaxPos.xyz = shadowParallaxPos.xyz * 0.5 + 0.5;
             #endif
-		}
+        #ifndef SSS_ENABLED
+    		}
+        #endif
 	}
 #endif
 
@@ -44,9 +48,11 @@
 	// 	}
 	// #endif
 
-    // float GetShadowSSS() {
-    //     return texture2D(shadowcolor0, shadowPos.xy).r;
-    // }
+    #ifdef SSS_ENABLED
+        float SampleShadowSSS(const in vec2 shadowPos) {
+            return texture2D(shadowcolor0, shadowPos).r;
+        }
+    #endif
 
 	float SampleDepth(const in vec4 shadowPos, const in vec2 offset) {
         #if !defined IS_OPTIFINE && defined SHADOW_ENABLE_HWCOMP
@@ -167,33 +173,43 @@
 			return 1.0 - GetShadowing_PCF(shadowPos, pixelRadius, sampleCount);
 		}
 	#elif SHADOW_FILTER == 0
-		// Unfiltered
-        // float linearizeDepth(float depth, float near, float far) {
-        //     // Convert depth back to NDC depth
-        //     depth = depth * 2 - 1;
-        //     return 2 * far * near / (far + near - depth * (far - near));
-        // }
-
-        // float linearizeDepthFast(float depth, float near, float far) {
-        //     return (near * far) / (depth * (near - far) + far);
-        // }
-
-		float GetShadowing(const in vec4 shadowPos) {
+        // Unfiltered
+		float GetShadowing(const in vec4 shadowPos, out float lightSSS) {
             #ifdef SHADOW_ENABLE_HWCOMP
+                lightSSS = 0.0;
+                #ifdef SSS_ENABLED
+                    float shadow_sss = SampleShadowSSS(shadowPos.xy);
+                    if (shadow_sss > EPSILON) {
+                        //float texDepth = SampleDepth(shadowPos, vec2(0.0));
+                        //float texDepthL = linearizeDepth(texDepth, near, far);
+                        //float shadowDepthL = linearizeDepth(shadowPos.z, near, far);
+                        //lightSSS = step(shadowDepthL - 0.002 * shadow_sss, texDepthL);
+
+                        vec4 p = shadowPos;
+                        p.z /= p.w;
+                        p.z = linearizeDepthFast(p.z, near, far * 2.0);
+                        p.z -= 0.2 * shadow_sss;
+                        p.z = delinearizeDepthFast(p.z, near, far * 2.0);
+                        p.z *= p.w;
+
+                        lightSSS = CompareDepth(p, vec2(0.0));
+                    }
+                #endif
+
                 return CompareDepth(shadowPos, vec2(0.0));
             #else
-                // float texDepth = SampleDepth(shadowPos, vec2(0.0));
-                // float shadowDepth = linearizeDepth(shadowPos.z, near, far);
-                // texDepth = linearizeDepth(texDepth, near, far * 2.0);
-
-                // float sss = GetShadowSSS();
-
-                // float lit = step(shadowDepth, texDepth);
-                // float lit_sss = step(shadowDepth, texDepth + 0.0008 * sss);
-                // return mix(lit, lit_sss, 0.6 * sss);
-
                 float texDepth = SampleDepth(shadowPos, vec2(0.0));
-                return step(shadowPos.z, texDepth);
+
+                #ifdef SSS_ENABLED
+                    float shadow_sss = SampleShadowSSS(shadowPos.xy);
+                    float texDepthL = linearizeDepth(texDepth, near, far);
+                    float shadowDepthL = linearizeDepth(shadowPos.z, near, far);
+                    lightSSS = step(shadowDepthL - 0.002 * shadow_sss, texDepthL);
+                #else
+                    lightSSS = 0.0;
+                #endif
+
+                return step(shadowPos.z - EPSILON, texDepth);
             #endif
 		}
 	#endif

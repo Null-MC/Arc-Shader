@@ -55,12 +55,6 @@
         shadow = step(minSkylightThreshold, lmcoord.y);
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
-            shadow *= step(EPSILON, geoNoL);
-
-            vec3 tanLightDir = normalize(tanLightPos);
-            float NoL = dot(normalMap.xyz, tanLightDir);
-            shadow *= step(EPSILON, NoL);
-
             #if SHADOW_TYPE == 3
                 vec3 _shadowPos[4] = shadowPos;
             #else
@@ -86,9 +80,41 @@
                 #endif
             #endif
 
-            #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
+            //shadow *= step(EPSILON, geoNoL);
+
+            vec3 tanLightDir = normalize(tanLightPos);
+            float NoL = dot(normalMap.xyz, tanLightDir);
+            //shadow *= step(EPSILON, NoL);
+
+            float lightSSS = 0.0;
+            #ifdef SSS_ENABLED
+                float materialSSS = GetLabPbr_SSS(specularMap.b);
+                //colorMap.rgb = vec3(materialSSS);
+                //return;
+
+                //if (materialSSS < EPSILON) {
+                //    shadow *= step(EPSILON, geoNoL);
+                //    shadow *= step(EPSILON, NoL);
+                //}
+
+                shadow *= step(EPSILON, geoNoL);
+                shadow *= step(EPSILON, NoL);
+
+                if (shadow > EPSILON || materialSSS > EPSILON) {
+                    shadow *= GetShadowing(_shadowPos, lightSSS);
+
+                    shadow = max(shadow, materialSSS * lightSSS);
+                }
+
+                //colorMap.rgb = vec3(materialSSS * lightSSS);
+                //shadow = 1.0;
+                //return;
+            #else
+                shadow *= step(EPSILON, geoNoL);
+                shadow *= step(EPSILON, NoL);
+
                 if (shadow > EPSILON) {
-                    shadow *= GetShadowing(_shadowPos);
+                    shadow *= GetShadowing(_shadowPos, lightSSS);
 
                     // #if SHADOW_COLORS == 1
                     //     vec3 shadowColor = GetShadowColor();
@@ -115,7 +141,7 @@
         #endif
         
         #ifdef RENDER_WATER
-            // TODO: blend in deferred output
+            // TODO: blend in deferred output?
         #endif
 
         colorMap.a = 1.0;

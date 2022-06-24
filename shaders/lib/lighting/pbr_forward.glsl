@@ -58,8 +58,8 @@
         float blockLight = (lmcoord.x - (0.5/16.0)) / (15.0/16.0);
         float skyLight = (lmcoord.y - (0.5/16.0)) / (15.0/16.0);
 
-        blockLight *= blockLight;
-        skyLight *= skyLight;
+        blockLight = blockLight*blockLight*blockLight;
+        skyLight = skyLight*skyLight*skyLight;
 
         float shadow = step(EPSILON, geoNoL) * step(1.0 / 32.0, skyLight);
         vec3 lightColor = skyLightColor;
@@ -84,7 +84,8 @@
         //vec3 lmValue = vec3(1.0);
         if (shadow > EPSILON) {
             #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
-                shadow *= GetShadowing(shadowPos);
+                float lightSSS;
+                shadow *= GetShadowing(shadowPos, lightSSS);
 
                 #if SHADOW_COLORS == 1
                     vec3 shadowColor = GetShadowColor();
@@ -103,6 +104,8 @@
 
         vec3 _viewNormal = normalize(viewNormal);
         vec3 viewDir = -normalize(viewPos); // vec3(0.0, 0.0, 1.0);
+
+        lightColor *= shadow;
 
         #ifdef SHADOW_ENABLED
             vec3 viewLightDir = normalize(shadowLightPosition);

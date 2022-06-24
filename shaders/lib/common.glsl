@@ -19,6 +19,7 @@
 
 // World Options
 #define ENABLE_WAVING
+//#define SSS_ENABLED
 
 
 // Parallax Options
@@ -83,6 +84,7 @@ const vec3 luma_factor = vec3(0.2126f, 0.7152f, 0.0722f);
 // #endif
 
 #ifndef PARALLAX_ENABLED
+    #undef PARALLAX_SMOOTH
     #undef PARALLAX_SLOPE_NORMALS
     #undef PARALLAX_SHADOWS_ENABLED
 #endif

@@ -102,6 +102,8 @@ flat varying vec3 worldNormal;
 			#include "/lib/shadows/poisson_36.glsl"
 		#endif
 
+        #include "/lib/depth.glsl"
+
 		#if SHADOW_TYPE == 3
 			#include "/lib/shadows/csm.glsl"
 			#include "/lib/shadows/csm_render.glsl"

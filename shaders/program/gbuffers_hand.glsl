@@ -118,6 +118,8 @@ varying vec3 tanViewPos;
 		#elif SHADOW_PCF_SAMPLES == 36
 			#include "/lib/shadows/poisson_36.glsl"
 		#endif
+
+        #include "/lib/depth.glsl"
 		
 		#if SHADOW_TYPE == 3
 			#include "/lib/shadows/csm.glsl"
@@ -140,6 +142,7 @@ varying vec3 tanViewPos;
         #include "/lib/parallax.glsl"
     #endif
 
+    #include "/lib/lighting/material_reader.glsl"
 	#include "/lib/lighting/basic_gbuffers.glsl"
     #include "/lib/lighting/pbr_gbuffers.glsl"
 

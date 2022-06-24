@@ -10,7 +10,8 @@
         vec3 colorMap = texture2DLod(colortex0, texcoord, 0).rgb;
         float screenDepth = texture2DLod(depthtex0, texcoord, 0).r;
 
-        if (screenDepth + EPSILON >= 1.0) discard; // SKY
+        if (screenDepth == 1.0) // SKY
+            return RGBToLinear(colorMap);
 
         vec4 normalMap = texture2DLod(colortex1, texcoord, 0);
         vec4 specularMap = texture2DLod(colortex2, texcoord, 0);
@@ -20,8 +21,8 @@
         vec4 viewPos = (gbufferProjectionInverse * vec4(clipPos, 1.0));
         viewPos.xyz /= viewPos.w;
 
-        //float shadow = lightingMap.z;
-        vec3 lightColor = skyLightColor * lightingMap.z;
+        float shadow = lightingMap.z;
+        vec3 lightColor = 2.0 * skyLightColor * shadow;
 
         PbrMaterial material = PopulateMaterial(colorMap, normalMap, specularMap);
         vec3 worldNormal = normalize(material.normal);
@@ -43,8 +44,8 @@
         float blockLight = (lightingMap.x - (0.5/16.0)) / (15.0/16.0);
         float skyLight = (lightingMap.y - (0.5/16.0)) / (15.0/16.0);
 
-        //blockLight *= blockLight;
-        //skyLight *= skyLight;
+        blockLight = blockLight*blockLight*blockLight;
+        skyLight = skyLight*skyLight*skyLight;
 
         //vec3 worldViewDir = -normalize(viewPos.xyz);
         float NoV = max(dot(worldNormal, localViewDir), 0.0);
@@ -60,7 +61,7 @@
         float rough = 1.0 - material.smoothness;
         float roughL = rough * rough;
 
-        vec3 ambient = material.albedo.rgb * max(blockLight, 0.3 * skyLight) * material.occlusion;
+        vec3 ambient = material.albedo.rgb * max(blockLight, SHADOW_BRIGHTNESS * skyLight) * material.occlusion;
 
         vec3 diffuse = material.albedo.rgb * Diffuse_Burley(NoL, NoV, LoH, roughL) * lightColor;
 
@@ -83,6 +84,8 @@
             else {
                 specular = Specular_BRDF(material.f0, LoH, NoH, VoH, roughL) * lightColor;
             }
+
+            specular *= NoL * shadow*shadow;
         #else
             vec3 specular = vec3(0.0);
         #endif
@@ -98,6 +101,8 @@
             ApplyFog(final, viewPos.xyz);
         #endif
 
+        //return material.albedo.rgb;
+        //return vec3(lightingMap.z);
         return final;
     }
 #endif

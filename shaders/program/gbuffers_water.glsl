@@ -49,14 +49,11 @@ flat varying int materialId;
 
 	uniform mat4 gbufferModelView;
 	uniform mat4 gbufferModelViewInverse;
-	//uniform float frameTimeCounter;
 	uniform vec3 cameraPosition;
 
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
     	uniform vec3 chunkOffset;
     #endif
-
-	//#include "/lib/waving.glsl"
 
 	#ifdef SHADOW_ENABLED
 		uniform mat4 shadowModelView;
@@ -81,8 +78,6 @@ flat varying int materialId;
 	#endif
 
     #include "/lib/lighting/sky.glsl"
-	//#include "/lib/lighting/basic_forward.glsl"
-    //#include "/lib/lighting/pbr_forward.glsl"
     #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/pbr.glsl"
 
@@ -142,6 +137,8 @@ flat varying int materialId;
 			#include "/lib/shadows/poisson_36.glsl"
 		#endif
 
+        #include "/lib/depth.glsl"
+
 		#if SHADOW_TYPE == 3
 			#include "/lib/shadows/csm.glsl"
 			#include "/lib/shadows/csm_render.glsl"
@@ -166,34 +163,19 @@ flat varying int materialId;
     #include "/lib/lighting/fog.glsl"
     #include "/lib/lighting/material.glsl"
     #include "/lib/lighting/material_reader.glsl"
-	//#include "/lib/lighting/basic_forward.glsl"
     #include "/lib/lighting/hcm.glsl"
     #include "/lib/lighting/pbr.glsl"
     #include "/lib/lighting/pbr_forward.glsl"
+    #include "/lib/lighting/tonemap.glsl"
 
-
-    // vec4 PbrWater() {
-    //     return vec4();
-    // }
 
 	void main() {
-        //vec4 final;
-        //if (mc_Entity.x == 100.0) {
-            // Water
-            //final = PbrWater();
-        //}
-        // else {
-        //     final = PbrLighting();
-        // }
-
         vec4 final = PbrLighting();
 
-        //lightMap = vec4(lmcoord, shadow, 0.0);
+        //final = LinearToRGB(final);
+        final.rgb = ApplyTonemap(final.rgb);
 
     /* DRAWBUFFERS:0 */
         gl_FragData[0] = final; //gcolor
-        //gl_FragData[1] = normalMap; //gdepth
-        //gl_FragData[2] = specularMap; //gnormal
-        //gl_FragData[3] = lightMap; //composite
 	}
 #endif
