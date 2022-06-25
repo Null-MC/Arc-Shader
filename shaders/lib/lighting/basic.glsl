@@ -7,34 +7,26 @@
                 pos += GetWavingOffset();
         #endif
 
-        //viewPos = mat3(gl_ModelViewMatrix) * pos;
         viewPos = (gl_ModelViewMatrix * vec4(pos, 1.0)).xyz;
 
         viewNormal = normalize(gl_NormalMatrix * gl_Normal);
 
-        #ifdef RENDER_TEXTURED
+        gl_Position = gl_ProjectionMatrix * vec4(viewPos, 1.0);
+
+        #if defined RENDER_TEXTURED || defined RENDER_BEACONBEAM
             // TODO: extract billboard direction from view matrix?
 
             geoNoL = 1.0;
         #else
-            //vec3 viewNormal = normalize(gl_NormalMatrix * gl_Normal);
             vec3 viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
             vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
-
-            mat3 matModelViewInv = mat3(gbufferModelViewInverse);
-            vec3 localNormal = matModelViewInv * viewNormal;
-            vec3 localBinormal = matModelViewInv * viewBinormal;
-            vec3 localTangent = matModelViewInv * viewTangent;
-
-            matTBN = mat3(
-                localTangent.x, localBinormal.x, localNormal.x,
-                localTangent.y, localBinormal.y, localNormal.y,
-                localTangent.z, localBinormal.z, localNormal.z);
 
             viewTBN = mat3(
                 viewTangent.x, viewBinormal.x, viewNormal.x,
                 viewTangent.y, viewBinormal.y, viewNormal.y,
                 viewTangent.z, viewBinormal.z, viewNormal.z);
+
+            matTBN = viewTBN;
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
                 tanLightPos = viewTBN * shadowLightPosition;
@@ -50,7 +42,12 @@
             ApplyShadows(viewPos);
         #endif
 
-        gl_Position = gl_ProjectionMatrix * vec4(viewPos, 1.0);
+        #ifdef AF_ENABLED
+            vec2 spriteRadius = abs(texcoord - mc_midTexCoord.xy);
+            vec2 bottomLeft = mc_midTexCoord.xy - spriteRadius;
+            vec2 topRight = mc_midTexCoord.xy + spriteRadius;
+            spriteBounds = vec4(bottomLeft, topRight);
+        #endif
     }
 #endif
 

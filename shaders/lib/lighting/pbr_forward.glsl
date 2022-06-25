@@ -131,13 +131,12 @@
         #endif
 
         if (heldBlockLightValue > 0) {
-            vec3 handLightOffset = handOffset - viewPos;
-
-            vec3 handLightDir = normalize(handLightOffset);
+            vec3 handLightPos = handOffset - viewPos;
+            vec3 handLightDir = normalize(handLightPos);
             float hand_NoL = max(dot(_viewNormal, handLightDir), 0.0);
 
             if (hand_NoL > EPSILON) {
-                float lightDist = length(handLightOffset);
+                float lightDist = length(handLightPos);
                 float handLightDiffuseAtt = max(0.16*heldBlockLightValue - 0.5*lightDist, 0.0);
                 vec3 hand_halfDir = normalize(handLightDir + viewDir);
                 float hand_LoH = max(dot(handLightDir, hand_halfDir), 0.0);
@@ -174,9 +173,9 @@
         final.a = material.albedo.a + luminance(specular);
 
         #ifdef RENDER_WATER
-            ApplyFog(final, viewPos, EPSILON);
+            ApplyFog(final, viewPos, skyLight, EPSILON);
         #else
-            ApplyFog(final, viewPos, alphaTestRef);
+            ApplyFog(final, viewPos, skyLight, alphaTestRef);
         #endif
 
         return final;

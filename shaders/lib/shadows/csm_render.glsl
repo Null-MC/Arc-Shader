@@ -315,7 +315,17 @@ const float tile_dist_bias_factor = 0.012288;
 			return blockers > 0 ? avgBlockerDistance / blockers : -1.0;
 		}
 
-		float GetShadowing(const in vec3 shadowPos[4]) {
+		float GetShadowing(const in vec3 shadowPos[4], out float lightSSS) {
+            #ifdef SSS_ENABLED
+                int cascade;
+                float texDepth = GetNearestDepth(shadowPos, vec2(0.0), cascade);
+                float dist = max(shadowPos[cascade].z - texDepth, 0.0) * far * 3.0;
+                float shadow_sss = SampleShadowSSS(shadowPos[cascade].xy);
+                lightSSS = max(shadow_sss - dist / SSS_MAXDIST, 0.0);
+            #else
+                lightSSS = 0.0;
+            #endif
+
 			// blocker search
 			int blockerSampleCount = SHADOW_BLOCKER_SAMPLES;
 			float blockerDistance = FindBlockerDistance(shadowPos, SHADOW_PCF_SIZE, blockerSampleCount);
@@ -337,25 +347,19 @@ const float tile_dist_bias_factor = 0.012288;
 	#elif SHADOW_FILTER == 1
 		// PCF
 		float GetShadowing(const in vec3 shadowPos[4], out float lightSSS) {
-            int sampleCount = POISSON_SAMPLES;
-            vec2 pixelRadius = GetPixelRadius(vec2(SHADOW_PCF_SIZE));
-            if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
-
             #ifdef SSS_ENABLED
-                //lightSSS = 1.0 - GetShadowing_PCF_SSS(shadowPos, SHADOW_PCF_SIZE, sampleCount);
-
-                #ifdef SHADOW_ENABLE_HWCOMP
-                    lightSSS = CompareNearestDepth_SSS(shadowPos, vec2(0.0));
-                #else
-                    int cascade;
-                    float texDepth = GetNearestDepth(shadowPos, vec2(0.0), cascade);
-                    float shadow_sss = SampleShadowSSS(shadowPos[cascade].xy);
-                    float sss_bias = 1.2 * shadow_sss / (far * 3.0);
-                    lightSSS = step(shadowPos[cascade].z - sss_bias, texDepth);
-                #endif
+                int cascade;
+                float texDepth = GetNearestDepth(shadowPos, vec2(0.0), cascade);
+                float dist = max(shadowPos[cascade].z - texDepth, 0.0) * far * 3.0;
+                float shadow_sss = SampleShadowSSS(shadowPos[cascade].xy);
+                lightSSS = max(shadow_sss - dist / SSS_MAXDIST, 0.0);
             #else
                 lightSSS = 0.0;
             #endif
+
+            int sampleCount = POISSON_SAMPLES;
+            vec2 pixelRadius = GetPixelRadius(vec2(SHADOW_PCF_SIZE));
+            if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
 			return 1.0 - GetShadowing_PCF(shadowPos, SHADOW_PCF_SIZE, sampleCount);
 		}
@@ -368,7 +372,6 @@ const float tile_dist_bias_factor = 0.012288;
 
             #ifdef SHADOW_ENABLE_HWCOMP
                 #ifdef SSS_ENABLED
-                    //lightSSS = CompareNearestDepth_SSS(shadowPos, vec2(0.0));
                     int cascade;
                     float texDepth = GetNearestDepth(shadowPos, vec2(0.0), cascade);
                     float dist = max(shadowPos[cascade].z - texDepth, 0.0) * far * 3.0;

@@ -31,13 +31,17 @@ varying vec3 tanViewPos;
 	#endif
 #endif
 
+#ifdef AF_ENABLED
+    varying vec4 spriteBounds;
+#endif
+
 #ifdef RENDER_VERTEX
 	in vec4 mc_Entity;
 	in vec3 vaPosition;
     in vec4 at_tangent;
 	in vec3 at_midBlock;
 
-    #ifdef PARALLAX_ENABLED
+    #if defined PARALLAX_ENABLED || defined AF_ENABLED
         in vec4 mc_midTexCoord;
     #endif
 
@@ -97,6 +101,10 @@ varying vec3 tanViewPos;
 
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
         uniform float alphaTestRef;
+    #endif
+
+    #ifdef AF_ENABLED
+    	uniform float viewHeight;
     #endif
 
 	#ifdef SHADOW_ENABLED

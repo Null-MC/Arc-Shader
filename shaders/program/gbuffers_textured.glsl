@@ -1,7 +1,9 @@
 #extension GL_ARB_gpu_shader5 : enable
 
 #define RENDER_TEXTURED
+
 #undef PARALLAX_ENABLED
+#undef AF_ENABLED
 
 varying vec2 lmcoord;
 varying vec2 texcoord;

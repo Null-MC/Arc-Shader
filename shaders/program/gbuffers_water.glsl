@@ -37,13 +37,17 @@ flat varying int materialId;
 	#endif
 #endif
 
+#ifdef AF_ENABLED
+    varying vec4 spriteBounds;
+#endif
+
 #ifdef RENDER_VERTEX
 	in vec4 mc_Entity;
 	in vec3 vaPosition;
     in vec4 at_tangent;
 	in vec3 at_midBlock;
 
-    #ifdef PARALLAX_ENABLED
+    #if defined PARALLAX_ENABLED || defined AF_ENABLED
         in vec4 mc_midTexCoord;
     #endif
 
@@ -115,6 +119,10 @@ flat varying int materialId;
     uniform int fogShape;
     uniform vec3 fogColor;
     uniform vec3 skyColor;
+
+    #ifdef AF_ENABLED
+        uniform float viewHeight;
+    #endif
 
 	#ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;

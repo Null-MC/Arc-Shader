@@ -3,6 +3,58 @@
 #endif
 
 #ifdef RENDER_FRAG
+    #ifdef AF_ENABLED
+        float manualDeterminant(const in mat2 matrix) {
+            return matrix[0].x * matrix[1].y - matrix[0].y * matrix[1].x;
+        }
+
+        mat2 inverse2(const in mat2 m) {
+            mat2 adj;
+            adj[0][0] =  m[1][1];
+            adj[0][1] = -m[0][1];
+            adj[1][0] = -m[1][0];
+            adj[1][1] =  m[0][0];
+            return adj / manualDeterminant(m);
+        }
+
+        vec4 textureAF(const in sampler2D sampler, const in vec2 uv, const in mat2 dFdXY) {
+            mat2 J = inverse2(dFdXY);     // dFdxy: pixel footprint in texture space
+            J = transpose(J)*J;                             // quadratic form
+            float d = manualDeterminant(J), t = J[0][0]+J[1][1],  // find ellipse: eigenvalues, max eigenvector
+                  D = sqrt(abs(t*t-4.0*d)),                 // abs() fix a bug: in weird view angles 0 can be slightly negative
+                  V = (t-D)/2.0, v = (t+D)/2.0,                // eigenvalues
+                  M = 1.0/sqrt(V), m = 1./sqrt(v);             // = 1./radii^2
+            vec2 A = M * normalize(vec2(-J[0][1], J[0][0]-V)); // max eigenvector = main axis
+
+            float lod;
+            if (M/m > 16.0) {
+                lod = log2(M / 16.0 * viewHeight);
+            } else {
+                lod = log2(m * viewHeight);
+            }
+
+            const float samplesDiv2 = AF_SAMPLES / 2.0;
+            vec2 ADivSamples = A / AF_SAMPLES;
+
+            vec2 spriteDimensions = vec2(spriteBounds.z - spriteBounds.x, spriteBounds.w - spriteBounds.y);
+
+            vec4 final;
+            final.rgb = vec3(0.0);
+
+            // preserve original alpha to prevent artifacts
+            final.a = texture2DLod(sampler, uv, lod).a;
+
+            for (float i = -samplesDiv2 + 0.5; i < samplesDiv2; i++) { // sample along main axis at LOD min-radius
+                vec2 sampleUV = uv + ADivSamples * i;
+                sampleUV = mod(sampleUV - spriteBounds.xy, spriteDimensions) + spriteBounds.xy; // wrap sample UV to fit inside sprite
+                final.rgb += texture2DLod(sampler, sampleUV, lod).rgb;
+            }
+
+            final.rgb /= AF_SAMPLES;
+            return final;
+        }
+    #endif
+
     void PbrLighting(out vec4 colorMap, out vec4 normalMap, out vec4 specularMap, out vec4 lightingMap) {
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
         vec2 atlasCoord = texcoord;
@@ -21,7 +73,11 @@
             }
         #endif
         
-        colorMap = texture2DGrad(texture, atlasCoord, dFdXY[0], dFdXY[1]) * glcolor;
+        #ifdef AF_ENABLED
+            colorMap = textureAF(texture, atlasCoord, dFdXY) * glcolor;
+        #else
+            colorMap = texture2DGrad(texture, atlasCoord, dFdXY[0], dFdXY[1]) * glcolor;
+        #endif
 
         #ifndef RENDER_WATER
             if (colorMap.a < alphaTestRef) discard;
@@ -61,11 +117,6 @@
             #endif
 
             #if defined PARALLAX_ENABLED && defined PARALLAX_SHADOW_FIX
-                // TODO: offset shadowmap by parallax view-dot-light
-                //float depth = max(1.0 - traceCoordDepth.z, 0.0);
-                //float lightDepth = depth / max(NoL, EPSILON);
-                //shadowOffset = shadowViewDir * eyeDepth - lightDepth;
-                // TODO: transform offset to shadow space?
                 float depth = 1.0 - traceCoordDepth.z;
                 float eyeDepth = 0.0; //depth / max(geoNoV, EPSILON);
 
@@ -79,11 +130,8 @@
                 #endif
             #endif
 
-            //shadow *= step(EPSILON, geoNoL);
-
             vec3 tanLightDir = normalize(tanLightPos);
             float NoL = dot(normalMap.xyz, tanLightDir);
-            //shadow *= step(EPSILON, NoL);
 
             shadow *= step(EPSILON, geoNoL);
             shadow *= step(EPSILON, NoL);

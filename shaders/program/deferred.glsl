@@ -1,10 +1,8 @@
 #define RENDER_DEFERRED
 
 varying vec2 texcoord;
-//varying vec3 viewLightDir;
 
 #ifdef SHADOW_ENABLED
-    flat varying vec3 worldLightPos;
     flat varying vec3 skyLightColor;
 #endif
 
@@ -12,11 +10,6 @@ varying vec2 texcoord;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
     uniform vec3 upPosition;
-
-    #ifdef SHADOW_ENABLED
-        uniform mat4 gbufferModelViewInverse;
-        uniform vec3 shadowLightPosition;
-    #endif
 
     #include "/lib/world/sky.glsl"
 
@@ -26,7 +19,6 @@ varying vec2 texcoord;
 		texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
         #ifdef SHADOW_ENABLED
-            worldLightPos = (gbufferModelViewInverse * vec4(shadowLightPosition, 1.0)).xyz;
             skyLightColor = GetSkyLightColor();
         #endif
 	}
@@ -41,7 +33,15 @@ varying vec2 texcoord;
     uniform sampler2D depthtex0;
 
     uniform mat4 gbufferProjectionInverse;
+    uniform mat4 gbufferModelView;
+    uniform float viewWidth;
+    uniform float viewHeight;
     uniform int heldBlockLightValue;
+
+    uniform vec3 sunPosition;
+    uniform vec3 moonPosition;
+    uniform vec3 upPosition;
+    uniform vec3 skyColor;
 
     uniform int fogMode;
     uniform float fogStart;
@@ -50,11 +50,11 @@ varying vec2 texcoord;
     uniform vec3 fogColor;
 
     #ifdef SHADOW_ENABLED
-        uniform mat4 gbufferModelViewInverse;
-        uniform vec3 skyColor;
+        uniform vec3 shadowLightPosition;
     #endif
 
     #include "/lib/world/fog.glsl"
+    #include "/lib/world/sky.glsl"
     #include "/lib/lighting/material.glsl"
     #include "/lib/lighting/material_reader.glsl"
     #include "/lib/lighting/hcm.glsl"
