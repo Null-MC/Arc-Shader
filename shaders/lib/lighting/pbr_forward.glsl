@@ -1,4 +1,5 @@
 #ifdef RENDER_VERTEX
+    <empty>
 #endif
 
 #ifdef RENDER_FRAG
@@ -131,20 +132,13 @@
             float NoH = max(dot(_viewNormal, viewHalfDir), 0.0);
             float VoH = max(dot(viewDir, viewHalfDir), 0.0);
 
-            vec3 specular;
+            vec3 specular = GetSpecular(material, LoH, NoH, VoH, roughL) * NoL * shadow*shadow;
+
             if (material.hcm >= 0) {
-                vec3 iorN, iorK;
-                GetHCM_IOR(material.albedo.rgb, material.hcm, iorN, iorK);
-                specular = SpecularConductor_BRDF(iorN, iorK, LoH, NoH, VoH, roughL) * lightColor;
+                if (material.hcm < 8) specular *= material.albedo.rgb;
 
-                if (material.hcm < 8)
-                    specular *= material.albedo.rgb;
-
-                ambient *= 0.2;
-                diffuse *= 0.2;
-            }
-            else {
-                specular = Specular_BRDF(material.f0, LoH, NoH, VoH, roughL) * lightColor;
+                ambient *= HCM_AMBIENT;
+                diffuse *= HCM_AMBIENT;
             }
         #else
             vec3 specular = vec3(0.0);

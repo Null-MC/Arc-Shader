@@ -41,6 +41,8 @@ varying vec2 texcoord;
     uniform sampler2D depthtex0;
 
     uniform mat4 gbufferProjectionInverse;
+    uniform int heldBlockLightValue;
+    uniform vec3 cameraPosition;
 
     uniform int fogMode;
     uniform float fogStart;

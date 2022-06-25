@@ -4,6 +4,7 @@
 
 #ifdef RENDER_FRAG
     const vec3 minLight = vec3(0.01);
+    const vec3 handOffset = vec3(0.4, -0.3, -0.2);
     //const float lmPadding = 1.0 / 32.0;
 
     vec3 PbrLighting() {
@@ -17,12 +18,14 @@
         vec4 specularMap = texture2DLod(colortex2, texcoord, 0);
         vec4 lightingMap = texture2DLod(colortex3, texcoord, 0);
 
+        //return lightingMap.rgb;
+
         vec3 clipPos = vec3(texcoord, screenDepth) * 2.0 - 1.0;
         vec4 viewPos = (gbufferProjectionInverse * vec4(clipPos, 1.0));
         viewPos.xyz /= viewPos.w;
 
         float shadow = lightingMap.z;
-        vec3 lightColor = 2.0 * skyLightColor * shadow;
+        vec3 lightColor = skyLightColor * shadow;
 
         PbrMaterial material = PopulateMaterial(colorMap, normalMap, specularMap);
         vec3 worldNormal = normalize(material.normal);
@@ -63,32 +66,64 @@
 
         vec3 ambient = material.albedo.rgb * max(blockLight, SHADOW_BRIGHTNESS * skyLight) * material.occlusion;
 
-        vec3 diffuse = material.albedo.rgb * Diffuse_Burley(NoL, NoV, LoH, roughL) * lightColor;
+        vec3 diffuse = material.albedo.rgb * Diffuse_Burley(NoL, NoV, LoH, roughL) * NoL * lightColor;
+
+        vec3 specular = vec3(0.0);
 
         #ifdef SHADOW_ENABLED
             float NoH = max(dot(worldNormal, halfDir), 0.0);
             float VoH = max(dot(localViewDir, halfDir), 0.0);
 
-            vec3 specular;
-            if (material.hcm >= 0) {
-                vec3 iorN, iorK;
-                GetHCM_IOR(material.albedo.rgb, material.hcm, iorN, iorK);
-                specular = SpecularConductor_BRDF(iorN, iorK, LoH, NoH, VoH, roughL) * lightColor;
-
-                if (material.hcm < 8)
-                    specular *= material.albedo.rgb;
-
-                ambient *= 0.2;
-                diffuse *= 0.2;
-            }
-            else {
-                specular = Specular_BRDF(material.f0, LoH, NoH, VoH, roughL) * lightColor;
-            }
-
-            specular *= NoL * shadow*shadow;
-        #else
-            vec3 specular = vec3(0.0);
+            specular = GetSpecular(material, LoH, NoH, VoH, roughL) * NoL * shadow*shadow;
         #endif
+
+        if (heldBlockLightValue > 0) {
+            //vec3 eyeCameraPosition = cameraPosition + gbufferModelViewInverse[3].xyz;
+            //vec3 localCameraPosition = (gbufferModelViewInverse * vec4(cameraPosition, 1.0)).xyz;
+
+            //vec3 handLightPos = localPos - cameraPosition;
+            //vec3 handLightDir = -normalize(handLightPos);
+            //float handLightDist = max(1.0 - 0.02 * length(handLightPos), 0.0);
+
+            vec3 handLightPos = (gbufferModelViewInverse * vec4(handOffset, 1.0)).xyz;
+            handLightPos -= gbufferModelViewInverse[3].xyz;
+
+            vec3 handLightOffset = handLightPos - localPos;
+            //handLightPos.y -= 0.65;
+
+            vec3 handLightDir = normalize(handLightOffset);
+            float hand_NoL = max(dot(worldNormal, handLightDir), 0.0);
+
+            if (hand_NoL > EPSILON) {
+                float lightDist = length(handLightOffset);
+                //float handLightAtt = max(1.0 - (length(localPos) / (0.6 * heldBlockLightValue)), 0.0);
+                float handLightDiffuseAtt = max(0.16*heldBlockLightValue - 0.5*lightDist, 0.0);
+                vec3 hand_halfDir = normalize(handLightDir + localViewDir);
+                float hand_LoH = max(dot(handLightDir, hand_halfDir), 0.0);
+
+                if (handLightDiffuseAtt > EPSILON) {
+                    handLightDiffuseAtt = handLightDiffuseAtt*handLightDiffuseAtt;
+
+                    //vec3 handLightColor = vec3(0.2 * heldBlockLightValue);
+                    diffuse += material.albedo.rgb * Diffuse_Burley(hand_NoL, NoV, hand_LoH, roughL) * hand_NoL * handLightDiffuseAtt;
+                    //diffuse = material.albedo.rgb * hand_NoL * handLightDiffuseAtt;
+                    //diffuse = vec3(LoH);
+                }
+
+                float handLightSpecularAtt = max(0.16*heldBlockLightValue - 0.25*lightDist, 0.0) * hand_NoL;
+
+                float hand_NoH = max(dot(worldNormal, hand_halfDir), 0.0);
+                float hand_VoH = max(dot(localViewDir, hand_halfDir), 0.0);
+                specular += GetSpecular(material, hand_LoH, hand_NoH, hand_VoH, roughL) * handLightSpecularAtt; // * NoL
+            }
+        }
+
+        if (material.hcm >= 0) {
+            if (material.hcm < 8) specular *= material.albedo.rgb;
+
+            ambient *= HCM_AMBIENT;
+            diffuse *= HCM_AMBIENT;
+        }
 
         ambient += material.albedo.rgb * minLight;
 
@@ -101,8 +136,6 @@
             ApplyFog(final, viewPos.xyz);
         #endif
 
-        //return material.albedo.rgb;
-        //return vec3(lightingMap.z);
         return final;
     }
 #endif

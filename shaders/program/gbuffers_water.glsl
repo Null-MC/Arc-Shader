@@ -114,40 +114,43 @@ flat varying int materialId;
     uniform vec3 fogColor;
     uniform vec3 skyColor;
 
-	#if defined SHADOW_ENABLED && SHADOW_TYPE != 0
-		uniform sampler2D shadowcolor0;
-        uniform sampler2D shadowtex0;
+	#ifdef SHADOW_ENABLED
+        uniform vec3 shadowLightPosition;
 
-        #if !defined IS_OPTIFINE && defined SHADOW_ENABLE_HWCOMP
-            uniform sampler2DShadow shadowtex1HW;
-            uniform sampler2D shadowtex1;
-        #else
-            uniform sampler2DShadow shadowtex1;
-        #endif
+        #if SHADOW_TYPE != 0
+    		uniform sampler2D shadowcolor0;
+            uniform sampler2D shadowtex0;
+
+            #if !defined IS_OPTIFINE && defined SHADOW_ENABLE_HWCOMP
+                uniform sampler2DShadow shadowtex1HW;
+                uniform sampler2D shadowtex1;
+            #else
+                uniform sampler2DShadow shadowtex1;
+            #endif
 		
-		uniform vec3 shadowLightPosition;
-        uniform float near;
-        uniform float far;
+            uniform float near;
+            uniform float far;
 
-		#if SHADOW_PCF_SAMPLES == 12
-			#include "/lib/shadows/poisson_12.glsl"
-		#elif SHADOW_PCF_SAMPLES == 24
-			#include "/lib/shadows/poisson_24.glsl"
-		#elif SHADOW_PCF_SAMPLES == 36
-			#include "/lib/shadows/poisson_36.glsl"
-		#endif
+    		#if SHADOW_PCF_SAMPLES == 12
+    			#include "/lib/shadows/poisson_12.glsl"
+    		#elif SHADOW_PCF_SAMPLES == 24
+    			#include "/lib/shadows/poisson_24.glsl"
+    		#elif SHADOW_PCF_SAMPLES == 36
+    			#include "/lib/shadows/poisson_36.glsl"
+    		#endif
 
-        #include "/lib/depth.glsl"
+            #include "/lib/depth.glsl"
 
-		#if SHADOW_TYPE == 3
-			#include "/lib/shadows/csm.glsl"
-			#include "/lib/shadows/csm_render.glsl"
-		#else
-			uniform mat4 shadowProjection;
+    		#if SHADOW_TYPE == 3
+    			#include "/lib/shadows/csm.glsl"
+    			#include "/lib/shadows/csm_render.glsl"
+    		#else
+    			uniform mat4 shadowProjection;
 
-			#include "/lib/shadows/basic.glsl"
-            #include "/lib/shadows/basic_render.glsl"
-		#endif
+    			#include "/lib/shadows/basic.glsl"
+                #include "/lib/shadows/basic_render.glsl"
+    		#endif
+        #endif
 	#endif
 
     #ifdef PARALLAX_ENABLED

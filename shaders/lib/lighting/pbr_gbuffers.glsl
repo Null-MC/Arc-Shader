@@ -23,10 +23,13 @@
             }
         #endif
         
-        colorMap = texture2DGrad(texture, atlasCoord, dFdXY[0], dFdXY[1]) * glcolor;
+        colorMap = texture2DGrad(texture, atlasCoord, dFdXY[0], dFdXY[1]);
+        //colorMap *= glcolor;
+        colorMap.rgb *= glcolor.rgb;
 
         #ifndef RENDER_WATER
             if (colorMap.a < alphaTestRef) discard;
+            colorMap.a = 1.0;
         #endif
 
         #ifdef PARALLAX_SMOOTH
@@ -143,8 +146,6 @@
         #ifdef RENDER_WATER
             // TODO: blend in deferred output?
         #endif
-
-        colorMap.a = 1.0;
 
         normalMap.xyz = normalMap.xyz * matTBN * 0.5 + 0.5;
     }

@@ -17,9 +17,9 @@
 #ifdef RENDER_FRAG
     #define IOR_AIR 1.0
 
-    float F_schlick(const in float f0, const in float fd90, const in float cos_theta)
+    float F_schlick(const in float cos_theta, const in float f0, const in float f90)
     {
-        return f0 + (fd90 - f0) * pow(1.0 - cos_theta, 5.0);
+        return f0 + (f90 - f0) * pow(1.0 - cos_theta, 5.0);
     }
 
     float SchlickRoughness(const in float f0, const in float cos_theta, const in float rough) {
@@ -96,12 +96,33 @@
         return D * F * G;
     }
 
-    float Diffuse_Burley(const in float NoL, const in float NoV, const in float LoH, const in float rough)
+    vec3 GetSpecular(const in PbrMaterial material, const in float LoH, const in float NoH, const in float VoH, const in float roughL)
     {
-        float f90 = 0.5 + 2.0 * LoH * LoH * rough;
-        float light_scatter = F_schlick(1.0, f90, NoL);
-        float view_scatter = F_schlick(1.0, f90, NoV);
-        return light_scatter * view_scatter * InvPI;
+        // Fresnel
+        vec3 F;
+        if (material.hcm >= 0) {
+            vec3 iorN, iorK;
+            GetHCM_IOR(material.albedo.rgb, material.hcm, iorN, iorK);
+            F = F_conductor(VoH, IOR_AIR, iorN, iorK);
+        }
+        else {
+            F = vec3(SchlickRoughness(material.f0, VoH, roughL));
+        }
+
+        // Distribution
+        float D = GGX(NoH, roughL);
+
+        // Geometric Visibility
+        float G = SmithHable(LoH, roughL);
+
+        return D * F * G;
     }
 
+    float Diffuse_Burley(const in float NoL, const in float NoV, const in float LoH, const in float rough)
+    {
+        float f90 = 0.5 + 2.0 * rough * LoH * LoH;
+        float light_scatter = F_schlick(NoL, 1.0, f90);
+        float view_scatter = F_schlick(NoV, 1.0, f90);
+        return light_scatter * view_scatter * InvPI;
+    }
 #endif
