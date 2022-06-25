@@ -3,9 +3,6 @@
 #endif
 
 #ifdef RENDER_FRAG
-    const vec3 minLight = vec3(0.01);
-    const float lmPadding = 1.0 / 32.0;
-
     vec4 PbrLighting() {
         vec2 atlasCoord = texcoord;
 
@@ -82,10 +79,9 @@
             #endif
         #endif
 
-        //vec3 lmValue = vec3(1.0);
+        float lightSSS = 0.0;
         if (shadow > EPSILON) {
             #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
-                float lightSSS;
                 shadow *= GetShadowing(shadowPos, lightSSS);
 
                 #if SHADOW_COLORS == 1
@@ -104,18 +100,15 @@
         }
 
         vec3 _viewNormal = normalize(viewNormal);
-        vec3 viewDir = -normalize(viewPos); // vec3(0.0, 0.0, 1.0);
+        vec3 viewDir = -normalize(viewPos);
 
-        lightColor *= shadow;
+        //lightColor *= shadow;
 
         #ifdef SHADOW_ENABLED
             vec3 viewLightDir = normalize(shadowLightPosition);
-            //float NoL = max(dot(_viewNormal, viewLightDir), 0.0);
-
             vec3 viewHalfDir = normalize(viewLightDir + viewDir);
             float LoH = max(dot(viewLightDir, viewHalfDir), 0.0);
         #else
-            //float NoL = 1.0;
             float LoH = 1.0;
         #endif
 
@@ -124,32 +117,60 @@
         float rough = 1.0 - material.smoothness;
         float roughL = rough * rough;
 
-        vec3 ambient = material.albedo.rgb * max(blockLight, 0.3 * skyLight) * material.occlusion;
+        vec3 ambient = material.albedo.rgb * max(blockLight, SHADOW_BRIGHTNESS * skyLight) * material.occlusion;
 
-        vec3 diffuse = material.albedo.rgb * Diffuse_Burley(NoL, NoV, LoH, roughL) * lightColor;
+        vec3 diffuse = material.albedo.rgb * Diffuse_Burley(NoL, NoV, LoH, roughL) * NoL * lightColor * shadow;
+
+        vec3 specular = vec3(0.0);
 
         #ifdef SHADOW_ENABLED
             float NoH = max(dot(_viewNormal, viewHalfDir), 0.0);
             float VoH = max(dot(viewDir, viewHalfDir), 0.0);
 
-            vec3 specular = GetSpecular(material, LoH, NoH, VoH, roughL) * NoL * shadow*shadow;
-
-            if (material.hcm >= 0) {
-                if (material.hcm < 8) specular *= material.albedo.rgb;
-
-                ambient *= HCM_AMBIENT;
-                diffuse *= HCM_AMBIENT;
-            }
-        #else
-            vec3 specular = vec3(0.0);
+            specular = GetSpecular(material, LoH, NoH, VoH, roughL) * NoL * lightColor * shadow*shadow;
         #endif
+
+        if (heldBlockLightValue > 0) {
+            vec3 handLightOffset = handOffset - viewPos;
+
+            vec3 handLightDir = normalize(handLightOffset);
+            float hand_NoL = max(dot(_viewNormal, handLightDir), 0.0);
+
+            if (hand_NoL > EPSILON) {
+                float lightDist = length(handLightOffset);
+                float handLightDiffuseAtt = max(0.16*heldBlockLightValue - 0.5*lightDist, 0.0);
+                vec3 hand_halfDir = normalize(handLightDir + viewDir);
+                float hand_LoH = max(dot(handLightDir, hand_halfDir), 0.0);
+
+                if (handLightDiffuseAtt > EPSILON) {
+                    diffuse += material.albedo.rgb * Diffuse_Burley(hand_NoL, NoV, hand_LoH, roughL) * hand_NoL * handLightDiffuseAtt*handLightDiffuseAtt;
+                }
+
+                float handLightSpecularAtt = max(0.16*heldBlockLightValue - 0.25*lightDist, 0.0);
+
+                if (handLightSpecularAtt > EPSILON) {
+                    float hand_NoH = max(dot(_viewNormal, hand_halfDir), 0.0);
+                    float hand_VoH = max(dot(viewDir, hand_halfDir), 0.0);
+                    specular += GetSpecular(material, hand_LoH, hand_NoH, hand_VoH, roughL) * hand_NoL * handLightSpecularAtt;
+                }
+            }
+        }
+
+        if (material.hcm >= 0) {
+            if (material.hcm < 8) specular *= material.albedo.rgb;
+
+            ambient *= HCM_AMBIENT;
+            diffuse *= HCM_AMBIENT;
+        }
 
         ambient += material.albedo.rgb * minLight;
 
         vec3 emissive = material.albedo.rgb * material.emission * 16.0;
 
+        vec3 sss = 0.2 * material.albedo.rgb * material.scattering * lightSSS * lightColor;
+
         vec4 final;
-        final.rgb = ambient + diffuse + specular + emissive;
+        final.rgb = ambient + diffuse + specular + emissive + sss;
         final.a = material.albedo.a + luminance(specular);
 
         #ifdef RENDER_WATER

@@ -148,18 +148,13 @@ varying vec3 tanViewPos;
 
 
 	void main() {
-        float shadow;
-        vec4 colorMap, normalMap, specularMap, lightMap;
-
-        mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
-        PbrLighting(dFdXY, colorMap, normalMap, specularMap, shadow);
-
-        lightMap = vec4(lmcoord, shadow, 0.0);
+        vec4 colorMap, normalMap, specularMap, lightingMap;
+        PbrLighting(colorMap, normalMap, specularMap, lightingMap);
 
     /* DRAWBUFFERS:0123 */
         gl_FragData[0] = colorMap; //gcolor
         gl_FragData[1] = normalMap; //gdepth
         gl_FragData[2] = specularMap; //gnormal
-        gl_FragData[3] = lightMap; //composite
+        gl_FragData[3] = lightingMap; //composite
 	}
 #endif

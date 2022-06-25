@@ -3,10 +3,8 @@
 #endif
 
 #ifdef RENDER_FRAG
-    const vec3 minLight = vec3(0.01);
-    const float lmPadding = 1.0 / 32.0;
-
-    void PbrLighting(const in mat2 dFdXY, out vec4 colorMap, out vec4 normalMap, out vec4 specularMap, out float shadow) {
+    void PbrLighting(out vec4 colorMap, out vec4 normalMap, out vec4 specularMap, out vec4 lightingMap) {
+        mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
         vec2 atlasCoord = texcoord;
 
         #ifdef PARALLAX_ENABLED
@@ -23,9 +21,7 @@
             }
         #endif
         
-        colorMap = texture2DGrad(texture, atlasCoord, dFdXY[0], dFdXY[1]);
-        //colorMap *= glcolor;
-        colorMap.rgb *= glcolor.rgb;
+        colorMap = texture2DGrad(texture, atlasCoord, dFdXY[0], dFdXY[1]) * glcolor;
 
         #ifndef RENDER_WATER
             if (colorMap.a < alphaTestRef) discard;
@@ -55,7 +51,7 @@
         #endif
 
         const float minSkylightThreshold = 1.0 / 32.0 + EPSILON;
-        shadow = step(minSkylightThreshold, lmcoord.y);
+        float shadow = step(minSkylightThreshold, lmcoord.y);
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
             #if SHADOW_TYPE == 3
@@ -89,33 +85,15 @@
             float NoL = dot(normalMap.xyz, tanLightDir);
             //shadow *= step(EPSILON, NoL);
 
+            shadow *= step(EPSILON, geoNoL);
+            shadow *= step(EPSILON, NoL);
+
             float lightSSS = 0.0;
             #ifdef SSS_ENABLED
                 float materialSSS = GetLabPbr_SSS(specularMap.b);
-                //colorMap.rgb = vec3(materialSSS);
-                //return;
-
-                //if (materialSSS < EPSILON) {
-                //    shadow *= step(EPSILON, geoNoL);
-                //    shadow *= step(EPSILON, NoL);
-                //}
-
-                shadow *= step(EPSILON, geoNoL);
-                shadow *= step(EPSILON, NoL);
-
-                if (shadow > EPSILON || materialSSS > EPSILON) {
+                if (shadow > EPSILON || materialSSS > EPSILON)
                     shadow *= GetShadowing(_shadowPos, lightSSS);
-
-                    shadow = max(shadow, materialSSS * lightSSS);
-                }
-
-                //colorMap.rgb = vec3(materialSSS * lightSSS);
-                //shadow = 1.0;
-                //return;
             #else
-                shadow *= step(EPSILON, geoNoL);
-                shadow *= step(EPSILON, NoL);
-
                 if (shadow > EPSILON) {
                     shadow *= GetShadowing(_shadowPos, lightSSS);
 
@@ -148,5 +126,7 @@
         #endif
 
         normalMap.xyz = normalMap.xyz * matTBN * 0.5 + 0.5;
+
+        lightingMap = vec4(lmcoord, shadow, lightSSS);
     }
 #endif

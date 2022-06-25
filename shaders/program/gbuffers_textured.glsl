@@ -120,17 +120,17 @@ flat varying vec3 worldNormal;
 
 	void main() {
         float shadow;
-        vec4 colorMap, lightMap;
+        vec4 colorMap, lightingMap;
 
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
         BasicLighting(dFdXY, colorMap, shadow);
 
-        lightMap = vec4(lmcoord, shadow, 0.0);
+        lightingMap = vec4(lmcoord, shadow, 0.0);
 
     /* DRAWBUFFERS:0123 */
         gl_FragData[0] = colorMap; //gcolor
         gl_FragData[1] = vec4(worldNormal, 1.0); //gdepth
         gl_FragData[2] = vec4(0.0, 0.0, 0.0, 1.0); //gnormal
-        gl_FragData[3] = lightMap; //composite
+        gl_FragData[3] = lightingMap; //composite
 	}
 #endif

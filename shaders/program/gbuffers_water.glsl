@@ -77,7 +77,7 @@ flat varying int materialId;
 		#endif
 	#endif
 
-    #include "/lib/lighting/sky.glsl"
+    #include "/lib/world/sky.glsl"
     #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/pbr.glsl"
 
@@ -106,6 +106,8 @@ flat varying int materialId;
     uniform sampler2D specular;
 	uniform sampler2D lightmap;
     uniform sampler2D gcolor;
+
+    uniform int heldBlockLightValue;
 
     uniform int fogMode;
     uniform float fogStart;
@@ -163,13 +165,13 @@ flat varying int materialId;
         #include "/lib/parallax.glsl"
     #endif
 
-    #include "/lib/lighting/fog.glsl"
+    #include "/lib/world/fog.glsl"
     #include "/lib/lighting/material.glsl"
     #include "/lib/lighting/material_reader.glsl"
     #include "/lib/lighting/hcm.glsl"
     #include "/lib/lighting/pbr.glsl"
     #include "/lib/lighting/pbr_forward.glsl"
-    #include "/lib/lighting/tonemap.glsl"
+    #include "/lib/tonemap.glsl"
 
 
 	void main() {

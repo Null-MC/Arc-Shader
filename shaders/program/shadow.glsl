@@ -36,7 +36,7 @@ varying vec4 glcolor;
         uniform mat4 gbufferModelViewInverse;
     #endif
 
-	#include "/lib/waving.glsl"
+	#include "/lib/world/waving.glsl"
 
 	#if SHADOW_TYPE == 3
 		uniform int entityId;

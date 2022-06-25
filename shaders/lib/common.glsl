@@ -50,14 +50,17 @@
 //#define PARALLAX_SHADOW_FIX
 #define PARALLAX_SOFTSHADOW_FACTOR 1.0
 #define HCM_AMBIENT 0.16
+#define SSS_MAXDIST 2.0
 #define CSM_PLAYER_ID 0
 
 #define PI 3.1415926538
 #define EPSILON 1e-6
 #define GAMMA 2.2
 
-const float InvPI = 1.0 / PI;
+const vec3 minLight = vec3(0.01);
+const vec3 handOffset = vec3(0.2, -0.3, -0.2);
 const vec3 luma_factor = vec3(0.2126f, 0.7152f, 0.0722f);
+const float InvPI = 1.0 / PI;
 
 
 #if MC_VERSION < 11700 || !defined IS_OPTIFINE

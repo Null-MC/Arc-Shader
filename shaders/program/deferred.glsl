@@ -18,7 +18,7 @@ varying vec2 texcoord;
         uniform vec3 shadowLightPosition;
     #endif
 
-    #include "/lib/lighting/sky.glsl"
+    #include "/lib/world/sky.glsl"
 
 
 	void main() {
@@ -42,7 +42,6 @@ varying vec2 texcoord;
 
     uniform mat4 gbufferProjectionInverse;
     uniform int heldBlockLightValue;
-    uniform vec3 cameraPosition;
 
     uniform int fogMode;
     uniform float fogStart;
@@ -55,13 +54,13 @@ varying vec2 texcoord;
         uniform vec3 skyColor;
     #endif
 
+    #include "/lib/world/fog.glsl"
     #include "/lib/lighting/material.glsl"
     #include "/lib/lighting/material_reader.glsl"
-    #include "/lib/lighting/fog.glsl"
     #include "/lib/lighting/hcm.glsl"
     #include "/lib/lighting/pbr.glsl"
     #include "/lib/lighting/pbr_deferred.glsl"
-    #include "/lib/lighting/tonemap.glsl"
+    #include "/lib/tonemap.glsl"
 
 
 	void main() {

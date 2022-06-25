@@ -3,10 +3,6 @@
 #endif
 
 #ifdef RENDER_FRAG
-    const vec3 minLight = vec3(0.01);
-    const vec3 handOffset = vec3(0.4, -0.3, -0.2);
-    //const float lmPadding = 1.0 / 32.0;
-
     vec3 PbrLighting() {
         vec3 colorMap = texture2DLod(colortex0, texcoord, 0).rgb;
         float screenDepth = texture2DLod(depthtex0, texcoord, 0).r;
@@ -24,8 +20,8 @@
         vec4 viewPos = (gbufferProjectionInverse * vec4(clipPos, 1.0));
         viewPos.xyz /= viewPos.w;
 
-        float shadow = lightingMap.z;
-        vec3 lightColor = skyLightColor * shadow;
+        float shadow = lightingMap.b;
+        vec3 lightColor = skyLightColor;
 
         PbrMaterial material = PopulateMaterial(colorMap, normalMap, specularMap);
         vec3 worldNormal = normalize(material.normal);
@@ -35,7 +31,7 @@
 
         #ifdef SHADOW_ENABLED
             vec3 worldLightDir = normalize(worldLightPos);
-            float NoL = max(dot(worldNormal, worldLightDir), 0.0);
+            float NoL = dot(worldNormal, worldLightDir);
 
             vec3 halfDir = normalize(worldLightDir + localViewDir);
             float LoH = max(dot(worldLightDir, halfDir), 0.0);
@@ -44,29 +40,25 @@
             float LoH = 1.0;
         #endif
 
+        float NoLm = max(NoL, 0.0);
+        float NoV = max(dot(worldNormal, localViewDir), 0.0);
+
+        float rough = 1.0 - material.smoothness;
+        float roughL = rough * rough;
+
         float blockLight = (lightingMap.x - (0.5/16.0)) / (15.0/16.0);
         float skyLight = (lightingMap.y - (0.5/16.0)) / (15.0/16.0);
 
         blockLight = blockLight*blockLight*blockLight;
         skyLight = skyLight*skyLight*skyLight;
 
-        //vec3 worldViewDir = -normalize(viewPos.xyz);
-        float NoV = max(dot(worldNormal, localViewDir), 0.0);
+        vec3 skyAmbient = SHADOW_BRIGHTNESS * skyLight * lightColor;
 
-        //vec2 ambientLMCoord = vec2(blockLight, skyLight) * (15.0/16.0) + (0.5/16.0);
-        //vec3 ambientLM = RGBToLinear(texture2D(lightmap, lightingMap.xy).rgb);
+        vec3 blockAmbient = max(vec3(blockLight), skyAmbient);
 
-        // vec2 lmSkyCoord = vec2(0.0, skyLight * (15.0/16.0)) + (0.5/16.0);
-        // vec3 lightSky = RGBToLinear(texture2D(lightmap, lmSkyCoord).rgb);
+        vec3 ambient = blockAmbient * material.occlusion;
 
-        //vec3 ambient = minLight + 0.3 * ambientLM * material.occlusion;
-
-        float rough = 1.0 - material.smoothness;
-        float roughL = rough * rough;
-
-        vec3 ambient = material.albedo.rgb * max(blockLight, SHADOW_BRIGHTNESS * skyLight) * material.occlusion;
-
-        vec3 diffuse = material.albedo.rgb * Diffuse_Burley(NoL, NoV, LoH, roughL) * NoL * lightColor;
+        vec3 diffuse = Diffuse_Burley(NoLm, NoV, LoH, roughL) * NoLm * lightColor * shadow;
 
         vec3 specular = vec3(0.0);
 
@@ -74,47 +66,37 @@
             float NoH = max(dot(worldNormal, halfDir), 0.0);
             float VoH = max(dot(localViewDir, halfDir), 0.0);
 
-            specular = GetSpecular(material, LoH, NoH, VoH, roughL) * NoL * shadow*shadow;
+            specular = GetSpecular(material, LoH, NoH, VoH, roughL) * NoLm * lightColor * shadow*shadow;
         #endif
 
         if (heldBlockLightValue > 0) {
-            //vec3 eyeCameraPosition = cameraPosition + gbufferModelViewInverse[3].xyz;
-            //vec3 localCameraPosition = (gbufferModelViewInverse * vec4(cameraPosition, 1.0)).xyz;
-
-            //vec3 handLightPos = localPos - cameraPosition;
-            //vec3 handLightDir = -normalize(handLightPos);
-            //float handLightDist = max(1.0 - 0.02 * length(handLightPos), 0.0);
+            const vec3 handLightColor = vec3(0.851, 0.712, 0.545);
+            //const vec3 handLightColor = vec3(0.1, 1.0, 0.1);
 
             vec3 handLightPos = (gbufferModelViewInverse * vec4(handOffset, 1.0)).xyz;
-            handLightPos -= gbufferModelViewInverse[3].xyz;
+            //handLightPos -= gbufferModelViewInverse[3].xyz;
 
             vec3 handLightOffset = handLightPos - localPos;
-            //handLightPos.y -= 0.65;
-
             vec3 handLightDir = normalize(handLightOffset);
             float hand_NoL = max(dot(worldNormal, handLightDir), 0.0);
 
             if (hand_NoL > EPSILON) {
                 float lightDist = length(handLightOffset);
-                //float handLightAtt = max(1.0 - (length(localPos) / (0.6 * heldBlockLightValue)), 0.0);
                 float handLightDiffuseAtt = max(0.16*heldBlockLightValue - 0.5*lightDist, 0.0);
                 vec3 hand_halfDir = normalize(handLightDir + localViewDir);
                 float hand_LoH = max(dot(handLightDir, hand_halfDir), 0.0);
 
                 if (handLightDiffuseAtt > EPSILON) {
-                    handLightDiffuseAtt = handLightDiffuseAtt*handLightDiffuseAtt;
-
-                    //vec3 handLightColor = vec3(0.2 * heldBlockLightValue);
-                    diffuse += material.albedo.rgb * Diffuse_Burley(hand_NoL, NoV, hand_LoH, roughL) * hand_NoL * handLightDiffuseAtt;
-                    //diffuse = material.albedo.rgb * hand_NoL * handLightDiffuseAtt;
-                    //diffuse = vec3(LoH);
+                    diffuse += Diffuse_Burley(hand_NoL, NoV, hand_LoH, roughL) * handLightColor * hand_NoL * handLightDiffuseAtt;//*handLightDiffuseAtt;
                 }
 
-                float handLightSpecularAtt = max(0.16*heldBlockLightValue - 0.25*lightDist, 0.0) * hand_NoL;
+                float handLightSpecularAtt = max(0.1*heldBlockLightValue - 0.18*lightDist, 0.0);
 
-                float hand_NoH = max(dot(worldNormal, hand_halfDir), 0.0);
-                float hand_VoH = max(dot(localViewDir, hand_halfDir), 0.0);
-                specular += GetSpecular(material, hand_LoH, hand_NoH, hand_VoH, roughL) * handLightSpecularAtt; // * NoL
+                if (handLightSpecularAtt > EPSILON) {
+                    float hand_NoH = max(dot(worldNormal, hand_halfDir), 0.0);
+                    float hand_VoH = max(dot(localViewDir, hand_halfDir), 0.0);
+                    specular += GetSpecular(material, hand_LoH, hand_NoH, hand_VoH, roughL) * handLightColor * hand_NoL * handLightSpecularAtt;
+                }
             }
         }
 
@@ -125,11 +107,22 @@
             diffuse *= HCM_AMBIENT;
         }
 
-        ambient += material.albedo.rgb * minLight;
+        ambient += minLight;
 
-        vec3 emissive = material.albedo.rgb * material.emission * 16.0;
+        float emissive = material.emission * 16.0;
 
-        vec3 final = ambient + diffuse + specular + emissive;
+        vec3 lit = ambient + diffuse + emissive;
+
+        #ifdef SSS_ENABLED
+            vec3 ambient_sss = skyAmbient * material.scattering * material.occlusion;
+
+            //float lightSSS = lightingMap.a;
+            vec3 sss = material.scattering * lightingMap.a * lightColor * max(-NoL, 0.0);
+
+            lit += ambient_sss + sss;
+        #endif
+
+        vec3 final = material.albedo.rgb * lit + specular;
 
         #ifdef IS_OPTIFINE
             // Iris doesn't currently support fog in deferred
