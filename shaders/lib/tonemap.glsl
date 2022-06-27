@@ -11,8 +11,6 @@
 #define TONEMAP_ReinhardExtendedLuminance 10
 #define TONEMAP_Tech 12
 
-#define TONEMAP TONEMAP_ACESFit2
-
 
 //====  Stuff from Jessie ====//
 
@@ -166,5 +164,7 @@ vec3 ApplyTonemap(const in vec3 color)
     return tonemap_ReinhardExtendedLuminance(color, 4.0);
 #elif TONEMAP == TONEMAP_Tech
     return tonemap_Tech(color);
+#else
+    return LinearToRGB(color);
 #endif
 }

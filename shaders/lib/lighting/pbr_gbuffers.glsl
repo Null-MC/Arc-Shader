@@ -74,9 +74,9 @@
         #endif
         
         #ifdef AF_ENABLED
-            colorMap = textureAF(texture, atlasCoord, dFdXY) * glcolor;
+            colorMap = textureAF(texture, atlasCoord, dFdXY);
         #else
-            colorMap = texture2DGrad(texture, atlasCoord, dFdXY[0], dFdXY[1]) * glcolor;
+            colorMap = texture2DGrad(texture, atlasCoord, dFdXY[0], dFdXY[1]);
         #endif
 
         #ifndef RENDER_WATER
@@ -84,24 +84,34 @@
             colorMap.a = 1.0;
         #endif
 
-        #ifdef PARALLAX_SMOOTH
-            normalMap.xyw = SampleLinearRGB(normals, atlasCoord, 1.0 / atlasSize);
-        #else
-            normalMap.xyw = texture2DGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).rgb;
+        colorMap *= glcolor;
+
+        #ifdef RENDER_ENTITIES
+            //colorMap.rgb *= (1.0 - entityColor.a) + entityColor.rgb * entityColor.a;
+            colorMap.rgb = mix(colorMap.rgb, entityColor.rgb, entityColor.a);
         #endif
+
+        #ifdef PARALLAX_SMOOTH
+            normalMap.rgb = SampleLinearRGB(normals, atlasCoord, 1.0 / atlasSize);
+        #else
+            normalMap.rgb = texture2DGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).rgb;
+        #endif
+
+        normalMap.a = 0.0;
 
         specularMap = texture2DGrad(specular, atlasCoord, dFdXY[0], dFdXY[1]);
 
-        normalMap.xy = normalMap.xy * 2.0 - 1.0;
-        normalMap.z = sqrt(max(1.0 - dot(normalMap.xy, normalMap.xy), EPSILON));
+        vec3 normal;
+        normal.xy = normalMap.xy * 2.0 - 1.0;
+        normal.z = sqrt(max(1.0 - dot(normal.xy, normal.xy), EPSILON));
 
         #ifdef PARALLAX_SLOPE_NORMALS
             float dO = max(texDepth - traceCoordDepth.z, 0.0);
             if (dO >= 0.95 / 255.0) {
                 #ifdef PARALLAX_USE_TEXELFETCH
-                    normalMap.xyz = GetParallaxSlopeNormal(atlasCoord, traceCoordDepth.z, tanViewDir);
+                    normal = GetParallaxSlopeNormal(atlasCoord, traceCoordDepth.z, tanViewDir);
                 #else
-                    normalMap.xyz = GetParallaxSlopeNormal(atlasCoord, dFdXY, traceCoordDepth.z, tanViewDir);
+                    normal = GetParallaxSlopeNormal(atlasCoord, dFdXY, traceCoordDepth.z, tanViewDir);
                 #endif
             }
         #endif
@@ -131,7 +141,7 @@
             #endif
 
             vec3 tanLightDir = normalize(tanLightPos);
-            float NoL = dot(normalMap.xyz, tanLightDir);
+            float NoL = dot(normal, tanLightDir);
 
             shadow *= step(EPSILON, geoNoL);
             shadow *= step(EPSILON, NoL);
@@ -173,7 +183,7 @@
             // TODO: blend in deferred output?
         #endif
 
-        normalMap.xyz = normalMap.xyz * matTBN * 0.5 + 0.5;
+        normalMap.xy = (normal.xyz * matTBN).xy * 0.5 + 0.5;
 
         lightingMap = vec4(lmcoord, shadow, lightSSS);
     }

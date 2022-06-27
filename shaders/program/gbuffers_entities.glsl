@@ -79,7 +79,7 @@ varying vec3 tanViewPos;
 		texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 		lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
 		glcolor = gl_Color;
-		
+
         mat3 matViewTBN;
         BasicVertex(matViewTBN);
         PbrVertex(matViewTBN);
@@ -91,6 +91,8 @@ varying vec3 tanViewPos;
     uniform sampler2D normals;
     uniform sampler2D specular;
 	uniform sampler2D lightmap;
+
+    uniform vec4 entityColor;
 
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
         uniform float alphaTestRef;

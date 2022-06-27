@@ -11,16 +11,21 @@ varying vec4 glcolor;
 varying vec3 viewPos;
 varying vec3 viewNormal;
 varying float geoNoL;
-flat varying vec3 worldNormal;
 
-#if defined SHADOW_ENABLED && SHADOW_TYPE != 0
+#ifdef SHADOW_ENABLED
+    uniform vec3 sunPosition;
+    uniform vec3 moonPosition;
+    uniform vec3 upPosition;
+
+    flat varying vec3 skyLightColor;
+
 	#if SHADOW_TYPE == 3
 		varying vec3 shadowPos[4];
         varying vec3 shadowParallaxPos[4];
 		varying vec2 shadowProjectionSizes[4];
         varying float cascadeSizes[4];
         flat varying int shadowCascade;
-	#else
+	#elif SHADOW_TYPE != 0
 		varying vec4 shadowPos;
         varying vec4 shadowParallaxPos;
 	#endif
@@ -30,7 +35,7 @@ flat varying vec3 worldNormal;
 	uniform mat4 gbufferModelView;
 	uniform mat4 gbufferModelViewInverse;
 
-	#if defined SHADOW_ENABLED && SHADOW_TYPE != 0
+	#ifdef SHADOW_ENABLED
 		uniform mat4 shadowModelView;
 		uniform mat4 shadowProjection;
 		uniform vec3 shadowLightPosition;
@@ -48,12 +53,13 @@ flat varying vec3 worldNormal;
 
 			#include "/lib/shadows/csm.glsl"
 			#include "/lib/shadows/csm_render.glsl"
-		#else
+		#elif SHADOW_TYPE != 0
 			#include "/lib/shadows/basic.glsl"
             #include "/lib/shadows/basic_render.glsl"
 		#endif
 	#endif
 
+    #include "/lib/world/sky.glsl"
     #include "/lib/lighting/basic.glsl"
 
 
@@ -65,7 +71,7 @@ flat varying vec3 worldNormal;
         mat3 matViewTBN;
         BasicVertex(matViewTBN);
 
-        worldNormal = mat3(gbufferModelViewInverse) * viewNormal;
+        skyLightColor = GetSkyLightColor();
 	}
 #endif
 
@@ -73,66 +79,73 @@ flat varying vec3 worldNormal;
 	uniform sampler2D texture;
 	uniform sampler2D lightmap;
 
+    uniform int fogMode;
+    uniform float fogStart;
+    uniform float fogEnd;
+    uniform int fogShape;
+    uniform vec3 fogColor;
+    uniform vec3 skyColor;
+
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
         uniform float alphaTestRef;
     #endif
 	
-	#if defined SHADOW_ENABLED && SHADOW_TYPE != 0
-        uniform sampler2D shadowcolor0;
-        uniform sampler2D shadowtex0;
-
-        #ifdef SHADOW_ENABLE_HWCOMP
-            #ifndef IS_OPTIFINE
-                uniform sampler2DShadow shadowtex1HW;
-                uniform sampler2D shadowtex1;
-            #else
-                uniform sampler2DShadow shadowtex1;
-            #endif
-        #else
-            uniform sampler2D shadowtex1;
-        #endif
-		
+	#ifdef SHADOW_ENABLED
 		uniform vec3 shadowLightPosition;
-        uniform float near;
-        uniform float far;
 
-		#if SHADOW_PCF_SAMPLES == 12
-			#include "/lib/shadows/poisson_12.glsl"
-		#elif SHADOW_PCF_SAMPLES == 24
-			#include "/lib/shadows/poisson_24.glsl"
-		#elif SHADOW_PCF_SAMPLES == 36
-			#include "/lib/shadows/poisson_36.glsl"
-		#endif
+		#if SHADOW_TYPE != 0
+	        uniform sampler2D shadowcolor0;
+	        uniform sampler2D shadowtex0;
 
-        #include "/lib/depth.glsl"
+	        uniform float near;
+	        uniform float far;
 
-		#if SHADOW_TYPE == 3
-			#include "/lib/shadows/csm.glsl"
-			#include "/lib/shadows/csm_render.glsl"
-		#else
-			uniform mat4 shadowProjection;
-		
-			#include "/lib/shadows/basic.glsl"
-            #include "/lib/shadows/basic_render.glsl"
-		#endif
+	        #ifdef SHADOW_ENABLE_HWCOMP
+	            #ifndef IS_OPTIFINE
+	                uniform sampler2DShadow shadowtex1HW;
+	                uniform sampler2D shadowtex1;
+	            #else
+	                uniform sampler2DShadow shadowtex1;
+	            #endif
+	        #else
+	            uniform sampler2D shadowtex1;
+	        #endif
+			
+			#if SHADOW_PCF_SAMPLES == 12
+				#include "/lib/shadows/poisson_12.glsl"
+			#elif SHADOW_PCF_SAMPLES == 24
+				#include "/lib/shadows/poisson_24.glsl"
+			#elif SHADOW_PCF_SAMPLES == 36
+				#include "/lib/shadows/poisson_36.glsl"
+			#endif
+
+	        #include "/lib/depth.glsl"
+
+			#if SHADOW_TYPE == 3
+				#include "/lib/shadows/csm.glsl"
+				#include "/lib/shadows/csm_render.glsl"
+			#else
+				uniform mat4 shadowProjection;
+				
+				#include "/lib/shadows/basic.glsl"
+	            #include "/lib/shadows/basic_render.glsl"
+			#endif
+	    #endif
 	#endif
 
-    #include "/lib/lighting/basic_gbuffers.glsl"
+    #include "/lib/world/fog.glsl"
+    #include "/lib/world/sky.glsl"
+    #include "/lib/lighting/basic_forward.glsl"
+    #include "/lib/tonemap.glsl"
 
 
 	void main() {
-        float shadow;
-        vec4 colorMap, lightingMap;
+        vec4 final = BasicLighting();
 
-        mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
-        BasicLighting(dFdXY, colorMap, shadow);
+        //final = LinearToRGB(final);
+        final.rgb = ApplyTonemap(final.rgb);
 
-        lightingMap = vec4(lmcoord, shadow, 0.0);
-
-    /* DRAWBUFFERS:0123 */
-        gl_FragData[0] = colorMap; //gcolor
-        gl_FragData[1] = vec4(worldNormal, 1.0); //gdepth
-        gl_FragData[2] = vec4(0.0, 0.0, 0.0, 1.0); //gnormal
-        gl_FragData[3] = lightingMap; //composite
+    /* DRAWBUFFERS:0 */
+        gl_FragData[0] = final; //gcolor
 	}
 #endif

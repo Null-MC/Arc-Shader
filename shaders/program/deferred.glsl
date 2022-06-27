@@ -32,6 +32,10 @@ varying vec2 texcoord;
     uniform sampler2D lightmap;
     uniform sampler2D depthtex0;
 
+    #ifdef SSR_ENABLED
+        uniform sampler2D colortex4;
+    #endif
+
     uniform mat4 gbufferProjectionInverse;
     uniform mat4 gbufferModelView;
     uniform float viewWidth;
@@ -53,21 +57,19 @@ varying vec2 texcoord;
         uniform vec3 shadowLightPosition;
     #endif
 
+    #include "/lib/tonemap.glsl"
     #include "/lib/world/fog.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/lighting/material.glsl"
     #include "/lib/lighting/material_reader.glsl"
     #include "/lib/lighting/hcm.glsl"
     #include "/lib/lighting/pbr.glsl"
+    #include "/lib/ssr.glsl"
     #include "/lib/lighting/pbr_deferred.glsl"
-    #include "/lib/tonemap.glsl"
 
 
 	void main() {
         vec3 final = PbrLighting();
-
-        //final = LinearToRGB(final);
-        final = ApplyTonemap(final);
 
 	/* DRAWBUFFERS:0 */
 		gl_FragData[0] = vec4(final, 1.0); //gcolor

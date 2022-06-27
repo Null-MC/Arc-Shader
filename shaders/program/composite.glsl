@@ -10,7 +10,7 @@ varying vec2 texcoord;
 #endif
 
 #ifdef RENDER_FRAG
-    uniform sampler2D gcolor;
+    uniform sampler2D colortex0;
 
     uniform sampler2D shadowcolor0;
     uniform sampler2D shadowtex0;
@@ -25,10 +25,10 @@ varying vec2 texcoord;
         #elif DEBUG_SHADOW_BUFFER == 3
             vec3 color = texture2D(shadowtex1, texcoord).rrr;
         #else
-            vec3 color = texture2D(gcolor, texcoord).rgb;
+            vec3 color = texture2D(colortex0, texcoord).rgb;
         #endif
 
-    /* DRAWBUFFERS:0 */
-        gl_FragData[0] = vec4(color, 1.0); //gcolor
+    /* DRAWBUFFERS:7 */
+        gl_FragData[0] = vec4(color, 1.0); //colortex4
     }
 #endif

@@ -24,9 +24,10 @@ float GetLabPbr_Emission(const in float specularA) {
         material.albedo.rgb = RGBToLinear(colorMap);
         material.albedo.a = 1.0;
 
-        material.normal.xyz = normalMap.rgb * 2.0 - 1.0;
-        material.occlusion = normalMap.a;
+        material.normal.xy = normalMap.xy * 2.0 - 1.0;
+        material.normal.z = sqrt(max(1.0 - dot(material.normal.xy, material.normal.xy), EPSILON));
 
+        material.occlusion = normalMap.z;
         material.smoothness = specularMap.r;
         material.f0 = GetLabPbr_F0(specularMap.g);
         material.hcm = GetLabPbr_HCM(specularMap.g);

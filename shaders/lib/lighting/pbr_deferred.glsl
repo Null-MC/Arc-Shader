@@ -1,19 +1,32 @@
+//#define ALLOW_TEXELFETCH
+
 #ifdef RENDER_VERTEX
     <empty>
 #endif
 
 #ifdef RENDER_FRAG
     vec3 PbrLighting() {
-        ivec2 iTex = ivec2(texcoord * vec2(viewWidth, viewHeight));
-        vec3 colorMap = texelFetch(colortex0, iTex, 0).rgb;
-        float screenDepth = texelFetch(depthtex0, iTex, 0).r;
+        #ifdef ALLOW_TEXELFETCH
+            ivec2 iTex = ivec2(texcoord * vec2(viewWidth, viewHeight));
+            vec3 colorMap = texelFetch(colortex0, iTex, 0).rgb;
+            float screenDepth = texelFetch(depthtex0, iTex, 0).r;
+        #else
+            vec3 colorMap = texture2DLod(colortex0, texcoord, 0).rgb;
+            float screenDepth = texture2DLod(depthtex0, texcoord, 0).r;
+        #endif
 
-        if (screenDepth == 1.0) // SKY
-            return RGBToLinear(colorMap);
+        // SKY
+        if (screenDepth == 1.0) return colorMap;
 
-        vec4 normalMap = texelFetch(colortex1, iTex, 0);
-        vec4 specularMap = texelFetch(colortex2, iTex, 0);
-        vec4 lightingMap = texelFetch(colortex3, iTex, 0);
+        #ifdef ALLOW_TEXELFETCH
+            vec4 normalMap = texelFetch(colortex1, iTex, 0);
+            vec4 specularMap = texelFetch(colortex2, iTex, 0);
+            vec4 lightingMap = texelFetch(colortex3, iTex, 0);
+        #else
+            vec4 normalMap = texture2DLod(colortex1, texcoord, 0);
+            vec4 specularMap = texture2DLod(colortex2, texcoord, 0);
+            vec4 lightingMap = texture2DLod(colortex3, texcoord, 0);
+        #endif
 
         vec3 clipPos = vec3(texcoord, screenDepth) * 2.0 - 1.0;
         vec4 viewPos = (gbufferProjectionInverse * vec4(clipPos, 1.0));
@@ -49,6 +62,19 @@
 
         blockLight = blockLight*blockLight*blockLight;
         skyLight = skyLight*skyLight*skyLight;
+
+        vec3 reflectColor = vec3(0.0);
+        #ifdef SSR_ENABLED
+            vec3 reflectDir = reflect(viewDir, viewNormal);
+            vec2 reflectCoord = GetReflectCoord(reflectDir);
+
+            #ifdef ALLOW_TEXELFETCH
+                ivec2 iTexReflect = ivec2(reflectCoord * vec2(viewWidth, viewHeight));
+                reflectColor = texelFetch(colortex4, iTexReflect, 0);
+            #else
+                reflectColor = texture2DLod(colortex4, reflectCoord, 0);
+            #endif
+        #endif
 
         vec3 skyAmbient = SHADOW_BRIGHTNESS * GetSkyAmbientColor(viewNormal) * (0.1 + 0.9 * skyLight); //lightColor;
 
@@ -123,6 +149,8 @@
             ApplyFog(final, viewPos.xyz, skyLight);
         #endif
 
-        return final;
+        //return mix(final, reflectColor, 0.5);
+
+        return ApplyTonemap(final);
     }
 #endif

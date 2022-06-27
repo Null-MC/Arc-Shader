@@ -131,7 +131,15 @@ varying vec4 glcolor;
 #ifdef RENDER_FRAG
 	//uniform sampler2D lightmap;
 	uniform sampler2D texture;
-    uniform sampler2D specular;
+	uniform sampler2D normal;
+
+    #if MC_VERSION >= 11700 && defined IS_OPTIFINE
+        uniform float alphaTestRef;
+    #endif
+
+	#ifdef SSS_ENABLED
+	    uniform sampler2D specular;
+	#endif
 
 
 	void main() {
@@ -141,10 +149,17 @@ varying vec4 glcolor;
              || screenCascadePos.y < 0 || screenCascadePos.y >= 0.5) discard;
 		#endif
 
-		float colorMapA = texture2D(texture, texcoord).a * glcolor.a;
-        float specularMapB = texture2D(specular, texcoord).b;
-        float sss = max(specularMapB - 0.25, 0.0) * (1.0 / 0.75);
+		vec4 colorMap = texture2D(texture, texcoord) * glcolor;
 
-		gl_FragData[0] = vec4(sss, 0.0, 0.0, colorMapA);
+		// TODO: THIS IS PROBABLY A BAD IDEA HERE!
+		if (colorMap.a < alphaTestRef) discard;
+
+		#ifdef SSS_ENABLED
+	        float specularMapB = texture2D(specular, texcoord).b;
+	        float sss = max(specularMapB - 0.25, 0.0) * (1.0 / 0.75);
+	        colorMap.rgb = vec3(sss, 0.0, 0.0);
+	    #endif
+
+		gl_FragData[0] = colorMap;
 	}
 #endif

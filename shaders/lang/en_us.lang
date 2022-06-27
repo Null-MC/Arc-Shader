@@ -1,8 +1,26 @@
 screen.WORLD_OPTIONS=World Options
 screen.WORLD_OPTIONS.comment=Options for everything else.
 
+option.ATMOSPHERE_ENABLED=Atmosphere
+option.ATMOSPHERE_ENABLED.comment=When enabled a more realistic atmosphere will be rendered instead of the vanilla sky.
+
 option.ENABLE_WAVING=Waving Plants
 option.ENABLE_WAVING.comment=When enabled, plants will wave using artificial wind.
+
+option.TONEMAP=Tonemap
+value.TONEMAP.0=None
+value.TONEMAP.1=Hejl-Burgess
+value.TONEMAP.2=Aces Film
+value.TONEMAP.3=Reinhard
+value.TONEMAP.4=Reinhard-Jodie
+value.TONEMAP.5=Uncharted 2
+value.TONEMAP.6=ACES Fit
+value.TONEMAP.7=ACES Fit 2
+value.TONEMAP.8=Filmic Hejl 2015
+value.TONEMAP.9=Burgess
+value.TONEMAP.10=Burgess Modified
+value.TONEMAP.11=Reinhard Extended Luminance
+value.TONEMAP.12=Tech
 
 
 option.SHADOW_TYPE=Shadow Type
