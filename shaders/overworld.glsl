@@ -11,7 +11,7 @@ const float shadowPixelSize = 1.0 / shadowMapSize;
 
 //const bool shadowcolor0Nearest = false;
 
-const bool generateShadowMipmap = false;
+const bool generateShadowMipmap = true;
 const bool shadowtex0Mipmap = false;
 const bool shadowtex0Nearest = true;
 const bool shadowHardwareFiltering0 = false;

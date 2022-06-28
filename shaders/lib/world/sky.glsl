@@ -1,5 +1,5 @@
-const vec3 sunColor = vec3(6.0, 4.0, 3.0);
-const vec3 moonColor = vec3(0.05, 0.06, 0.1);
+const vec3 sunColor = 1.4 * vec3(1.0, 0.9, 0.8);
+const vec3 moonColor = 0.1 * vec3(0.5, 0.6, 1.0);
 
 
 vec3 GetSkyLightColor() {
@@ -30,6 +30,6 @@ vec3 GetSkyLightColor() {
 	    float moonLightNormal = max(dot(normal, sunLightDir), 0.0);
 	    vec3 moonLight = moonColor * moonLightStrength * moonLightNormal;
 
-	    return skyColor + 0.2 * (sunLight + moonLight);
+	    return skyColor + 0.2 * sunLight + 0.6 * moonLight;
     }
 #endif

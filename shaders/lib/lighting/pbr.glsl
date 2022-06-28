@@ -15,8 +15,6 @@
 #endif
 
 #ifdef RENDER_FRAG
-    #define IOR_AIR 1.0
-
     float F_schlick(const in float cos_theta, const in float f0, const in float f90)
     {
         return f0 + (f90 - f0) * pow(1.0 - cos_theta, 5.0);
@@ -50,10 +48,6 @@
         return 0.5f * (rp + rs);
     }
 
-    // vec3 SchlickRoughness(const in vec3 f0, const in float cos_theta, const in float rough) {
-    //     return f0 + (max(1.0 - rough, f0) - f0) * pow(saturate(1.0 - cos_theta), 5.0);
-    // }
-
     float GGX(const in float NoH, const in float roughL)
     {
         const float a = NoH * roughL;
@@ -66,37 +60,7 @@
         return 1.0 / mix(LdotH * LdotH, 1.0, alpha * alpha * 0.25);
     }
 
-    float Specular_BRDF(const in float f0, const in float LoH, const in float NoH, const in float VoH, const in float roughL)
-    {
-        // Fresnel
-        float F = SchlickRoughness(f0, VoH, roughL);
-
-        // Distribution
-        float D = GGX(NoH, roughL);
-
-        // Geometric Visibility
-        float G = SmithHable(LoH, roughL);
-
-        return D * F * G;
-    }
-
-    vec3 SpecularConductor_BRDF(const in vec3 iorN, const in vec3 iorK, const in float LoH, const in float NoH, const in float VoH, const in float roughL)
-    {
-        // Fresnel
-        //float F = SchlickRoughness(f0, VoH, roughL);
-        //vec3 F = F_conductor(LoH, ior_n1, ior_n2, ior_k);
-        vec3 F = F_conductor(VoH, IOR_AIR, iorN, iorK);
-
-        // Distribution
-        float D = GGX(NoH, roughL);
-
-        // Geometric Visibility
-        float G = SmithHable(LoH, roughL);
-
-        return D * F * G;
-    }
-
-    vec3 GetSpecular(const in PbrMaterial material, const in float LoH, const in float NoH, const in float VoH, const in float roughL)
+    vec3 GetSpecularBRDF(const in PbrMaterial material, const in float LoH, const in float NoH, const in float VoH, const in float roughL)
     {
         // Fresnel
         vec3 F;
@@ -118,11 +82,27 @@
         return D * F * G;
     }
 
-    float Diffuse_Burley(const in float NoL, const in float NoV, const in float LoH, const in float rough)
+    vec3 GetDiffuse_Burley(const in vec3 albedo, const in float NoV, const in float NoL, const in float LoH, const in float roughL)
     {
-        float f90 = 0.5 + 2.0 * rough * LoH * LoH;
+        float f90 = 0.5 + 2.0 * roughL * LoH * LoH;
         float light_scatter = F_schlick(NoL, 1.0, f90);
         float view_scatter = F_schlick(NoV, 1.0, f90);
-        return light_scatter * view_scatter * InvPI;
+        return (albedo * invPI) * light_scatter * view_scatter * NoL;
+    }
+
+    vec3 GetSubsurface(const in vec3 albedo, const in float NoV, const in float NoL, const in float LoH, const in float roughL) {
+        float sssF90 = roughL * pow(LoH, 2);
+        float sssF_In = F_schlick(NoV, 1.0, sssF90);
+        float sssF_Out = F_schlick(NoL, 1.0, sssF90);
+
+        return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (1.0 / (NoV + NoL) - 0.5) + 0.5) * NoL;
+    }
+
+    vec3 GetDiffuseBSDF(const in PbrMaterial material, const in float NoV, const in float NoL, const in float LoH, const in float roughL) {
+        vec3 diffuse = GetDiffuse_Burley(material.albedo.rgb, NoV, NoL, LoH, roughL);
+        if (material.scattering < EPSILON) return diffuse;
+
+        vec3 subsurface = GetSubsurface(material.albedo.rgb, NoV, NoL, LoH, roughL);
+        return (1.0 - material.scattering) * diffuse + material.scattering * subsurface;
     }
 #endif

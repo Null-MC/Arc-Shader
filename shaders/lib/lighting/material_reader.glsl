@@ -1,3 +1,10 @@
+vec3 GetLabPbr_Normal(const in vec2 normalXY) {
+    vec3 normal;
+    normal.xy = normalXY * 2.0 - 1.0;
+    normal.z = sqrt(max(1.0 - dot(normal.xy, normal.xy), EPSILON));
+    return normal;
+}
+
 float GetLabPbr_F0(const in float specularG) {
     return specularG * step(specularG, 0.9);
 }
@@ -22,11 +29,7 @@ float GetLabPbr_Emission(const in float specularA) {
     PbrMaterial PopulateMaterial(const in vec3 colorMap, const in vec4 normalMap, const in vec4 specularMap) {
         PbrMaterial material;
         material.albedo.rgb = RGBToLinear(colorMap);
-        material.albedo.a = 1.0;
-
-        material.normal.xy = normalMap.xy * 2.0 - 1.0;
-        material.normal.z = sqrt(max(1.0 - dot(material.normal.xy, material.normal.xy), EPSILON));
-
+        material.normal = GetLabPbr_Normal(normalMap.xy);
         material.occlusion = normalMap.z;
         material.smoothness = specularMap.r;
         material.f0 = GetLabPbr_F0(specularMap.g);
@@ -36,6 +39,7 @@ float GetLabPbr_Emission(const in float specularA) {
         material.emission = GetLabPbr_Emission(specularMap.a);
 
         if (material.f0 < EPSILON) material.f0 = 0.04;
+        material.albedo.a = 1.0;
 
         return material;
     }
@@ -51,8 +55,7 @@ float GetLabPbr_Emission(const in float specularA) {
         if (material.normal.x < EPSILON && material.normal.y < EPSILON)
             material.normal = vec3(0.0, 0.0, 1.0);
         else {
-        	material.normal.xy = normalMap.xy * 2.0 - 1.0;
-        	material.normal.z = sqrt(max(1.0 - dot(normalMap.xy, normalMap.xy), EPSILON));
+            material.normal = GetLabPbr_Normal(normalMap.xy);
         }
 
     	material.occlusion = normalMap.b;

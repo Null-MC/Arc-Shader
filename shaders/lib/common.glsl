@@ -51,7 +51,7 @@ const bool colortex4Clear = false;
 // Other Options
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
-#define SSS_MAXDIST 2.0
+#define SSS_MAXDIST 2.8
 
 
 // INTERNAL SETTINGS
@@ -62,8 +62,10 @@ const bool colortex4Clear = false;
 #define SHADOW_CSM_FITSCALE 0.1
 //#define PARALLAX_USE_TEXELFETCH
 //#define PARALLAX_SHADOW_FIX
+//#define ANIM_USE_WORLDTIME
 #define CSM_PLAYER_ID 0
 
+#define IOR_AIR 1.0
 #define PI 3.1415926538
 #define EPSILON 1e-6
 #define GAMMA 2.2
@@ -71,7 +73,7 @@ const bool colortex4Clear = false;
 const vec3 minLight = vec3(0.01);
 const vec3 handOffset = vec3(0.2, -0.3, -0.2);
 const vec3 luma_factor = vec3(0.2126f, 0.7152f, 0.0722f);
-const float InvPI = 1.0 / PI;
+const float invPI = 1.0 / PI;
 
 
 #if MC_VERSION < 11700 || !defined IS_OPTIFINE
@@ -132,4 +134,14 @@ float luminance(const in vec3 color) {
 float expStep(float x)
 {
     return 1.0 - exp(-x*x);
+}
+
+float f0ToIOR(const in float f0) {
+    float sqrt_f0 = sqrt(f0);
+    return (1.0f + sqrt_f0) / max(1.0f - sqrt_f0, EPSILON);
+}
+
+vec3 f0ToIOR(const in vec3 f0) {
+    vec3 sqrt_f0 = sqrt(f0);
+    return (1.0f + sqrt_f0) / max(1.0f - sqrt_f0, vec3(EPSILON));
 }

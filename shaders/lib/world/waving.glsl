@@ -42,13 +42,14 @@ vec3 fbm(vec3 pos) {
     vec3 val = vec3(0);
     float weight = 0.5;
     float totalWeight = 0.0;
-    float frequency = 0.1;
+    float frequency = 1000.0;
     for (int i = 0; i < 8; i++) {
         val += noise(pos * frequency) * weight;
         totalWeight += weight;
         weight /= 2.0;
         frequency *= 2.0;
     }
+
     return val / totalWeight;
 }
 
@@ -56,13 +57,19 @@ vec3 GetWavingOffset() {
     float range = (mc_Entity.x == 10002.0 || mc_Entity.x == 10004.0) ? 0.01 : 0.06;
 
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
-        vec3 worldPos = vaPosition.xyz + chunkOffset + cameraPosition;
+        vec3 worldPos = floor(vaPosition.xyz + chunkOffset + cameraPosition);
     #else
         // TODO: FIX THIS!!!
         vec3 worldPos = cameraPosition;
     #endif
 
-	vec3 hash = mod(fbm(worldPos) * 2.0 * PI + 1.2 * frameTimeCounter, 2.0 * PI);
+    #ifdef ANIM_USE_WORLDTIME
+        float time = worldTime / 24.0;
+    #else
+        float time = frameTimeCounter;
+    #endif
+
+	vec3 hash = mod(fbm(worldPos) * 2.0 * PI + time, 2.0 * PI);
 	vec3 offset = sin(hash) * range;
 
     // Prevent waving for blocks with the base attached to ground.

@@ -21,14 +21,27 @@ varying vec4 glcolor;
 	flat varying vec2 shadowCascadePos;
 #endif
 
+#ifdef SSS_ENABLED
+	varying vec3 viewPosTan;
+#endif
+
 #ifdef RENDER_VERTEX
 	in vec4 mc_Entity;
 	in vec3 vaPosition;
 	in vec3 at_midBlock;
 
+	#ifdef SSS_ENABLED
+		in vec4 at_tangent;
+	#endif
+
 	uniform mat4 shadowModelViewInverse;
-	uniform float frameTimeCounter;
 	uniform vec3 cameraPosition;
+	
+	#ifdef ANIM_USE_WORLDTIME
+		uniform int worldTime;
+	#else
+		uniform float frameTimeCounter;
+	#endif
 
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
         uniform vec3 chunkOffset;
@@ -93,6 +106,8 @@ varying vec4 glcolor;
 				pos.xyz += GetWavingOffset();
 		#endif
 
+		vec4 viewPos = gl_ModelViewMatrix * pos;
+
 		#if SHADOW_TYPE == 3
             cascadeSizes[0] = GetCascadeDistance(0);
             cascadeSizes[1] = GetCascadeDistance(1);
@@ -107,7 +122,7 @@ varying vec4 glcolor;
 
 			int shadowCascade = GetShadowCascade(matShadowProjections);
 			shadowCascadePos = GetShadowCascadeClipPos(shadowCascade);
-			gl_Position = matShadowProjections[shadowCascade] * (gl_ModelViewMatrix * pos);
+			gl_Position = matShadowProjections[shadowCascade] * viewPos;
 
 			gl_Position.xy = gl_Position.xy * 0.5 + 0.5;
 			gl_Position.xy = gl_Position.xy * 0.5 + shadowCascadePos;
@@ -115,7 +130,7 @@ varying vec4 glcolor;
 
             //if (shadowCascade != 1) gl_Position = vec4(vec3(10.0), 1.0);
 		#else
-			gl_Position = gl_ProjectionMatrix * (gl_ModelViewMatrix * pos);
+			gl_Position = gl_ProjectionMatrix * viewPos;
 
 			#if SHADOW_TYPE == 2
 				gl_Position.xyz = distort(gl_Position.xyz);
@@ -125,21 +140,39 @@ varying vec4 glcolor;
 		#ifdef SHADOW_EXCLUDE_FOLIAGE
 			}
 		#endif
+
+		#ifdef SSS_ENABLED
+            vec3 viewNormal = normalize(gl_NormalMatrix * gl_Normal);
+            vec3 viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
+            vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
+
+			mat3 matViewTBN = mat3(
+                viewTangent.x, viewBinormal.x, viewNormal.x,
+                viewTangent.y, viewBinormal.y, viewNormal.y,
+                viewTangent.z, viewBinormal.z, viewNormal.z);
+
+			viewPosTan = matViewTBN * viewPos.xyz;
+		#endif
 	}
 #endif
 
 #ifdef RENDER_FRAG
 	//uniform sampler2D lightmap;
 	uniform sampler2D texture;
-	uniform sampler2D normal;
 
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
         uniform float alphaTestRef;
     #endif
 
 	#ifdef SSS_ENABLED
+		//uniform sampler2D normal;
 	    uniform sampler2D specular;
 	#endif
+
+	#include "/lib/lighting/hcm.glsl"
+	#include "/lib/lighting/material.glsl"
+	#include "/lib/lighting/material_reader.glsl"
+	//#include "/lib/lighting/pbr.glsl"
 
 
 	void main() {
@@ -151,15 +184,42 @@ varying vec4 glcolor;
 
 		vec4 colorMap = texture2D(texture, texcoord) * glcolor;
 
-		// TODO: THIS IS PROBABLY A BAD IDEA HERE!
-		if (colorMap.a < alphaTestRef) discard;
+		vec4 final = colorMap;
 
 		#ifdef SSS_ENABLED
-	        float specularMapB = texture2D(specular, texcoord).b;
-	        float sss = max(specularMapB - 0.25, 0.0) * (1.0 / 0.75);
-	        colorMap.rgb = vec3(sss, 0.0, 0.0);
+			// TODO: THIS IS PROBABLY A BAD IDEA HERE!
+			if (colorMap.a < alphaTestRef) discard;
+
+	        vec3 specularMap = texture2D(specular, texcoord).rgb;
+	        //vec2 normalMap = texture2D(normal, texcoord).rg;
+
+	        final.rgb = vec3(0.0);
+	        float sss = GetLabPbr_SSS(specularMap.b);
+
+	        if (sss > EPSILON) {
+		        vec3 viewDirT = -normalize(viewPosTan);
+		        //vec3 texNormalT = GetLabPbr_Normal(normalMap);
+
+		        //float f0 = GetLabPbr_F0(specularMap.g);
+		        //if (f0 < EPSILON) f0 = 0.04;
+
+		        //float ior = f0ToIOR(f0);
+		        //vec3 refractDir = refract(viewDirT, texNormalT, IOR_AIR / ior);
+
+		        //float NoVm = abs(dot(texNormalT, viewDirT));
+
+		        //float roughL = specularMap.r*specularMap.r;
+
+		        //float F = SchlickRoughness(f0, NoVm, roughL);
+		        //final.r = sss;// * max(-refractDir.z, 0.0);// * (1.0 - F);
+		        //final.rgb = -refractDir.zzz;
+
+		        final.r = sss * abs(viewDirT.z);
+	        }
+	    //#else
+	    	//final.rgb = colorMap.rgb;
 	    #endif
 
-		gl_FragData[0] = colorMap;
+		gl_FragData[0] = final;
 	}
 #endif

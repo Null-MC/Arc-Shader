@@ -12,23 +12,25 @@ varying vec2 texcoord;
 #ifdef RENDER_FRAG
     uniform sampler2D colortex0;
 
-    uniform sampler2D shadowcolor0;
-    uniform sampler2D shadowtex0;
-    uniform sampler2D shadowtex1;
+    #if defined SHADOW_ENABLED && DEBUG_SHADOW_BUFFER != 0
+        uniform sampler2D shadowcolor0;
+        uniform sampler2D shadowtex0;
+        uniform sampler2D shadowtex1;
+    #endif
 
 
     void main() {
-        #if DEBUG_SHADOW_BUFFER == 1
+        #if defined SHADOW_ENABLED && DEBUG_SHADOW_BUFFER == 1
             vec3 color = texture2D(shadowcolor0, texcoord).rgb;
-        #elif DEBUG_SHADOW_BUFFER == 2
+        #elif defined SHADOW_ENABLED && DEBUG_SHADOW_BUFFER == 2
             vec3 color = texture2D(shadowtex0, texcoord).rrr;
-        #elif DEBUG_SHADOW_BUFFER == 3
+        #elif defined SHADOW_ENABLED && DEBUG_SHADOW_BUFFER == 3
             vec3 color = texture2D(shadowtex1, texcoord).rrr;
         #else
             vec3 color = texture2D(colortex0, texcoord).rgb;
         #endif
 
-    /* DRAWBUFFERS:7 */
-        gl_FragData[0] = vec4(color, 1.0); //colortex4
+    /* DRAWBUFFERS:4 */
+        gl_FragData[0] = vec4(color, 1.0); //gaux1
     }
 #endif

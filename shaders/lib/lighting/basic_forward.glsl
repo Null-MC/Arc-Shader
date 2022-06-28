@@ -27,8 +27,7 @@
 
         #ifdef SHADOW_ENABLED
             if (shadow > EPSILON) {
-                float lightSSS = 0.0;
-                shadow = GetShadowing(shadowPos, lightSSS);
+                shadow = GetShadowing(shadowPos);
 
                 // #if SHADOW_COLORS == 1
                 //     vec3 shadowColor = GetShadowColor();

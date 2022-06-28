@@ -15,8 +15,7 @@
 
             #if SHADOW_TYPE != 0
                 if (shadow > 0.0) {
-                    float lightSSS;
-                    shadow *= GetShadowing(shadowPos, lightSSS);
+                    shadow *= GetShadowing(shadowPos);
 
                     // #if SHADOW_COLORS == 1
                     //     vec3 shadowColor = GetShadowColor();

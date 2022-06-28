@@ -146,26 +146,26 @@
             shadow *= step(EPSILON, geoNoL);
             shadow *= step(EPSILON, NoL);
 
+            if (shadow > EPSILON) {
+                shadow *= GetShadowing(_shadowPos);
+
+                // #if SHADOW_COLORS == 1
+                //     vec3 shadowColor = GetShadowColor();
+
+                //     shadowColor = mix(vec3(1.0), shadowColor, shadow);
+
+                //     //also make colors less intense when the block light level is high.
+                //     shadowColor = mix(shadowColor, vec3(1.0), blockLight);
+
+                //     lightColor *= shadowColor;
+                // #endif
+            }
+
             float lightSSS = 0.0;
             #ifdef SSS_ENABLED
                 float materialSSS = GetLabPbr_SSS(specularMap.b);
-                if (shadow > EPSILON || materialSSS > EPSILON)
-                    shadow *= GetShadowing(_shadowPos, lightSSS);
-            #else
-                if (shadow > EPSILON) {
-                    shadow *= GetShadowing(_shadowPos, lightSSS);
-
-                    // #if SHADOW_COLORS == 1
-                    //     vec3 shadowColor = GetShadowColor();
-
-                    //     shadowColor = mix(vec3(1.0), shadowColor, shadow);
-
-                    //     //also make colors less intense when the block light level is high.
-                    //     shadowColor = mix(shadowColor, vec3(1.0), blockLight);
-
-                    //     lightColor *= shadowColor;
-                    // #endif
-                }
+                if (materialSSS > EPSILON)
+                    lightSSS = GetShadowSSS(_shadowPos);
             #endif
 
             #ifdef PARALLAX_SHADOWS_ENABLED

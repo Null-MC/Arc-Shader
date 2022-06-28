@@ -47,8 +47,13 @@ varying vec3 tanViewPos;
 
 	uniform mat4 gbufferModelView;
 	uniform mat4 gbufferModelViewInverse;
-	uniform float frameTimeCounter;
 	uniform vec3 cameraPosition;
+
+	#ifdef ANIM_USE_WORLDTIME
+		uniform int worldTime;
+	#else
+		uniform float frameTimeCounter;
+	#endif
 
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
     	uniform vec3 chunkOffset;

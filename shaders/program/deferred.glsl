@@ -33,7 +33,7 @@ varying vec2 texcoord;
     uniform sampler2D depthtex0;
 
     #ifdef SSR_ENABLED
-        uniform sampler2D colortex4;
+        uniform sampler2D gaux1;
     #endif
 
     uniform mat4 gbufferProjectionInverse;

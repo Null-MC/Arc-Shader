@@ -79,10 +79,9 @@
             #endif
         #endif
 
-        float lightSSS = 0.0;
         if (shadow > EPSILON) {
             #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
-                shadow *= GetShadowing(shadowPos, lightSSS);
+                shadow *= GetShadowing(shadowPos);
 
                 #if SHADOW_COLORS == 1
                     vec3 shadowColor = GetShadowColor();
@@ -98,6 +97,13 @@
                 skyLight = max(skyLight, shadow);
             #endif
         }
+
+        float lightSSS = 0.0;
+        #ifdef SSS_ENABLED
+            if (material.scattering > EPSILON) {
+                lightSSS = GetShadowSSS(shadowPos);
+            }
+        #endif
 
         vec3 _viewNormal = normalize(viewNormal);
         vec3 viewDir = -normalize(viewPos);
@@ -119,7 +125,7 @@
 
         vec3 ambient = material.albedo.rgb * max(blockLight, SHADOW_BRIGHTNESS * skyLight) * material.occlusion;
 
-        vec3 diffuse = material.albedo.rgb * Diffuse_Burley(NoL, NoV, LoH, roughL) * NoL * lightColor * shadow;
+        vec3 diffuse = GetDiffuse_Burley(material.albedo.rgb, NoV, NoL, LoH, roughL) * lightColor * shadow;
 
         vec3 specular = vec3(0.0);
 
@@ -127,7 +133,7 @@
             float NoH = max(dot(_viewNormal, viewHalfDir), 0.0);
             float VoH = max(dot(viewDir, viewHalfDir), 0.0);
 
-            specular = GetSpecular(material, LoH, NoH, VoH, roughL) * NoL * lightColor * shadow*shadow;
+            specular = GetSpecularBRDF(material, LoH, NoH, VoH, roughL) * NoL * lightColor * shadow*shadow;
         #endif
 
         if (heldBlockLightValue > 0) {
@@ -142,7 +148,7 @@
                 float hand_LoH = max(dot(handLightDir, hand_halfDir), 0.0);
 
                 if (handLightDiffuseAtt > EPSILON) {
-                    diffuse += material.albedo.rgb * Diffuse_Burley(hand_NoL, NoV, hand_LoH, roughL) * hand_NoL * handLightDiffuseAtt*handLightDiffuseAtt;
+                    diffuse += GetDiffuse_Burley(material.albedo.rgb, NoV, hand_NoL, hand_LoH, roughL) * handLightDiffuseAtt*handLightDiffuseAtt;
                 }
 
                 float handLightSpecularAtt = max(0.16*heldBlockLightValue - 0.25*lightDist, 0.0);
@@ -150,7 +156,7 @@
                 if (handLightSpecularAtt > EPSILON) {
                     float hand_NoH = max(dot(_viewNormal, hand_halfDir), 0.0);
                     float hand_VoH = max(dot(viewDir, hand_halfDir), 0.0);
-                    specular += GetSpecular(material, hand_LoH, hand_NoH, hand_VoH, roughL) * hand_NoL * handLightSpecularAtt;
+                    specular += GetSpecularBRDF(material, hand_LoH, hand_NoH, hand_VoH, roughL) * hand_NoL * handLightSpecularAtt;
                 }
             }
         }

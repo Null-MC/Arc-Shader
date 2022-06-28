@@ -48,11 +48,6 @@ const vec3 ior_k[8] = vec3[](
 	ior_k_silver);
 
 
-vec3 f0ToIOR(const in vec3 f0) {
-    vec3 sqrt_f0 = sqrt(f0);
-    return (1.0f + sqrt_f0) / max(1.0f - sqrt_f0, vec3(EPSILON));
-}
-
 void GetHCM_IOR(const in vec3 albedo, const in int hcm, out vec3 n, out vec3 k) {
 	//int i = int(f0 * 255.0f - 229.5f);
 
