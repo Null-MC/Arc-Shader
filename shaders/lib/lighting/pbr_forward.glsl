@@ -53,14 +53,14 @@
             }
         #endif
         
-        float blockLight = (lmcoord.x - (0.5/16.0)) / (15.0/16.0);
-        float skyLight = (lmcoord.y - (0.5/16.0)) / (15.0/16.0);
+        //float blockLight = (lmcoord.x - (0.5/16.0)) / (15.0/16.0);
+        //float skyLight = (lmcoord.y - (0.5/16.0)) / (15.0/16.0);
 
-        blockLight = blockLight*blockLight*blockLight;
-        skyLight = skyLight*skyLight*skyLight;
+        //blockLight = blockLight*blockLight*blockLight;
+        //skyLight = skyLight*skyLight*skyLight;
 
-        float shadow = step(EPSILON, geoNoL) * step(1.0 / 32.0, skyLight);
-        vec3 lightColor = skyLightColor;
+        float shadow = step(EPSILON, geoNoL);// * step(1.0 / 32.0, skyLight);
+        //vec3 lightColor = skyLightColor;
         float NoL = 1.0;
 
         #ifdef SHADOW_ENABLED
@@ -83,106 +83,111 @@
             #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
                 shadow *= GetShadowing(shadowPos);
 
-                #if SHADOW_COLORS == 1
-                    vec3 shadowColor = GetShadowColor();
+                // #if SHADOW_COLORS == 1
+                //     vec3 shadowColor = GetShadowColor();
 
-                    shadowColor = mix(vec3(1.0), shadowColor, shadow);
+                //     shadowColor = mix(vec3(1.0), shadowColor, shadow);
 
-                    // make colors less intense when the block light level is high.
-                    shadowColor = mix(shadowColor, vec3(1.0), blockLight);
+                //     // make colors less intense when the block light level is high.
+                //     shadowColor = mix(shadowColor, vec3(1.0), blockLight);
 
-                    lightColor *= shadowColor;
-                #endif
+                //     lightColor *= shadowColor;
+                // #endif
 
-                skyLight = max(skyLight, shadow);
+                //skyLight = max(skyLight, shadow);
             #endif
         }
 
-        float lightSSS = 0.0;
+        float shadowSSS = 0.0;
         #ifdef SSS_ENABLED
             if (material.scattering > EPSILON) {
-                lightSSS = GetShadowSSS(shadowPos);
+                shadowSSS = GetShadowSSS(shadowPos);
             }
         #endif
 
-        vec3 _viewNormal = normalize(viewNormal);
-        vec3 viewDir = -normalize(viewPos);
+        material.normal = material.normal * matTBN;
 
-        //lightColor *= shadow;
+        vec4 final = PbrLighting2(material, lmcoord, shadow, shadowSSS, viewPos.xyz);
 
-        #ifdef SHADOW_ENABLED
-            vec3 viewLightDir = normalize(shadowLightPosition);
-            vec3 viewHalfDir = normalize(viewLightDir + viewDir);
-            float LoH = max(dot(viewLightDir, viewHalfDir), 0.0);
-        #else
-            float LoH = 1.0;
-        #endif
 
-        float NoV = max(dot(_viewNormal, viewDir), 0.0);
+        // vec3 _viewNormal = normalize(viewNormal);
+        // vec3 viewDir = -normalize(viewPos);
 
-        float rough = 1.0 - material.smoothness;
-        float roughL = rough * rough;
+        // //lightColor *= shadow;
 
-        vec3 ambient = material.albedo.rgb * max(blockLight, SHADOW_BRIGHTNESS * skyLight) * material.occlusion;
+        // #ifdef SHADOW_ENABLED
+        //     vec3 viewLightDir = normalize(shadowLightPosition);
+        //     vec3 viewHalfDir = normalize(viewLightDir + viewDir);
+        //     float LoH = max(dot(viewLightDir, viewHalfDir), 0.0);
+        // #else
+        //     float LoH = 1.0;
+        // #endif
 
-        vec3 diffuse = GetDiffuse_Burley(material.albedo.rgb, NoV, NoL, LoH, roughL) * lightColor * shadow;
+        // float NoV = max(dot(_viewNormal, viewDir), 0.0);
 
-        vec3 specular = vec3(0.0);
+        // float rough = 1.0 - material.smoothness;
+        // float roughL = rough * rough;
 
-        #ifdef SHADOW_ENABLED
-            float NoH = max(dot(_viewNormal, viewHalfDir), 0.0);
-            float VoH = max(dot(viewDir, viewHalfDir), 0.0);
+        // vec3 ambient = material.albedo.rgb * max(blockLight, SHADOW_BRIGHTNESS * skyLight) * material.occlusion;
 
-            specular = GetSpecularBRDF(material, LoH, NoH, VoH, roughL) * NoL * lightColor * shadow*shadow;
-        #endif
+        // vec3 diffuse = GetDiffuse_Burley(material.albedo.rgb, NoV, NoL, LoH, roughL) * lightColor * shadow;
 
-        if (heldBlockLightValue > 0) {
-            vec3 handLightPos = handOffset - viewPos;
-            vec3 handLightDir = normalize(handLightPos);
-            float hand_NoL = max(dot(_viewNormal, handLightDir), 0.0);
+        // vec3 specular = vec3(0.0);
 
-            if (hand_NoL > EPSILON) {
-                float lightDist = length(handLightPos);
-                float handLightDiffuseAtt = max(0.16*heldBlockLightValue - 0.5*lightDist, 0.0);
-                vec3 hand_halfDir = normalize(handLightDir + viewDir);
-                float hand_LoH = max(dot(handLightDir, hand_halfDir), 0.0);
+        // #ifdef SHADOW_ENABLED
+        //     float NoH = max(dot(_viewNormal, viewHalfDir), 0.0);
+        //     float VoH = max(dot(viewDir, viewHalfDir), 0.0);
 
-                if (handLightDiffuseAtt > EPSILON) {
-                    diffuse += GetDiffuse_Burley(material.albedo.rgb, NoV, hand_NoL, hand_LoH, roughL) * handLightDiffuseAtt*handLightDiffuseAtt;
-                }
+        //     specular = GetSpecularBRDF(material, LoH, NoH, VoH, roughL) * NoL * lightColor * shadow*shadow;
+        // #endif
 
-                float handLightSpecularAtt = max(0.16*heldBlockLightValue - 0.25*lightDist, 0.0);
+        // if (heldBlockLightValue > 0) {
+        //     vec3 handLightPos = handOffset - viewPos;
+        //     vec3 handLightDir = normalize(handLightPos);
+        //     float hand_NoL = max(dot(_viewNormal, handLightDir), 0.0);
 
-                if (handLightSpecularAtt > EPSILON) {
-                    float hand_NoH = max(dot(_viewNormal, hand_halfDir), 0.0);
-                    float hand_VoH = max(dot(viewDir, hand_halfDir), 0.0);
-                    specular += GetSpecularBRDF(material, hand_LoH, hand_NoH, hand_VoH, roughL) * hand_NoL * handLightSpecularAtt;
-                }
-            }
-        }
+        //     if (hand_NoL > EPSILON) {
+        //         float lightDist = length(handLightPos);
+        //         float handLightDiffuseAtt = max(0.16*heldBlockLightValue - 0.5*lightDist, 0.0);
+        //         vec3 hand_halfDir = normalize(handLightDir + viewDir);
+        //         float hand_LoH = max(dot(handLightDir, hand_halfDir), 0.0);
 
-        if (material.hcm >= 0) {
-            if (material.hcm < 8) specular *= material.albedo.rgb;
+        //         if (handLightDiffuseAtt > EPSILON) {
+        //             diffuse += GetDiffuse_Burley(material.albedo.rgb, NoV, hand_NoL, hand_LoH, roughL) * handLightDiffuseAtt*handLightDiffuseAtt;
+        //         }
 
-            ambient *= HCM_AMBIENT;
-            diffuse *= HCM_AMBIENT;
-        }
+        //         float handLightSpecularAtt = max(0.16*heldBlockLightValue - 0.25*lightDist, 0.0);
 
-        ambient += material.albedo.rgb * minLight;
+        //         if (handLightSpecularAtt > EPSILON) {
+        //             float hand_NoH = max(dot(_viewNormal, hand_halfDir), 0.0);
+        //             float hand_VoH = max(dot(viewDir, hand_halfDir), 0.0);
+        //             specular += GetSpecularBRDF(material, hand_LoH, hand_NoH, hand_VoH, roughL) * hand_NoL * handLightSpecularAtt;
+        //         }
+        //     }
+        // }
 
-        vec3 emissive = material.albedo.rgb * material.emission * 16.0;
+        // if (material.hcm >= 0) {
+        //     if (material.hcm < 8) specular *= material.albedo.rgb;
 
-        vec3 sss = 0.2 * material.albedo.rgb * material.scattering * lightSSS * lightColor;
+        //     ambient *= HCM_AMBIENT;
+        //     diffuse *= HCM_AMBIENT;
+        // }
 
-        vec4 final;
-        final.rgb = ambient + diffuse + specular + emissive + sss;
-        final.a = material.albedo.a + luminance(specular);
+        // ambient += material.albedo.rgb * minLight;
 
-        #ifdef RENDER_WATER
-            ApplyFog(final, viewPos, skyLight, EPSILON);
-        #else
-            ApplyFog(final, viewPos, skyLight, alphaTestRef);
-        #endif
+        // vec3 emissive = material.albedo.rgb * material.emission * 16.0;
+
+        // vec3 sss = 0.2 * material.albedo.rgb * material.scattering * lightSSS * lightColor;
+
+        //vec4 final;
+        //final.rgb = ambient + diffuse + specular + emissive + sss;
+        //final.a = material.albedo.a + luminance(specular);
+
+        //#ifdef RENDER_WATER
+        //    ApplyFog(final, viewPos, skyLight, EPSILON);
+        //#else
+        //    ApplyFog(final, viewPos, skyLight, alphaTestRef);
+        //#endif
 
         return final;
     }

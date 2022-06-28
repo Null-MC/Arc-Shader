@@ -100,9 +100,170 @@
 
     vec3 GetDiffuseBSDF(const in PbrMaterial material, const in float NoV, const in float NoL, const in float LoH, const in float roughL) {
         vec3 diffuse = GetDiffuse_Burley(material.albedo.rgb, NoV, NoL, LoH, roughL);
-        if (material.scattering < EPSILON) return diffuse;
 
-        vec3 subsurface = GetSubsurface(material.albedo.rgb, NoV, NoL, LoH, roughL);
-        return (1.0 - material.scattering) * diffuse + material.scattering * subsurface;
+        #ifdef SSS_ENABLED
+            if (material.scattering < EPSILON) return diffuse;
+
+            vec3 subsurface = GetSubsurface(material.albedo.rgb, NoV, NoL, LoH, roughL);
+            return (1.0 - material.scattering) * diffuse + material.scattering * subsurface;
+        #else
+            return diffuse;
+        #endif
+    }
+
+
+
+
+    #ifdef HANDLIGHT_ENABLED
+        const vec3 handLightColor = vec3(0.851, 0.712, 0.545);
+
+        float GetDiffuseAttenuation(const in float lightLevel, const in float lightDist) {
+            float diffuseAtt = max(0.16*lightLevel - 0.5*lightDist, 0.0);
+            return diffuseAtt*diffuseAtt;
+        }
+
+        float GetSpecularAttenuation(const in float lightLevel, const in float lightDist) {
+            float specularAtt = max(0.1*lightLevel - 0.1*lightDist, 0.0);
+            return specularAtt*specularAtt*specularAtt*specularAtt; //pow(specularAtt, 4.0);
+        }
+
+        void ApplyHandLighting(inout vec3 diffuse, inout vec3 specular, const in PbrMaterial material, const in vec3 viewNormal, const in vec3 viewPos, const in vec3 viewDir, const in float NoVm, const in float roughL) {
+            vec3 handLightPos = handOffset - viewPos.xyz;
+            vec3 handLightDir = normalize(handLightPos);
+
+            float hand_NoLm = max(dot(viewNormal, handLightDir), EPSILON);
+
+            if (hand_NoLm > EPSILON) {
+                float handLightDist = length(handLightPos);
+                vec3 handHalfDir = normalize(handLightDir + viewDir);
+                float hand_LoHm = max(dot(handLightDir, handHalfDir), EPSILON);
+
+                float diffuseAtt = GetDiffuseAttenuation(heldBlockLightValue, handLightDist);
+                if (diffuseAtt > EPSILON) {
+                    diffuse += GetDiffuseBSDF(material, NoVm, hand_NoLm, hand_LoHm, roughL) * diffuseAtt * handLightColor;
+                }
+
+                float specularAtt = GetSpecularAttenuation(heldBlockLightValue, handLightDist);
+                if (specularAtt > EPSILON) {
+                    float hand_NoHm = max(dot(viewNormal, handHalfDir), EPSILON);
+                    float hand_VoHm = max(dot(viewDir, handHalfDir), EPSILON);
+                    specular += GetSpecularBRDF(material, hand_LoHm, hand_NoHm, hand_VoHm, roughL) * specularAtt * handLightColor;
+                }
+            }
+        }
+    #endif
+
+    vec4 PbrLighting2(const in PbrMaterial material, const in vec2 lmValue, const in float shadow, const in float shadowSSS, const in vec3 viewPos) {
+        vec3 viewNormal = normalize(material.normal);
+        vec3 viewDir = -normalize(viewPos.xyz);
+
+        #ifdef SHADOW_ENABLED
+            vec3 viewLightDir = normalize(shadowLightPosition);
+            float NoL = dot(viewNormal, viewLightDir);
+
+            vec3 halfDir = normalize(viewLightDir + viewDir);
+            float LoHm = max(dot(viewLightDir, halfDir), EPSILON);
+        #else
+            float NoL = 1.0;
+            float LoHm = 1.0;
+        #endif
+
+        float NoLm = max(NoL, EPSILON);
+        float NoVm = max(dot(viewNormal, viewDir), EPSILON);
+
+        float rough = 1.0 - material.smoothness;
+        float roughL = max(rough * rough, 0.005);
+
+        float blockLight = (lmValue.x - (0.5/16.0)) / (15.0/16.0);
+        float skyLight = (lmValue.y - (0.5/16.0)) / (15.0/16.0);
+
+        blockLight = blockLight*blockLight*blockLight;
+        skyLight = skyLight*skyLight*skyLight;
+
+        // Increase skylight when in direct sunlight
+        skyLight = max(skyLight, shadow);
+
+        // Make areas without skylight fully shadowed (light leak fix)
+        float shadowFinal = shadow * step(1.0 / 32.0, skyLight);
+
+        vec3 reflectColor = vec3(0.0);
+        #ifdef SSR_ENABLED
+            vec3 reflectDir = reflect(viewDir, viewNormal);
+            vec2 reflectCoord = GetReflectCoord(reflectDir);
+
+            #ifdef ALLOW_TEXELFETCH
+                ivec2 iTexReflect = ivec2(reflectCoord * vec2(viewWidth, viewHeight));
+                reflectColor = texelFetch(gaux1, iTexReflect, 0);
+            #else
+                reflectColor = texture2DLod(gaux1, reflectCoord, 0);
+            #endif
+        #endif
+
+        vec3 skyAmbient = GetSkyAmbientColor(viewNormal) * (0.1 + 0.9 * skyLight); //skyLightColor;
+
+        vec3 blockAmbient = max(vec3(blockLight), skyAmbient * SHADOW_BRIGHTNESS);
+
+        vec3 ambient = blockAmbient * material.occlusion;
+
+        vec3 diffuse = GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * skyLightColor * shadowFinal;
+
+        vec3 specular = vec3(0.0);
+
+        #ifdef SHADOW_ENABLED
+            float NoHm = max(dot(viewNormal, halfDir), EPSILON);
+            float VoHm = max(dot(viewDir, halfDir), EPSILON);
+
+            specular = GetSpecularBRDF(material, LoHm, NoHm, VoHm, roughL) * skyLightColor * shadowFinal;
+        #endif
+
+        #ifdef HANDLIGHT_ENABLED
+            if (heldBlockLightValue > EPSILON)
+                ApplyHandLighting(diffuse, specular, material, viewNormal, viewPos.xyz, viewDir, NoVm, roughL);
+        #endif
+
+        if (material.hcm >= 0) {
+            if (material.hcm < 8) specular *= material.albedo.rgb;
+
+            ambient *= HCM_AMBIENT;
+            diffuse *= HCM_AMBIENT;
+        }
+
+        ambient += minLight;
+
+        float emissive = material.emission * 16.0;
+
+        //vec3 lit = ambient + diffuse + emissive;
+
+        vec4 final = material.albedo;
+        final.rgb *= ambient + emissive;
+        final.rgb += diffuse + specular;
+
+        #ifdef SSS_ENABLED
+            //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
+            //vec3 ambient_sss = vec3(0.0);//ambientShadowBrightness * skyAmbient * material.scattering * material.occlusion;
+
+            //float lightSSS = lightingMap.a;
+            vec3 sss = (1.0 - shadowFinal) * shadowSSS * material.scattering * skyLightColor;// * max(-NoL, 0.0);
+
+            //lit += ambient_sss + sss;
+            final.rgb += 1.25 * material.albedo.rgb * invPI * sss;
+        #endif
+
+        final.a += luminance(specular);
+
+        #ifdef IS_OPTIFINE
+            // Iris doesn't currently support fog in deferred
+            //ApplyFog(final, viewPos.xyz, skyLight);
+            #if defined RENDER_DEFERRED
+                ApplyFog(final.rgb, viewPos.xyz, skyLight);
+            #elif defined RENDER_WATER
+                ApplyFog(final, viewPos.xyz, skyLight, EPSILON);
+            #else
+                ApplyFog(final, viewPos.xyz, skyLight, alphaTestRef);
+            #endif
+        #endif
+
+        //return mix(final, reflectColor, 0.5);
+        return final;
     }
 #endif

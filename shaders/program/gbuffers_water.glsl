@@ -174,6 +174,7 @@ flat varying int materialId;
     #endif
 
     #include "/lib/world/fog.glsl"
+    #include "/lib/world/sky.glsl"
     #include "/lib/lighting/material.glsl"
     #include "/lib/lighting/material_reader.glsl"
     #include "/lib/lighting/hcm.glsl"

@@ -59,8 +59,13 @@ vec3 GetWavingOffset() {
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
         vec3 worldPos = floor(vaPosition.xyz + chunkOffset + cameraPosition);
     #else
-        // TODO: FIX THIS!!!
-        vec3 worldPos = cameraPosition;
+        vec3 worldPos = gl_Vertex.xyz + at_midBlock / 64.0;
+        #ifndef RENDER_SHADOW
+            worldPos = (gbufferModelViewInverse * (gl_ModelViewMatrix * vec4(worldPos, 1.0))).xyz;
+        #else
+            worldPos = (shadowModelViewInverse * (gl_ModelViewMatrix * vec4(worldPos, 1.0))).xyz;
+        #endif
+        worldPos = floor(worldPos + cameraPosition + 0.5);
     #endif
 
     #ifdef ANIM_USE_WORLDTIME

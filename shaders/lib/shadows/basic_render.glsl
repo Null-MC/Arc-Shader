@@ -48,12 +48,6 @@
 	// 	}
 	// #endif
 
-    #ifdef SSS_ENABLED
-        float SampleShadowSSS(const in vec2 shadowPos) {
-            return texture2D(shadowcolor0, shadowPos).r;
-        }
-    #endif
-
 	float SampleDepth(const in vec4 shadowPos, const in vec2 offset) {
         #if !defined IS_OPTIFINE && defined SHADOW_ENABLE_HWCOMP
             return texture2D(shadowtex1, shadowPos.xy + offset * shadowPos.w).r;
@@ -95,22 +89,6 @@
                 }
 
                 return shadow / sampleCount;
-            }
-        #endif
-
-        #ifdef SSS_ENABLED
-            float GetShadowing_PCF_SSS(const in vec4 shadowPos, const in vec2 pixelRadius, const in int sampleCount) {
-                float light = 0.0;
-                for (int i = 0; i < sampleCount; i++) {
-                    vec2 pixelOffset = poissonDisk[i] * pixelRadius;
-                    float texDepth = SampleDepth(shadowPos, pixelOffset);
-
-                    float shadow_sss = SampleShadowSSS(shadowPos.xy + pixelOffset);
-                    float dist = max(shadowPos.z - texDepth, 0.0) * 4.0 * far;
-                    light += max(shadow_sss - dist / SSS_MAXDIST, 0.0);
-                }
-
-                return light / sampleCount;
             }
         #endif
     #endif
@@ -155,7 +133,7 @@
 			return blockers > 0 ? avgBlockerDistance / blockers : -1.0;
 		}
 
-		float GetShadowing(const in vec4 shadowPos, out float lightSSS) {
+		float GetShadowing(const in vec4 shadowPos) {
 			vec2 pixelRadius = GetShadowPixelRadius(SHADOW_PCF_SIZE);
 
 			// blocker search
@@ -184,16 +162,6 @@
 
 			return 1.0 - GetShadowing_PCF(shadowPos, pixelRadius, sampleCount);
 		}
-
-        #ifdef SSS_ENABLED
-            float GetShadowSSS(const in vec4 shadowPos) {
-                int sampleCount = POISSON_SAMPLES;
-                vec2 pixelRadius = GetShadowPixelRadius(SHADOW_PCF_SIZE);
-                if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
-
-                return GetShadowing_PCF_SSS(shadowPos, pixelRadius, sampleCount);
-            }
-        #endif
 	#elif SHADOW_FILTER == 0
         // Unfiltered
 		float GetShadowing(const in vec4 shadowPos) {
@@ -204,8 +172,51 @@
                 return step(shadowPos.z - EPSILON, texDepth);
             #endif
 		}
+	#endif
 
-        #ifdef SSS_ENABLED
+    #ifdef SSS_ENABLED
+        float SampleShadowSSS(const in vec2 shadowPos) {
+            return texture2D(shadowcolor0, shadowPos).r;
+        }
+
+        #if SSS_FILTER != 0
+            float GetShadowing_PCF_SSS(const in vec4 shadowPos, const in vec2 pixelRadius, const in int sampleCount) {
+                float light = 0.0;
+                for (int i = 0; i < sampleCount; i++) {
+                    vec2 pixelOffset = poissonDisk[i] * pixelRadius;
+                    float texDepth = SampleDepth(shadowPos, pixelOffset);
+
+                    float shadow_sss = SampleShadowSSS(shadowPos.xy + pixelOffset);
+                    float dist = max(shadowPos.z - texDepth, 0.0) * 4.0 * far;
+                    light += max(shadow_sss - dist / SSS_MAXDIST, 0.0);
+                }
+
+                return light / sampleCount;
+            }
+        #endif
+
+        #if SSS_FILTER == 2
+            // PCF + PCSS
+            float GetShadowSSS(const in vec4 shadowPos) {
+                // TODO: Add penumbra?
+
+                int sampleCount = SSS_PCF_SAMPLES;
+                vec2 pixelRadius = GetShadowPixelRadius(SSS_PCF_SIZE);
+                if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
+
+                return GetShadowing_PCF_SSS(shadowPos, pixelRadius, sampleCount);
+            }
+        #elif SSS_FILTER == 1
+            // PCF
+            float GetShadowSSS(const in vec4 shadowPos) {
+                int sampleCount = SSS_PCF_SAMPLES;
+                vec2 pixelRadius = GetShadowPixelRadius(SSS_PCF_SIZE);
+                if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
+
+                return GetShadowing_PCF_SSS(shadowPos, pixelRadius, sampleCount);
+            }
+        #elif SSS_FILTER == 0
+            // Unfiltered
             float GetShadowSSS(const in vec4 shadowPos) {
                 float texDepth = SampleDepth(shadowPos, vec2(0.0));
                 float dist = max(shadowPos.z - texDepth, 0.0) * 4.0 * far;
@@ -214,5 +225,5 @@
                 return max(shadow_sss - dist / SSS_MAXDIST, 0.0);
             }
         #endif
-	#endif
+    #endif
 #endif
