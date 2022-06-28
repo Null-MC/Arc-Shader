@@ -1,45 +1,63 @@
-screen.WORLD_OPTIONS=World Options
-screen.WORLD_OPTIONS.comment=Options for everything else.
-
-option.ATMOSPHERE_ENABLED=Atmosphere
-option.ATMOSPHERE_ENABLED.comment=When enabled a more realistic atmosphere will be rendered instead of the vanilla sky.
+screen.WORLD_OPTIONS=World
 
 option.ENABLE_WAVING=Waving Plants
 option.ENABLE_WAVING.comment=When enabled, plants will wave using artificial wind.
 
-option.TONEMAP=Tonemap
-value.TONEMAP.0=None
-value.TONEMAP.1=Hejl-Burgess
-value.TONEMAP.2=Aces Film
-value.TONEMAP.3=Reinhard
-value.TONEMAP.4=Reinhard-Jodie
-value.TONEMAP.5=Uncharted 2
-value.TONEMAP.6=ACES Fit
-value.TONEMAP.7=ACES Fit 2
-value.TONEMAP.8=Filmic Hejl 2015
-value.TONEMAP.9=Burgess
-value.TONEMAP.10=Burgess Modified
-value.TONEMAP.11=Reinhard Extended Luminance
-value.TONEMAP.12=Tech
+
+screen.ATMOSPHERE_OPTIONS=Atmosphere
+
+option.ATMOSPHERE_ENABLED=Enabled
+option.ATMOSPHERE_ENABLED.comment=When enabled a more realistic atmosphere will be rendered instead of the vanilla sky.
+
+option.SHADOW_BRIGHTNESS=Ambient Brightness
+option.SHADOW_BRIGHTNESS.comment=Controls how dark shadows are.
 
 
-option.SHADOW_TYPE=Shadow Type
+screen.MATERIAL_OPTIONS=Materials
+screen.MATERIAL_OPTIONS.comment=Options for PBR materials.
+
+option.SSS_ENABLED=Subsurface Scattering
+option.SSS_ENABLED.comment=When enabled, surfaces with SSS will allow light to scatter through.
+
+
+screen.MATERIAL_PARALLAX_OPTIONS=Parallax
+screen.MATERIAL_PARALLAX_OPTIONS.comment=Options for Parallax Occlusion Mapping (POM).
+
+option.PARALLAX_ENABLED=Enabled
+
+option.PARALLAX_SMOOTH=Smooth
+option.PARALLAX_SMOOTH.comment=When enabled, the displacement will be linearly filtered for a smooth surface.
+
+option.PARALLAX_SHADOWS_ENABLED=Shadows
+option.PARALLAX_SHADOWS_ENABLED.comment=When enabled, displaced pixels will cast shadows.
+
+option.PARALLAX_SLOPE_NORMALS=Slope Normals
+option.PARALLAX_SLOPE_NORMALS.comment=When enabled, the vertical walls between pixels will be given proper normals.
+
+option.PARALLAX_DEPTH=Depth
+option.PARALLAX_DEPTH.comment=The maximum amount of displacement.
+
+option.PARALLAX_SAMPLES=Samples
+option.PARALLAX_SAMPLES.comment=The maximum number of depth samples to trace when locating the displaced surface.
+
+option.PARALLAX_SHADOW_SAMPLES=Shadow Samples
+option.PARALLAX_SHADOW_SAMPLES.comment=The maximum number of depth samples to trace when determining shadowing for displaced surfaces.
+
+
+screen.SHADOW_OPTIONS=Shadows
+
+option.SHADOW_TYPE=Type
 option.SHADOW_TYPE.comment=The type of shadow mapping to use.
 value.SHADOW_TYPE.0=None
 value.SHADOW_TYPE.1=Basic
 value.SHADOW_TYPE.2=Distorted
 value.SHADOW_TYPE.3=Cascaded
 
-
 option.shadowMapResolution=Shadow Resolution
 option.shadowMapResolution.comment=Resolution of the shadow map. Higher numbers mean more accurate shadows.
 
 option.shadowDistance=Shadow Distance
 option.shadowDistance.comment=How far away shadows will be rendered.
-
-
-screen.SHADOW_OPTIONS=Shadow Options
-screen.SHADOW_OPTIONS.comment=Options for shadows.
 
 option.SHADOW_FILTER=Filtering
 option.SHADOW_FILTER.comment=Type type of filtering to apply to shadow sampling.
@@ -58,9 +76,6 @@ option.SHADOW_COLORS.comment=0: Stained glass will cast ordinary shadows. 1: Sta
 value.SHADOW_COLORS.0=Disabled
 value.SHADOW_COLORS.1=Enabled
 value.SHADOW_COLORS.2=Ignored
-
-option.SHADOW_BRIGHTNESS=Brightness
-option.SHADOW_BRIGHTNESS.comment=Light levels are multiplied by this number when the surface is in shadows.
 
 option.SHADOW_BIAS_SCALE=Bias Scale
 option.SHADOW_BIAS_SCALE.comment=Increase this if you get shadow acne. Decrease this if you get peter panning.
@@ -116,27 +131,25 @@ option.SHADOW_ENABLE_HWCOMP=HW-Accelerated
 option.SHADOW_ENABLE_HWCOMP.comment=When enabled, shadows will leverage hardware-filtering for better quality and performance. NOTE: May only work on NVidia!
 
 
-screen.MATERIAL_OPTIONS=Materials
-screen.MATERIAL_OPTIONS.comment=Options for PBR materials.
+screen.EFFECT_OPTIONS=Effects
+
+option.TONEMAP=Tonemap
+value.TONEMAP.0=None
+value.TONEMAP.1=Hejl-Burgess
+value.TONEMAP.2=Aces Film
+value.TONEMAP.3=Reinhard
+value.TONEMAP.4=Reinhard-Jodie
+value.TONEMAP.5=Uncharted 2
+value.TONEMAP.6=ACES Fit
+value.TONEMAP.7=ACES Fit 2
+value.TONEMAP.8=Filmic Hejl 2015
+value.TONEMAP.9=Burgess
+value.TONEMAP.10=Burgess Modified
+value.TONEMAP.11=Reinhard Extended Luminance
+value.TONEMAP.12=Tech
 
 
-screen.PARALLAX_OPTIONS=Parallax
-screen.PARALLAX_OPTIONS.comment=Options for Parallax Occlusion Mapping (POM).
-
-option.PARALLAX_ENABLED=Enabled
-
-option.PARALLAX_SHADOWS_ENABLED=Shadows
-option.PARALLAX_SHADOWS_ENABLED.comment=When enabled, displaced pixels will cast shadows.
-
-option.PARALLAX_SLOPE_NORMALS=Slope Normals
-option.PARALLAX_SLOPE_NORMALS.comment=When enabled, the vertical walls between pixels will be given proper normals.
-
-option.PARALLAX_DEPTH=Depth
-option.PARALLAX_DEPTH.comment=The maximum amount of displacement.
-
-
-screen.DEBUG_OPTIONS=Debug Options
-screen.DEBUG_OPTIONS.comment=Special options for debugging.
+screen.DEBUG_OPTIONS=Debug
 
 option.DEBUG_SHADOW_BUFFER=Display
 option.DEBUG_SHADOW_BUFFER.comment=Configures which buffer to draw to the screen.
