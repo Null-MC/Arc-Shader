@@ -17,8 +17,6 @@ varying vec4 starData; //rgb = star color, a = flag for weather or not this pixe
 	uniform vec3 fogColor;
 	uniform vec3 skyColor;
 
-	const float sunPathRotation = 30.0;
-
 	#ifdef ATMOSPHERE_ENABLED
 		uniform mat4 gbufferModelViewInverse;
 		uniform float eyeAltitude;

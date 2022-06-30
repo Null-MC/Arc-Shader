@@ -112,7 +112,7 @@
     }
 
 
-
+    // Common Usage Pattern
 
     #ifdef HANDLIGHT_ENABLED
         const vec3 handLightColor = vec3(0.851, 0.712, 0.545);
@@ -228,15 +228,22 @@
             diffuse *= HCM_AMBIENT;
         }
 
+        #if defined RSM_ENABLED && defined RENDER_DEFERRED
+            // TODO: linear sampling
+            //vec2 texSize = vec2(viewWidth, viewHeight) * RSM_SCALE;
+            //vec3 rsmColor = FetchLinearRGB(colortex5, texcoord * texSize - 1.0) * skyLightColor;
+
+            vec3 rsmColor = texture2DLod(colortex7, texcoord, 0).rgb;
+            //rsmColor = RGBToLinear(rsmColor);
+            ambient += rsmColor;
+        #endif
+
         ambient += minLight;
 
         float emissive = material.emission * 16.0;
 
-        //vec3 lit = ambient + diffuse + emissive;
-
         vec4 final = material.albedo;
-        final.rgb *= ambient + emissive;
-        final.rgb += diffuse + specular;
+        final.rgb = final.rgb * (ambient + emissive) + diffuse + specular;
 
         #ifdef SSS_ENABLED
             //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
@@ -251,7 +258,7 @@
 
         final.a += luminance(specular);
 
-        #ifdef IS_OPTIFINE
+        //#ifdef IS_OPTIFINE
             // Iris doesn't currently support fog in deferred
             //ApplyFog(final, viewPos.xyz, skyLight);
             #if defined RENDER_DEFERRED
@@ -261,7 +268,7 @@
             #else
                 ApplyFog(final, viewPos.xyz, skyLight, alphaTestRef);
             #endif
-        #endif
+        //#endif
 
         //return mix(final, reflectColor, 0.5);
         return final;

@@ -1,12 +1,13 @@
-#extension GL_ARB_gpu_shader5 : enable
+//#extension GL_ARB_gpu_shader5 : enable
 
 #define RENDER_SHADOW
 
 /*
 const int shadowtex0Format = R32F;
 const int shadowtex1Format = R32F;
-const int shadowcolor0Format = R8;
-const int shadowcolor1Format = R8;
+const int shadowcolor0Format = RG32UI;
+const int shadowcolor1Format = RGB16F;
+const int colortex6Format = RGB16F;
 */
 
 const float shadowDistanceRenderMul = 1.0;
@@ -23,6 +24,11 @@ varying vec4 glcolor;
 
 #ifdef SSS_ENABLED
 	varying vec3 viewPosTan;
+#endif
+
+#if defined RSM_ENABLED || DEBUG_SHADOW_BUFFER == 2
+	varying vec3 localPos;
+	varying mat3 matViewTBN;
 #endif
 
 #ifdef RENDER_VERTEX
@@ -141,17 +147,25 @@ varying vec4 glcolor;
 			}
 		#endif
 
-		#ifdef SSS_ENABLED
+		#if defined SSS_ENABLED || defined RSM_ENABLED
             vec3 viewNormal = normalize(gl_NormalMatrix * gl_Normal);
             vec3 viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
             vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
 
-			mat3 matViewTBN = mat3(
+            #if !defined RSM_ENABLED && DEBUG_SHADOW_BUFFER != 2
+            	mat3 matViewTBN;
+            #endif
+
+			matViewTBN = mat3(
                 viewTangent.x, viewBinormal.x, viewNormal.x,
                 viewTangent.y, viewBinormal.y, viewNormal.y,
                 viewTangent.z, viewBinormal.z, viewNormal.z);
 
 			viewPosTan = matViewTBN * viewPos.xyz;
+		#endif
+
+		#ifdef RSM_ENABLED
+			localPos = (shadowModelViewInverse * viewPos).xyz;
 		#endif
 	}
 #endif
@@ -160,19 +174,29 @@ varying vec4 glcolor;
 	//uniform sampler2D lightmap;
 	uniform sampler2D texture;
 
+	uniform mat4 shadowModelViewInverse;
+
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
         uniform float alphaTestRef;
     #endif
 
+    #ifdef RSM_ENABLED
+		uniform sampler2D normals;
+    #endif
+
 	#ifdef SSS_ENABLED
-		//uniform sampler2D normal;
 	    uniform sampler2D specular;
 	#endif
 
 	#include "/lib/lighting/hcm.glsl"
 	#include "/lib/lighting/material.glsl"
 	#include "/lib/lighting/material_reader.glsl"
-	//#include "/lib/lighting/pbr.glsl"
+
+	layout(location = 0) out uvec2 shadowcolor0;
+
+	#ifdef RSM_ENABLED
+		layout(location = 1) out vec3 shadowcolor1;
+	#endif
 
 
 	void main() {
@@ -183,22 +207,23 @@ varying vec4 glcolor;
 		#endif
 
 		vec4 colorMap = texture2D(texture, texcoord) * glcolor;
+		if (colorMap.a < alphaTestRef) discard;
 
-		vec4 final = colorMap;
+		vec3 viewNormal = vec3(0.0);
+		#if defined RSM_ENABLED || DEBUG_SHADOW_BUFFER == 2
+	        vec2 normalMap = texture2D(normals, texcoord).rg;
+	        viewNormal = GetLabPbr_Normal(normalMap) * matViewTBN;
+	    #endif
 
+		float sss = 0.0;
 		#ifdef SSS_ENABLED
-			// TODO: THIS IS PROBABLY A BAD IDEA HERE!
-			if (colorMap.a < alphaTestRef) discard;
-
 	        vec3 specularMap = texture2D(specular, texcoord).rgb;
-	        //vec2 normalMap = texture2D(normal, texcoord).rg;
+	        vec3 viewDirT = -normalize(viewPosTan);
 
-	        final.rgb = vec3(0.0);
-	        float sss = GetLabPbr_SSS(specularMap.b);
+	        sss = GetLabPbr_SSS(specularMap.b) * abs(viewDirT.z);
 
-	        if (sss > EPSILON) {
-		        vec3 viewDirT = -normalize(viewPosTan);
-		        //vec3 texNormalT = GetLabPbr_Normal(normalMap);
+	        //if (sss > EPSILON) {
+		    //    vec3 viewDirT = -normalize(viewPosTan);
 
 		        //float f0 = GetLabPbr_F0(specularMap.g);
 		        //if (f0 < EPSILON) f0 = 0.04;
@@ -214,12 +239,15 @@ varying vec4 glcolor;
 		        //final.r = sss;// * max(-refractDir.z, 0.0);// * (1.0 - F);
 		        //final.rgb = -refractDir.zzz;
 
-		        final.r = sss * abs(viewDirT.z);
-	        }
-	    //#else
-	    	//final.rgb = colorMap.rgb;
+		    //    sss *= abs(viewDirT.z);
+	        //}
 	    #endif
 
-		gl_FragData[0] = final;
+	    shadowcolor0.r = packUnorm4x8(vec4(colorMap.rgb, sss));
+	    shadowcolor0.g = packUnorm2x16(viewNormal.xy * 0.5 + 0.5);
+
+	    #ifdef RSM_ENABLED
+		    shadowcolor1.xyz = localPos;
+		#endif
 	}
 #endif

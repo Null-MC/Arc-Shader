@@ -1,4 +1,5 @@
 #define RENDER_DEFERRED
+#define RENDER_OPAQUE_FINAL
 
 varying vec2 texcoord;
 
@@ -36,6 +37,10 @@ varying vec2 texcoord;
         uniform sampler2D gaux1;
     #endif
 
+    #ifdef RSM_ENABLED
+        uniform sampler2D colortex7;
+    #endif
+
     uniform mat4 gbufferProjectionInverse;
     uniform mat4 gbufferModelView;
     uniform float viewWidth;
@@ -57,6 +62,7 @@ varying vec2 texcoord;
         uniform vec3 shadowLightPosition;
     #endif
 
+    #include "/lib/sampling/linear.glsl"
     #include "/lib/tonemap.glsl"
     #include "/lib/world/fog.glsl"
     #include "/lib/world/sky.glsl"

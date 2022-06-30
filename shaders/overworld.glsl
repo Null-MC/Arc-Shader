@@ -9,7 +9,7 @@ const int shadowMapResolution = 2048; // [128 256 512 1024 2048 4096 8192]
 
 const float shadowPixelSize = 1.0 / shadowMapSize;
 
-//const bool shadowcolor0Nearest = false;
+const bool shadowcolor0Nearest = true;
 
 const bool generateShadowMipmap = true;
 const bool shadowtex0Mipmap = false;

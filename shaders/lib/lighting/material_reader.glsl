@@ -1,8 +1,5 @@
 vec3 GetLabPbr_Normal(const in vec2 normalXY) {
-    vec3 normal;
-    normal.xy = normalXY * 2.0 - 1.0;
-    normal.z = sqrt(max(1.0 - dot(normal.xy, normal.xy), EPSILON));
-    return normal;
+    return RestoreNormalZ(normalXY);
 }
 
 float GetLabPbr_F0(const in float specularG) {

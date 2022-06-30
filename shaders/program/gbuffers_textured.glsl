@@ -94,7 +94,7 @@ varying float geoNoL;
 		uniform vec3 shadowLightPosition;
 
 		#if SHADOW_TYPE != 0
-	        uniform sampler2D shadowcolor0;
+	        uniform usampler2D shadowcolor0;
 	        uniform sampler2D shadowtex0;
 
 	        uniform float near;
@@ -112,14 +112,14 @@ varying float geoNoL;
 	        #endif
 			
 			#if SHADOW_PCF_SAMPLES == 12
-				#include "/lib/shadows/poisson_12.glsl"
+				#include "/lib/sampling/poisson_12.glsl"
 			#elif SHADOW_PCF_SAMPLES == 24
-				#include "/lib/shadows/poisson_24.glsl"
+				#include "/lib/sampling/poisson_24.glsl"
 			#elif SHADOW_PCF_SAMPLES == 36
-				#include "/lib/shadows/poisson_36.glsl"
+				#include "/lib/sampling/poisson_36.glsl"
 			#endif
 
-	        #include "/lib/depth.glsl"
+	        //#include "/lib/depth.glsl"
 
 			#if SHADOW_TYPE == 3
 				#include "/lib/shadows/csm.glsl"

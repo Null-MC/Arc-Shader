@@ -92,7 +92,11 @@
         #endif
 
         #ifdef PARALLAX_SMOOTH
-            normalMap.rgb = SampleLinearRGB(normals, atlasCoord, 1.0 / atlasSize);
+            #ifdef PARALLAX_USE_TEXELFETCH
+                normalMap.rgb = FetchLinearRGB(normals, atlasCoord * atlasSize);
+            #else
+                normalMap.rgb = SampleLinearRGB(normals, atlasCoord, atlasSize);
+            #endif
         #else
             normalMap.rgb = texture2DGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).rgb;
         #endif
@@ -101,9 +105,7 @@
 
         specularMap = texture2DGrad(specular, atlasCoord, dFdXY[0], dFdXY[1]);
 
-        vec3 normal;
-        normal.xy = normalMap.xy * 2.0 - 1.0;
-        normal.z = sqrt(max(1.0 - dot(normal.xy, normal.xy), EPSILON));
+        vec3 normal = RestoreNormalZ(normalMap.xy);
 
         #ifdef PARALLAX_SLOPE_NORMALS
             float dO = max(texDepth - traceCoordDepth.z, 0.0);

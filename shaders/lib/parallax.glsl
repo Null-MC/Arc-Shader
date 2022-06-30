@@ -28,7 +28,11 @@ vec2 GetLocalCoord(const in vec2 atlasCoord) {
         vec2 traceAtlasCoord = GetAtlasCoord(localCoord - i * stepCoord);
 
         #ifdef PARALLAX_SMOOTH
-            texDepth = SampleLinear(normals, traceAtlasCoord, atlasPixelSize, 3);
+            #ifdef PARALLAX_USE_TEXELFETCH
+                texDepth = FetchLinear(normals, traceAtlasCoord * atlasSize, 3);
+            #else
+                texDepth = SampleLinear(normals, traceAtlasCoord, atlasSize, 3);
+            #endif
         #else
             #ifdef PARALLAX_USE_TEXELFETCH
                 texDepth = texelFetch(normals, ivec2(traceAtlasCoord * atlasSize), 0).a;

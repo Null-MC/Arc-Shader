@@ -175,8 +175,9 @@
 	#endif
 
     #ifdef SSS_ENABLED
-        float SampleShadowSSS(const in vec2 shadowPos) {
-            return texture2D(shadowcolor0, shadowPos).r;
+        vec4 SampleShadowColorSSS(const in vec2 shadowPos) {
+            uint data = texture2D(shadowcolor0, shadowPos).r;
+            return unpackUnorm4x8(data);
         }
 
         #if SSS_FILTER != 0
@@ -186,7 +187,7 @@
                     vec2 pixelOffset = poissonDisk[i] * pixelRadius;
                     float texDepth = SampleDepth(shadowPos, pixelOffset);
 
-                    float shadow_sss = SampleShadowSSS(shadowPos.xy + pixelOffset);
+                    float shadow_sss = SampleShadowColorSSS(shadowPos.xy + pixelOffset).a;
                     float dist = max(shadowPos.z - texDepth, 0.0) * 4.0 * far;
                     light += max(shadow_sss - dist / SSS_MAXDIST, 0.0);
                 }
@@ -221,7 +222,7 @@
                 float texDepth = SampleDepth(shadowPos, vec2(0.0));
                 float dist = max(shadowPos.z - texDepth, 0.0) * 4.0 * far;
 
-                float shadow_sss = SampleShadowSSS(shadowPos.xy);
+                float shadow_sss = SampleShadowColorSSS(shadowPos.xy).a;
                 return max(shadow_sss - dist / SSS_MAXDIST, 0.0);
             }
         #endif

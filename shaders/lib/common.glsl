@@ -1,3 +1,4 @@
+const float sunPathRotation = 20; // [-60 -40 -20 0 20 40 60]
 const bool colortex4Clear = false;
 
 
@@ -9,6 +10,10 @@ const bool colortex4Clear = false;
 // Atmosphere Options
 //#define ATMOSPHERE_ENABLED
 #define HCM_AMBIENT 0.16
+//#define RSM_ENABLED
+#define RSM_R_MAX 64.0
+#define RSM_INTENSITY 24.0
+#define RSM_SCALE 0.25
 
 
 // Material Options
@@ -65,13 +70,12 @@ const bool colortex4Clear = false;
 
 
 // Debug Options
-#define DEBUG_SHADOW_BUFFER 0 // [0 1 2 3]
+#define DEBUG_SHADOW_BUFFER 0 // [0 1 2 3 4 5 6]
 #define HANDLIGHT_ENABLED
 #define IS_OPTIFINE
 
 
 // INTERNAL
-
 #define IOR_AIR 1.0
 #define PI 3.1415926538
 #define EPSILON 1e-6
@@ -116,9 +120,15 @@ const float invPI = 1.0 / PI;
     #undef PARALLAX_SLOPE_NORMALS
 #endif
 
+#if !defined SHADOW_ENABLED || SHADOW_TYPE == 0
+    #undef RSM_ENABLED
+#endif
+
 #ifdef SHADOW_EXCLUDE_ENTITIES
 #endif
 #ifdef SHADOW_EXCLUDE_FOLIAGE
+#endif
+#ifdef RSM_ENABLED
 #endif
 
 
@@ -151,4 +161,11 @@ float f0ToIOR(const in float f0) {
 vec3 f0ToIOR(const in vec3 f0) {
     vec3 sqrt_f0 = sqrt(f0);
     return (1.0f + sqrt_f0) / max(1.0f - sqrt_f0, vec3(EPSILON));
+}
+
+vec3 RestoreNormalZ(const in vec2 normalXY) {
+    vec3 normal;
+    normal.xy = normalXY * 2.0 - 1.0;
+    normal.z = sqrt(max(1.0 - dot(normal.xy, normal.xy), EPSILON));
+    return normal;
 }

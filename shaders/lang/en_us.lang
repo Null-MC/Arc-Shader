@@ -12,6 +12,9 @@ option.ATMOSPHERE_ENABLED.comment=When enabled a more realistic atmosphere will 
 option.SHADOW_BRIGHTNESS=Ambient Brightness
 option.SHADOW_BRIGHTNESS.comment=Controls how dark shadows are.
 
+option.RSM_ENABLED=RSM GI
+option.RSM_ENABLED.comment=Use Reflective Shadow Mapping for Global Illumination.
+
 
 screen.MATERIAL_OPTIONS=Materials
 screen.MATERIAL_OPTIONS.comment=Options for PBR materials.
@@ -153,10 +156,13 @@ screen.DEBUG_OPTIONS=Debug
 
 option.DEBUG_SHADOW_BUFFER=Display
 option.DEBUG_SHADOW_BUFFER.comment=Configures which buffer to draw to the screen.
-value.DEBUG_SHADOW_BUFFER.0=gcolor
-value.DEBUG_SHADOW_BUFFER.1=shadowcolor0
-value.DEBUG_SHADOW_BUFFER.2=shadowtex0
-value.DEBUG_SHADOW_BUFFER.3=shadowtex1
+value.DEBUG_SHADOW_BUFFER.0=None
+value.DEBUG_SHADOW_BUFFER.1=Shadow Albedo
+value.DEBUG_SHADOW_BUFFER.2=Shadow Normal
+value.DEBUG_SHADOW_BUFFER.3=Shadow SSS
+value.DEBUG_SHADOW_BUFFER.4=Shadow Depth [0]
+value.DEBUG_SHADOW_BUFFER.5=Shadow Depth [1]
+value.DEBUG_SHADOW_BUFFER.6=RSM
 
 
 option.IS_OPTIFINE=Using Optifine?

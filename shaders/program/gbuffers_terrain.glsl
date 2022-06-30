@@ -113,7 +113,7 @@ varying vec3 tanViewPos;
     #endif
 
 	#ifdef SHADOW_ENABLED
-        uniform sampler2D shadowcolor0;
+        uniform usampler2D shadowcolor0;
         uniform sampler2D shadowtex0;
 
         #ifdef SHADOW_ENABLE_HWCOMP
@@ -132,14 +132,14 @@ varying vec3 tanViewPos;
         uniform float far;
 
 		#if SHADOW_PCF_SAMPLES == 12
-			#include "/lib/shadows/poisson_12.glsl"
+			#include "/lib/sampling/poisson_12.glsl"
 		#elif SHADOW_PCF_SAMPLES == 24
-			#include "/lib/shadows/poisson_24.glsl"
+			#include "/lib/sampling/poisson_24.glsl"
 		#elif SHADOW_PCF_SAMPLES == 36
-			#include "/lib/shadows/poisson_36.glsl"
+			#include "/lib/sampling/poisson_36.glsl"
 		#endif
 
-        #include "/lib/depth.glsl"
+        //#include "/lib/depth.glsl"
 
 		#if SHADOW_TYPE == 3
 			#include "/lib/shadows/csm.glsl"
@@ -156,7 +156,7 @@ varying vec3 tanViewPos;
         uniform ivec2 atlasSize;
 
         #ifdef PARALLAX_SMOOTH
-            #include "/lib/linearSampler.glsl"
+            #include "/lib/sampling/linear.glsl"
         #endif
 
         #include "/lib/parallax.glsl"
