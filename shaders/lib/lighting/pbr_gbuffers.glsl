@@ -120,6 +120,7 @@
 
         const float minSkylightThreshold = 1.0 / 32.0 + EPSILON;
         float shadow = step(minSkylightThreshold, lmcoord.y);
+        float lightSSS = 0.0;
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
             #if SHADOW_TYPE == 3
@@ -163,7 +164,6 @@
                 // #endif
             }
 
-            float lightSSS = 0.0;
             #ifdef SSS_ENABLED
                 float materialSSS = GetLabPbr_SSS(specularMap.b);
                 if (materialSSS > EPSILON)

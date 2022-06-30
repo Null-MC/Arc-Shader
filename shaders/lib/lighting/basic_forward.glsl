@@ -25,7 +25,7 @@
         vec3 skyAmbient = SHADOW_BRIGHTNESS * GetSkyAmbientColor(viewNormal) * (0.1 + 0.9 * skyLight);
         vec3 blockAmbient = max(vec3(blockLight), skyAmbient);
 
-        #ifdef SHADOW_ENABLED
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
             if (shadow > EPSILON) {
                 shadow = GetShadowing(shadowPos);
 

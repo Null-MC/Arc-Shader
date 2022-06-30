@@ -1,4 +1,4 @@
-const float sunPathRotation = 20; // [-60 -40 -20 0 20 40 60]
+const float sunPathRotation = -30; // [-60 -50 -40 -30 -20 -10 0 10 20 30 40 50 60]
 const bool colortex4Clear = false;
 
 
@@ -122,6 +122,7 @@ const float invPI = 1.0 / PI;
 
 #if !defined SHADOW_ENABLED || SHADOW_TYPE == 0
     #undef RSM_ENABLED
+    #undef SSS_ENABLED
 #endif
 
 #ifdef SHADOW_EXCLUDE_ENTITIES
