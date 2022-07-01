@@ -82,6 +82,26 @@ const float tile_dist_bias_factor = 0.012288;
         #endif
 	}
 
+    int GetCascadeSampleIndex(const in vec3 shadowPos[4], const in vec2 blockOffset) {
+        for (int i = 0; i < 4; i++) {
+            vec2 shadowTilePos = GetShadowCascadeClipPos(i);
+
+            vec2 pixelPerBlockScale = (cascadeTexSize / shadowProjectionSizes[i]) * shadowPixelSize;
+            vec2 uv = 2.0 * (shadowPos[i].xy - shadowTilePos) + blockOffset * pixelPerBlockScale;
+
+            // Ignore if outside cascade bounds
+            if (uv.x < 0.0 || uv.x >= 1.0
+             || uv.y < 0.0 || uv.y >= 1.0) continue;
+
+            ivec2 iPos = ivec2(uv * shadowMapSize * 0.5);
+            int sampleIndex = texelFetch(shadowcolor1, iPos, 0).r;
+            
+            if (sampleIndex >= 0 && sampleIndex <= i) return i;
+        }
+
+        return -1;
+    }
+
 	float GetNearestDepth(const in vec3 shadowPos[4], const in vec2 blockOffset, out int cascade) {
 		float depth = 1.0;
 		cascade = -1;
@@ -310,8 +330,14 @@ const float tile_dist_bias_factor = 0.012288;
 	#elif SHADOW_FILTER == 0
 		// Unfiltered
 		float GetShadowing(const in vec3 shadowPos[4]) {
+            //int cascade = GetCascadeSampleIndex(shadowPos, vec2(0.0));
+            //if (cascade < 0) return 1.0;
+
+            //float bias = GetCascadeBias(cascade);
+
             #ifdef SHADOW_ENABLE_HWCOMP
                 return CompareNearestDepth(shadowPos, vec2(0.0));
+                //return CompareDepth(shadowPos[cascade], vec2(0.0), bias);
             #else
     			int cascade;
     			float texDepth = GetNearestDepth(shadowPos, vec2(0.0), cascade);
@@ -323,8 +349,9 @@ const float tile_dist_bias_factor = 0.012288;
 	#endif
 
     #ifdef SSS_ENABLED
-        float SampleShadowSSS(const in vec2 shadowPos) {
-            return texture2D(shadowcolor0, shadowPos).r;
+        vec4 SampleShadowColorSSS(const in vec2 shadowPos) {
+            uint data = texture2D(shadowcolor0, shadowPos).r;
+            return unpackUnorm4x8(data);
         }
 
         #if SSS_FILTER != 0
@@ -339,7 +366,7 @@ const float tile_dist_bias_factor = 0.012288;
                     vec2 pixelOffset = blockOffset * pixelPerBlockScale;
 
                     float bias = GetCascadeBias(cascade);
-                    float shadow_sss = SampleShadowSSS(shadowPos[cascade].xy + pixelOffset);
+                    float shadow_sss = SampleShadowColorSSS(shadowPos[cascade].xy + pixelOffset).a;
                     float dist = max(shadowPos[cascade].z - bias - texDepth, 0.0) * far * 3.0;
                     light += max(shadow_sss - dist / SSS_MAXDIST, 0.0);
                 }
@@ -358,7 +385,7 @@ const float tile_dist_bias_factor = 0.012288;
             float GetShadowSSS(const in vec3 shadowPos[4]) {
                 //int cascade;
                 //GetNearestDepth(shadowPos, vec2(0.0), cascade);
-                //float center_sss = SampleShadowSSS(shadowPos[cascade].xy);
+                //float center_sss = SampleShadowColorSSS(shadowPos[cascade].xy).a;
 
                 float size = SHADOW_PCF_SIZE;// * (1.0 - center_sss);
 
@@ -375,7 +402,7 @@ const float tile_dist_bias_factor = 0.012288;
                 float texDepth = GetNearestDepth(shadowPos, vec2(0.0), cascade);
                 float bias = GetCascadeBias(cascade);
                 float dist = max(shadowPos[cascade].z - bias - texDepth, 0.0) * far * 3.0;
-                float shadow_sss = SampleShadowSSS(shadowPos[cascade].xy);
+                float shadow_sss = SampleShadowColorSSS(shadowPos[cascade].xy).a;
                 return max(shadow_sss - dist / SSS_MAXDIST, 0.0);
             }
         #endif

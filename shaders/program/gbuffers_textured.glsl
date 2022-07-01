@@ -94,6 +94,10 @@ varying float geoNoL;
 	#ifdef SHADOW_ENABLED
 		uniform vec3 shadowLightPosition;
 
+        #if SHADOW_TYPE == 3
+            uniform isampler2D shadowcolor1;
+        #endif
+
 		#if SHADOW_TYPE != 0
 	        uniform usampler2D shadowcolor0;
 	        uniform sampler2D shadowtex0;

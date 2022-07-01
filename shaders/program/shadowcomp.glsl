@@ -65,11 +65,11 @@ varying vec2 texcoord;
     layout(location = 0) out uint outIndex;
 
 
-    float SampleDepth(const in vec2 shadowPos) {
+    float SampleDepth(const in ivec2 uv) {
         #if !defined IS_OPTIFINE && defined SHADOW_ENABLE_HWCOMP
-            return texture2D(shadowtex1, shadowPos).r;
+            return texelFetch(shadowtex1, uv, 0).r;
         #else
-            return texture2D(shadowtex0, shadowPos).r;
+            return texelFetch(shadowtex0, uv, 0).r;
         #endif
     }
 
@@ -80,9 +80,7 @@ varying vec2 texcoord;
         for (int i = 0; i < 4; i++) {
             vec2 shadowTilePos = GetShadowCascadeClipPos(i);
             vec2 uv = shadowTilePos + 0.5 * texcoord;
-            float texDepth = SampleDepth(uv);
-
-            //vec3 viewPos = (matShadowProjectionsInv[i]).xyz;
+            float texDepth = SampleDepth(ivec2(uv * shadowMapSize));
 
             if (texDepth < depth) {
                 depth = texDepth;

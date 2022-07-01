@@ -117,6 +117,10 @@ varying vec3 tanViewPos;
         uniform usampler2D shadowcolor0;
         uniform sampler2D shadowtex0;
 
+        #if SHADOW_TYPE == 3
+            uniform isampler2D shadowcolor1;
+        #endif
+
         #ifdef SHADOW_ENABLE_HWCOMP
             #ifndef IS_OPTIFINE
                 uniform sampler2DShadow shadowtex1HW;
