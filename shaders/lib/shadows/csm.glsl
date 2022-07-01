@@ -17,6 +17,13 @@ vec2 GetShadowCascadeClipPos(const in int tile) {
 	return pos;
 }
 
+int GetCascadeForScreenPos(const in vec2 pos) {
+	if (pos.y < 0.5)
+		return pos.x < 0.5 ? 0 : 1;
+	else
+		return pos.x < 0.5 ? 2 : 3;
+}
+
 // tile: 0-3
 // vec3 GetShadowCascadeColor(const in int tile) {
 // 	if (tile < 0) return vec3(1.0);
@@ -185,12 +192,7 @@ vec2 GetShadowCascadeClipPos(const in int tile) {
 	}
 #endif
 
-#if defined RENDER_VERTEX && !defined RENDER_COMPOSITE
-	// void PrepareCascadeMatrices(out mat4 matProj[4]) {
-	// 	for (int i = 0; i < 4; i++)
-	// 		matProj[i] = GetShadowCascadeProjectionMatrix(i);
-	// }
-
+#if defined RENDER_VERTEX && defined RENDER_GBUFFER
 	vec3 GetBlockPos() {
         #if defined RENDER_ENTITIES || defined RENDER_HAND
             return vec3(0.0);

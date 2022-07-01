@@ -1,3 +1,4 @@
+#define RENDER_GBUFFER
 #define RENDER_SKYTEXTURED
 
 varying vec2 texcoord;

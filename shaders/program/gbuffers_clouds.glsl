@@ -1,3 +1,4 @@
+#define RENDER_GBUFFER
 #define RENDER_CLOUDS
 
 varying vec2 texcoord;

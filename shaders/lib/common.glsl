@@ -11,8 +11,8 @@ const bool colortex4Clear = false;
 //#define ATMOSPHERE_ENABLED
 #define HCM_AMBIENT 0.16
 //#define RSM_ENABLED
-#define RSM_R_MAX 64.0
-#define RSM_INTENSITY 24.0
+#define RSM_INTENSITY 20.0
+#define RSM_FILTER_SIZE 1.2
 #define RSM_SCALE 0.25
 
 
@@ -56,7 +56,7 @@ const bool colortex4Clear = false;
 #define SHADOW_PENUMBRA_SCALE 50.0
 #define SHADOW_ENABLE_HWCOMP
 #define SHADOW_BASIC_BIAS 0.035
-#define SHADOW_DISTORTED_BIAS 0.005
+#define SHADOW_DISTORTED_BIAS 0.0016
 #define SHADOW_CSM_FIT_FARSCALE 1.1
 #define SHADOW_CSM_FITSCALE 0.1
 #define CSM_PLAYER_ID 0
@@ -70,9 +70,19 @@ const bool colortex4Clear = false;
 
 
 // Debug Options
-#define DEBUG_SHADOW_BUFFER 0 // [0 1 2 3 4 5 6]
+#define DEBUG_SHADOW_BUFFER 0 // [0 1 2 3 4 5 6 7 8 9]
 #define HANDLIGHT_ENABLED
 #define IS_OPTIFINE
+
+#define DEBUG_VIEW_SHADOW_ALBEDO 1
+#define DEBUG_VIEW_SHADOW_NORMAL 2
+#define DEBUG_VIEW_SHADOW_SSS 3
+#define DEBUG_VIEW_SHADOW_DEPTH0 4
+#define DEBUG_VIEW_SHADOW_DEPTH1 5
+#define DEBUG_VIEW_SHADOW_POSITION 6
+#define DEBUG_VIEW_RSM_LOWRES 7
+#define DEBUG_VIEW_RSM_FULLRES 8
+#define DEBUG_VIEW_CSM_INDICES 9
 
 
 // INTERNAL
@@ -100,6 +110,10 @@ const float invPI = 1.0 / PI;
 	#undef SHADOW_DISTORT_FACTOR
 #endif
 
+#if SHADOW_TYPE == 3
+    #define CSM_ENABLED
+#endif
+
 // #if SHADOW_TYPE != 3
 // 	#undef DEBUG_CASCADE_TINT
 // 	#undef SHADOW_CSM_FITRANGE
@@ -125,6 +139,8 @@ const float invPI = 1.0 / PI;
     #undef SSS_ENABLED
 #endif
 
+#ifdef CSM_ENABLED
+#endif
 #ifdef SHADOW_EXCLUDE_ENTITIES
 #endif
 #ifdef SHADOW_EXCLUDE_FOLIAGE

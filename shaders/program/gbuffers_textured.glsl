@@ -1,5 +1,6 @@
 #extension GL_ARB_gpu_shader5 : enable
 
+#define RENDER_GBUFFER
 #define RENDER_TEXTURED
 
 #undef PARALLAX_ENABLED

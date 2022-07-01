@@ -28,3 +28,15 @@ vec3 distort(const in vec3 v) {
 vec3 undistort(const in vec3 v) {
 	return undistort(v, getUndistortFactor(v.xy));
 }
+
+
+// Zombye
+// vec2 distort(vec2 p) {
+//   vec2 tmp = abs(p * p * p);
+//   return p / (c + pow(tmp.x + tmp.y, 1.0 / 3.0));
+// }
+
+// vec2 undistort(vec2 p) {
+//   vec2 tmp = abs(p * p * p);
+//   return c * p / (1.0 - pow(tmp.x + tmp.y, 1.0 / 3.0));
+// }

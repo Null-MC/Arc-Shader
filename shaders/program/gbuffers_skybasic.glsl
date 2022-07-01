@@ -1,3 +1,4 @@
+#define RENDER_GBUFFER
 #define RENDER_SKYBASIC
 
 varying vec4 starData; //rgb = star color, a = flag for weather or not this pixel is a star.

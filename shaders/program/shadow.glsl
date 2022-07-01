@@ -1,14 +1,24 @@
-//#extension GL_ARB_gpu_shader5 : enable
-
+#define RENDER_GBUFFER
 #define RENDER_SHADOW
 
 /*
 const int shadowtex0Format = R32F;
 const int shadowtex1Format = R32F;
 const int shadowcolor0Format = RG32UI;
-const int shadowcolor1Format = RGB16F;
 const int colortex6Format = RGB16F;
 */
+
+#if SHADOW_TYPE == 3
+	/*
+	const bool shadowcolor1Nearest = true;
+	const int shadowcolor1Format = R8I;
+	*/
+#elif SHADOW_TYPE == 2
+	/*
+	const bool shadowcolor1Nearest = false;
+	const int shadowcolor1Format = RGB16_SNORM;
+	*/
+#endif
 
 const float shadowDistanceRenderMul = 1.0;
 
@@ -17,28 +27,28 @@ varying vec2 lmcoord;
 varying vec2 texcoord;
 varying vec4 glcolor;
 
-#if SHADOW_TYPE == 3
-    varying float cascadeSizes[4];
-	flat varying vec2 shadowCascadePos;
-#endif
-
 #ifdef SSS_ENABLED
 	varying vec3 viewPosTan;
 #endif
 
-#if defined RSM_ENABLED || DEBUG_SHADOW_BUFFER == 2
-	varying vec3 localPos;
-	varying mat3 matViewTBN;
+#if defined RSM_ENABLED
+	flat varying mat3 matViewTBN;
+
+	#if SHADOW_TYPE == 2
+		varying vec3 localPos;
+	#endif
+#endif
+
+#if SHADOW_TYPE == 3
+    flat varying float cascadeSizes[4];
+	flat varying vec2 shadowCascadePos;
 #endif
 
 #ifdef RENDER_VERTEX
 	in vec4 mc_Entity;
 	in vec3 vaPosition;
 	in vec3 at_midBlock;
-
-	#ifdef SSS_ENABLED
-		in vec4 at_tangent;
-	#endif
+	in vec4 at_tangent;
 
 	uniform mat4 shadowModelViewInverse;
 	uniform vec3 cameraPosition;
@@ -152,7 +162,7 @@ varying vec4 glcolor;
             vec3 viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
             vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
 
-            #if !defined RSM_ENABLED && DEBUG_SHADOW_BUFFER != 2
+            #if !defined RSM_ENABLED //&& DEBUG_SHADOW_BUFFER != 2
             	mat3 matViewTBN;
             #endif
 
@@ -162,9 +172,11 @@ varying vec4 glcolor;
                 viewTangent.z, viewBinormal.z, viewNormal.z);
 
 			viewPosTan = matViewTBN * viewPos.xyz;
+
+			//matViewTBN = mat3(, vec3(1.0), vec3(1.0));
 		#endif
 
-		#ifdef RSM_ENABLED
+		#if defined RSM_ENABLED && SHADOW_TYPE == 2
 			localPos = (shadowModelViewInverse * viewPos).xyz;
 		#endif
 	}
@@ -192,10 +204,13 @@ varying vec4 glcolor;
 	#include "/lib/lighting/material.glsl"
 	#include "/lib/lighting/material_reader.glsl"
 
-	layout(location = 0) out uvec2 shadowcolor0;
-
-	#ifdef RSM_ENABLED
-		layout(location = 1) out vec3 shadowcolor1;
+	#if defined RSM_ENABLED && SHADOW_TYPE == 2
+	    /* RENDERTARGETS: 0, 1 */
+		layout(location = 0) out uvec2 outColor0;
+		layout(location = 1) out vec3 outColor1;
+	#else
+	    /* RENDERTARGETS: 0 */
+		layout(location = 0) out uvec2 outColor0;
 	#endif
 
 
@@ -210,8 +225,9 @@ varying vec4 glcolor;
 		if (colorMap.a < alphaTestRef) discard;
 
 		vec3 viewNormal = vec3(0.0);
-		#if defined RSM_ENABLED || DEBUG_SHADOW_BUFFER == 2
+		#if defined RSM_ENABLED //|| DEBUG_SHADOW_BUFFER == 2
 	        vec2 normalMap = texture2D(normals, texcoord).rg;
+			//mat3 matViewTBN2 = mat3(vec3(1.0), vec3(1.0), vec3(1.0));
 	        viewNormal = GetLabPbr_Normal(normalMap) * matViewTBN;
 	    #endif
 
@@ -243,11 +259,13 @@ varying vec4 glcolor;
 	        //}
 	    #endif
 
-	    shadowcolor0.r = packUnorm4x8(vec4(colorMap.rgb, sss));
-	    shadowcolor0.g = packUnorm2x16(viewNormal.xy * 0.5 + 0.5);
+	    //viewNormal = vec3(0.0, 0.0, 1.0);
 
-	    #ifdef RSM_ENABLED
-		    shadowcolor1.xyz = localPos;
+	    outColor0.r = packUnorm4x8(vec4(colorMap.rgb, sss));
+	    outColor0.g = packUnorm2x16(viewNormal.xy * 0.5 + 0.5);
+
+	    #if defined RSM_ENABLED && SHADOW_TYPE == 2
+		    outColor1 = localPos;
 		#endif
 	}
 #endif
