@@ -1,7 +1,5 @@
 #extension GL_ARB_texture_gather : enable
 
-const float tile_dist_bias_factor = 0.012288;
-
 #ifdef RENDER_VERTEX
 	void ApplyShadows(const in vec3 viewPos) {
         #ifndef SSS_ENABLED
@@ -81,26 +79,6 @@ const float tile_dist_bias_factor = 0.012288;
             return texture2D(shadowtex0, shadowPos + offset).r;
         #endif
 	}
-
-    int GetCascadeSampleIndex(const in vec3 shadowPos[4], const in vec2 blockOffset) {
-        for (int i = 0; i < 4; i++) {
-            vec2 shadowTilePos = GetShadowCascadeClipPos(i);
-
-            vec2 pixelPerBlockScale = (cascadeTexSize / shadowProjectionSizes[i]) * shadowPixelSize;
-            vec2 uv = 2.0 * (shadowPos[i].xy - shadowTilePos) + blockOffset * pixelPerBlockScale;
-
-            // Ignore if outside cascade bounds
-            if (uv.x < 0.0 || uv.x >= 1.0
-             || uv.y < 0.0 || uv.y >= 1.0) continue;
-
-            ivec2 iPos = ivec2(uv * shadowMapSize * 0.5);
-            int sampleIndex = texelFetch(shadowcolor1, iPos, 0).r;
-            
-            if (sampleIndex >= 0 && sampleIndex <= i) return i;
-        }
-
-        return -1;
-    }
 
 	float GetNearestDepth(const in vec3 shadowPos[4], const in vec2 blockOffset, out int cascade) {
 		float depth = 1.0;

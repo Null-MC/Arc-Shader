@@ -60,6 +60,7 @@ varying vec2 texcoord;
 
 #ifdef RENDER_FRAG
     uniform sampler2D colortex1;
+    uniform sampler2D colortex3;
     uniform sampler2D colortex5;
     uniform sampler2D colortex6;
     uniform usampler2D shadowcolor0;
@@ -117,19 +118,23 @@ varying vec2 texcoord;
                 final = texture2DLod(colortex5, texcoord, 0).rgb;
             }
             else {
-                vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
+                float skyLight = texelFetch(colortex3, itex, 0).g;
 
-                vec4 localPos = gbufferModelViewInverse * (gbufferProjectionInverse * vec4(clipPos, 1.0));
-                localPos.xyz /= localPos.w;
+                if (skyLight >= 1.0 / 16.0) {
+                    vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
 
-                //vec2 normalTex = texture2DLod(colortex1, texcoord, 0).rg;
-                vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
+                    vec4 localPos = gbufferModelViewInverse * (gbufferProjectionInverse * vec4(clipPos, 1.0));
+                    localPos.xyz /= localPos.w;
 
-                vec3 shadowViewPos = (shadowModelView * vec4(localPos.xyz, 1.0)).xyz;
+                    //vec2 normalTex = texture2DLod(colortex1, texcoord, 0).rg;
+                    vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
 
-                final = GetIndirectLighting_RSM(shadowViewPos, localPos.xyz, localNormal);
-                //final = LinearToRGB(final);
-                //final = vec3(1.0, 0.0, 0.0);
+                    vec3 shadowViewPos = (shadowModelView * vec4(localPos.xyz, 1.0)).xyz;
+
+                    final = GetIndirectLighting_RSM(shadowViewPos, localPos.xyz, localNormal);
+                    //final = LinearToRGB(final);
+                    //final = vec3(1.0, 0.0, 0.0);
+                }
             }
         }
 

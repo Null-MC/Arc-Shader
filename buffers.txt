@@ -1,10 +1,8 @@
-shadowcolor1	CSM cascade indices OR DSM local position
-
 colortex0	colorMap
 colortex1	normalMap
 colortex2	specularMap
 colortex3	lightingMap
 colortex4	previous final frame data
 colortex5	RSM low-res
-colortex6	RSM depth
+colortex6	RSM normal/depth
 colortex7	RSM full-res

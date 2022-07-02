@@ -11,29 +11,39 @@
 // }
 
 #if SHADOW_TYPE == 3
-	int GetCascadeSampleIndex(const in vec3 shadowViewPos, out vec2 uv) {
-		for (int i = 0; i < 4; i++) {
-	        vec2 shadowPos = (matShadowProjections[i] * vec4(shadowViewPos, 1.0)).xy * 0.5 + 0.5;
+	vec3 GetNearestDepth(const in vec3 shadowViewPos, out ivec2 uv_out, out int cascade) {
+		float depth = 1.0;
+		vec2 pos_out = vec2(0.0);
+		uv_out = ivec2(0);
+		cascade = -1;
 
+		float shadowResScale = tile_dist_bias_factor * shadowPixelSize;
+
+		for (int i = 0; i < 4; i++) {
+			vec3 shadowPos = (matShadowProjections[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+
+			// Ignore if outside cascade bounds
 			if (shadowPos.x < 0.0 || shadowPos.x >= 1.0
 			 || shadowPos.y < 0.0 || shadowPos.y >= 1.0) continue;
 
-			uv = vec2(0.0);
-			//return i;
+			vec2 shadowTilePos = GetShadowCascadeClipPos(i);
+			ivec2 iuv = ivec2((shadowTilePos + 0.5 * shadowPos.xy) * shadowMapSize);
 
-			//vec2 shadowTilePos = GetShadowCascadeClipPos(i);
-			//vec2 shadowUV = shadowTilePos + 0.5 * shadowPos;
-			int sampleIndex = texture2DLod(shadowcolor1, shadowPos * 0.5, 0).r;
-			//return sampleIndex;
+			//vec2 pixelPerBlockScale = (cascadeTexSize / shadowProjectionSizes[i]) * shadowPixelSize;
+			
+			//vec2 pixelOffset = blockOffset * pixelPerBlockScale;
+			//float texDepth = SampleDepth(uv, vec2(0.0));
+            float texDepth = texelFetch(shadowtex1, iuv, 0).r;
 
-			if (sampleIndex >= 0 && sampleIndex <= i) {
-				uv = shadowPos;
-				return i;
+            if (texDepth < depth) {
+				depth = texDepth;
+				pos_out = shadowPos.xy;
+				uv_out = iuv;
+				cascade = i;
 			}
 		}
 
-		uv = vec2(0.0);
-		return -1;
+		return vec3(pos_out, depth);
 	}
 #endif
 
@@ -85,17 +95,18 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 localPos
 		#elif SHADOW_TYPE == 3
 			//vec3 offsetShadowViewPos = shadowViewPos + vec3(poissonDisk[i] * diskScale, 0.0);
 
-	        int cascade = GetCascadeSampleIndex(offsetShadowViewPos, uv);
+	        int cascade; // = GetCascadeSampleIndex(offsetShadowViewPos, uv);
+	        vec3 clipPos = GetNearestDepth(offsetShadowViewPos, iuv, cascade) * 2.0 - 1.0;
 
-	        vec4 clipPos = vec4(uv * 2.0 - 1.0, 0.0, 1.0);
-			clipPos.z = texture2DLod(shadowtex1, uv, 0).r * 2.0 - 1.0;
+	        //vec4 clipPos = vec4(uv * 2.0 - 1.0, 0.0, 1.0);
+			//clipPos.z = texture2DLod(shadowtex1, uv, 0).r * 2.0 - 1.0;
 
 			// const float cascadePixelSize = 2.0 * shadowPixelSize;
 			// vec2 uv = shadowUV + poissonDisk[i] * diskScale * cascadePixelSize;
 			// int cascade = texture2DLod(shadowcolor1, uv * 0.5, 0).r;
-			vec2 cascadePos = GetShadowCascadeClipPos(cascade);
-			uv = cascadePos + 0.5 * uv;
-			iuv = ivec2(uv * shadowMapSize);
+			//vec2 cascadePos = GetShadowCascadeClipPos(cascade);
+			//uv = cascadePos + 0.5 * uv;
+			//iuv = ivec2(clipPos.xy * shadowMapSize);
 
 			//return texture2DLod(shadowtex1, uv, 0).rrr;
 
@@ -107,7 +118,7 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 localPos
 			// return vec3(1.0);
 
 			//vec3 x_p = texture2DLod(shadowcolor1, uv, 0).xyz;
-			x_p = (shadowModelViewInverse * (matShadowProjectionsInv[cascade] * clipPos)).xyz;
+			x_p = (shadowModelViewInverse * (matShadowProjectionsInv[cascade] * vec4(clipPos, 1.0))).xyz;
 		#endif
 
 		//return localPos * 0.1;

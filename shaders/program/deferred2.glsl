@@ -6,7 +6,9 @@ varying vec2 texcoord;
 #if SHADOW_TYPE == 3
     flat varying float cascadeSizes[4];
     flat varying mat4 matShadowProjections[4];
-    //flat varying mat4 matShadowProjectionsInv[4];
+
+    //flat varying vec4 matShadowProjectionParts[4];
+    //flat varying vec2 matShadowProjectionOffsets[4];
 #endif
 
 #ifdef RENDER_VERTEX
@@ -43,28 +45,26 @@ varying vec2 texcoord;
             cascadeSizes[2] = GetCascadeDistance(2);
             cascadeSizes[3] = GetCascadeDistance(3);
 
-            matShadowProjections[0] = GetShadowCascadeProjectionMatrix(0);
-            matShadowProjections[1] = GetShadowCascadeProjectionMatrix(1);
-            matShadowProjections[2] = GetShadowCascadeProjectionMatrix(2);
-            matShadowProjections[3] = GetShadowCascadeProjectionMatrix(3);
+            for (int i = 0; i < 4; i++) {
+                matShadowProjections[i] = GetShadowCascadeProjectionMatrix(i);
 
-            // matShadowProjectionsInv[0] = inverse(matShadowProjections[0]);
-            // matShadowProjectionsInv[1] = inverse(matShadowProjections[1]);
-            // matShadowProjectionsInv[2] = inverse(matShadowProjections[2]);
-            // matShadowProjectionsInv[3] = inverse(matShadowProjections[3]);
+                // matShadowProjectionParts[i].x = ;
+                // matShadowProjectionParts[i].y = ;
+                // matShadowProjectionParts[i].z = ;
+                // matShadowProjectionParts[i].w = ;
+                // matShadowProjectionOffsets[i].x = ;
+                // matShadowProjectionOffsets[i].y = ;
+            }
         #endif
 	}
 #endif
 
 #ifdef RENDER_FRAG
-    // uniform sampler2D colortex0;
     uniform sampler2D colortex1;
-    // uniform sampler2D colortex2;
-    // uniform sampler2D colortex3;
-
-    uniform usampler2D shadowcolor0;
+    uniform sampler2D colortex3;
     uniform sampler2D shadowtex1;
     uniform sampler2D depthtex0;
+    uniform usampler2D shadowcolor0;
 
     #if SHADOW_TYPE == 3
         uniform isampler2D shadowcolor1;
@@ -101,18 +101,24 @@ varying vec2 texcoord;
 
         vec3 color = vec3(0.0);
         vec2 normal = vec2(0.0);
+
         if (clipDepth < 1.0) {
-            vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
+            float skyLight = texelFetch(colortex3, itex, 0).g;
 
-            vec4 localPos = gbufferModelViewInverse * (gbufferProjectionInverse * vec4(clipPos, 1.0));
-            localPos.xyz /= localPos.w;
+            if (skyLight >= 1.0 / 16.0) {
+                normal = texelFetch(colortex1, itex, 0).rg;
 
-            normal = texelFetch(colortex1, itex, 0).rg;
-            vec3 localNormal = mat3(gbufferModelViewInverse) * RestoreNormalZ(normal);
+                vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
 
-            vec3 shadowViewPos = (shadowModelView * vec4(localPos.xyz, 1.0)).xyz;
+                vec4 localPos = gbufferModelViewInverse * (gbufferProjectionInverse * vec4(clipPos, 1.0));
+                localPos.xyz /= localPos.w;
 
-            color = GetIndirectLighting_RSM(shadowViewPos, localPos.xyz, localNormal);
+                vec3 localNormal = mat3(gbufferModelViewInverse) * RestoreNormalZ(normal);
+
+                vec3 shadowViewPos = (shadowModelView * vec4(localPos.xyz, 1.0)).xyz;
+
+                color = GetIndirectLighting_RSM(shadowViewPos, localPos.xyz, localNormal);
+            }
         }
 
         //color = LinearToRGB(color);

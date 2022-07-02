@@ -117,14 +117,9 @@
     #ifdef HANDLIGHT_ENABLED
         const vec3 handLightColor = vec3(0.851, 0.712, 0.545);
 
-        float GetDiffuseAttenuation(const in float lightLevel, const in float lightDist) {
+        float GetHandLightAttenuation(const in float lightLevel, const in float lightDist) {
             float diffuseAtt = max(0.16*lightLevel - 0.5*lightDist, 0.0);
             return diffuseAtt*diffuseAtt;
-        }
-
-        float GetSpecularAttenuation(const in float lightLevel, const in float lightDist) {
-            float specularAtt = max(0.1*lightLevel - 0.1*lightDist, 0.0);
-            return specularAtt*specularAtt*specularAtt*specularAtt; //pow(specularAtt, 4.0);
         }
 
         void ApplyHandLighting(inout vec3 diffuse, inout vec3 specular, const in PbrMaterial material, const in vec3 viewNormal, const in vec3 viewPos, const in vec3 viewDir, const in float NoVm, const in float roughL) {
@@ -138,16 +133,14 @@
                 vec3 handHalfDir = normalize(handLightDir + viewDir);
                 float hand_LoHm = max(dot(handLightDir, handHalfDir), EPSILON);
 
-                float diffuseAtt = GetDiffuseAttenuation(heldBlockLightValue, handLightDist);
-                if (diffuseAtt > EPSILON) {
-                    diffuse += GetDiffuseBSDF(material, NoVm, hand_NoLm, hand_LoHm, roughL) * diffuseAtt * handLightColor;
-                }
+                float attenuation = GetHandLightAttenuation(heldBlockLightValue, handLightDist);
 
-                float specularAtt = GetSpecularAttenuation(heldBlockLightValue, handLightDist);
-                if (specularAtt > EPSILON) {
+                if (attenuation > EPSILON) {
                     float hand_NoHm = max(dot(viewNormal, handHalfDir), EPSILON);
                     float hand_VoHm = max(dot(viewDir, handHalfDir), EPSILON);
-                    specular += GetSpecularBRDF(material, hand_LoHm, hand_NoHm, hand_VoHm, roughL) * specularAtt * handLightColor;
+
+                    diffuse += GetDiffuseBSDF(material, NoVm, hand_NoLm, hand_LoHm, roughL) * attenuation * handLightColor;
+                    specular += GetSpecularBRDF(material, hand_LoHm, hand_NoHm, hand_VoHm, roughL) * attenuation * handLightColor;
                 }
             }
         }
@@ -184,7 +177,8 @@
         skyLight = max(skyLight, shadow);
 
         // Make areas without skylight fully shadowed (light leak fix)
-        float shadowFinal = shadow * step(1.0 / 32.0, skyLight);
+        float lightLeakFix = step(1.0 / 32.0, skyLight);
+        float shadowFinal = shadow * lightLeakFix;
 
         vec3 reflectColor = vec3(0.0);
         #ifdef SSR_ENABLED

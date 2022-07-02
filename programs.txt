@@ -1,6 +1,3 @@
-shadowcomp	Shadow cascade indices
-
-deferred1	Map CSM cascade indices to colortex8
 deferred2	RSM low-res
 deferred3	RSM full-res
 deferred4	Opaque PBR

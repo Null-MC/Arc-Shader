@@ -8,12 +8,7 @@ const int shadowcolor0Format = RG32UI;
 const int colortex6Format = RGB16F;
 */
 
-#if SHADOW_TYPE == 3
-    /*
-    const bool shadowcolor1Nearest = true;
-    const int shadowcolor1Format = R8I;
-    */
-#elif SHADOW_TYPE == 2
+#if SHADOW_TYPE == 2
     /*
     const bool shadowcolor1Nearest = false;
     const int shadowcolor1Format = RGB16_SNORM;
@@ -33,10 +28,6 @@ varying vec4 glcolor;
 
 #if defined RSM_ENABLED
     flat varying mat3 matViewTBN;
-
-    #if SHADOW_TYPE == 2
-        varying vec3 localPos;
-    #endif
 #endif
 
 #if SHADOW_TYPE == 3
@@ -143,8 +134,6 @@ varying vec4 glcolor;
             gl_Position.xy = gl_Position.xy * 0.5 + 0.5;
             gl_Position.xy = gl_Position.xy * 0.5 + shadowCascadePos;
             gl_Position.xy = gl_Position.xy * 2.0 - 1.0;
-
-            //if (shadowCascade != 1) gl_Position = vec4(vec3(10.0), 1.0);
         #else
             gl_Position = gl_ProjectionMatrix * viewPos;
 
@@ -172,18 +161,11 @@ varying vec4 glcolor;
                 viewTangent.z, viewBinormal.z, viewNormal.z);
 
             viewPosTan = matViewTBN * viewPos.xyz;
-
-            //matViewTBN = mat3(, vec3(1.0), vec3(1.0));
-        #endif
-
-        #if defined RSM_ENABLED && SHADOW_TYPE == 2
-            localPos = (shadowModelViewInverse * viewPos).xyz;
         #endif
     }
 #endif
 
 #ifdef RENDER_FRAG
-    //uniform sampler2D lightmap;
     uniform sampler2D texture;
 
     uniform mat4 shadowModelViewInverse;
@@ -204,14 +186,8 @@ varying vec4 glcolor;
     #include "/lib/lighting/material.glsl"
     #include "/lib/lighting/material_reader.glsl"
 
-    #if defined RSM_ENABLED && SHADOW_TYPE == 2
-        /* RENDERTARGETS: 0, 1 */
-        layout(location = 0) out uvec2 outColor0;
-        layout(location = 1) out vec3 outColor1;
-    #else
-        /* RENDERTARGETS: 0 */
-        layout(location = 0) out uvec2 outColor0;
-    #endif
+    /* RENDERTARGETS: 0 */
+    layout(location = 0) out uvec2 outColor0;
 
 
     void main() {
@@ -227,7 +203,7 @@ varying vec4 glcolor;
         vec3 viewNormal = vec3(0.0);
         #if defined RSM_ENABLED
             vec2 normalMap = texture2D(normals, texcoord).rg;
-            viewNormal = GetLabPbr_Normal(normalMap) * matViewTBN;
+            viewNormal = RestoreNormalZ(normalMap) * matViewTBN;
         #endif
 
         float sss = 0.0;
@@ -260,9 +236,5 @@ varying vec4 glcolor;
 
         outColor0.r = packUnorm4x8(vec4(colorMap.rgb, sss));
         outColor0.g = packUnorm2x16(viewNormal.xy * 0.5 + 0.5);
-
-        // #if defined RSM_ENABLED && SHADOW_TYPE == 2
-        //     outColor1 = localPos;
-        // #endif
     }
 #endif

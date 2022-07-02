@@ -1,4 +1,4 @@
-#version 400
+#version 400 compatibility
 
 #define RENDER_VERTEX
 #define WORLD_OVERWORLD
