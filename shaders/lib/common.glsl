@@ -12,7 +12,7 @@ const bool colortex4Clear = false;
 //#define ATMOSPHERE_ENABLED
 #define HCM_AMBIENT 0.16
 //#define RSM_ENABLED
-#define RSM_INTENSITY 20.0
+#define RSM_INTENSITY 9.0
 #define RSM_FILTER_SIZE 1.2
 #define RSM_SCALE 0.25
 
