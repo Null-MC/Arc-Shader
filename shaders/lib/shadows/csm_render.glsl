@@ -76,7 +76,8 @@
         #if !defined IS_OPTIFINE && defined SHADOW_ENABLE_HWCOMP
             return texture2D(shadowtex1, shadowPos + offset).r;
         #else
-            return texture2D(shadowtex0, shadowPos + offset).r;
+            ivec2 itex = ivec2((shadowPos + offset) * shadowMapSize);
+            return texelFetch(shadowtex0, itex, 0).r;
         #endif
 	}
 
@@ -87,30 +88,17 @@
 		float shadowResScale = tile_dist_bias_factor * shadowPixelSize;
 
 		for (int i = 0; i < 4; i++) {
-			// Ignore if outside cascade bounds
 			vec2 shadowTilePos = GetShadowCascadeClipPos(i);
-			if (shadowPos[i].x < shadowTilePos.x || shadowPos[i].x >= shadowTilePos.x + 0.5) continue;
-			if (shadowPos[i].y < shadowTilePos.y || shadowPos[i].y >= shadowTilePos.y + 0.5) continue;
+            vec2 clipMin = shadowTilePos + 2.0 * shadowPixelSize;
+            vec2 clipMax = shadowTilePos + 0.5 - 4.0 * shadowPixelSize;
 
-			vec2 pixelPerBlockScale = (cascadeTexSize / shadowProjectionSizes[i]) * shadowPixelSize;
-			
-			vec2 pixelOffset = blockOffset * pixelPerBlockScale;
+            // Ignore if outside cascade bounds
+			if (shadowPos[i].x < clipMin.x || shadowPos[i].x >= clipMax.x
+			 || shadowPos[i].y < clipMin.y || shadowPos[i].y >= clipMax.y) continue;
+
+			vec2 pixelPerBlockScale = cascadeTexSize / shadowProjectionSizes[i];
+			vec2 pixelOffset = blockOffset * pixelPerBlockScale * shadowPixelSize;
 			float texDepth = SampleDepth(shadowPos[i].xy, pixelOffset);
-
-			if (i != shadowCascade) {
-				vec2 ratio = (shadowProjectionSizes[shadowCascade] / shadowProjectionSizes[i]) * shadowPixelSize;
-
-				vec4 samples;
-				samples.x = SampleDepth(shadowPos[i].xy, pixelOffset + vec2(-1.0, 0.0)*ratio);
-				samples.y = SampleDepth(shadowPos[i].xy, pixelOffset + vec2( 1.0, 0.0)*ratio);
-				samples.z = SampleDepth(shadowPos[i].xy, pixelOffset + vec2( 0.0,-1.0)*ratio);
-				samples.w = SampleDepth(shadowPos[i].xy, pixelOffset + vec2( 0.0, 1.0)*ratio);
-
-				texDepth = min(texDepth, samples.x);
-				texDepth = min(texDepth, samples.y);
-				texDepth = min(texDepth, samples.z);
-				texDepth = min(texDepth, samples.w);
-			}
 
             if (texDepth < depth) {
 				depth = texDepth;
@@ -122,17 +110,25 @@
 	}
 
     float GetCascadeBias(const in int cascade) {
-        float blocksPerPixelScale = max(shadowProjectionSizes[cascade].x, shadowProjectionSizes[cascade].y) / cascadeTexSize;
+        float maxProjSize = max(shadowProjectionSizes[cascade].x, shadowProjectionSizes[cascade].y);
+        //float maxProjSize = shadowProjectionSizes[cascade].x * shadowProjectionSizes[cascade].y;
+        //float maxProjSize = length(shadowProjectionSizes[cascade]);
+        //const float cascadePixelSize = 1.0 / cascadeTexSize;
+        float zRangeBias = 0.05 / (3.0 * far);
+
+        maxProjSize = pow(maxProjSize, 1.3);
 
         #if SHADOW_FILTER == 1
-            float zRangeBias = 0.00004;
-            float xySizeBias = blocksPerPixelScale * tile_dist_bias_factor * 4.0;
+            float xySizeBias = 0.004 * maxProjSize * shadowPixelSize;// * tile_dist_bias_factor * 4.0;
         #else
-            float zRangeBias = 0.00001;
-            float xySizeBias = blocksPerPixelScale * tile_dist_bias_factor;
+            float xySizeBias = 0.004 * maxProjSize * shadowPixelSize;// * tile_dist_bias_factor;
         #endif
 
-        return mix(xySizeBias, zRangeBias, geoNoL) * SHADOW_BIAS_SCALE;
+        float bias = mix(xySizeBias, zRangeBias, geoNoL) * SHADOW_BIAS_SCALE;
+
+        //bias += pow(1.0 - geoNoL, 16.0);
+
+        return bias;
     }
 
     vec2 GetPixelRadius(const in vec2 blockRadius) {
@@ -154,16 +150,18 @@
         float CompareNearestDepth(const in vec3 shadowPos[4], const in vec2 blockOffset) {
             float texComp = 1.0;
             for (int i = 0; i < 4 && texComp > 0.0; i++) {
-                // Ignore if outside tile bounds
                 vec2 shadowTilePos = GetShadowCascadeClipPos(i);
-                if (shadowPos[i].x < shadowTilePos.x || shadowPos[i].x >= shadowTilePos.x + 0.5) continue;
-                if (shadowPos[i].y < shadowTilePos.y || shadowPos[i].y >= shadowTilePos.y + 0.5) continue;
+                vec2 clipMin = shadowTilePos + 2.0 * shadowPixelSize;
+                vec2 clipMax = shadowTilePos + 0.5 - 4.0 * shadowPixelSize;
+
+                // Ignore if outside cascade bounds
+                if (shadowPos[i].x < clipMin.x || shadowPos[i].x >= clipMax.x
+                 || shadowPos[i].y < clipMin.y || shadowPos[i].y >= clipMax.y) continue;
+
+                vec2 pixelPerBlockScale = cascadeTexSize / shadowProjectionSizes[i];
+                vec2 pixelOffset = blockOffset * pixelPerBlockScale * shadowPixelSize;
 
                 float bias = GetCascadeBias(i);
-
-                vec2 pixelPerBlockScale = (cascadeTexSize / shadowProjectionSizes[i]) * shadowPixelSize;
-                
-                vec2 pixelOffset = blockOffset * pixelPerBlockScale;
                 texComp = min(texComp, CompareDepth(shadowPos[i], pixelOffset, bias));
             }
 
@@ -321,7 +319,7 @@
     			float texDepth = GetNearestDepth(shadowPos, vec2(0.0), cascade);
 
                 float bias = GetCascadeBias(cascade);
-    			return step(shadowPos[cascade].z - bias, texDepth);
+    			return step(shadowPos[cascade].z - bias, texDepth + EPSILON);
             #endif
 		}
 	#endif
