@@ -81,6 +81,7 @@ varying vec2 texcoord;
     uniform mat4 shadowModelView;
     uniform float viewWidth;
     uniform float viewHeight;
+    uniform float far;
 
     #if SHADOW_TYPE == 3
         #include "/lib/shadows/csm.glsl"
@@ -101,11 +102,11 @@ varying vec2 texcoord;
         if (clipDepth < 1.0) {
             vec2 normalTex = texelFetch(colortex1, itex, 0).rg;
 
-            //vec2 rsmNormal = texelFetch(colortex6, itexQ, 0).rg;
-            //float rsmDepth = texture2DLod(colortex6, texcoord, 0).b;
-            vec3 shit = texture2DLod(colortex6, texcoord, 0).rgb;
-            vec2 rsmNormal = shit.xy;
-            float rsmDepth = shit.z;
+            vec2 rsmNormal = texelFetch(colortex6, itexQ, 0).rg;
+            float rsmDepth = texture2DLod(colortex6, texcoord, 0).b;
+            //vec3 shit = texture2DLod(colortex6, texcoord, 0).rgb;
+            //vec2 rsmNormal = shit.xy;
+            //float rsmDepth = shit.z;
 
             vec3 viewNormal = RestoreNormalZ(normalTex);
             vec3 rsmViewNormal = RestoreNormalZ(rsmNormal);
@@ -113,8 +114,9 @@ varying vec2 texcoord;
             //final = vec3(abs(rsmNormalDepth.z - clipDepth));
             //float d = dot(rsmViewNormal, viewNormal);
             //final = vec3(d * d);
+            float depthThreshold = 0.3 / (far * 3.0);
 
-            if (abs(rsmDepth - clipDepth) < 0.001 && dot(rsmViewNormal, viewNormal) > 0.8) {
+            if (abs(rsmDepth - clipDepth) <= depthThreshold && dot(rsmViewNormal, viewNormal) > 0.2) {
                 final = texture2DLod(colortex5, texcoord, 0).rgb;
             }
             else {

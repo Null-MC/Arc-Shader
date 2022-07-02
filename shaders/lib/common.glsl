@@ -1,4 +1,4 @@
-const float sunPathRotation = -30; // [-60 -50 -40 -30 -20 -10 0 10 20 30 40 50 60]
+const float sunPathRotation = -30; // [-60 -50 -40 -30 -20 -15 -10 -5 0 5 10 15 20 30 40 50 60]
 const bool colortex4Clear = false;
 
 
@@ -12,9 +12,9 @@ const bool colortex4Clear = false;
 //#define ATMOSPHERE_ENABLED
 #define HCM_AMBIENT 0.16
 //#define RSM_ENABLED
-#define RSM_INTENSITY 9.0
-#define RSM_FILTER_SIZE 1.2
-#define RSM_SCALE 0.25
+#define RSM_INTENSITY 460.0
+#define RSM_FILTER_SIZE 2.6
+#define RSM_SCALE 0.5
 
 
 // Material Options

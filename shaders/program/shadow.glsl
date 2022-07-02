@@ -178,7 +178,7 @@ varying vec4 glcolor;
         uniform sampler2D normals;
     #endif
 
-    #ifdef SSS_ENABLED
+    #if defined SSS_ENABLED || defined RSM_ENABLED
         uniform sampler2D specular;
     #endif
 
@@ -199,6 +199,14 @@ varying vec4 glcolor;
 
         vec4 colorMap = texture2D(texture, texcoord) * glcolor;
         if (colorMap.a < alphaTestRef) discard;
+
+        #ifdef RSM_ENABLED
+            float specularMapR = texture2D(specular, texcoord).r;
+
+            colorMap.rgb = RGBToLinear(colorMap.rgb);
+            colorMap.rgb *= 0.25 + 0.75 * specularMapR*specularMapR;
+            colorMap.rgb = LinearToRGB(colorMap.rgb);
+        #endif
 
         vec3 viewNormal = vec3(0.0);
         #if defined RSM_ENABLED
