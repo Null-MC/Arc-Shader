@@ -24,12 +24,6 @@ int GetCascadeForScreenPos(const in vec2 pos) {
         return pos.x < 0.5 ? 2 : 3;
 }
 
-// tile: 0-3
-// vec3 GetShadowCascadeColor(const in int tile) {
-//  if (tile < 0) return vec3(1.0);
-//  return _shadowTileColors[tile];
-// }
-
 #ifdef RENDER_VERTEX
     // tile: 0-3
     float GetCascadeDistance(const in int tile) {
@@ -127,34 +121,14 @@ int GetCascadeForScreenPos(const in vec2 pos) {
     #endif
 
     mat4 GetShadowCascadeProjectionMatrix(const in int cascade) {
-        //float cascadeSize = GetCascadeDistance(cascade);
         float cascadePaddedSize = cascadeSizes[cascade] * 2.0 + 3.0;
 
         float zNear = -far;
         float zFar = far * 2.0;
 
-        // TESTING: reduce the depth-range for the nearest cascade only
-        //if (cascade == 0) zNear = 0.0;
-
         mat4 matShadowProjection = BuildOrthoProjectionMatrix(cascadePaddedSize, cascadePaddedSize, zNear, zFar);
 
         #ifdef SHADOW_CSM_TIGHTEN
-            // #ifdef RENDER_SHADOW
-            //     #ifdef IS_OPTIFINE
-            //         mat4 matSceneProjectionRanged = gbufferPreviousProjection;
-            //         mat4 matSceneModelView = gbufferPreviousModelView;
-            //     #else
-            //         mat4 matSceneProjectionRanged = gbufferProjection;
-            //         mat4 matSceneModelView = gbufferModelView;
-            //     #endif
-
-            //     mat4 matShadowModelView = gl_ModelViewMatrix;
-            // #else
-            //     mat4 matSceneModelView = gbufferModelView;
-            //     mat4 matSceneProjectionRanged = gbufferProjection;
-            //     mat4 matShadowModelView = shadowModelView;
-            // #endif
-
             #ifdef IS_OPTIFINE
                 mat4 matSceneProjectionRanged = gbufferPreviousProjection;
                 mat4 matSceneModelView = gbufferPreviousModelView;
@@ -274,8 +248,6 @@ int GetCascadeForScreenPos(const in vec2 pos) {
             #ifdef SHADOW_CSM_TIGHTEN
                 if (IsPosInCascadeProjection(blockPos, matShadowProjections[i])) return i;
             #else
-                //float size = GetCascadeDistance(i);
-
                 if (blockPos.x > -cascadeSizes[i] && blockPos.x < cascadeSizes[i]
                  && blockPos.y > -cascadeSizes[i] && blockPos.y < cascadeSizes[i]) return i;
             #endif

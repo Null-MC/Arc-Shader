@@ -16,11 +16,7 @@
 
 			vec2 shadowTilePos = GetShadowCascadeClipPos(i);
 			ivec2 iuv = ivec2((shadowTilePos + 0.5 * shadowPos.xy) * shadowMapSize);
-
-			//vec2 pixelPerBlockScale = (cascadeTexSize / shadowProjectionSizes[i]) * shadowPixelSize;
 			
-			//vec2 pixelOffset = blockOffset * pixelPerBlockScale;
-			//float texDepth = SampleDepth(uv, vec2(0.0));
             float texDepth = texelFetch(shadowtex1, iuv, 0).r;
 
             if (texDepth < depth) {
@@ -39,13 +35,7 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 localPos
 	// Sum contributions of sampling locations.
 	vec3 shading = vec3(0.0);
 
-	#if SHADOW_TYPE == 3
-		// mat4 matShadowProjectionsInv[4];
-		// matShadowProjectionsInv[0] = inverse(matShadowProjections[0]);
-		// matShadowProjectionsInv[1] = inverse(matShadowProjections[1]);
-		// matShadowProjectionsInv[2] = inverse(matShadowProjections[2]);
-		// matShadowProjectionsInv[3] = inverse(matShadowProjections[3]);
-	#else
+	#if SHADOW_TYPE != 3
 		mat4 matShadowClipToLocal = shadowModelViewInverse * shadowProjectionInverse;
 	#endif
 
@@ -86,9 +76,7 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 localPos
 
 	        vec3 shadowViewPos2 = offsetShadowViewPos;
 	        shadowViewPos2.z = -clipPos.z * far * 3.0 + far;
-	        //shadowViewPos2.z = linearizeDepth(clipPos.z, -far, far * 2.0);
 
-			//x_p = (shadowModelViewInverse * (matShadowProjectionsInv[cascade] * vec4(clipPos, 1.0))).xyz;
 			x_p = (shadowModelViewInverse * vec4(shadowViewPos2, 1.0)).xyz;
 		#endif
 
@@ -98,15 +86,10 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 localPos
 		vec3 r = localPos - x_p; // Difference vector.
 		float d2 = dot(r, r); // Square distance.
 
-		//return x_p * 0.025;
-		//return r * 0.025;
-
 		vec3 n_p = RestoreNormalZ(unpackUnorm2x16(data.g));
 		n_p = mat3(shadowModelViewInverse) * n_p;
-		//return n_p * 0.5 + 0.5;
 
         vec3 flux = unpackUnorm4x8(data.r).rgb;
-        //return flux;
         flux = RGBToLinear(flux);
 
         float t = max(dot(n_p, r), 0.0) * max(dot(localNormal, -r), 0.0);

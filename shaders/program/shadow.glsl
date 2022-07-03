@@ -198,7 +198,7 @@ varying vec4 glcolor;
         #endif
 
         vec4 colorMap = texture2D(texture, texcoord) * glcolor;
-        if (colorMap.a < 0.9) discard;
+        if (colorMap.a < 0.5) discard;
 
         #ifdef RSM_ENABLED
             float specularMapR = texture2D(specular, texcoord).r;

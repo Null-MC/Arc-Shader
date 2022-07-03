@@ -80,7 +80,6 @@ varying vec2 texcoord;
 
     #if SHADOW_TYPE == 3
         #include "/lib/shadows/csm.glsl"
-        //#include "/lib/depth.glsl"
     #elif SHADOW_TYPE == 2
         #include "/lib/shadows/basic.glsl"
     #endif

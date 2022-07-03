@@ -189,13 +189,24 @@
             reflectColor = texelFetch(colortex8, iTexReflect, 0);
         #endif
 
+        #if defined RSM_ENABLED && defined RENDER_DEFERRED
+            ivec2 iuv = ivec2(texcoord * vec2(viewWidth, viewHeight));
+            vec3 rsmColor = texelFetch(colortex7, iuv, 0).rgb;
+        #endif
+
         vec3 skyAmbient = GetSkyAmbientColor(viewNormal) * (0.1 + 0.9 * skyLight); //skyLightColor;
 
         vec3 blockAmbient = max(vec3(blockLight), skyAmbient * SHADOW_BRIGHTNESS);
 
         vec3 ambient = blockAmbient * material.occlusion;
 
-        vec3 diffuse = GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * skyLightColor * shadowFinal;
+        vec3 diffuseLight = skyLightColor * shadowFinal;
+
+        #if defined RSM_ENABLED && defined RENDER_DEFERRED
+            diffuseLight += 10.0 * rsmColor * material.scattering;
+        #endif
+
+        vec3 diffuse = GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * diffuseLight;
 
         vec3 specular = vec3(0.0);
 
@@ -221,14 +232,6 @@
         ambient += minLight;
 
         #if defined RSM_ENABLED && defined RENDER_DEFERRED
-            // TODO: linear sampling
-            //vec2 texSize = vec2(viewWidth, viewHeight) * RSM_SCALE;
-            //vec3 rsmColor = FetchLinearRGB(colortex5, texcoord * texSize - 1.0) * skyLightColor;
-
-            ivec2 iuv = ivec2(texcoord * vec2(viewWidth, viewHeight));
-            vec3 rsmColor = texelFetch(colortex7, iuv, 0).rgb;
-            //rsmColor = RGBToLinear(rsmColor);
-            //ambient = max(ambient, rsmColor * skyLightColor);
             ambient += rsmColor * skyLightColor;
         #endif
 

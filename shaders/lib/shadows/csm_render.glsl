@@ -167,30 +167,6 @@
 
             return max(texComp, 0.0);
         }
-
-        // #ifdef SSS_ENABLED
-        //     // returns: [0] when depth occluded, [1] otherwise
-        //     float CompareNearestDepth_SSS(const in vec3 shadowPos[4], const in vec2 blockOffset) {
-        //         float texComp = 1.0;
-        //         for (int i = 0; i < 4 && texComp > 0.0; i++) {
-        //             // Ignore if outside tile bounds
-        //             vec2 shadowTilePos = GetShadowCascadeClipPos(i);
-        //             if (shadowPos[i].x < shadowTilePos.x || shadowPos[i].x >= shadowTilePos.x + 0.5) continue;
-        //             if (shadowPos[i].y < shadowTilePos.y || shadowPos[i].y >= shadowTilePos.y + 0.5) continue;
-
-        //             float shadow_sss = SampleShadowSSS(shadowPos[i].xy);
-        //             float sss_bias = 1.2 * shadow_sss / (far * 3.0);
-        //             float bias = sss_bias + GetCascadeBias(i);
-
-        //             vec2 pixelPerBlockScale = (cascadeTexSize / shadowProjectionSizes[i]) * shadowPixelSize;
-                    
-        //             vec2 pixelOffset = blockOffset * pixelPerBlockScale;
-        //             texComp = min(texComp, CompareDepth(shadowPos[i], pixelOffset, bias));
-        //         }
-
-        //         return max(texComp, 0.0);
-        //     }
-        // #endif
     #endif
 
     #if SHADOW_FILTER != 0

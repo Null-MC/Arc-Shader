@@ -73,14 +73,15 @@ varying vec2 texcoord;
             // None
             color = texture2D(colortex4, texcoord).rgb;
 
-            //color = ApplyTonemap(color);
+            #if CAMERA_EXPOSURE == 0
+                float maxEyeBrightness = max(eyeBrightnessSmooth.x, eyeBrightnessSmooth.y) / 240.0;
+                float exposure = mix(3.0, 0.01, maxEyeBrightness);
+            #else
+                const float exposure = 0.1 * CAMERA_EXPOSURE;
+            #endif
 
-            //const float exposure = 2.0;
-            //color = vec3(1.0) - exp(-color * exposure);
-
-            float t = max(eyeBrightnessSmooth.x, eyeBrightnessSmooth.y) / 240.0;
-            color = tonemap_ReinhardExtendedLuminance(color, 0.3 + 3.7 * t);
-
+            color *= 0.5 * exp2(exposure);
+            color = ApplyTonemap(color);
             color = LinearToRGB(color);
         #endif
 

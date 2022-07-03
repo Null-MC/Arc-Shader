@@ -28,7 +28,10 @@ varying vec2 texcoord;
     uniform float eyeAltitude;
     uniform vec3 sunPosition;
 
-    #include "/lib/world/atmosphere.glsl"
+    #ifdef ATMOSPHERE_ENABLED
+        #include "/lib/world/atmosphere.glsl"
+    #endif
+
     #include "/lib/world/fog.glsl"
 
 
@@ -41,43 +44,50 @@ varying vec2 texcoord;
         viewPos.xyz /= viewPos.w;
 
         vec3 color;
+        #ifndef ATMOSPHERE_ENABLED
+            color = texelFetch(colortex4, itex, 0).rgb;
+            //color = RGBToLinear(color);
+        #endif
+
         if (depth == 1.0) {
-            vec3 localSunPos = mat3(gbufferModelViewInverse) * sunPosition;
-            vec3 localSunDir = normalize(localSunPos);
+            #ifdef ATMOSPHERE_ENABLED
+                vec3 localSunPos = mat3(gbufferModelViewInverse) * sunPosition;
+                vec3 localSunDir = normalize(localSunPos);
 
-            vec3 localViewPos = mat3(gbufferModelViewInverse) * viewPos.xyz;
+                vec3 localViewPos = mat3(gbufferModelViewInverse) * viewPos.xyz;
 
-            ScatteringParams setting;
-            setting.sunRadius = 3000.0;
-            setting.sunRadiance = 40.0;
-            setting.mieG = 0.96;
-            setting.mieHeight = 1200.0;
-            setting.rayleighHeight = 8000.0;
-            setting.earthRadius = 6360000.0;
-            setting.earthAtmTopRadius = 6420000.0;
-            setting.earthCenter = vec3(0.0, -6360000.0, 0.0);
-            setting.waveLambdaMie = vec3(2e-7);
+                ScatteringParams setting;
+                setting.sunRadius = 3000.0;
+                setting.sunRadiance = 40.0;
+                setting.mieG = 0.96;
+                setting.mieHeight = 1200.0;
+                setting.rayleighHeight = 8000.0;
+                setting.earthRadius = 6360000.0;
+                setting.earthAtmTopRadius = 6420000.0;
+                setting.earthCenter = vec3(0.0, -6360000.0, 0.0);
+                setting.waveLambdaMie = vec3(2e-7);
 
-            vec3 localViewDir = normalize(localViewPos);
-            
-            // wavelength with 680nm, 550nm, 450nm
-            setting.waveLambdaRayleigh = ComputeWaveLambdaRayleigh(vec3(680e-9, 550e-9, 450e-9));
-            
-            // see https://www.shadertoy.com/view/MllBR2
-            setting.waveLambdaOzone = vec3(1.36820899679147, 3.31405330400124, 0.13601728252538) * 0.6e-6 * 2.504;
+                vec3 localViewDir = normalize(localViewPos);
+                
+                // wavelength with 680nm, 550nm, 450nm
+                setting.waveLambdaRayleigh = ComputeWaveLambdaRayleigh(vec3(680e-9, 550e-9, 450e-9));
+                
+                // see https://www.shadertoy.com/view/MllBR2
+                setting.waveLambdaOzone = vec3(1.36820899679147, 3.31405330400124, 0.13601728252538) * 0.6e-6 * 2.504;
 
-            vec3 eye = vec3(0.0, 200.0 * eyeAltitude, 0.0);
+                vec3 eye = vec3(0.0, 200.0 * eyeAltitude, 0.0);
 
-            color = ComputeSkyInscattering(setting, eye, localViewDir, localSunDir).rgb;
+                color = ComputeSkyInscattering(setting, eye, localViewDir, localSunDir).rgb;
+            #else
+                color = RGBToLinear(color);
+            #endif
         }
         else {
-            color = texelFetch(colortex4, itex, 0).rgb;
+            #ifdef ATMOSPHERE_ENABLED
+                color = texelFetch(colortex4, itex, 0).rgb;
+            #endif
 
             float skyLightLevel = texelFetch(colortex3, itex, 0).g;
-            //float skyFogFactor = GetFogFactor(viewPos.xyz, skyLightLevel);
-
-            //vec3 skyFogColor = vec3(1.0, 0.0, 0.0);
-            //color = mix(color, skyFogColor, skyFogFactor);
             ApplyFog(color, viewPos.xyz, skyLightLevel);
         }
 

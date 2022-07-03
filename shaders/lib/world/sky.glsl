@@ -1,4 +1,4 @@
-const vec3 sunColor = 2.8 * vec3(1.0, 0.9, 0.8);
+const vec3 sunColor = 1.0 * vec3(1.0, 0.9, 0.8);
 const vec3 moonColor = 0.1 * vec3(0.5, 0.6, 1.0);
 
 
