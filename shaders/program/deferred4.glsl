@@ -34,7 +34,7 @@ varying vec2 texcoord;
     uniform sampler2D depthtex0;
 
     #ifdef SSR_ENABLED
-        uniform sampler2D gaux1;
+        uniform sampler2D colortex8;
     #endif
 
     #ifdef RSM_ENABLED
@@ -52,19 +52,18 @@ varying vec2 texcoord;
     uniform vec3 upPosition;
     uniform vec3 skyColor;
 
-    uniform int fogMode;
-    uniform float fogStart;
-    uniform float fogEnd;
-    uniform int fogShape;
-    uniform vec3 fogColor;
+    // uniform int fogMode;
+    // uniform float fogStart;
+    // uniform float fogEnd;
+    // uniform int fogShape;
+    // uniform vec3 fogColor;
 
     #ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;
     #endif
 
     #include "/lib/sampling/linear.glsl"
-    #include "/lib/tonemap.glsl"
-    #include "/lib/world/fog.glsl"
+    //#include "/lib/world/fog.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/lighting/material.glsl"
     #include "/lib/lighting/material_reader.glsl"
@@ -77,7 +76,7 @@ varying vec2 texcoord;
 	void main() {
         vec3 final = PbrLighting();
 
-	/* DRAWBUFFERS:0 */
-		gl_FragData[0] = vec4(final, 1.0); //gcolor
+	/* DRAWBUFFERS:4 */
+		gl_FragData[0] = vec4(final, 1.0);
 	}
 #endif

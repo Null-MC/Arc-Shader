@@ -12,7 +12,10 @@ varying vec2 texcoord;
 #endif
 
 #ifdef RENDER_FRAG
-    uniform sampler2D colortex0;
+    uniform sampler2D colortex4;
+
+    uniform ivec2 eyeBrightnessSmooth;
+    uniform float screenBrightness;
 
     #if DEBUG_SHADOW_BUFFER == DEBUG_VIEW_SHADOW_ALBEDO
         // Shadow Albedo
@@ -36,6 +39,8 @@ varying vec2 texcoord;
         // RSM Full-Res
         uniform sampler2D colortex7;
     #endif
+
+    #include "/lib/tonemap.glsl"
 
 
     void main() {
@@ -66,10 +71,20 @@ varying vec2 texcoord;
             color = texture2D(colortex7, texcoord).rgb;
         #else
             // None
-            color = texture2D(colortex0, texcoord).rgb;
+            color = texture2D(colortex4, texcoord).rgb;
+
+            //color = ApplyTonemap(color);
+
+            //const float exposure = 2.0;
+            //color = vec3(1.0) - exp(-color * exposure);
+
+            float t = max(eyeBrightnessSmooth.x, eyeBrightnessSmooth.y) / 240.0;
+            color = tonemap_ReinhardExtendedLuminance(color, 0.3 + 3.7 * t);
+
+            color = LinearToRGB(color);
         #endif
 
-    /* DRAWBUFFERS:4 */
-        gl_FragData[0] = vec4(color, 1.0); //colortex4
+    /* DRAWBUFFERS:8 */
+        gl_FragData[0] = vec4(color, 1.0);
     }
 #endif

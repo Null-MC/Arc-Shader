@@ -32,16 +32,8 @@
         vec4 viewPos = (gbufferProjectionInverse * vec4(clipPos, 1.0));
         viewPos.xyz /= viewPos.w;
 
-        // float blockLight = (lightingMap.x - (0.5/16.0)) / (15.0/16.0);
-        // float skyLight = (lightingMap.y - (0.5/16.0)) / (15.0/16.0);
-        // float shadow = lightingMap.b;
-        // float shadowSSS = lightingMap.a;
-        //vec3 lightColor = skyLightColor;
-
         PbrMaterial material = PopulateMaterial(colorMap, normalMap, specularMap);
 
-        vec3 final = PbrLighting2(material, lightingMap.xy, lightingMap.b, lightingMap.a, viewPos.xyz).rgb;
-
-        return ApplyTonemap(final);
+        return PbrLighting2(material, lightingMap.xy, lightingMap.b, lightingMap.a, viewPos.xyz).rgb;
     }
 #endif

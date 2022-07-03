@@ -2,7 +2,9 @@ colortex0	colorMap
 colortex1	normalMap
 colortex2	specularMap
 colortex3	lightingMap
-colortex4	previous final frame data
+colortex4	HDR scene
 colortex5	RSM low-res
 colortex6	RSM normal/depth
 colortex7	RSM full-res
+
+colortex8	previous final frame data

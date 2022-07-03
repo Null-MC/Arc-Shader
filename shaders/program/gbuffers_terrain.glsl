@@ -70,6 +70,7 @@ varying vec3 tanViewPos;
 
 		#if SHADOW_TYPE == 3
             #ifdef IS_OPTIFINE
+                uniform mat4 gbufferPreviousProjection;
                 uniform mat4 gbufferPreviousModelView;
             #endif
 

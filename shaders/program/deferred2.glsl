@@ -13,6 +13,7 @@ varying vec2 texcoord;
 
 #ifdef RENDER_VERTEX
     #if SHADOW_TYPE == 3
+        uniform mat4 shadowModelView;
         uniform float near;
         uniform float far;
 
@@ -72,17 +73,20 @@ varying vec2 texcoord;
         uniform sampler2D shadowcolor1;
     #endif
 
-    uniform mat4 shadowProjectionInverse;
-    uniform mat4 shadowModelViewInverse;
     uniform mat4 gbufferProjectionInverse;
     uniform mat4 gbufferModelViewInverse;
+    uniform mat4 shadowProjectionInverse;
+    uniform mat4 shadowModelViewInverse;
     uniform mat4 shadowProjection;
     uniform mat4 shadowModelView;
     uniform float viewWidth;
     uniform float viewHeight;
 
     #if SHADOW_TYPE == 3
+        uniform float far;
+
         #include "/lib/shadows/csm.glsl"
+        //#include "/lib/depth.glsl"
     #elif SHADOW_TYPE == 2
         #include "/lib/shadows/basic.glsl"
     #endif
@@ -121,9 +125,7 @@ varying vec2 texcoord;
             }
         }
 
-        //color = LinearToRGB(color);
-
-		outColor = vec4(color, 1.0); //colortex5
-        outNormalDepth = vec3(normal, clipDepth); //colortex6
+		outColor = vec4(color, 1.0);
+        outNormalDepth = vec3(normal, clipDepth);
 	}
 #endif

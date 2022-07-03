@@ -46,6 +46,7 @@ varying float geoNoL;
 			attribute vec3 at_midBlock;
 
             #ifdef IS_OPTIFINE
+                uniform mat4 gbufferPreviousProjection;
                 uniform mat4 gbufferPreviousModelView;
             #endif
 

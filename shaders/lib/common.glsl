@@ -1,5 +1,9 @@
 const float sunPathRotation = -30; // [-60 -50 -40 -30 -20 -15 -10 -5 0 5 10 15 20 30 40 50 60]
-const bool colortex4Clear = false;
+const bool colortex8Clear = false;
+
+/*
+const int colortex4Format = RGB16F;
+*/
 
 
 // World Options
@@ -12,8 +16,8 @@ const bool colortex4Clear = false;
 //#define ATMOSPHERE_ENABLED
 #define HCM_AMBIENT 0.16
 //#define RSM_ENABLED
-#define RSM_INTENSITY 460.0
-#define RSM_FILTER_SIZE 2.6
+#define RSM_INTENSITY 100.0
+#define RSM_FILTER_SIZE 2.4
 #define RSM_SCALE 0.5
 
 

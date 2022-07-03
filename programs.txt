@@ -1,3 +1,12 @@
 deferred2	RSM low-res
 deferred3	RSM full-res
 deferred4	Opaque PBR
+deferred5	Fog + Sky
+
+composite1	Bloom 1/2
+composite2	Bloom Blur H
+composite3	Bloom Blur V
+composite4	sky, fog, +bloom
+composite5	HDR>LDR; Debug view
+
+final		nothing?

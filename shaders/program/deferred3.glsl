@@ -8,11 +8,11 @@ varying vec2 texcoord;
 #if SHADOW_TYPE == 3
     flat varying float cascadeSizes[4];
     flat varying mat4 matShadowProjections[4];
-    //flat varying mat4 matShadowProjectionsInv[4];
 #endif
 
 #ifdef RENDER_VERTEX
     #if SHADOW_TYPE == 3
+        uniform mat4 shadowModelView;
         uniform float near;
         uniform float far;
 
@@ -49,11 +49,6 @@ varying vec2 texcoord;
             matShadowProjections[1] = GetShadowCascadeProjectionMatrix(1);
             matShadowProjections[2] = GetShadowCascadeProjectionMatrix(2);
             matShadowProjections[3] = GetShadowCascadeProjectionMatrix(3);
-
-            // matShadowProjectionsInv[0] = inverse(matShadowProjections[0]);
-            // matShadowProjectionsInv[1] = inverse(matShadowProjections[1]);
-            // matShadowProjectionsInv[2] = inverse(matShadowProjections[2]);
-            // matShadowProjectionsInv[3] = inverse(matShadowProjections[3]);
         #endif
 	}
 #endif
@@ -85,6 +80,7 @@ varying vec2 texcoord;
 
     #if SHADOW_TYPE == 3
         #include "/lib/shadows/csm.glsl"
+        //#include "/lib/depth.glsl"
     #elif SHADOW_TYPE == 2
         #include "/lib/shadows/basic.glsl"
     #endif
@@ -104,16 +100,10 @@ varying vec2 texcoord;
 
             vec2 rsmNormal = texelFetch(colortex6, itexQ, 0).rg;
             float rsmDepth = texture2DLod(colortex6, texcoord, 0).b;
-            //vec3 shit = texture2DLod(colortex6, texcoord, 0).rgb;
-            //vec2 rsmNormal = shit.xy;
-            //float rsmDepth = shit.z;
 
             vec3 viewNormal = RestoreNormalZ(normalTex);
             vec3 rsmViewNormal = RestoreNormalZ(rsmNormal);
 
-            //final = vec3(abs(rsmNormalDepth.z - clipDepth));
-            //float d = dot(rsmViewNormal, viewNormal);
-            //final = vec3(d * d);
             float depthThreshold = 0.3 / (far * 3.0);
 
             if (abs(rsmDepth - clipDepth) <= depthThreshold && dot(rsmViewNormal, viewNormal) > 0.2) {
@@ -128,13 +118,11 @@ varying vec2 texcoord;
                     vec4 localPos = gbufferModelViewInverse * (gbufferProjectionInverse * vec4(clipPos, 1.0));
                     localPos.xyz /= localPos.w;
 
-                    //vec2 normalTex = texture2DLod(colortex1, texcoord, 0).rg;
                     vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
 
                     vec3 shadowViewPos = (shadowModelView * vec4(localPos.xyz, 1.0)).xyz;
 
                     final = GetIndirectLighting_RSM(shadowViewPos, localPos.xyz, localNormal);
-                    //final = LinearToRGB(final);
                     //final = vec3(1.0, 0.0, 0.0);
                 }
             }
@@ -142,6 +130,6 @@ varying vec2 texcoord;
 
 
 	/* DRAWBUFFERS:7 */
-		gl_FragData[0] = vec4(final, 1.0); //colortex7
+		gl_FragData[0] = vec4(final, 1.0);
 	}
 #endif

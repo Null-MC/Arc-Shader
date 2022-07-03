@@ -3,6 +3,6 @@
 #define RENDER_FRAG
 #define WORLD_OVERWORLD
 
-#include "lib/common.glsl"
 #include "overworld.glsl"
-#include "program/composite.glsl"
+#include "lib/common.glsl"
+#include "program/deferred5.glsl"

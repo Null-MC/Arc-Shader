@@ -185,12 +185,8 @@
             vec3 reflectDir = reflect(viewDir, viewNormal);
             vec2 reflectCoord = GetReflectCoord(reflectDir);
 
-            #ifdef ALLOW_TEXELFETCH
-                ivec2 iTexReflect = ivec2(reflectCoord * vec2(viewWidth, viewHeight));
-                reflectColor = texelFetch(gaux1, iTexReflect, 0);
-            #else
-                reflectColor = texture2DLod(gaux1, reflectCoord, 0);
-            #endif
+            ivec2 iTexReflect = ivec2(reflectCoord * vec2(viewWidth, viewHeight));
+            reflectColor = texelFetch(colortex8, iTexReflect, 0);
         #endif
 
         vec3 skyAmbient = GetSkyAmbientColor(viewNormal) * (0.1 + 0.9 * skyLight); //skyLightColor;
@@ -222,17 +218,19 @@
             diffuse *= HCM_AMBIENT;
         }
 
+        ambient += minLight;
+
         #if defined RSM_ENABLED && defined RENDER_DEFERRED
             // TODO: linear sampling
             //vec2 texSize = vec2(viewWidth, viewHeight) * RSM_SCALE;
             //vec3 rsmColor = FetchLinearRGB(colortex5, texcoord * texSize - 1.0) * skyLightColor;
 
-            vec3 rsmColor = texture2DLod(colortex7, texcoord, 0).rgb;
+            ivec2 iuv = ivec2(texcoord * vec2(viewWidth, viewHeight));
+            vec3 rsmColor = texelFetch(colortex7, iuv, 0).rgb;
             //rsmColor = RGBToLinear(rsmColor);
-            ambient += rsmColor;
+            //ambient = max(ambient, rsmColor * skyLightColor);
+            ambient += rsmColor * skyLightColor;
         #endif
-
-        ambient += minLight;
 
         float emissive = material.emission * 16.0;
 
@@ -250,19 +248,23 @@
             final.rgb += 1.25 * material.albedo.rgb * invPI * sss;
         #endif
 
+        #ifdef SHADOW_ENABLED
+            if (final.a < 1.0 - EPSILON) {
+                //float F = SchlickRoughness(0.04, VoHm, roughL);
+                float F = F_schlick(NoVm, material.f0, 1.0);
+                final.a = mix(final.a, 1.0, F);
+            }
+        #endif
+
         final.a += luminance(specular);
 
-        //#ifdef IS_OPTIFINE
-            // Iris doesn't currently support fog in deferred
-            //ApplyFog(final, viewPos.xyz, skyLight);
-            #if defined RENDER_DEFERRED
-                ApplyFog(final.rgb, viewPos.xyz, skyLight);
-            #elif defined RENDER_WATER
+        #ifndef RENDER_DEFERRED
+            #if defined RENDER_WATER
                 ApplyFog(final, viewPos.xyz, skyLight, EPSILON);
             #else
                 ApplyFog(final, viewPos.xyz, skyLight, alphaTestRef);
             #endif
-        //#endif
+        #endif
 
         //return mix(final, reflectColor, 0.5);
         return final;

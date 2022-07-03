@@ -68,7 +68,11 @@ flat varying int materialId;
 
 		#if SHADOW_TYPE == 3
             #ifdef IS_OPTIFINE
+                uniform mat4 gbufferPreviousProjection;
                 uniform mat4 gbufferPreviousModelView;
+            //#else
+                //uniform mat4 gbufferProjection;
+                //uniform mat4 gbufferModelView;
             #endif
 
 			uniform mat4 gbufferProjection;
@@ -185,16 +189,10 @@ flat varying int materialId;
     #include "/lib/lighting/hcm.glsl"
     #include "/lib/lighting/pbr.glsl"
     #include "/lib/lighting/pbr_forward.glsl"
-    #include "/lib/tonemap.glsl"
 
 
 	void main() {
-        vec4 final = PbrLighting();
-
-        //final = LinearToRGB(final);
-        final.rgb = ApplyTonemap(final.rgb);
-
-    /* DRAWBUFFERS:0 */
-        gl_FragData[0] = final; //gcolor
+    /* DRAWBUFFERS:4 */
+        gl_FragData[0] = PbrLighting();
 	}
 #endif

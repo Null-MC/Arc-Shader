@@ -170,9 +170,9 @@ varying vec4 glcolor;
 
     uniform mat4 shadowModelViewInverse;
 
-    #if MC_VERSION >= 11700 && defined IS_OPTIFINE
-        uniform float alphaTestRef;
-    #endif
+    //#if MC_VERSION >= 11700 && defined IS_OPTIFINE
+    //    uniform float alphaTestRef;
+    //#endif
 
     #ifdef RSM_ENABLED
         uniform sampler2D normals;
@@ -198,7 +198,7 @@ varying vec4 glcolor;
         #endif
 
         vec4 colorMap = texture2D(texture, texcoord) * glcolor;
-        if (colorMap.a < alphaTestRef) discard;
+        if (colorMap.a < 0.9) discard;
 
         #ifdef RSM_ENABLED
             float specularMapR = texture2D(specular, texcoord).r;
