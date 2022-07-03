@@ -151,7 +151,7 @@ varying float geoNoL;
         //final = LinearToRGB(final);
         final.rgb = ApplyTonemap(final.rgb);
 
-    /* DRAWBUFFERS:0 */
-        gl_FragData[0] = final; //gcolor
+    /* DRAWBUFFERS:4 */
+        gl_FragData[0] = final;
 	}
 #endif

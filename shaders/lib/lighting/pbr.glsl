@@ -222,6 +222,10 @@
                 ApplyHandLighting(diffuse, specular, material, viewNormal, viewPos.xyz, viewDir, NoVm, roughL);
         #endif
 
+        #if defined RSM_ENABLED && defined RENDER_DEFERRED
+            ambient += rsmColor * skyLightColor;
+        #endif
+
         if (material.hcm >= 0) {
             if (material.hcm < 8) specular *= material.albedo.rgb;
 
@@ -230,10 +234,6 @@
         }
 
         ambient += minLight;
-
-        #if defined RSM_ENABLED && defined RENDER_DEFERRED
-            ambient += rsmColor * skyLightColor;
-        #endif
 
         float emissive = material.emission * 16.0;
 

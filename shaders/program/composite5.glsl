@@ -4,10 +4,25 @@
 
 varying vec2 texcoord;
 
+#if CAMERA_EXPOSURE == 0
+    flat varying vec2 skyLightIntensity;
+#endif
+
 #ifdef RENDER_VERTEX
+    uniform vec3 sunPosition;
+    uniform vec3 moonPosition;
+    uniform vec3 upPosition;
+    
+    #include "/lib/world/sky.glsl"
+
+
     void main() {
         gl_Position = ftransform();
         texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+
+        #if CAMERA_EXPOSURE == 0
+            skyLightIntensity = GetSkyLightIntensity();
+        #endif
     }
 #endif
 
@@ -75,7 +90,8 @@ varying vec2 texcoord;
 
             #if CAMERA_EXPOSURE == 0
                 float maxEyeBrightness = max(eyeBrightnessSmooth.x, eyeBrightnessSmooth.y) / 240.0;
-                float exposure = mix(3.0, 0.01, maxEyeBrightness);
+                float brightness = (skyLightIntensity.x + skyLightIntensity.y) * maxEyeBrightness;                
+                float exposure = mix(2.0, 1.0, brightness);
             #else
                 const float exposure = 0.1 * CAMERA_EXPOSURE;
             #endif

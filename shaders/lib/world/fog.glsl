@@ -19,7 +19,7 @@ void ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightLe
     float fogF = GetFogFactor(viewPos, skyLightLevel);
 
     float caveFogLevel = GetCaveFogFactor(skyLightLevel);
-    _color = mix(_color, vec3(0.1), caveFogLevel);
+    _color = mix(_color, vec3(0.02), caveFogLevel);
 
     color = mix(color, _color, fogF);
 }

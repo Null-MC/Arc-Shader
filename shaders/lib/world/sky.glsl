@@ -1,19 +1,27 @@
-const vec3 sunColor = 1.0 * vec3(1.0, 0.9, 0.8);
-const vec3 moonColor = 0.1 * vec3(0.5, 0.6, 1.0);
+const float sunIntensity = 1.0;
+const float moonIntensity = 0.1;
+const vec3 sunColor = vec3(1.0, 0.9, 0.8);
+const vec3 moonColor = vec3(0.5, 0.6, 1.0);
 
 
-vec3 GetSkyLightColor() {
+vec2 GetSkyLightIntensity() {
 	vec3 upDir = normalize(upPosition);
 
     vec3 sunLightDir = normalize(sunPosition);
     float sunLightStrength = max(dot(upDir, sunLightDir), 0.0);
-    vec3 sunLight = sunColor * sunLightStrength;
 
     vec3 moonLightDir = normalize(moonPosition);
     float moonLightStrength = max(dot(upDir, moonLightDir), 0.0);
-    vec3 moonLight = moonColor * moonLightStrength;
 
-    return sunLight + moonLight;
+    return vec2(sunLightStrength * sunIntensity, moonLightStrength * moonIntensity);
+}
+
+vec3 GetSkyLightColor(const in vec2 skyLightIntensity) {
+    return sunColor * skyLightIntensity.x + moonColor * skyLightIntensity.y;
+}
+
+vec3 GetSkyLightColor() {
+	return GetSkyLightColor(GetSkyLightIntensity());
 }
 
 #ifdef RENDER_FRAG
