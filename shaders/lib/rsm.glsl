@@ -39,8 +39,8 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 localPos
 		mat4 matShadowClipToLocal = shadowModelViewInverse * shadowProjectionInverse;
 	#endif
 
-	for (int i = 0; i < POISSON_SAMPLES; i++) {
-		vec3 offsetShadowViewPos = shadowViewPos + vec3(poissonDisk[i] * RSM_FILTER_SIZE, 0.0);
+	for (int i = 0; i < RSM_SAMPLE_COUNT; i++) {
+		vec3 offsetShadowViewPos = shadowViewPos + vec3(rsmPoissonDisk[i] * RSM_FILTER_SIZE, 0.0);
 
 		vec2 uv;
 		ivec2 iuv;
@@ -97,8 +97,8 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 localPos
 		vec3 E_p = flux * t;
 
 		// Weighting contribution and normalizing.
-		//float weight = poissonDisk[i].x * poissonDisk[i].x;
-		float weight = dot(poissonDisk[i], poissonDisk[i]);
+		//float weight = rsmPoissonDisk[i].x * rsmPoissonDisk[i].x;
+		float weight = dot(rsmPoissonDisk[i], rsmPoissonDisk[i]);
 		E_p *= weight / (d2 * d2);
 
 		// Accumulate
@@ -106,5 +106,5 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 localPos
 	}
 
 	// Modulate result with some intensity value.
-	return shading * (1.0 / POISSON_SAMPLES) * RSM_INTENSITY * RSM_FILTER_SIZE;
+	return shading * (1.0 / RSM_SAMPLE_COUNT) * RSM_INTENSITY * RSM_FILTER_SIZE;
 }

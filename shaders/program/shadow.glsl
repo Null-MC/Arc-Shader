@@ -11,18 +11,6 @@ shadowtex0Nearest = false;
 shadowtex1Nearest = false;
 */
 
-#ifdef RSM_ENABLED
-    /*
-    const int colortex5Format = RGB16F;
-    */
-#endif
-
-#ifdef RSM_UPSCALE
-    /*
-    const int colortex6Format = R16F;
-    */
-#endif
-
 const float shadowDistanceRenderMul = 1.0;
 
 

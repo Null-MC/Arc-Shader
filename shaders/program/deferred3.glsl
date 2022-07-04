@@ -76,6 +76,7 @@ varying vec2 texcoord;
     uniform mat4 shadowModelView;
     uniform float viewWidth;
     uniform float viewHeight;
+    uniform float near;
     uniform float far;
 
     #if SHADOW_TYPE == 3
@@ -84,7 +85,15 @@ varying vec2 texcoord;
         #include "/lib/shadows/basic.glsl"
     #endif
 
-    #include "/lib/sampling/rsm_151.glsl"
+    #if RSM_SAMPLE_COUNT == 400
+        #include "/lib/sampling/rsm_400.glsl"
+    #elif RSM_SAMPLE_COUNT == 200
+        #include "/lib/sampling/rsm_200.glsl"
+    #else
+        #include "/lib/sampling/rsm_100.glsl"
+    #endif
+
+    #include "/lib/depth.glsl"
     #include "/lib/rsm.glsl"
 
 
@@ -99,14 +108,27 @@ varying vec2 texcoord;
             vec2 normalTex = texelFetch(colortex1, itexFull, 0).rg;
 
             vec2 texLow = texcoord * rsm_scale;
-            float rsmDepth = texture2DLod(colortex6, texLow, 0).r;
+            //ivec2 itexLow = ivec2(texLow * vec2(viewWidth, viewHeight));
+            vec4 rsmDepths = textureGather(colortex6, texLow, 0);
+            float rsmDepthMin = min(min(rsmDepths.x, rsmDepths.y), min(rsmDepths.z, rsmDepths.w));
+            float rsmDepthMax = max(max(rsmDepths.x, rsmDepths.y), max(rsmDepths.z, rsmDepths.w));
 
-            vec3 viewNormal = RestoreNormalZ(normalTex);
+            float rsmDepthMinLinear = linearizeDepth(rsmDepthMin * 2.0 - 1.0, near, far);
+            float rsmDepthMaxLinear = linearizeDepth(rsmDepthMax * 2.0 - 1.0, near, far);
+
+            vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
+            vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
             //vec3 rsmViewNormal = RestoreNormalZ(rsmNormalDepth.xy);
 
-            float depthThreshold = 0.6 / (far * 3.0);
+            vec3 viewNormal = RestoreNormalZ(normalTex);
 
-            bool depthTest = abs(rsmDepth - clipDepth) <= depthThreshold;
+            //float dist = clamp((-viewPos.z - near) / (far - near), 0.0, 1.0);
+            //float depthThreshold = mix(0.1, 0.001, dist) / (far - near);
+            float clipDepthLinear = linearizeDepth(clipDepth * 2.0 - 1.0, near, far);
+            float depthThreshold = 0.1 + 0.0125 * clipDepthLinear*clipDepthLinear;
+
+            bool depthTest = abs(rsmDepthMinLinear - clipDepthLinear) <= depthThreshold
+                          && abs(rsmDepthMaxLinear - clipDepthLinear) <= depthThreshold;
             //bool normalTest = dot(rsmViewNormal, viewNormal) > 0.2;
 
             if (depthTest) {
@@ -116,9 +138,7 @@ varying vec2 texcoord;
                 float skyLight = texelFetch(colortex3, itexFull, 0).g;
 
                 if (skyLight >= 1.0 / 16.0) {
-                    vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
-
-                    vec4 localPos = gbufferModelViewInverse * (gbufferProjectionInverse * vec4(clipPos, 1.0));
+                    vec4 localPos = gbufferModelViewInverse * viewPos;
                     localPos.xyz /= localPos.w;
 
                     vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
@@ -126,11 +146,15 @@ varying vec2 texcoord;
                     vec3 shadowViewPos = (shadowModelView * vec4(localPos.xyz, 1.0)).xyz;
 
                     final = GetIndirectLighting_RSM(shadowViewPos, localPos.xyz, localNormal);
-                    //final = mix(final, vec3(1.0, 0.0, 0.0), 0.5);
+
+                    #if DEBUG_SHADOW_BUFFER == DEBUG_VIEW_RSM
+                        final = mix(final, vec3(1.0, 0.0, 0.0), 0.25);
+                    #endif
                 }
             }
 
-            //final = viewNormal;
+            //final = texture2DLod(colortex5, texLow, 0).rgb;
+            //final = vec3(rsmDepth);
         }
 
 

@@ -90,16 +90,20 @@ varying vec2 texcoord;
         #include "/lib/shadows/basic.glsl"
     #endif
 
-    #include "/lib/sampling/rsm_151.glsl"
+    #if RSM_SAMPLE_COUNT == 400
+        #include "/lib/sampling/rsm_400.glsl"
+    #elif RSM_SAMPLE_COUNT == 200
+        #include "/lib/sampling/rsm_200.glsl"
+    #else
+        #include "/lib/sampling/rsm_100.glsl"
+    #endif
+
     #include "/lib/rsm.glsl"
 
+    /* RENDERTARGETS: 5,6 */
+    layout(location = 0) out vec3 outColor;
     #ifdef RSM_UPSCALE
-        /* RENDERTARGETS: 5,6 */
-        layout(location = 0) out vec3 outColor;
         layout(location = 1) out float outDepth;
-    #else
-        /* RENDERTARGETS: 5 */
-        layout(location = 0) out vec3 outColor;
     #endif
 
 

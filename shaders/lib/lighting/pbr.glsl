@@ -192,13 +192,13 @@
         #if defined RSM_ENABLED && defined RENDER_DEFERRED
             vec2 viewSize = vec2(viewWidth, viewHeight);
 
-            #if !defined RSM_UPSCALE && RSM_SCALE != 0
+            #if RSM_SCALE == 0 || defined RSM_UPSCALE
+                ivec2 iuv = ivec2(texcoord * viewSize);
+                vec3 rsmColor = texelFetch(colortex5, iuv, 0).rgb;
+            #else
                 const float rsm_scale = 1.0 / exp2(RSM_SCALE);
-                viewSize *= rsm_scale;
+                vec3 rsmColor = texture2DLod(colortex5, texcoord * rsm_scale, 0).rgb;
             #endif
-
-            ivec2 iuv = ivec2(texcoord * viewSize);
-            vec3 rsmColor = texelFetch(colortex5, iuv, 0).rgb;
         #endif
 
         vec3 skyAmbient = GetSkyAmbientColor(viewNormal) * (0.1 + 0.9 * skyLight); //skyLightColor;

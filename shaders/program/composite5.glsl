@@ -81,13 +81,13 @@ varying vec2 texcoord;
             // RSM
             vec2 viewSize = vec2(viewWidth, viewHeight);
 
-            #ifndef RSM_UPSCALE
+            #if RSM_SCALE == 0 || defined RSM_UPSCALE
+                ivec2 iuv = ivec2(texcoord * viewSize);
+                color = texelFetch(colortex5, iuv, 0).rgb;
+            #else
                 const float rsm_scale = 1.0 / exp2(RSM_SCALE);
-                viewSize *= rsm_scale;
+                color = texture2DLod(colortex5, texcoord * rsm_scale, 0).rgb;
             #endif
-
-            ivec2 iuv = ivec2(texcoord * viewSize);
-            color = texelFetch(colortex5, iuv, 0).rgb;
         #else
             // None
             color = texture2D(colortex4, texcoord).rgb;

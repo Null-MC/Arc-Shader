@@ -187,7 +187,8 @@ value.RSM_SCALE.0=Full
 value.RSM_SCALE.1=Half
 value.RSM_SCALE.2=Quarter
 
-option.RSM_FILTER_SIZE=Filter Size
+option.RSM_FILTER_SIZE=Radius
+option.RSM_FILTER_SIZE.comment=The radius of the blur filter, in blocks/meters.
 
 option.RSM_INTENSITY=Intensity
 
