@@ -187,6 +187,14 @@ value.RSM_SCALE.0=Full
 value.RSM_SCALE.1=Half
 value.RSM_SCALE.2=Quarter
 
+option.RSM_FILTER_SIZE=Filter Size
+
+option.RSM_INTENSITY=Intensity
+
+option.RSM_UPSCALE=Upscale
+option.RSM_UPSCALE.comment=When downscaled RSM is enabled with this option, the edges of objects will be processed in full-resolution when upscaling to prevent blurred edges.
+
+
 screen.DEBUG_OPTIONS=Debug
 
 option.DEBUG_SHADOW_BUFFER=Display
@@ -197,8 +205,7 @@ value.DEBUG_SHADOW_BUFFER.2=Shadow Normal
 value.DEBUG_SHADOW_BUFFER.3=Shadow SSS
 value.DEBUG_SHADOW_BUFFER.4=Shadow Depth [0]
 value.DEBUG_SHADOW_BUFFER.5=Shadow Depth [1]
-value.DEBUG_SHADOW_BUFFER.6=RSM Low-Res
-value.DEBUG_SHADOW_BUFFER.7=RSM Full-Res
+value.DEBUG_SHADOW_BUFFER.6=RSM
 
 
 option.IS_OPTIFINE=Using Optifine?

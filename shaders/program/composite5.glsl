@@ -31,6 +31,8 @@ varying vec2 texcoord;
 
     uniform ivec2 eyeBrightnessSmooth;
     uniform float screenBrightness;
+    uniform float viewWidth;
+    uniform float viewHeight;
 
     #if DEBUG_SHADOW_BUFFER == DEBUG_VIEW_SHADOW_ALBEDO
         // Shadow Albedo
@@ -47,12 +49,9 @@ varying vec2 texcoord;
     #elif DEBUG_SHADOW_BUFFER == DEBUG_VIEW_SHADOW_DEPTH1
         // Shadow Depth [1]
         uniform sampler2D shadowtex1;
-    #elif DEBUG_SHADOW_BUFFER == DEBUG_VIEW_RSM_LOWRES
-        // RSM Low-Res
+    #elif DEBUG_SHADOW_BUFFER == DEBUG_VIEW_RSM
+        // RSM
         uniform sampler2D colortex5;
-    #elif DEBUG_SHADOW_BUFFER == DEBUG_VIEW_RSM_FULLRES
-        // RSM Full-Res
-        uniform sampler2D colortex7;
     #endif
 
     #include "/lib/tonemap.glsl"
@@ -78,12 +77,17 @@ varying vec2 texcoord;
         #elif DEBUG_SHADOW_BUFFER == DEBUG_VIEW_SHADOW_DEPTH1
             // Shadow Depth [1]
             color = texture2D(shadowtex1, texcoord).rrr;
-        #elif DEBUG_SHADOW_BUFFER == DEBUG_VIEW_RSM_LOWRES
-            // RSM Low-Res
-            color = texture2D(colortex5, texcoord).rgb;
-        #elif DEBUG_SHADOW_BUFFER == DEBUG_VIEW_RSM_FULLRES
-            // RSM Full-Res
-            color = texture2D(colortex7, texcoord).rgb;
+        #elif DEBUG_SHADOW_BUFFER == DEBUG_VIEW_RSM
+            // RSM
+            vec2 viewSize = vec2(viewWidth, viewHeight);
+
+            #ifndef RSM_UPSCALE
+                const float rsm_scale = 1.0 / exp2(RSM_SCALE);
+                viewSize *= rsm_scale;
+            #endif
+
+            ivec2 iuv = ivec2(texcoord * viewSize);
+            color = texelFetch(colortex5, iuv, 0).rgb;
         #else
             // None
             color = texture2D(colortex4, texcoord).rgb;

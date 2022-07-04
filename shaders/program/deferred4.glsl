@@ -38,14 +38,14 @@ varying vec2 texcoord;
     #endif
 
     #ifdef RSM_ENABLED
-        uniform sampler2D colortex7;
+        uniform sampler2D colortex5;
     #endif
 
     uniform mat4 gbufferProjectionInverse;
     uniform mat4 gbufferModelView;
+    uniform int heldBlockLightValue;
     uniform float viewWidth;
     uniform float viewHeight;
-    uniform int heldBlockLightValue;
 
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;

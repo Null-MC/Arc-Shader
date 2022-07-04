@@ -190,8 +190,15 @@
         #endif
 
         #if defined RSM_ENABLED && defined RENDER_DEFERRED
-            ivec2 iuv = ivec2(texcoord * vec2(viewWidth, viewHeight));
-            vec3 rsmColor = texelFetch(colortex7, iuv, 0).rgb;
+            vec2 viewSize = vec2(viewWidth, viewHeight);
+
+            #ifndef RSM_UPSCALE
+                const float rsm_scale = 1.0 / exp2(RSM_SCALE);
+                viewSize *= rsm_scale;
+            #endif
+
+            ivec2 iuv = ivec2(texcoord * viewSize);
+            vec3 rsmColor = texelFetch(colortex5, iuv, 0).rgb;
         #endif
 
         vec3 skyAmbient = GetSkyAmbientColor(viewNormal) * (0.1 + 0.9 * skyLight); //skyLightColor;
@@ -203,7 +210,7 @@
         vec3 diffuseLight = skyLightColor * shadowFinal;
 
         #if defined RSM_ENABLED && defined RENDER_DEFERRED
-            diffuseLight += 10.0 * rsmColor * material.scattering;
+            diffuseLight += 20.0 * rsmColor * material.scattering;
         #endif
 
         vec3 diffuse = GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * diffuseLight;
@@ -235,18 +242,18 @@
 
         ambient += minLight;
 
-        float emissive = material.emission * 16.0;
+        float emissive = material.emission*material.emission * 16.0;
 
         vec4 final = material.albedo;
         final.rgb = final.rgb * (ambient + emissive) + diffuse + specular;
 
         #ifdef SSS_ENABLED
             //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
-            vec3 ambient_sss = SHADOW_BRIGHTNESS * skyAmbient * material.scattering * material.occlusion * skyLightColor;
+            vec3 ambient_sss = SHADOW_BRIGHTNESS * material.scattering * material.occlusion * skyLightColor;
 
             // Transmission
             vec3 sss = (1.0 - shadowFinal) * shadowSSS * material.scattering * skyLightColor;// * max(-NoL, 0.0);
-            final.rgb += material.albedo.rgb * 1.25 * invPI * (ambient_sss + sss);
+            final.rgb += material.albedo.rgb * invPI * (ambient_sss + sss) * 1.25;
         #endif
 
         #ifdef SHADOW_ENABLED

@@ -85,7 +85,7 @@ varying vec2 texcoord;
     #endif
 
     #include "/lib/sampling/rsm_151.glsl"
-    #include "/lib/lighting/rsm.glsl"
+    #include "/lib/rsm.glsl"
 
 
 	void main() {
@@ -98,17 +98,19 @@ varying vec2 texcoord;
         if (clipDepth < 1.0) {
             vec2 normalTex = texelFetch(colortex1, itexFull, 0).rg;
 
-            ivec2 itexLow = ivec2(texcoord * vec2(viewWidth, viewHeight) * rsm_scale);
-            vec2 rsmNormal = texelFetch(colortex6, itexLow, 0).rg;
-            float rsmDepth = texture2DLod(colortex6, texcoord, 0).b;
+            vec2 texLow = texcoord * rsm_scale;
+            vec3 rsmNormalDepth = texture2DLod(colortex6, texLow, 0).rgb;
 
             vec3 viewNormal = RestoreNormalZ(normalTex);
-            vec3 rsmViewNormal = RestoreNormalZ(rsmNormal);
+            vec3 rsmViewNormal = RestoreNormalZ(rsmNormalDepth.xy);
 
-            float depthThreshold = 0.3 / (far * 3.0);
+            float depthThreshold = 0.6 / (far * 3.0);
 
-            if (abs(rsmDepth - clipDepth) <= depthThreshold && dot(rsmViewNormal, viewNormal) > 0.2) {
-                final = texture2DLod(colortex5, texcoord, 0).rgb;
+            bool depthTest = abs(rsmNormalDepth.z - clipDepth) <= depthThreshold;
+            bool normalTest = dot(rsmViewNormal, viewNormal) > 0.2;
+
+            if (depthTest) {
+                final = texture2DLod(colortex5, texLow, 0).rgb;
             }
             else {
                 float skyLight = texelFetch(colortex3, itexFull, 0).g;
@@ -124,13 +126,15 @@ varying vec2 texcoord;
                     vec3 shadowViewPos = (shadowModelView * vec4(localPos.xyz, 1.0)).xyz;
 
                     final = GetIndirectLighting_RSM(shadowViewPos, localPos.xyz, localNormal);
-                    //final = vec3(1.0, 0.0, 0.0);
+                    //final = mix(final, vec3(1.0, 0.0, 0.0), 0.5);
                 }
             }
+
+            //final = viewNormal;
         }
 
 
-	/* DRAWBUFFERS:7 */
+	/* DRAWBUFFERS:5 */
 		gl_FragData[0] = vec4(final, 1.0);
 	}
 #endif

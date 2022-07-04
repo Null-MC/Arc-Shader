@@ -106,5 +106,5 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 localPos
 	}
 
 	// Modulate result with some intensity value.
-	return shading * (1.0 / POISSON_SAMPLES) * RSM_INTENSITY;
+	return shading * (1.0 / POISSON_SAMPLES) * RSM_INTENSITY * RSM_FILTER_SIZE;
 }

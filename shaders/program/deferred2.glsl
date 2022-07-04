@@ -92,7 +92,7 @@ varying vec2 texcoord;
     #endif
 
     #include "/lib/sampling/rsm_151.glsl"
-    #include "/lib/lighting/rsm.glsl"
+    #include "/lib/rsm.glsl"
 
     /* RENDERTARGETS: 5,6 */
     layout(location = 0) out vec4 outColor;

@@ -5,15 +5,12 @@
 const int shadowtex0Format = R32F;
 const int shadowtex1Format = R32F;
 const int shadowcolor0Format = RG32UI;
+const bool shadowcolor0Nearest = true;
 const int colortex6Format = RGB16F;
-*/
 
-#if SHADOW_TYPE == 2
-    /*
-    const bool shadowcolor1Nearest = false;
-    const int shadowcolor1Format = RGB16_SNORM;
-    */
-#endif
+shadowtex0Nearest = false;
+shadowtex1Nearest = false;
+*/
 
 const float shadowDistanceRenderMul = 1.0;
 
