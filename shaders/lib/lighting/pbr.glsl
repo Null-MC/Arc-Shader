@@ -192,7 +192,7 @@
         #if defined RSM_ENABLED && defined RENDER_DEFERRED
             vec2 viewSize = vec2(viewWidth, viewHeight);
 
-            #ifndef RSM_UPSCALE
+            #if !defined RSM_UPSCALE && RSM_SCALE != 0
                 const float rsm_scale = 1.0 / exp2(RSM_SCALE);
                 viewSize *= rsm_scale;
             #endif
@@ -264,7 +264,7 @@
             }
         #endif
 
-        final.a += luminance(specular);
+        final.a = min(final.a + luminance(specular), 1.0);
 
         #ifndef RENDER_DEFERRED
             #if defined RENDER_WATER

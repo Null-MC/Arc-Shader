@@ -86,7 +86,6 @@ varying vec2 texcoord;
         uniform float far;
 
         #include "/lib/shadows/csm.glsl"
-        //#include "/lib/depth.glsl"
     #elif SHADOW_TYPE == 2
         #include "/lib/shadows/basic.glsl"
     #endif
@@ -94,9 +93,14 @@ varying vec2 texcoord;
     #include "/lib/sampling/rsm_151.glsl"
     #include "/lib/rsm.glsl"
 
-    /* RENDERTARGETS: 5,6 */
-    layout(location = 0) out vec4 outColor;
-    layout(location = 1) out vec3 outNormalDepth;
+    #ifdef RSM_UPSCALE
+        /* RENDERTARGETS: 5,6 */
+        layout(location = 0) out vec3 outColor;
+        layout(location = 1) out float outDepth;
+    #else
+        /* RENDERTARGETS: 5 */
+        layout(location = 0) out vec3 outColor;
+    #endif
 
 
 	void main() {
@@ -125,7 +129,10 @@ varying vec2 texcoord;
             }
         }
 
-		outColor = vec4(color, 1.0);
-        outNormalDepth = vec3(normal, clipDepth);
+		outColor = color;
+
+        #ifdef RSM_UPSCALE
+            outDepth = clipDepth;
+        #endif
 	}
 #endif

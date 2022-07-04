@@ -6,11 +6,22 @@ const int shadowtex0Format = R32F;
 const int shadowtex1Format = R32F;
 const int shadowcolor0Format = RG32UI;
 const bool shadowcolor0Nearest = true;
-const int colortex6Format = RGB16F;
 
 shadowtex0Nearest = false;
 shadowtex1Nearest = false;
 */
+
+#ifdef RSM_ENABLED
+    /*
+    const int colortex5Format = RGB16F;
+    */
+#endif
+
+#ifdef RSM_UPSCALE
+    /*
+    const int colortex6Format = R16F;
+    */
+#endif
 
 const float shadowDistanceRenderMul = 1.0;
 
@@ -175,7 +186,7 @@ varying vec4 glcolor;
         uniform sampler2D normals;
     #endif
 
-    #if defined SSS_ENABLED || defined RSM_ENABLED
+    #if defined SSS_ENABLED // || defined RSM_ENABLED
         uniform sampler2D specular;
     #endif
 
@@ -197,13 +208,13 @@ varying vec4 glcolor;
         vec4 colorMap = texture2D(texture, texcoord) * glcolor;
         if (colorMap.a < 0.5) discard;
 
-        #ifdef RSM_ENABLED
-            float specularMapR = texture2D(specular, texcoord).r;
+        // #ifdef RSM_ENABLED
+        //     float specularMapR = texture2D(specular, texcoord).r;
 
-            colorMap.rgb = RGBToLinear(colorMap.rgb);
-            colorMap.rgb *= 0.25 + 0.75 * specularMapR*specularMapR;
-            colorMap.rgb = LinearToRGB(colorMap.rgb);
-        #endif
+        //     colorMap.rgb = RGBToLinear(colorMap.rgb);
+        //     colorMap.rgb *= 0.25 + 0.75 * specularMapR*specularMapR;
+        //     colorMap.rgb = LinearToRGB(colorMap.rgb);
+        // #endif
 
         vec3 viewNormal = vec3(0.0);
         #if defined RSM_ENABLED

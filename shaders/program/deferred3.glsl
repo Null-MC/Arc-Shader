@@ -99,15 +99,15 @@ varying vec2 texcoord;
             vec2 normalTex = texelFetch(colortex1, itexFull, 0).rg;
 
             vec2 texLow = texcoord * rsm_scale;
-            vec3 rsmNormalDepth = texture2DLod(colortex6, texLow, 0).rgb;
+            float rsmDepth = texture2DLod(colortex6, texLow, 0).r;
 
             vec3 viewNormal = RestoreNormalZ(normalTex);
-            vec3 rsmViewNormal = RestoreNormalZ(rsmNormalDepth.xy);
+            //vec3 rsmViewNormal = RestoreNormalZ(rsmNormalDepth.xy);
 
             float depthThreshold = 0.6 / (far * 3.0);
 
-            bool depthTest = abs(rsmNormalDepth.z - clipDepth) <= depthThreshold;
-            bool normalTest = dot(rsmViewNormal, viewNormal) > 0.2;
+            bool depthTest = abs(rsmDepth - clipDepth) <= depthThreshold;
+            //bool normalTest = dot(rsmViewNormal, viewNormal) > 0.2;
 
             if (depthTest) {
                 final = texture2DLod(colortex5, texLow, 0).rgb;
