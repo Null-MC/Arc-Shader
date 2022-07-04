@@ -69,7 +69,7 @@ const int colortex6Format = R16F;
 //#define SSR_ENABLED
 #define RSM_ENABLED
 #define RSM_INTENSITY 8 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
-#define RSM_FILTER_SIZE 0.8 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
+#define RSM_FILTER_SIZE 0.8 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.4 2.6 2.8 3.0]
 #define RSM_SAMPLE_COUNT 400 // [100 200 400]
 #define RSM_SCALE 1 // [0 1 2]
 //#define RSM_UPSCALE
@@ -92,6 +92,7 @@ const int colortex6Format = R16F;
 
 
 // INTERNAL
+#define TITLE
 #define IOR_AIR 1.0
 #define PI 3.1415926538
 #define EPSILON 1e-6

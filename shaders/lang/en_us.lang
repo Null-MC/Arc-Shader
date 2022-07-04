@@ -1,3 +1,23 @@
+option.TITLE=Bullet Shader
+option.TITLE.comment=By NULL
+
+profile.comment=Potato - potato. Low - low. Medium - medium. High - high. Ultra - ultra.
+
+profile.POTATO=Potato
+profile.POTATO.comment=For machines that don't have anymore power than a simple potato.
+
+profile.LOW=Low
+profile.LOW.comment=For low-end devices, IGPU's and such.
+
+profile.MEDIUM=Medium
+profile.MEDIUM.comment=For mid-quality devices with decent graphics cards.
+
+profile.HIGH=High
+profile.HIGH.comment=For high-end machines with a modern graphics card.
+
+profile.ULTRA=Ultra
+profile.ULTRA.comment=Just, too much...
+
 screen.WORLD_OPTIONS=World
 
 option.ENABLE_WAVING=Waving Plants
@@ -191,6 +211,9 @@ option.RSM_FILTER_SIZE=Radius
 option.RSM_FILTER_SIZE.comment=The radius of the blur filter, in blocks/meters.
 
 option.RSM_INTENSITY=Intensity
+
+option.RSM_SAMPLE_COUNT=Sample Count
+option.RSM_SAMPLE_COUNT.comment=The number of samples-per-pixel to process.
 
 option.RSM_UPSCALE=Upscale
 option.RSM_UPSCALE.comment=When downscaled RSM is enabled with this option, the edges of objects will be processed in full-resolution when upscaling to prevent blurred edges.

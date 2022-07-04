@@ -98,8 +98,10 @@ varying vec4 glcolor;
                 #if SHADOW_TYPE == 3
                     shadowCascadePos = vec2(10.0);
                 #endif
+
+                return;
             }
-            else {
+            //else {
         #endif
 
         vec4 pos = gl_Vertex;
@@ -138,9 +140,9 @@ varying vec4 glcolor;
             #endif
         #endif
 
-        #ifdef SHADOW_EXCLUDE_FOLIAGE
-            }
-        #endif
+        // #ifdef SHADOW_EXCLUDE_FOLIAGE
+        //     }
+        // #endif
 
         #if defined SSS_ENABLED || defined RSM_ENABLED
             vec3 viewNormal = normalize(gl_NormalMatrix * gl_Normal);
