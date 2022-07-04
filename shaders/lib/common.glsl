@@ -147,6 +147,8 @@ const float invPI = 1.0 / PI;
     #undef RSM_UPSCALE
 #endif
 
+#ifdef TITLE
+#endif
 #ifdef ATMOSPHERE_ENABLED
 #endif
 #ifdef SHADOW_EXCLUDE_ENTITIES
