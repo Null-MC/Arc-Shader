@@ -8,6 +8,7 @@ const int colortex4Format = RGB16F;
 
 // World Options
 #define ENABLE_WAVING
+#define HANDLIGHT_ENABLED
 #define SHADOW_BRIGHTNESS 0.10 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 //#define ANIM_USE_WORLDTIME
 
@@ -15,10 +16,6 @@ const int colortex4Format = RGB16F;
 // Atmosphere Options
 //#define ATMOSPHERE_ENABLED
 #define HCM_AMBIENT 0.16
-#define RSM_ENABLED
-#define RSM_INTENSITY 100.0
-#define RSM_FILTER_SIZE 2.4
-#define RSM_SCALE 0.5
 
 
 // Material Options
@@ -68,15 +65,18 @@ const int colortex4Format = RGB16F;
 
 // Effect Options
 //#define SSR_ENABLED
+#define RSM_ENABLED
+#define RSM_INTENSITY 100 // [25 50 75 100 125 150 175 200]
+#define RSM_FILTER_SIZE 2.4 // [1.0 1.2 1.4 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0]
+#define RSM_SCALE 1 // [0 1 2]
 #define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
-#define CAMERA_EXPOSURE 20 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
+#define CAMERA_EXPOSURE 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
 
 
 // Debug Options
 #define DEBUG_SHADOW_BUFFER 0 // [0 1 2 3 4 5 6 7]
-#define HANDLIGHT_ENABLED
 #define IS_OPTIFINE
 
 #define DEBUG_VIEW_SHADOW_ALBEDO 1

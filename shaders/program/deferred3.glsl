@@ -89,15 +89,17 @@ varying vec2 texcoord;
 
 
 	void main() {
-        ivec2 itex = ivec2(texcoord * vec2(viewWidth, viewHeight));
-        ivec2 itexQ = ivec2(texcoord * vec2(viewWidth, viewHeight) * RSM_SCALE);
-        float clipDepth = texelFetch(depthtex0, itex, 0).r;
+        const float rsm_scale = 1.0 / exp2(RSM_SCALE);
+
+        ivec2 itexFull = ivec2(texcoord * vec2(viewWidth, viewHeight));
+        float clipDepth = texelFetch(depthtex0, itexFull, 0).r;
 
         vec3 final = vec3(0.0);
         if (clipDepth < 1.0) {
-            vec2 normalTex = texelFetch(colortex1, itex, 0).rg;
+            vec2 normalTex = texelFetch(colortex1, itexFull, 0).rg;
 
-            vec2 rsmNormal = texelFetch(colortex6, itexQ, 0).rg;
+            ivec2 itexLow = ivec2(texcoord * vec2(viewWidth, viewHeight) * rsm_scale);
+            vec2 rsmNormal = texelFetch(colortex6, itexLow, 0).rg;
             float rsmDepth = texture2DLod(colortex6, texcoord, 0).b;
 
             vec3 viewNormal = RestoreNormalZ(normalTex);
@@ -109,7 +111,7 @@ varying vec2 texcoord;
                 final = texture2DLod(colortex5, texcoord, 0).rgb;
             }
             else {
-                float skyLight = texelFetch(colortex3, itex, 0).g;
+                float skyLight = texelFetch(colortex3, itexFull, 0).g;
 
                 if (skyLight >= 1.0 / 16.0) {
                     vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;

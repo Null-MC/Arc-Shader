@@ -12,7 +12,7 @@ varying vec2 texcoord;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
     uniform vec3 upPosition;
-    
+
     #include "/lib/world/sky.glsl"
 
 
@@ -89,16 +89,20 @@ varying vec2 texcoord;
             color = texture2D(colortex4, texcoord).rgb;
 
             #if CAMERA_EXPOSURE == 0
-                float maxEyeBrightness = max(eyeBrightnessSmooth.x, eyeBrightnessSmooth.y) / 240.0;
-                float brightness = (skyLightIntensity.x + skyLightIntensity.y) * maxEyeBrightness;                
-                float exposure = mix(2.0, 1.0, brightness);
+                float eyeBrightness = max(eyeBrightnessSmooth.x, eyeBrightnessSmooth.y) / 240.0;
+                float skyBrightness = skyLightIntensity.x + skyLightIntensity.y;
+
+                float f = min(eyeBrightness * skyBrightness, 1.0);
+                float exposure = mix(0.0, -1.2, f);
             #else
                 const float exposure = 0.1 * CAMERA_EXPOSURE;
             #endif
 
-            color *= 0.5 * exp2(exposure);
+            color *= exp2(exposure);
             color = ApplyTonemap(color);
             color = LinearToRGB(color);
+
+            //color = vec3(f);
         #endif
 
     /* DRAWBUFFERS:8 */

@@ -125,8 +125,6 @@ varying float geoNoL;
 				#include "/lib/sampling/poisson_36.glsl"
 			#endif
 
-	        //#include "/lib/depth.glsl"
-
 			#if SHADOW_TYPE == 3
 				#include "/lib/shadows/csm.glsl"
 				#include "/lib/shadows/csm_render.glsl"
@@ -142,16 +140,10 @@ varying float geoNoL;
     #include "/lib/world/fog.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/lighting/basic_forward.glsl"
-    #include "/lib/tonemap.glsl"
 
 
 	void main() {
-        vec4 final = BasicLighting();
-
-        //final = LinearToRGB(final);
-        final.rgb = ApplyTonemap(final.rgb);
-
     /* DRAWBUFFERS:4 */
-        gl_FragData[0] = final;
+        gl_FragData[0] = BasicLighting();
 	}
 #endif
