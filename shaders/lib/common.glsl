@@ -3,15 +3,17 @@ const bool colortex8Clear = false;
 
 /*
 const int colortex4Format = RGB16F;
+const bool colortex4MipmapEnabled = true;
 const int colortex5Format = RGB16F;
 const int colortex6Format = R16F;
+const int colortex7Format = RGB16F;
 */
 
 
 // World Options
 #define ENABLE_WAVING
 #define HANDLIGHT_ENABLED
-#define SHADOW_BRIGHTNESS 0.10 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
+#define SHADOW_BRIGHTNESS 0.30 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 //#define ANIM_USE_WORLDTIME
 
 
@@ -68,11 +70,12 @@ const int colortex6Format = R16F;
 // Effect Options
 //#define SSR_ENABLED
 #define RSM_ENABLED
-#define RSM_INTENSITY 8 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
+#define RSM_INTENSITY 6 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
 #define RSM_FILTER_SIZE 0.8 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.4 2.6 2.8 3.0]
 #define RSM_SAMPLE_COUNT 400 // [100 200 400]
 #define RSM_SCALE 1 // [0 1 2]
 //#define RSM_UPSCALE
+#define BLOOM_ENABLED
 #define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
 #define CAMERA_EXPOSURE 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
 //#define AF_ENABLED
@@ -80,7 +83,7 @@ const int colortex6Format = R16F;
 
 
 // Debug Options
-#define DEBUG_SHADOW_BUFFER 0 // [0 1 2 3 4 5 6]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7]
 #define IS_OPTIFINE
 
 #define DEBUG_VIEW_SHADOW_ALBEDO 1
@@ -89,6 +92,7 @@ const int colortex6Format = R16F;
 #define DEBUG_VIEW_SHADOW_DEPTH0 4
 #define DEBUG_VIEW_SHADOW_DEPTH1 5
 #define DEBUG_VIEW_RSM 6
+#define DEBUG_VIEW_BLOOM 7
 
 
 // INTERNAL

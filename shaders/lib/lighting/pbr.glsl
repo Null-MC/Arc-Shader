@@ -79,7 +79,7 @@
         // Geometric Visibility
         float G = SmithHable(LoH, roughL);
 
-        return D * F * G;
+        return clamp(D, 0.0, 10.0) * F * G;
     }
 
     vec3 GetDiffuse_Burley(const in vec3 albedo, const in float NoV, const in float NoL, const in float LoH, const in float roughL)
@@ -210,7 +210,7 @@
         vec3 diffuseLight = skyLightColor * shadowFinal;
 
         #if defined RSM_ENABLED && defined RENDER_DEFERRED
-            diffuseLight += 20.0 * rsmColor * material.scattering;
+            diffuseLight += 20.0 * rsmColor * skyLightColor * material.scattering;
         #endif
 
         vec3 diffuse = GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * diffuseLight;
@@ -242,7 +242,7 @@
 
         ambient += minLight;
 
-        float emissive = material.emission*material.emission * 16.0;
+        float emissive = material.emission * 24.0;
 
         vec4 final = material.albedo;
         final.rgb = final.rgb * (ambient + emissive) + diffuse + specular;

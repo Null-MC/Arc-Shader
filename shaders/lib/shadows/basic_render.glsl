@@ -181,7 +181,7 @@
 
     #ifdef SSS_ENABLED
         vec4 SampleShadowColorSSS(const in vec2 shadowPos) {
-            uint data = texture2D(shadowcolor0, shadowPos).r;
+            uint data = texture(shadowcolor0, shadowPos).r;
             return unpackUnorm4x8(data);
         }
 

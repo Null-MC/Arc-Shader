@@ -4,7 +4,7 @@
 
 #ifdef RENDER_FRAG
     vec4 BasicLighting() {
-        vec4 albedo = texture2D(texture, texcoord);
+        vec4 albedo = texture2D(gtexture, texcoord);
 
         #ifndef RENDER_TEXTURED
             if (albedo.a < alphaTestRef) discard;

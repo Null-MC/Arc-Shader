@@ -36,7 +36,7 @@ varying vec3 tanViewPos;
 #endif
 
 #ifdef RENDER_FRAG
-	uniform sampler2D texture;
+	uniform sampler2D gtexture;
 
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
         uniform float alphaTestRef;
@@ -50,9 +50,9 @@ varying vec3 tanViewPos;
 	void main() {
 		vec4 colorMap;
         #ifdef PARALLAX_ENABLED
-			colorMap = textureAF(texture, texcoord) * glcolor;
+			colorMap = textureAF(gtexture, texcoord) * glcolor;
         #else
-			colorMap = texture2D(texture, texcoord) * glcolor;
+			colorMap = texture2D(gtexture, texcoord) * glcolor;
         #endif
 
         if (colorMap.a < 0.98) discard;

@@ -149,7 +149,7 @@ varying vec4 glcolor;
             vec3 viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
             vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
 
-            #if !defined RSM_ENABLED //&& DEBUG_SHADOW_BUFFER != 2
+            #if !defined RSM_ENABLED //&& DEBUG_VIEW != 2
                 mat3 matViewTBN;
             #endif
 
@@ -164,7 +164,7 @@ varying vec4 glcolor;
 #endif
 
 #ifdef RENDER_FRAG
-    uniform sampler2D texture;
+    uniform sampler2D gtexture;
 
     uniform mat4 shadowModelViewInverse;
 
@@ -185,7 +185,9 @@ varying vec4 glcolor;
     #include "/lib/lighting/material_reader.glsl"
 
     /* RENDERTARGETS: 0 */
-    layout(location = 0) out uvec2 outColor0;
+    #ifdef IS_OPTIFINE
+        layout(location = 0) out uvec2 outColor0;
+    #endif
 
 
     void main() {
@@ -195,11 +197,11 @@ varying vec4 glcolor;
              || screenCascadePos.y < 0 || screenCascadePos.y >= 0.5) discard;
         #endif
 
-        vec4 colorMap = texture2D(texture, texcoord) * glcolor;
+        vec4 colorMap = texture(gtexture, texcoord) * glcolor;
         if (colorMap.a < 0.5) discard;
 
         // #ifdef RSM_ENABLED
-        //     float specularMapR = texture2D(specular, texcoord).r;
+        //     float specularMapR = texture(specular, texcoord).r;
 
         //     colorMap.rgb = RGBToLinear(colorMap.rgb);
         //     colorMap.rgb *= 0.25 + 0.75 * specularMapR*specularMapR;
@@ -208,13 +210,13 @@ varying vec4 glcolor;
 
         vec3 viewNormal = vec3(0.0);
         #if defined RSM_ENABLED
-            vec2 normalMap = texture2D(normals, texcoord).rg;
+            vec2 normalMap = texture(normals, texcoord).rg;
             viewNormal = RestoreNormalZ(normalMap) * matViewTBN;
         #endif
 
         float sss = 0.0;
         #ifdef SSS_ENABLED
-            vec3 specularMap = texture2D(specular, texcoord).rgb;
+            vec3 specularMap = texture(specular, texcoord).rgb;
             vec3 viewDirT = -normalize(viewPosTan);
 
             sss = GetLabPbr_SSS(specularMap.b) * abs(viewDirT.z);
@@ -240,7 +242,14 @@ varying vec4 glcolor;
             //}
         #endif
 
-        outColor0.r = packUnorm4x8(vec4(colorMap.rgb, sss));
-        outColor0.g = packUnorm2x16(viewNormal.xy * 0.5 + 0.5);
+        uvec2 outColor;
+        outColor.r = packUnorm4x8(vec4(colorMap.rgb, sss));
+        outColor.g = packUnorm2x16(viewNormal.xy * 0.5 + 0.5);
+
+        #ifdef IS_OPTIFINE
+            outColor0 = outColor;
+        #else
+            //gl_FragData[0] = uvec4(outColor, 0.0, 1.0);
+        #endif
     }
 #endif

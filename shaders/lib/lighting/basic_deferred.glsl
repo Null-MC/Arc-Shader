@@ -119,7 +119,7 @@
         blockLight *= blockLight;
         skyLight *= skyLight;
 
-        vec4 albedo = texture2D(texture, texcoord) * glcolor;
+        vec4 albedo = texture2D(gtexture, texcoord) * glcolor;
         albedo.rgb = RGBToLinear(albedo.rgb);
 
         vec3 lightColor = skyLightColor;

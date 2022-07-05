@@ -1,88 +1,137 @@
+#extension GL_ARB_shading_language_packing : enable
+
 #define RENDER_COMPOSITE
-//#define RENDER_COMPOSITE_POSTSKY
 
 varying vec2 texcoord;
 
+#if CAMERA_EXPOSURE == 0
+    flat varying vec2 skyLightIntensity;
+#endif
+
 #ifdef RENDER_VERTEX
+    uniform vec3 sunPosition;
+    uniform vec3 moonPosition;
+    uniform vec3 upPosition;
+
+    #include "/lib/world/sky.glsl"
+
+
     void main() {
         gl_Position = ftransform();
         texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+
+        #if CAMERA_EXPOSURE == 0
+            skyLightIntensity = GetSkyLightIntensity();
+        #endif
     }
 #endif
 
 #ifdef RENDER_FRAG
-    uniform sampler2D colortex3;
-    uniform sampler2D colortex4;
-    uniform sampler2D depthtex0;
+    #if DEBUG_VIEW == DEBUG_VIEW_SHADOW_ALBEDO
+        // Shadow Albedo
+        uniform usampler2D shadowcolor0;
+    #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_NORMAL
+        // Shadow Normal
+        uniform usampler2D shadowcolor0;
+    #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_SSS
+        // Shadow SSS
+        uniform usampler2D shadowcolor0;
+    #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_DEPTH0
+        // Shadow Depth [0]
+        uniform sampler2D shadowtex0;
+    #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_DEPTH1
+        // Shadow Depth [1]
+        uniform sampler2D shadowtex1;
+    #elif DEBUG_VIEW == DEBUG_VIEW_RSM
+        // RSM
+        uniform sampler2D colortex5;
+    #elif DEBUG_VIEW == DEBUG_VIEW_BLOOM
+        // Bloom Tiles
+        uniform sampler2D colortex7;
+    #else
+        uniform sampler2D colortex4;
+        uniform sampler2D colortex7;
 
-    uniform mat4 gbufferModelView;
-    uniform mat4 gbufferProjectionInverse;
-    uniform float viewWidth;
-    uniform float viewHeight;
-    uniform vec3 fogColor;
-    uniform vec3 skyColor;
-    uniform float fogStart;
-    uniform float fogEnd;
+        uniform ivec2 eyeBrightnessSmooth;
+        uniform float screenBrightness;
+        uniform float viewWidth;
+        uniform float viewHeight;
 
-    uniform mat4 gbufferModelViewInverse;
-    uniform float eyeAltitude;
-    uniform vec3 sunPosition;
+        #include "/lib/bloom.glsl"
+        #include "/lib/tonemap.glsl"
+    #endif
 
-    #include "/lib/world/atmosphere.glsl"
-    #include "/lib/world/fog.glsl"
 
+    #if DEBUG_VIEW == 0
+        vec3 GetFinalColor() {
+            vec3 color = texture(colortex4, texcoord).rgb;
+
+            #ifdef BLOOM_ENABLED
+                for (int i = 0; i < BloomTileCount; i++) {
+                    float tileMin = GetBloomTileMin(i);
+                    float tileMax = GetBloomTileMax(i);
+
+                    vec2 tileTex = texcoord * (tileMax - tileMin) + tileMin;
+                    color += texture(colortex7, tileTex, 0).rgb;
+                }
+            #endif
+
+            #if CAMERA_EXPOSURE == 0
+                float eyeBrightness = max(eyeBrightnessSmooth.x, eyeBrightnessSmooth.y) / 240.0;
+                float skyBrightness = skyLightIntensity.x + skyLightIntensity.y;
+
+                float f = min(eyeBrightness * skyBrightness, 1.0);
+                float exposure = mix(-1.0, -2.0, f);
+            #else
+                const float exposure = 0.1 * CAMERA_EXPOSURE;
+            #endif
+
+            color *= exp2(exposure);
+            color = ApplyTonemap(color);
+            return LinearToRGB(color);
+        }
+    #endif
 
     void main() {
-        ivec2 itex = ivec2(texcoord * vec2(viewWidth, viewHeight));
-        float depth = texelFetch(depthtex0, itex, 0).r;
-        float skyFogFactor = step(1.0, depth);
-
-        vec3 clipPos = vec3(texcoord, depth) * 2.0 - 1.0;
-        vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
-        viewPos.xyz /= viewPos.w;
-
-        if (depth < 1.0) {
-            float skyLightLevel = 1.0; //texelFetch(colortex3, itex, 0).g;
-            skyFogFactor = GetFogFactor(viewPos.xyz, skyLightLevel);
-        }
-
-        vec3 skyFogColor = vec3(0.0);
-        if (skyFogFactor > 0.0) {
-            vec3 localSunPos = mat3(gbufferModelViewInverse) * sunPosition;
-            vec3 localSunDir = normalize(localSunPos);
-
-            vec3 localViewPos = mat3(gbufferModelViewInverse) * viewPos.xyz;
-            vec3 localViewDir = normalize(localViewPos);
-
-            ScatteringParams setting;
-            setting.sunRadius = 3000.0;
-            setting.sunRadiance = 40.0;
-            setting.mieG = 0.96;
-            setting.mieHeight = 1200.0;
-            setting.rayleighHeight = 8000.0;
-            setting.earthRadius = 6360000.0;
-            setting.earthAtmTopRadius = 6420000.0;
-            setting.earthCenter = vec3(0.0, -6360000.0, 0.0);
-            setting.waveLambdaMie = vec3(2e-7);
-            
-            // wavelength with 680nm, 550nm, 450nm
-            setting.waveLambdaRayleigh = ComputeWaveLambdaRayleigh(vec3(680e-9, 550e-9, 450e-9));
-            
-            // see https://www.shadertoy.com/view/MllBR2
-            setting.waveLambdaOzone = vec3(1.36820899679147, 3.31405330400124, 0.13601728252538) * 0.6e-6 * 2.504;
-
-            vec3 eye = vec3(0.0, 200.0 * eyeAltitude, 0.0);
-            skyFogColor = ComputeSkyInscattering(setting, eye, localViewDir, localSunDir).rgb;
-        }
-
         vec3 color = vec3(0.0);
-        if (skyFogFactor < 1.0) {
-            color = texelFetch(colortex4, itex, 0).rgb;
-        }
+        #if DEBUG_VIEW == DEBUG_VIEW_SHADOW_ALBEDO
+            // Shadow Albedo
+            uint data = texture(shadowcolor0, texcoord).r;
+            color = unpackUnorm4x8(data).rgb;
+        #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_NORMAL
+            // Shadow Normal
+            uint data = texture(shadowcolor0, texcoord).g;
+            color = RestoreNormalZ(unpackUnorm2x16(data)) * 0.5 + 0.5;
+        #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_SSS
+            // Shadow SSS
+            uint data = texture(shadowcolor0, texcoord).r;
+            color = unpackUnorm4x8(data).aaa;
+        #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_DEPTH0
+            // Shadow Depth [0]
+            color = texture(shadowtex0, texcoord).rrr;
+        #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_DEPTH1
+            // Shadow Depth [1]
+            color = texture(shadowtex1, texcoord).rrr;
+        #elif DEBUG_VIEW == DEBUG_VIEW_RSM
+            // RSM
+            vec2 viewSize = vec2(viewWidth, viewHeight);
 
-        vec3 final = mix(color, skyFogColor, skyFogFactor);
+            #if RSM_SCALE == 0 || defined RSM_UPSCALE
+                ivec2 iuv = ivec2(texcoord * viewSize);
+                color = texelFetch(colortex5, iuv, 0).rgb;
+            #else
+                const float rsm_scale = 1.0 / exp2(RSM_SCALE);
+                color = textureLod(colortex5, texcoord * rsm_scale, 0).rgb;
+            #endif
+        #elif DEBUG_VIEW == DEBUG_VIEW_BLOOM
+            // Bloom Tiles
+            color = texture(colortex7, texcoord).rgb;
+        #else
+            // None
+            color = GetFinalColor();
+        #endif
 
-    /* DRAWBUFFERS:4 */
-        gl_FragData[0] = vec4(final, 1.0);
+    /* DRAWBUFFERS:8 */
+        gl_FragData[0] = vec4(color, 1.0);
     }
 #endif

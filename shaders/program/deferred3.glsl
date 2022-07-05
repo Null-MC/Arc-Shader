@@ -147,7 +147,7 @@ varying vec2 texcoord;
 
                     final = GetIndirectLighting_RSM(shadowViewPos, localPos.xyz, localNormal);
 
-                    #if DEBUG_SHADOW_BUFFER == DEBUG_VIEW_RSM
+                    #if DEBUG_VIEW == DEBUG_VIEW_RSM
                         final = mix(final, vec3(1.0, 0.0, 0.0), 0.25);
                     #endif
                 }

@@ -58,7 +58,7 @@ varying vec2 texcoord;
 
                 ScatteringParams setting;
                 setting.sunRadius = 3000.0;
-                setting.sunRadiance = 40.0;
+                setting.sunRadiance = 120.0;
                 setting.mieG = 0.96;
                 setting.mieHeight = 1200.0;
                 setting.rayleighHeight = 8000.0;

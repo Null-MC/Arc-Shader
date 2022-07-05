@@ -15,11 +15,11 @@ varying vec4 glcolor;
 
 #ifdef RENDER_FRAG
 	uniform sampler2D lightmap;
-	uniform sampler2D texture;
+	uniform sampler2D gtexture;
 
 
 	void main() {
-		vec4 color = texture2D(texture, texcoord) * glcolor;
+		vec4 color = texture2D(gtexture, texcoord) * glcolor;
 		color *= texture2D(lightmap, lmcoord);
 
 	/* DRAWBUFFERS:0 */

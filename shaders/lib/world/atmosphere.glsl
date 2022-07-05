@@ -161,7 +161,7 @@ vec4 ComputeSkyInscattering(const in ScatteringParams setting, const in vec3 eye
 	float phaseRayleigh = ComputePhaseRayleigh(phaseTheta);
 	float phaseNight = 1.0 - clamp(insctrOpticalLength.x * EPSILON, 0.0, 1.0);
 
-	vec3 insctrTotalMie = insctrMie * phaseMie;
+	vec3 insctrTotalMie = 10.0 * insctrMie * phaseMie;
 	vec3 insctrTotalRayleigh = insctrRayleigh * phaseRayleigh;
 
 	vec3 sky = (insctrTotalMie + insctrTotalRayleigh) * setting.sunRadiance;

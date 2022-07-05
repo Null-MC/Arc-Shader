@@ -195,6 +195,11 @@ value.CAMERA_EXPOSURE.19=1.9
 value.CAMERA_EXPOSURE.20=2.0
 
 
+screen.EFFECT_BLOOM_OPTIONS=Bloom
+
+option.BLOOM_ENABLED=Enabled
+
+
 screen.EFFECT_RSM_OPTIONS=RSM GI
 screen.EFFECT_RSM_OPTIONS.comment=Reflective Shadow Mapping for Global Illumination.
 
@@ -221,15 +226,16 @@ option.RSM_UPSCALE.comment=When downscaled RSM is enabled with this option, the 
 
 screen.DEBUG_OPTIONS=Debug
 
-option.DEBUG_SHADOW_BUFFER=Display
-option.DEBUG_SHADOW_BUFFER.comment=Configures which buffer to draw to the screen.
-value.DEBUG_SHADOW_BUFFER.0=None
-value.DEBUG_SHADOW_BUFFER.1=Shadow Albedo
-value.DEBUG_SHADOW_BUFFER.2=Shadow Normal
-value.DEBUG_SHADOW_BUFFER.3=Shadow SSS
-value.DEBUG_SHADOW_BUFFER.4=Shadow Depth [0]
-value.DEBUG_SHADOW_BUFFER.5=Shadow Depth [1]
-value.DEBUG_SHADOW_BUFFER.6=RSM
+option.DEBUG_VIEW=Display
+option.DEBUG_VIEW.comment=Configures which buffer to draw to the screen.
+value.DEBUG_VIEW.0=None
+value.DEBUG_VIEW.1=Shadow Albedo
+value.DEBUG_VIEW.2=Shadow Normal
+value.DEBUG_VIEW.3=Shadow SSS
+value.DEBUG_VIEW.4=Shadow Depth [0]
+value.DEBUG_VIEW.5=Shadow Depth [1]
+value.DEBUG_VIEW.6=RSM
+value.DEBUG_VIEW.7=Bloom
 
 
 option.IS_OPTIFINE=Using Optifine?

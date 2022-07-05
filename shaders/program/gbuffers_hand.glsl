@@ -89,7 +89,7 @@ varying vec3 tanViewPos;
 #endif
 
 #ifdef RENDER_FRAG
-	uniform sampler2D texture;
+	uniform sampler2D gtexture;
     uniform sampler2D normals;
     uniform sampler2D specular;
 	uniform sampler2D lightmap;

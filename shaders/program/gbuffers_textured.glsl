@@ -78,7 +78,7 @@ varying float geoNoL;
 #endif
 
 #ifdef RENDER_FRAG
-	uniform sampler2D texture;
+	uniform sampler2D gtexture;
 	uniform sampler2D lightmap;
 
     uniform int fogMode;
@@ -94,10 +94,6 @@ varying float geoNoL;
 	
 	#ifdef SHADOW_ENABLED
 		uniform vec3 shadowLightPosition;
-
-        #if SHADOW_TYPE == 3
-            uniform isampler2D shadowcolor1;
-        #endif
 
 		#if SHADOW_TYPE != 0
 	        uniform usampler2D shadowcolor0;

@@ -218,8 +218,9 @@
 
 			//surface has translucent object between it and the sun. modify its color.
 			//if the block light is high, modify the color less.
-			vec4 shadowLightColor = texture2D(shadowcolor0, shadowPos[cascade].xy);
-			vec3 color = RGBToLinear(shadowLightColor.rgb);
+			uint data = texture(shadowcolor0, shadowPos[cascade].xy).r;
+            vec3 color = unpackUnorm4x8(data).rgb;
+			color = RGBToLinear(color);
 
 			//make colors more intense when the shadow light color is more opaque.
 			return mix(vec3(1.0), color, shadowLightColor.a);

@@ -5,4 +5,4 @@
 
 #include "lib/common.glsl"
 #include "overworld.glsl"
-#include "program/composite5.glsl"
+#include "program/composite2.glsl"

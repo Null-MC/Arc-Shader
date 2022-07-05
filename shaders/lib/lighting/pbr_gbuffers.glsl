@@ -74,9 +74,9 @@
         #endif
         
         #ifdef AF_ENABLED
-            colorMap = textureAF(texture, atlasCoord, dFdXY);
+            colorMap = textureAF(gtexture, atlasCoord, dFdXY);
         #else
-            colorMap = texture2DGrad(texture, atlasCoord, dFdXY[0], dFdXY[1]);
+            colorMap = texture2DGrad(gtexture, atlasCoord, dFdXY[0], dFdXY[1]);
         #endif
 
         #ifndef RENDER_WATER

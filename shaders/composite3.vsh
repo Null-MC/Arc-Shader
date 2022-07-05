@@ -1,8 +1,8 @@
 #version 120
 
-#define RENDER_FRAG
+#define RENDER_VERTEX
 #define WORLD_OVERWORLD
 
 #include "lib/common.glsl"
 #include "overworld.glsl"
-#include "program/composite5.glsl"
+#include "program/composite3.glsl"

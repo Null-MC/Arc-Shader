@@ -42,7 +42,7 @@ float GetLabPbr_Emission(const in float specularA) {
     }
 #elif defined RENDER_WATER
     void PopulateMaterial(const in vec2 atlasCoord, out PbrMaterial material) {
-    	vec4 colorMap = texture2D(texture, atlasCoord) * glcolor;
+    	vec4 colorMap = texture2D(gtexture, atlasCoord) * glcolor;
     	vec4 normalMap = texture2D(normals, atlasCoord);
     	vec4 specularMap = texture2D(specular, atlasCoord);
 

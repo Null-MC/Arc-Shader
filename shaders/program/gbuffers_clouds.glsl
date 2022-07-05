@@ -13,11 +13,11 @@ varying vec4 glcolor;
 #endif
 
 #ifdef RENDER_FRAG
-	uniform sampler2D texture;
+	uniform sampler2D gtexture;
 
 
 	void main() {
-		vec4 colorMap = texture2D(texture, texcoord) * glcolor;
+		vec4 colorMap = texture2D(gtexture, texcoord) * glcolor;
 		vec4 normalMap = vec4(0.0);
 		vec4 specularMap = vec4(0.0);
 		vec4 lightingMap = vec4(0.0);

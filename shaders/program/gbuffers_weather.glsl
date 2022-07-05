@@ -13,10 +13,10 @@ varying vec4 glcolor;
 #endif
 
 #ifdef RENDER_FRAG
-	uniform sampler2D texture;
+	uniform sampler2D gtexture;
 
 	void main() {
-		vec4 color = texture2D(texture, texcoord) * glcolor;
+		vec4 color = texture2D(gtexture, texcoord) * glcolor;
 
 	/* DRAWBUFFERS:0 */
 		gl_FragData[0] = color; //gcolor
