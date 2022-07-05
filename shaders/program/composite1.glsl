@@ -1,3 +1,5 @@
+#extension GL_ARB_texture_query_levels : enable
+
 #define RENDER_COMPOSITE
 //#define RENDER_COMPOSITE_BLOOM_DOWNSCALE
 
@@ -24,14 +26,14 @@ varying vec2 texcoord;
 
 
     void main() {
-        float tileMin, tileMax;
-        int tile = GetBloomTileIndex(tileMin, tileMax);
-
-        vec3 final = vec3(0.0);
-
+        int tileCount = textureQueryLevels(colortex4);
         vec2 viewSize = vec2(viewWidth, viewHeight);
         vec2 pixelSize = 1.0 / viewSize;
 
+        float tileMin, tileMax;
+        int tile = GetBloomTileIndex(tileCount, tileMin, tileMax);
+
+        vec3 final = vec3(0.0);
         if (tile >= 0) {
             //vec4 clipPos = vec4(texcoord, 0.0, 1.0);
 

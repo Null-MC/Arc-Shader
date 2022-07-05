@@ -1,4 +1,4 @@
-const int BloomTileCount = 4;
+//const int BloomTileCount = 6;
 
 const float BloomSampleWeight[7] = float[] (
     0.030078323, 0.104983664, 0.222250419, 0.285375187, 0.222250419, 0.104983664, 0.030078323);
@@ -17,8 +17,8 @@ float GetBloomTileMax(const in int tile) {
     return GetBloomTilePos(tile + 1);
 }
 
-int GetBloomTileIndex(out float tileMin, out float tileMax) {
-    for (int i = 0; i < BloomTileCount; i++) {
+int GetBloomTileIndex(const in int tileCount, out float tileMin, out float tileMax) {
+    for (int i = 0; i < tileCount; i++) {
         tileMin = GetBloomTileMin(i);
         tileMax = GetBloomTileMax(i);
 

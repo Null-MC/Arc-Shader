@@ -1,3 +1,5 @@
+#extension GL_ARB_texture_query_levels : enable
+
 #define RENDER_COMPOSITE
 #define RENDER_COMPOSITE_BLOOM_BLUR
 //#define RENDER_COMPOSITE_BLOOM_BLUR_V
@@ -12,6 +14,7 @@ varying vec2 texcoord;
 #endif
 
 #ifdef RENDER_FRAG
+    uniform sampler2D colortex4;
     uniform sampler2D colortex7;
 
     uniform float viewWidth;
@@ -21,19 +24,14 @@ varying vec2 texcoord;
 
 
     void main() {
-        float tileMin, tileMax;
-        int tile = GetBloomTileIndex(tileMin, tileMax);
+        int tileCount = textureQueryLevels(colortex4);
+        vec2 viewSize = vec2(viewWidth, viewHeight);
 
-        //float pixelSize = 1.0 / viewHeight;
+        float tileMin, tileMax;
+        int tile = GetBloomTileIndex(tileCount, tileMin, tileMax);
 
         vec3 final = vec3(0.0);
-
-        if (tile >= 0) {
-            //float tileSize = tileMax - tileMin;
-            vec2 tileRes = vec2(viewWidth, viewHeight);
-
-            final = BloomBlur13(texcoord, tileRes, vec2(0.0, 1.0));
-        }
+        if (tile >= 0) final = BloomBlur13(texcoord, viewSize, vec2(0.0, 1.0));
 
     /* DRAWBUFFERS:7 */
         gl_FragData[0] = vec4(final, 1.0);

@@ -1,4 +1,5 @@
 #extension GL_ARB_shading_language_packing : enable
+#extension GL_ARB_texture_query_levels : enable
 
 #define RENDER_COMPOSITE
 
@@ -67,7 +68,8 @@ varying vec2 texcoord;
             vec3 color = texture(colortex4, texcoord).rgb;
 
             #ifdef BLOOM_ENABLED
-                for (int i = 0; i < BloomTileCount; i++) {
+                int tileCount = textureQueryLevels(colortex4);
+                for (int i = 0; i < tileCount; i++) {
                     float tileMin = GetBloomTileMin(i);
                     float tileMax = GetBloomTileMax(i);
 
