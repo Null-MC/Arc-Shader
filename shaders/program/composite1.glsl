@@ -25,40 +25,49 @@ varying vec2 texcoord;
     #include "/lib/bloom.glsl"
 
 
-    void main() {
-        int tileCount = textureQueryLevels(colortex4);
-        vec2 viewSize = vec2(viewWidth, viewHeight);
-        vec2 pixelSize = 1.0 / viewSize;
+    int GetBloomTileOuterIndex(const in int tileCount) {
+        vec2 tileMin, tileMax;
+        for (int i = 0; i < tileCount; i++) {
+            GetBloomTileOuterBounds(i, tileMin, tileMax);
 
-        float tileMin, tileMax;
-        int tile = GetBloomTileIndex(tileCount, tileMin, tileMax);
+            if (texcoord.x > tileMin.x && texcoord.x <= tileMax.x
+             && texcoord.y > tileMin.y && texcoord.y <= tileMax.y) return i;
+        }
+
+        return -1;
+    }
+
+    void main() {
+        int tileCount = GetBloomTileCount();
+        int tile = GetBloomTileOuterIndex(tileCount);
 
         vec3 final = vec3(0.0);
         if (tile >= 0) {
+            vec2 viewSize = vec2(viewWidth, viewHeight);
+            vec2 pixelSize = 1.0 / viewSize;
+
+            vec2 tileMin, tileMax;
+            GetBloomTileInnerBounds(tile, tileMin, tileMax);
+
             //vec4 clipPos = vec4(texcoord, 0.0, 1.0);
 
-            ivec2 itex = ivec2(texcoord * viewSize);
-            float clipDepth = texelFetch(depthtex0, itex, 0).r;
-            float depthLinear = linearizeDepth(clipDepth * 2.0 - 1.0, near, far);
-            float depthFactor = clamp(1.0 - (depthLinear - near) / far, 0.0, 1.0);
+            //ivec2 itex = ivec2(texcoord * viewSize);
+            //float clipDepth = texelFetch(depthtex0, itex, 0).r;
+            //float depthLinear = linearizeDepth(clipDepth * 2.0 - 1.0, near, far);
+            //float depthFactor = clamp(1.0 - (depthLinear - near) / far, 0.0, 1.0);
             //clipPos = clipPos * 2.0 - 1.0;
 
             //vec4 viewPos = gbufferProjectionInverse * clipPos;
             //viewPos.xyz /= viewPos.w;
 
-            float tileSize = tileMax - tileMin;
-            vec2 tileTex = texcoord - tileMin;
-            tileTex /= tileSize;
+            vec2 tileSize = tileMax - tileMin;
+            vec2 tileTex = (texcoord - tileMin) / tileSize;
+            //tileTex = clamp(tileTex, 0.5 * pixelSize, 1.0 - 0.5 * pixelSize);
 
-            final = texture2DLod(colortex4, tileTex, tile).rgb;// * depthFactor;
+            final = texture2DLod(colortex4, tileTex, tile).rgb;// * (0.5 + 0.5 * depthFactor);
 
             float lum = luminance(final) / exp2(5.0 + 0.2 * tile);
             final *= clamp(lum, 0.0, 1.0);
-            //final = vec3(lum);
-
-            //final /= exp2(5.0 + 0.5 * tile);
-
-            //final *= exp2(tile);
         }
 
     /* DRAWBUFFERS:7 */

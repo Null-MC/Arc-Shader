@@ -198,6 +198,11 @@ value.CAMERA_EXPOSURE.20=2.0
 screen.EFFECT_BLOOM_OPTIONS=Bloom
 
 option.BLOOM_ENABLED=Enabled
+option.BLOOM_ENABLED.comment=When enabled, bright objects onscreen will have a glow to better show brightness.
+
+option.BLOOM_STRENGTH=Strength
+option.BLOOM_STRENGTH.comment=How strong/visible the effect should be.
+suffix.BLOOM_STRENGTH=%
 
 
 screen.EFFECT_RSM_OPTIONS=RSM GI

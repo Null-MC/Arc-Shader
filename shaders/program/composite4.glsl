@@ -68,14 +68,21 @@ varying vec2 texcoord;
             vec3 color = texture(colortex4, texcoord).rgb;
 
             #ifdef BLOOM_ENABLED
-                int tileCount = textureQueryLevels(colortex4);
+                int tileCount = GetBloomTileCount();
+
+                vec3 bloom = vec3(0.0);
                 for (int i = 0; i < tileCount; i++) {
-                    float tileMin = GetBloomTileMin(i);
-                    float tileMax = GetBloomTileMax(i);
+                    vec2 tileMin, tileMax;
+                    GetBloomTileInnerBounds(i, tileMin, tileMax);
 
                     vec2 tileTex = texcoord * (tileMax - tileMin) + tileMin;
-                    color += texture(colortex7, tileTex, 0).rgb;
+                    tileTex = clamp(tileTex, tileMin, tileMax);
+
+                    vec3 sample = textureLod(colortex7, tileTex, 0).rgb;
+                    bloom += clamp(sample, 0.0, 1.0);
                 }
+
+                color += bloom * (0.01 * BLOOM_STRENGTH);
             #endif
 
             #if CAMERA_EXPOSURE == 0
