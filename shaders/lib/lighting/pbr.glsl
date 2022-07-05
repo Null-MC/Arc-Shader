@@ -201,9 +201,10 @@
             #endif
         #endif
 
-        vec3 skyAmbient = GetSkyAmbientColor(viewNormal) * (0.1 + 0.9 * skyLight); //skyLightColor;
+        vec3 skyAmbient = GetSkyAmbientColor(viewNormal) * skyLight; //skyLightColor;
 
-        vec3 blockAmbient = max(vec3(blockLight), skyAmbient * SHADOW_BRIGHTNESS);
+        vec3 blockAmbient = max(vec3(0.002 + blockLight), skyAmbient * SHADOW_BRIGHTNESS);
+        //return vec4(blockAmbient, 1.0);
 
         vec3 ambient = blockAmbient * material.occlusion;
 
@@ -240,7 +241,7 @@
             diffuse *= HCM_AMBIENT;
         }
 
-        ambient += minLight;
+        //ambient += minLight;
 
         float emissive = material.emission * 24.0;
 

@@ -1,4 +1,4 @@
-const float sunIntensity = 14.0;
+const float sunIntensity = 6.0;
 const float moonIntensity = 0.1;
 const vec3 sunColor = vec3(1.0, 0.9, 0.8);
 const vec3 moonColor = vec3(0.5, 0.6, 1.0);

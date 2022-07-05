@@ -83,7 +83,7 @@ varying vec2 texcoord;
                 float skyBrightness = skyLightIntensity.x + skyLightIntensity.y;
 
                 float f = min(eyeBrightness * skyBrightness, 1.0);
-                float exposure = mix(-1.0, -2.0, f);
+                float exposure = mix(0.0, -2.2, f);
             #else
                 const float exposure = 0.1 * CAMERA_EXPOSURE;
             #endif
