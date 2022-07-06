@@ -50,7 +50,7 @@ vec3 tonemap_ReinhardJodie(const in vec3 color)
     return mix(color / (1.0 + luma), tonemapped_color, tonemapped_color);
 }
 
-vec3 tonemap_Uncharted2(const in vec3 x)
+vec3 tonemap_Uncharted2_curve(const in vec3 x)
 {
     const float A = 0.15;
     const float B = 0.50;
@@ -59,7 +59,12 @@ vec3 tonemap_Uncharted2(const in vec3 x)
     const float E = 0.02;
     const float F = 0.30;
 
-    return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
+    return ((x * (A*x + C*B) + D*E) / (x * (A*x + B) + D*F)) - E/F;
+}
+
+vec3 tonemap_Uncharted2(const in vec3 x, const in float whitePoint)
+{
+    return 1.6 * tonemap_Uncharted2_curve(x) / tonemap_Uncharted2_curve(vec3(whitePoint));
 }
 
 vec3 tonemap_ACESFit(const in vec3 x)
@@ -149,7 +154,7 @@ vec3 ApplyTonemap(const in vec3 color)
 #elif TONEMAP == TONEMAP_ReinhardJodie
     return tonemap_ReinhardJodie(color);
 #elif TONEMAP == TONEMAP_Uncharted2
-    return tonemap_Uncharted2(color);
+    return tonemap_Uncharted2(color, 18.0);
 #elif TONEMAP == TONEMAP_ACESFit
     return tonemap_ACESFit(color);
 #elif TONEMAP == TONEMAP_ACESFit2
@@ -164,6 +169,37 @@ vec3 ApplyTonemap(const in vec3 color)
     return tonemap_ReinhardExtendedLuminance(color, 4.0);
 #elif TONEMAP == TONEMAP_Tech
     return tonemap_Tech(color);
+#else
+    return color;
+#endif
+}
+
+vec3 TonemapLinearToRGB(const in vec3 color)
+{
+#if TONEMAP == TONEMAP_HejlBurgess
+    return color;
+#elif TONEMAP == TONEMAP_AcesFilm
+    return LinearToRGB(color);
+#elif TONEMAP == TONEMAP_Reinhard
+    return LinearToRGB(color);
+#elif TONEMAP == TONEMAP_ReinhardJodie
+    return color; // ???
+#elif TONEMAP == TONEMAP_Uncharted2
+    return LinearToRGB(color);
+#elif TONEMAP == TONEMAP_ACESFit
+    return LinearToRGB(color);
+#elif TONEMAP == TONEMAP_ACESFit2
+    return color; // ???
+#elif TONEMAP == TONEMAP_FilmicHejl2015
+    return color; // ???
+#elif TONEMAP == TONEMAP_Burgess
+    return color; // ???
+#elif TONEMAP == TONEMAP_BurgessModified
+    return color; // ???
+#elif TONEMAP == TONEMAP_ReinhardExtendedLuminance
+    return color; // ???
+#elif TONEMAP == TONEMAP_Tech
+    return color; // ???
 #else
     return LinearToRGB(color);
 #endif

@@ -6,6 +6,7 @@ varying vec4 glcolor;
 flat varying vec2 skyLightIntensity;
 
 #ifdef RENDER_VERTEX
+    uniform float rainStrength;
     uniform vec3 upPosition;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;

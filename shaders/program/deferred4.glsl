@@ -8,6 +8,7 @@ varying vec2 texcoord;
 #endif
 
 #ifdef RENDER_VERTEX
+    uniform float rainStrength;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
     uniform vec3 upPosition;
@@ -48,6 +49,7 @@ varying vec2 texcoord;
     uniform float viewWidth;
     uniform float viewHeight;
 
+    uniform float rainStrength;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
     uniform vec3 upPosition;

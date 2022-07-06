@@ -10,6 +10,7 @@ varying vec2 texcoord;
 #endif
 
 #ifdef RENDER_VERTEX
+    uniform float rainStrength;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
     uniform vec3 upPosition;
@@ -64,6 +65,20 @@ varying vec2 texcoord;
 
 
     #if DEBUG_VIEW == 0
+        mat4 GetSaturationMatrix(const in float saturation) {
+            const vec3 luminance = vec3(0.3086, 0.6094, 0.0820);
+            
+            float oneMinusSat = 1.0 - saturation;
+            vec3 red = vec3(luminance.x * oneMinusSat) + vec3(saturation, 0.0, 0.0);
+            vec3 green = vec3(luminance.y * oneMinusSat) + vec3(0.0, saturation, 0.0);
+            vec3 blue = vec3(luminance.z * oneMinusSat) + vec3(0.0, 0.0, saturation);
+            
+            return mat4(red,           0.0,
+                        green,         0.0,
+                        blue,          0.0,
+                        0.0, 0.0, 0.0, 1.0);
+        }
+
         vec3 GetFinalColor() {
             vec3 color = texture(colortex4, texcoord).rgb;
 
@@ -89,18 +104,26 @@ varying vec2 texcoord;
             #endif
 
             #if CAMERA_EXPOSURE == 0
-                float eyeBrightness = max(eyeBrightnessSmooth.x, eyeBrightnessSmooth.y) / 240.0;
-                float skyBrightness = skyLightIntensity.x + skyLightIntensity.y;
+                vec2 eyeBrightness = eyeBrightnessSmooth / 240.0;
+                eyeBrightness.y *= max(skyLightIntensity.x, skyLightIntensity.y);
+                float finalBrightness = max(eyeBrightness.x, eyeBrightness.y);
 
-                float f = min(eyeBrightness * skyBrightness, 1.0);
-                float exposure = mix(1.0, -2.2, f);
+                float f = min(finalBrightness * finalBrightness, 1.0);
+                float exposure = mix(0.0, 1.8, f);
             #else
                 const float exposure = 0.1 * CAMERA_EXPOSURE;
             #endif
 
             color *= exp2(exposure);
             color = ApplyTonemap(color);
-            return LinearToRGB(color);
+
+            //mat4 matSaturation = GetSaturationMatrix(1.5);
+            //color = mat3(matSaturation) * color;
+
+            //color = LinearToRGB(color);
+            color = TonemapLinearToRGB(color);
+
+            return color;
         }
     #endif
 

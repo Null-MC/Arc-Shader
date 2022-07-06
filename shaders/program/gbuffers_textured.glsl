@@ -36,6 +36,8 @@ varying float geoNoL;
 	uniform mat4 gbufferModelView;
 	uniform mat4 gbufferModelViewInverse;
 
+    uniform float rainStrength;
+
 	#ifdef SHADOW_ENABLED
 		uniform mat4 shadowModelView;
 		uniform mat4 shadowProjection;
@@ -81,12 +83,13 @@ varying float geoNoL;
 	uniform sampler2D gtexture;
 	uniform sampler2D lightmap;
 
-    uniform int fogMode;
+    uniform float rainStrength;
+    uniform vec3 skyColor;
+    uniform vec3 fogColor;
     uniform float fogStart;
     uniform float fogEnd;
     uniform int fogShape;
-    uniform vec3 fogColor;
-    uniform vec3 skyColor;
+    uniform int fogMode;
 
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
         uniform float alphaTestRef;

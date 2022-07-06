@@ -14,6 +14,7 @@ const int colortex7Format = RGB16F;
 #define ENABLE_WAVING
 #define HANDLIGHT_ENABLED
 #define SHADOW_BRIGHTNESS 0.30 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
+#define RAIN_DARKNESS 0.02
 //#define ANIM_USE_WORLDTIME
 
 
@@ -105,8 +106,8 @@ const int colortex7Format = RGB16F;
 
 const vec3 sunColor = vec3(1.0, 0.9, 0.8);
 const vec3 moonColor = vec3(0.5, 0.6, 1.0);
-const float sunIntensity = 16.0;
-const float moonIntensity = 0.2;
+const float sunIntensity = 1.0;
+const float moonIntensity = 0.08;
 
 const vec3 minLight = vec3(0.01);
 const float tile_dist_bias_factor = 0.012288;

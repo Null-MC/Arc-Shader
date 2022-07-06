@@ -5,11 +5,19 @@
 
 	    vec3 sunLightDir = normalize(sunPosition);
 	    float sunLightStrength = max(dot(upDir, sunLightDir), 0.0);
+	    sunLightStrength = pow(sunLightStrength, 0.3);
 
 	    vec3 moonLightDir = normalize(moonPosition);
 	    float moonLightStrength = max(dot(upDir, moonLightDir), 0.0);
+	    moonLightStrength = pow(moonLightStrength, 0.3);
 
-	    return vec2(sunLightStrength * sunIntensity, moonLightStrength * moonIntensity);
+	    vec2 skyLightIntensity = vec2(
+	    	sunLightStrength * sunIntensity,
+	    	moonLightStrength * moonIntensity);
+
+	    skyLightIntensity *= 1.0 - rainStrength * (1.0 - RAIN_DARKNESS);
+
+	    return skyLightIntensity;
 	}
 
 	vec3 GetSkyLightColor(const in vec2 skyLightIntensity) {

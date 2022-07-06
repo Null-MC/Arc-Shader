@@ -56,6 +56,8 @@ flat varying int materialId;
 	uniform mat4 gbufferModelViewInverse;
 	uniform vec3 cameraPosition;
 
+    uniform float rainStrength;
+
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
     	uniform vec3 chunkOffset;
     #endif
@@ -118,12 +120,13 @@ flat varying int materialId;
 
     uniform int heldBlockLightValue;
 
-    uniform int fogMode;
+    uniform float rainStrength;
+    uniform vec3 skyColor;
+    uniform vec3 fogColor;
     uniform float fogStart;
     uniform float fogEnd;
+    uniform int fogMode;
     uniform int fogShape;
-    uniform vec3 fogColor;
-    uniform vec3 skyColor;
 
     #ifdef AF_ENABLED
         uniform float viewHeight;

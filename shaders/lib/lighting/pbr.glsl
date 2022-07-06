@@ -272,7 +272,7 @@
 
         #ifdef SSS_ENABLED
             //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
-            vec3 ambient_sss = SHADOW_BRIGHTNESS * material.scattering * material.occlusion * skyLightColor;
+            vec3 ambient_sss = skyAmbient * material.scattering * material.occlusion;
 
             // Transmission
             vec3 sss = (1.0 - shadowFinal) * shadowSSS * material.scattering * skyLightColor;// * max(-NoL, 0.0);
