@@ -103,6 +103,11 @@ const int colortex7Format = RGB16F;
 #define EPSILON 1e-6
 #define GAMMA 2.2
 
+const vec3 sunColor = vec3(1.0, 0.9, 0.8);
+const vec3 moonColor = vec3(0.5, 0.6, 1.0);
+const float sunIntensity = 6.0;
+const float moonIntensity = 0.2;
+
 const vec3 minLight = vec3(0.01);
 const float tile_dist_bias_factor = 0.012288;
 const vec3 handOffset = vec3(0.2, -0.3, -0.2);

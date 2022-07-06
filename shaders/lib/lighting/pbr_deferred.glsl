@@ -22,7 +22,7 @@
         vec4 lightingMap = texelFetch(colortex3, iTex, 0);
 
         vec3 clipPos = vec3(texcoord, screenDepth) * 2.0 - 1.0;
-        vec4 viewPos = (gbufferProjectionInverse * vec4(clipPos, 1.0));
+        vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
         viewPos.xyz /= viewPos.w;
 
         PbrMaterial material = PopulateMaterial(colorMap, normalMap, specularMap);

@@ -63,9 +63,14 @@ varying vec2 texcoord;
         uniform vec3 shadowLightPosition;
     #endif
 
+
+    #ifndef ATMOSPHERE_ENABLED
+        #include "/lib/world/sky.glsl"
+        #include "/lib/world/fog.glsl"
+    #endif
+    
     #include "/lib/sampling/linear.glsl"
-    #include "/lib/world/fog.glsl"
-    #include "/lib/world/sky.glsl"
+    #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/material.glsl"
     #include "/lib/lighting/material_reader.glsl"
     #include "/lib/lighting/hcm.glsl"

@@ -25,10 +25,19 @@ flat varying vec2 skyLightIntensity;
 #ifdef RENDER_FRAG
 	uniform sampler2D gtexture;
 
+	uniform int renderStage;
+
 
 	void main() {
 		vec4 color = texture2D(gtexture, texcoord) * glcolor;
-		color.rgb = RGBToLinear(color.rgb) * skyLightIntensity.x * 45.0;
+		color.rgb = RGBToLinear(color.rgb);
+
+		if (renderStage == MC_RENDER_STAGE_SUN) {
+			color.rgb *= skyLightIntensity.x * 45.0;
+		}
+		else if (renderStage == MC_RENDER_STAGE_MOON) {
+			color.rgb *= skyLightIntensity.y * 20.0;
+		}
 
 	/* DRAWBUFFERS:4 */
 		gl_FragData[0] = color; //gcolor

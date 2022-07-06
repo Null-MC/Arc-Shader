@@ -22,7 +22,7 @@
         float shadow = step(EPSILON, geoNoL) * step(1.0 / 32.0, skyLight);
         vec3 lightColor = skyLightColor;
 
-        vec3 skyAmbient = SHADOW_BRIGHTNESS * GetSkyAmbientColor(viewNormal) * (0.1 + 0.9 * skyLight);
+        vec3 skyAmbient = SHADOW_BRIGHTNESS * GetSkyAmbientLight(viewNormal) * skyLight;
         vec3 blockAmbient = max(vec3(blockLight), skyAmbient);
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != 0

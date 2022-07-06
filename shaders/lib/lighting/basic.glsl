@@ -52,5 +52,19 @@
 #endif
 
 #ifdef RENDER_FRAG
-    <empty>
+    vec3 GetSkyAmbientLight(const in vec3 normal) {
+        vec3 upDir = normalize(upPosition);
+
+        vec3 sunLightDir = normalize(sunPosition);
+        float sunLightStrength = max(dot(upDir, sunLightDir), 0.0);
+        float sunLightNormal = max(dot(normal, sunLightDir), 0.0);
+        vec3 sunLight = sunColor * sunLightStrength * sunLightNormal * sunIntensity;
+
+        vec3 moonLightDir = normalize(moonPosition);
+        float moonLightStrength = max(dot(upDir, moonLightDir), 0.0);
+        float moonLightNormal = max(dot(normal, moonLightDir), 0.0);
+        vec3 moonLight = moonColor * moonLightStrength * moonLightNormal * moonIntensity;
+
+        return SHADOW_BRIGHTNESS * (skyColor + sunLight + moonLight);
+    }
 #endif

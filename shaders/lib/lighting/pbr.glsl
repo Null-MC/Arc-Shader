@@ -158,7 +158,7 @@
             float LoHm = max(dot(lightDir, halfDir), EPSILON);
 
             float NoHm = max(dot(viewNormal, halfDir), EPSILON);
-            float NoVm = max(dot(viewNormal, viewDir), EPSILON);
+            //float NoVm = max(dot(viewNormal, viewDir), EPSILON);
             float VoHm = max(dot(viewDir, halfDir), EPSILON);
             //vec3 NxH = cross(viewNormal, halfDir);
 
@@ -222,9 +222,9 @@
             #endif
         #endif
 
-        vec3 skyAmbient = GetSkyAmbientColor(viewNormal) * skyLight; //skyLightColor;
+        vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * skyLight; //skyLightColor;
 
-        vec3 blockAmbient = max(vec3(0.002 + blockLight), skyAmbient * SHADOW_BRIGHTNESS);
+        vec3 blockAmbient = 0.002 + max(vec3(blockLight), skyAmbient);
         //return vec4(blockAmbient, 1.0);
 
         vec3 ambient = blockAmbient * material.occlusion;
@@ -265,7 +265,7 @@
 
         //ambient += minLight;
 
-        float emissive = material.emission * 24.0;
+        float emissive = material.emission * 20.0;
 
         vec4 final = material.albedo;
         final.rgb = final.rgb * (ambient + emissive) + diffuse + specular;
@@ -289,20 +289,14 @@
 
         final.a = min(final.a + luminance(specular), 1.0);
 
-        #ifndef RENDER_DEFERRED
-            #if defined RENDER_WATER
+        #if defined RENDER_DEFERRED && !defined ATMOSPHERE_ENABLED
+            ApplyFog(final.rgb, viewPos.xyz, skyLight);
+        #elif defined RENDER_GBUFFER
+            #ifdef RENDER_WATER
                 ApplyFog(final, viewPos.xyz, skyLight, EPSILON);
             #else
                 ApplyFog(final, viewPos.xyz, skyLight, alphaTestRef);
             #endif
-        #endif
-
-        #if defined RENDER_DEFERRED && !defined ATMOSPHERE_ENABLED
-            ApplyFog(final.rgb, viewPos.xyz, skyLight);
-        #elif defined RENDER_WATER
-            ApplyFog(final, viewPos.xyz, skyLight, EPSILON);
-        #else
-            ApplyFog(final, viewPos.xyz, skyLight, alphaTestRef);
         #endif
 
         //return mix(final, reflectColor, 0.5);

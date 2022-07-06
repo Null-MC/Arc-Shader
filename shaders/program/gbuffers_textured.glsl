@@ -133,8 +133,9 @@ varying float geoNoL;
 	    #endif
 	#endif
 
-    #include "/lib/world/fog.glsl"
     #include "/lib/world/sky.glsl"
+    #include "/lib/world/fog.glsl"
+    #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/basic_forward.glsl"
 
 

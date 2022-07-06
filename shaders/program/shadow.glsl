@@ -186,7 +186,7 @@ varying vec4 glcolor;
 
     /* RENDERTARGETS: 0 */
     #ifdef IS_OPTIFINE
-        layout(location = 0) out uvec2 outColor0;
+        out uvec2 outColor0;
     #endif
 
 

@@ -13,29 +13,22 @@ varying vec4 starData; //rgb = star color, a = flag for weather or not this pixe
 #ifdef RENDER_FRAG
 	uniform mat4 gbufferModelView;
 	uniform mat4 gbufferProjectionInverse;
+	uniform vec3 upPosition;
 	uniform float viewWidth;
 	uniform float viewHeight;
 	uniform vec3 fogColor;
 	uniform vec3 skyColor;
 
+	#include "/lib/world/sky.glsl"
 
-	float fogify(float x, float w) {
-		return w / (x * x + w);
-	}
-
-	vec3 calcSkyColor(vec3 pos) {
-		float upDot = dot(pos, gbufferModelView[1].xyz);
-		return mix(skyColor, fogColor, fogify(max(upDot, 0.0), 0.25));
-	}
 
 	void main() {
-		vec3 clipPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), 1.0);
+		vec3 clipPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), 1.0) * 2.0 - 1.0;
 		vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
 		viewPos.xyz /= viewPos.w;
 
 		vec3 viewDir = normalize(viewPos.xyz);
-		vec3 color = calcSkyColor(viewDir);
-		color = RGBToLinear(color);
+		vec3 color = GetSkyColor(viewDir);
 
 		color += RGBToLinear(starData.rgb) * starData.a * 10.0;
 

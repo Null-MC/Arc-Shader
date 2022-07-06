@@ -182,8 +182,9 @@ flat varying int materialId;
         #include "/lib/parallax.glsl"
     #endif
 
-    #include "/lib/world/fog.glsl"
     #include "/lib/world/sky.glsl"
+    #include "/lib/world/fog.glsl"
+    #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/material.glsl"
     #include "/lib/lighting/material_reader.glsl"
     #include "/lib/lighting/hcm.glsl"

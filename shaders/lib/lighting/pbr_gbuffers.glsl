@@ -93,9 +93,9 @@
 
         #ifdef PARALLAX_SMOOTH
             #ifdef PARALLAX_USE_TEXELFETCH
-                normalMap.rgb = FetchLinearRGB(normals, atlasCoord * atlasSize);
+                normalMap.rgb = TexelFetchLinearRGB(normals, atlasCoord * atlasSize);
             #else
-                normalMap.rgb = SampleLinearRGB(normals, atlasCoord, atlasSize);
+                normalMap.rgb = TextureGradLinearRGB(normals, atlasCoord, atlasSize, dFdXY);
             #endif
         #else
             normalMap.rgb = texture2DGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).rgb;
