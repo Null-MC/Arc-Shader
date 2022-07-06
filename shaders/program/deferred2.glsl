@@ -101,9 +101,9 @@ varying vec2 texcoord;
     #include "/lib/rsm.glsl"
 
     /* RENDERTARGETS: 5,6 */
-    layout(location = 0) out vec3 outColor;
+    out vec3 outColor;
     #ifdef RSM_UPSCALE
-        layout(location = 1) out float outDepth;
+        out float outDepth;
     #endif
 
 

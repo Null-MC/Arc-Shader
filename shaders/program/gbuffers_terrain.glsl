@@ -112,6 +112,8 @@ varying vec3 tanViewPos;
 
     #ifdef AF_ENABLED
     	uniform float viewHeight;
+
+        #include "/lib/sampling/anisotropic.glsl"
     #endif
 
 	#ifdef SHADOW_ENABLED

@@ -33,7 +33,7 @@ flat varying vec2 skyLightIntensity;
 		color.rgb = RGBToLinear(color.rgb);
 
 		if (renderStage == MC_RENDER_STAGE_SUN) {
-			color.rgb *= skyLightIntensity.x * 45.0;
+			color.rgb *= skyLightIntensity.x * 10.0;
 		}
 		else if (renderStage == MC_RENDER_STAGE_MOON) {
 			color.rgb *= skyLightIntensity.y * 20.0;
