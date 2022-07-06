@@ -4,6 +4,7 @@ const vec3 sunColor = vec3(1.0, 0.9, 0.8);
 const vec3 moonColor = vec3(0.5, 0.6, 1.0);
 
 
+// returns: x:sun y:moon
 vec2 GetSkyLightIntensity() {
 	vec3 upDir = normalize(upPosition);
 

@@ -22,6 +22,8 @@ varying vec2 texcoord;
 
     #include "/lib/bloom.glsl"
 
+    const vec2 direction = vec2(1.0, 0.0);
+
 
     void main() {
         vec2 tileMin, tileMax;
@@ -29,7 +31,7 @@ varying vec2 texcoord;
         int tile = GetBloomTileInnerIndex(tileCount, tileMin, tileMax);
 
         vec3 final = vec3(0.0);
-        if (tile >= 0) final = BloomBlur13(texcoord, tileMin, tileMax, vec2(1.0, 0.0));
+        if (tile >= 0) final = BloomBlur13(texcoord, tileMin, tileMax, direction);
 
     /* DRAWBUFFERS:7 */
         gl_FragData[0] = vec4(final, 1.0);

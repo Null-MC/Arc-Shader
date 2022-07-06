@@ -18,10 +18,10 @@ varying vec2 texcoord;
 
     uniform float viewWidth;
     uniform float viewHeight;
-    uniform float near;
-    uniform float far;
+    //uniform float near;
+    //uniform float far;
 
-    #include "/lib/depth.glsl"
+    //#include "/lib/depth.glsl"
     #include "/lib/bloom.glsl"
 
 
@@ -64,7 +64,8 @@ varying vec2 texcoord;
             vec2 tileTex = (texcoord - tileMin) / tileSize;
             //tileTex = clamp(tileTex, 0.5 * pixelSize, 1.0 - 0.5 * pixelSize);
 
-            final = texture2DLod(colortex4, tileTex, tile).rgb;// * (0.5 + 0.5 * depthFactor);
+            final = texture2DLod(colortex4, tileTex, tile).rgb;
+            //final *= (0.5 + 0.5 * depthFactor);
 
             float lum = luminance(final) / exp2(5.0 + 0.2 * tile);
             final *= clamp(lum, 0.0, 1.0);

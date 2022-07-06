@@ -55,12 +55,32 @@
         return k * k * (1.0 / PI);
     }
 
+    float GGX_Fast(const in float NoH, const in vec3 NxH, const in float roughL)
+    {
+        float a = NoH * roughL;
+        float k = roughL / (dot(NxH, NxH) + a * a);
+        return min(k * k * invPI, 65504.0);
+    }
+
+    float SmithGGXCorrelated(const in float NoV, const in float NoL, const in float roughL) {
+        float a2 = roughL * roughL;
+        float GGXV = NoL * sqrt(max(NoV * NoV * (1.0 - a2) + a2, EPSILON));
+        float GGXL = NoV * sqrt(max(NoL * NoL * (1.0 - a2) + a2, EPSILON));
+        return clamp(0.5 / (GGXV + GGXL), 0.0, 1.0);
+    }
+
+    float SmithGGXCorrelated_Fast(const in float NoV, const in float NoL, const in float roughL) {
+        float GGXV = NoL * (NoV * (1.0 - roughL) + roughL);
+        float GGXL = NoV * (NoL * (1.0 - roughL) + roughL);
+        return clamp(0.5 / (GGXV + GGXL), 0.0, 1.0);
+    }
+
     float SmithHable(const in float LdotH, const in float alpha)
     {
         return 1.0 / mix(LdotH * LdotH, 1.0, alpha * alpha * 0.25);
     }
 
-    vec3 GetSpecularBRDF(const in PbrMaterial material, const in float LoH, const in float NoH, const in float VoH, const in float roughL)
+    vec3 GetSpecularBRDF(const in PbrMaterial material, const in float NoV, const in float NoL, const in float NoH, const in float VoH, const in float roughL)
     {
         // Fresnel
         vec3 F;
@@ -77,9 +97,10 @@
         float D = GGX(NoH, roughL);
 
         // Geometric Visibility
-        float G = SmithHable(LoH, roughL);
+        //float G = SmithHable(LoH, roughL);
+        float G = SmithGGXCorrelated(NoV, NoL, roughL);
 
-        return clamp(D, 0.0, 10.0) * F * G;
+        return clamp(D * F * G, 0.0, 6.0);
     }
 
     vec3 GetDiffuse_Burley(const in vec3 albedo, const in float NoV, const in float NoL, const in float LoH, const in float roughL)
@@ -123,26 +144,26 @@
         }
 
         void ApplyHandLighting(inout vec3 diffuse, inout vec3 specular, const in PbrMaterial material, const in vec3 viewNormal, const in vec3 viewPos, const in vec3 viewDir, const in float NoVm, const in float roughL) {
-            vec3 handLightPos = handOffset - viewPos.xyz;
-            vec3 handLightDir = normalize(handLightPos);
+            vec3 lightPos = handOffset - viewPos.xyz;
+            vec3 lightDir = normalize(lightPos);
 
-            float hand_NoLm = max(dot(viewNormal, handLightDir), EPSILON);
+            float NoLm = max(dot(viewNormal, lightDir), EPSILON);
+            if (NoLm < EPSILON) return;
 
-            if (hand_NoLm > EPSILON) {
-                float handLightDist = length(handLightPos);
-                vec3 handHalfDir = normalize(handLightDir + viewDir);
-                float hand_LoHm = max(dot(handLightDir, handHalfDir), EPSILON);
+            float lightDist = length(lightPos);
+            float attenuation = GetHandLightAttenuation(heldBlockLightValue, lightDist);
+            if (attenuation < EPSILON) return;
 
-                float attenuation = GetHandLightAttenuation(heldBlockLightValue, handLightDist);
+            vec3 halfDir = normalize(lightDir + viewDir);
+            float LoHm = max(dot(lightDir, halfDir), EPSILON);
 
-                if (attenuation > EPSILON) {
-                    float hand_NoHm = max(dot(viewNormal, handHalfDir), EPSILON);
-                    float hand_VoHm = max(dot(viewDir, handHalfDir), EPSILON);
+            float NoHm = max(dot(viewNormal, halfDir), EPSILON);
+            float NoVm = max(dot(viewNormal, viewDir), EPSILON);
+            float VoHm = max(dot(viewDir, halfDir), EPSILON);
+            //vec3 NxH = cross(viewNormal, halfDir);
 
-                    diffuse += GetDiffuseBSDF(material, NoVm, hand_NoLm, hand_LoHm, roughL) * attenuation * handLightColor;
-                    specular += GetSpecularBRDF(material, hand_LoHm, hand_NoHm, hand_VoHm, roughL) * attenuation * handLightColor;
-                }
-            }
+            diffuse += GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * attenuation * handLightColor;
+            specular += GetSpecularBRDF(material, NoVm, NoLm, NoHm, VoHm, roughL) * attenuation * handLightColor;
         }
     #endif
 
@@ -221,8 +242,9 @@
         #ifdef SHADOW_ENABLED
             float NoHm = max(dot(viewNormal, halfDir), EPSILON);
             float VoHm = max(dot(viewDir, halfDir), EPSILON);
+            //vec3 NxH = cross(viewNormal, halfDir);
 
-            specular = GetSpecularBRDF(material, LoHm, NoHm, VoHm, roughL) * skyLightColor * shadowFinal;
+            specular = GetSpecularBRDF(material, NoVm, NoLm, NoHm, VoHm, roughL) * skyLightColor * shadowFinal;
         #endif
 
         #ifdef HANDLIGHT_ENABLED
@@ -273,6 +295,14 @@
             #else
                 ApplyFog(final, viewPos.xyz, skyLight, alphaTestRef);
             #endif
+        #endif
+
+        #if defined RENDER_DEFERRED && !defined ATMOSPHERE_ENABLED
+            ApplyFog(final.rgb, viewPos.xyz, skyLight);
+        #elif defined RENDER_WATER
+            ApplyFog(final, viewPos.xyz, skyLight, EPSILON);
+        #else
+            ApplyFog(final, viewPos.xyz, skyLight, alphaTestRef);
         #endif
 
         //return mix(final, reflectColor, 0.5);

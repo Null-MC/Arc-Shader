@@ -30,6 +30,7 @@ varying vec2 texcoord;
     uniform sampler2D colortex1;
     uniform sampler2D colortex2;
     uniform sampler2D colortex3;
+    uniform sampler2D colortex4;
     uniform sampler2D lightmap;
     uniform sampler2D depthtex0;
 
@@ -52,11 +53,18 @@ varying vec2 texcoord;
     uniform vec3 upPosition;
     uniform vec3 skyColor;
 
+    #ifndef ATMOSPHERE_ENABLED
+        uniform vec3 fogColor;
+        uniform float fogStart;
+        uniform float fogEnd;
+    #endif
+
     #ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;
     #endif
 
     #include "/lib/sampling/linear.glsl"
+    #include "/lib/world/fog.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/lighting/material.glsl"
     #include "/lib/lighting/material_reader.glsl"

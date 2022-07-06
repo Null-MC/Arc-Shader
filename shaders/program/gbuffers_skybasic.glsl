@@ -13,12 +13,10 @@ varying vec4 starData; //rgb = star color, a = flag for weather or not this pixe
 #ifdef RENDER_FRAG
 	uniform mat4 gbufferModelView;
 	uniform mat4 gbufferProjectionInverse;
-	uniform float viewHeight;
 	uniform float viewWidth;
+	uniform float viewHeight;
 	uniform vec3 fogColor;
 	uniform vec3 skyColor;
-
-	//#include "/lib/tonemap.glsl"
 
 
 	float fogify(float x, float w) {
@@ -31,21 +29,17 @@ varying vec4 starData; //rgb = star color, a = flag for weather or not this pixe
 	}
 
 	void main() {
-		vec3 color;
+		vec3 clipPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), 1.0);
+		vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
+		viewPos.xyz /= viewPos.w;
 
-		if (starData.a > 0.5) {
-			color = starData.rgb;
-		}
-		else {
-			vec3 viewPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight) * 2.0 - 1.0, 1.0);
-			viewPos = (gbufferProjectionInverse * vec4(viewPos, 1.0)).xyz;
-			vec3 viewDir = normalize(viewPos);
+		vec3 viewDir = normalize(viewPos.xyz);
+		vec3 color = calcSkyColor(viewDir);
+		color = RGBToLinear(color);
 
-			color = calcSkyColor(viewDir);
-			color = color;
-		}
+		color += RGBToLinear(starData.rgb) * starData.a * 10.0;
 
-	/* DRAWBUFFERS:0 */
+	/* DRAWBUFFERS:4 */
 		gl_FragData[0] = vec4(color, 1.0);
 	}
 #endif

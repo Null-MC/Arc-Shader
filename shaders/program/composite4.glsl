@@ -82,6 +82,9 @@ varying vec2 texcoord;
                     bloom += clamp(sample, 0.0, 1.0);
                 }
 
+                float lum = luminance(bloom);
+                //color /= 1.0 + lum;
+
                 color += bloom * (0.01 * BLOOM_STRENGTH);
             #endif
 
