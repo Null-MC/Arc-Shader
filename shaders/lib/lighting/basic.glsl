@@ -13,7 +13,7 @@
 
         gl_Position = gl_ProjectionMatrix * vec4(viewPos, 1.0);
 
-        #if defined RENDER_TEXTURED || defined RENDER_BEACONBEAM
+        #if defined RENDER_TEXTURED || defined RENDER_WEATHER || defined RENDER_BEACONBEAM
             // TODO: extract billboard direction from view matrix?
 
             geoNoL = 1.0;
@@ -58,12 +58,15 @@
         vec3 sunLightDir = normalize(sunPosition);
         float sunLightStrength = max(dot(upDir, sunLightDir), 0.0);
         float sunLightNormal = max(dot(normal, sunLightDir), 0.0);
-        vec3 sunLight = sunColor * sunLightStrength * sunLightNormal * sunIntensity;
+        sunLightStrength = pow(sunLightStrength, 0.3);
 
         vec3 moonLightDir = normalize(moonPosition);
         float moonLightStrength = max(dot(upDir, moonLightDir), 0.0);
         float moonLightNormal = max(dot(normal, moonLightDir), 0.0);
-        vec3 moonLight = moonColor * moonLightStrength * moonLightNormal * moonIntensity;
+        moonLightStrength = pow(moonLightStrength, 0.3);
+
+        vec3 sunLight = sunColor * sunLightNormal * sunLightStrength * sunIntensity;
+        vec3 moonLight = moonColor * moonLightNormal * moonLightStrength * moonIntensity;
 
         return SHADOW_BRIGHTNESS * (skyColor + sunLight + moonLight);
     }

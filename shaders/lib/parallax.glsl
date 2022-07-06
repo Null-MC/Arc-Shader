@@ -8,11 +8,7 @@ vec2 GetLocalCoord(const in vec2 atlasCoord) {
     return (atlasCoord - atlasBounds[0]) / atlasBounds[1];
 }
 
-#ifdef PARALLAX_USE_TEXELFETCH
-    vec2 GetParallaxCoord(const in vec3 tanViewDir, out float texDepth, out vec3 traceDepth) {
-#else
-    vec2 GetParallaxCoord(const in mat2 dFdXY, const in vec3 tanViewDir, out float texDepth, out vec3 traceDepth) {
-#endif
+vec2 GetParallaxCoord(const in mat2 dFdXY, const in vec3 tanViewDir, out float texDepth, out vec3 traceDepth) {
     vec2 stepCoord = tanViewDir.xy * PARALLAX_DEPTH / (1.0 + tanViewDir.z * PARALLAX_SAMPLES);
     float stepDepth = 1.0 / PARALLAX_SAMPLES;
 
@@ -77,11 +73,7 @@ vec2 GetLocalCoord(const in vec2 atlasCoord) {
     #endif
 }
 
-#ifdef PARALLAX_USE_TEXELFETCH
-    float GetParallaxShadow(const in vec3 traceTex, const in vec3 tanLightDir) {
-#else
-    float GetParallaxShadow(const in vec3 traceTex, const in mat2 dFdXY, const in vec3 tanLightDir) {
-#endif
+float GetParallaxShadow(const in vec3 traceTex, const in mat2 dFdXY, const in vec3 tanLightDir) {
     vec2 stepCoord = tanLightDir.xy * PARALLAX_DEPTH * (1.0 / (1.0 + tanLightDir.z * PARALLAX_SHADOW_SAMPLES));
     float stepDepth = 1.0 / PARALLAX_SHADOW_SAMPLES;
 
@@ -123,11 +115,7 @@ vec2 GetLocalCoord(const in vec2 atlasCoord) {
 }
 
 #ifdef PARALLAX_SLOPE_NORMALS
-    #ifdef PARALLAX_USE_TEXELFETCH
-        vec3 GetParallaxSlopeNormal(const in vec2 atlasCoord, const in float traceDepth, const in vec3 tanViewDir) {
-    #else
-        vec3 GetParallaxSlopeNormal(const in vec2 atlasCoord, const in mat2 dFdXY, const in float traceDepth, const in vec3 tanViewDir) {
-    #endif
+    vec3 GetParallaxSlopeNormal(const in vec2 atlasCoord, const in mat2 dFdXY, const in float traceDepth, const in vec3 tanViewDir) {
         vec2 atlasPixelSize = 1.0 / atlasSize;
         float atlasAspect = atlasSize.x / atlasSize.y;
 

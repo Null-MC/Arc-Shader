@@ -1,4 +1,4 @@
-#extension GL_ARB_gpu_shader5 : enable
+#extension GL_ARB_shading_language_packing : enable
 
 #define RENDER_GBUFFER
 #define RENDER_TEXTURED
@@ -83,7 +83,9 @@ varying float geoNoL;
 	uniform sampler2D gtexture;
 	uniform sampler2D lightmap;
 
+    uniform ivec2 eyeBrightnessSmooth;
     uniform float rainStrength;
+
     uniform vec3 skyColor;
     uniform vec3 fogColor;
     uniform float fogStart;

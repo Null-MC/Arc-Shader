@@ -1,28 +1,26 @@
 const vec3 caveFogColor = vec3(0.02);
 
 
-float GetCaveFogFactor(const in float skyLightLevel) {
-    return max(0.96 - 3.0 * skyLightLevel, 0.0);
+float GetFogFactor(const in float viewDist, const in float start, const in float end, const in float strength) {
+    float distFactor = min(max(viewDist - start, 0.0) / (end - start), 1.0);
+    return pow(distFactor, strength);
 }
 
-float GetVanillaFogFactor(const in vec3 viewPos, const in float skyLightLevel) {
-	//vec3 fogPos = viewPos;
-	//if (fogShape == 1) fogPos.z = 0.0;
-    float _start = fogStart;
-    float _end = fogEnd;
-
-    float caveFogLevel = GetCaveFogFactor(skyLightLevel);
-    _start *= (1.0 - caveFogLevel);
-
-	return clamp((length(viewPos) - _start) / (_end - _start), 0.0, 1.0);
+float GetCaveFogFactor(const in float viewDist) {
+    float end = min(40.0, fogEnd);
+    return GetFogFactor(viewDist, 2.0, end, 1.0);
 }
 
-float GetCustomFogFactor(const in vec3 viewPos) {
-    float _start = 8.0;
-    float _end = fogEnd;
+float GetCustomFogFactor(const in float viewDist) {
+    float near = mix(8.0, 0.0, rainStrength);
+    float strength = mix(3.0, 0.36, rainStrength);
+    return GetFogFactor(viewDist, near, fogEnd, strength);
+}
 
-    float factor = clamp((length(viewPos) - _start) / (_end - _start), 0.0, 1.0);
-    return pow(factor, 2.0);
+float GetVanillaFogFactor(const in float viewDist) {
+    //vec3 fogPos = viewPos;
+    //if (fogShape == 1) fogPos.z = 0.0;
+    return GetFogFactor(viewDist, fogStart, fogEnd, 1.0);
 }
 
 float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightLevel) {
@@ -33,16 +31,31 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
         vec3 atmosphereColor = RGBToLinear(fogColor);
     #endif
 
-    float caveFogLevel = GetCaveFogFactor(skyLightLevel);
-    vec3 finalFogColor = mix(atmosphereColor, caveFogColor, caveFogLevel);
+    float viewDist = length(viewPos);
+    float maxFactor = 0.0;
 
-    float vanillaFogFactor = GetVanillaFogFactor(viewPos, skyLightLevel);
-    color = mix(color, finalFogColor, vanillaFogFactor);
+    float caveFactor = min(4.0 * skyLightLevel, 1.0);
+    vec3 caveFogColor = mix(vec3(0.002), atmosphereColor, caveFactor);
 
-    float customFogFactor = GetCustomFogFactor(viewPos);
-    color = mix(color, finalFogColor, customFogFactor);
+    float eyeBrightness = eyeBrightnessSmooth.y / 240.0;
+    float cameraCaveFactor = min(4.0 * eyeBrightness, 1.0);
 
-    return min(vanillaFogFactor + customFogFactor, 1.0);
+    float customFogFactor = GetCustomFogFactor(viewDist);
+    maxFactor = max(maxFactor, customFogFactor);
+
+    float vanillaFogFactor = GetVanillaFogFactor(viewDist);
+    maxFactor = max(maxFactor, vanillaFogFactor);
+
+    float caveFogFactor = GetCaveFogFactor(viewDist);
+    caveFogFactor *= 1.0 - caveFactor;
+    caveFogFactor *= 1.0 - cameraCaveFactor * vanillaFogFactor;
+    maxFactor = max(maxFactor, caveFogFactor);
+
+    color = mix(color, caveFogColor, caveFogFactor);
+    color = mix(color, atmosphereColor, customFogFactor);
+    color = mix(color, atmosphereColor, vanillaFogFactor);
+
+    return maxFactor;
 }
 
 void ApplyFog(inout vec4 color, const in vec3 viewPos, const in float skyLightLevel, const in float alphaTestRef) {

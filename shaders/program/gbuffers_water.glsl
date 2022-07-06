@@ -118,6 +118,7 @@ flat varying int materialId;
 	uniform sampler2D lightmap;
     uniform sampler2D gcolor;
 
+    uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
 
     uniform float rainStrength;

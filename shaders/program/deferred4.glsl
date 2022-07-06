@@ -45,9 +45,11 @@ varying vec2 texcoord;
 
     uniform mat4 gbufferProjectionInverse;
     uniform mat4 gbufferModelView;
-    uniform int heldBlockLightValue;
     uniform float viewWidth;
     uniform float viewHeight;
+    
+    uniform ivec2 eyeBrightnessSmooth;
+    uniform int heldBlockLightValue;
 
     uniform float rainStrength;
     uniform vec3 sunPosition;
