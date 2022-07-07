@@ -120,8 +120,9 @@ flat varying int materialId;
 
     uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
-
     uniform float rainStrength;
+    uniform float near;
+
     uniform vec3 skyColor;
     uniform vec3 fogColor;
     uniform float fogStart;
@@ -151,7 +152,6 @@ flat varying int materialId;
                 uniform sampler2DShadow shadowtex1;
             #endif
 		
-            uniform float near;
             uniform float far;
 
     		#if SHADOW_PCF_SAMPLES == 12

@@ -1,19 +1,33 @@
 const float sunPathRotation = -30; // [-60 -50 -40 -30 -20 -15 -10 -5 0 5 10 15 20 30 40 50 60]
-const bool colortex8Clear = false;
 
 /*
 const int colortex4Format = RGB16F;
 const bool colortex4MipmapEnabled = true;
+
 const int colortex5Format = RGB16F;
+const bool colortex5MipmapEnabled = true;
+const bool colortex5Clear = false;
+
 const int colortex6Format = R16F;
+const bool colortex6MipmapEnabled = true;
+const bool colortex6Clear = false;
+
 const int colortex7Format = RGB16F;
+const bool colortex7MipmapEnabled = false;
+const bool colortex7Clear = false;
+
+const int colortex8Format = RGB16F;
+const bool colortex8Clear = false;
+
+const int colortex9Format = R16F;
+const bool colortex9Clear = false;
 */
 
 
 // World Options
 #define ENABLE_WAVING
 #define HANDLIGHT_ENABLED
-#define SHADOW_BRIGHTNESS 0.30 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
+#define SHADOW_BRIGHTNESS 0.10 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define RAIN_DARKNESS 0.2
 //#define ANIM_USE_WORLDTIME
 
@@ -21,28 +35,6 @@ const int colortex7Format = RGB16F;
 // Atmosphere Options
 //#define ATMOSPHERE_ENABLED
 #define HCM_AMBIENT 0.16
-
-
-// Material Options
-#define SSS_ENABLED
-#define SSS_MAXDIST 2.8
-#define SSS_FILTER 0 // [0 1 2]
-#define SSS_PCF_SIZE 0.015 // [0.005 0.010 0.015 0.020 0.025 0.030 0.035 0.040 0.045 0.050 0.055 0.060 0.065 0.070 0.075 0.080 0.085 0.090 0.095 0.100]
-#define SSS_PCF_SAMPLES 12 // [12 24 36]
-
-
-// Material Parallax Options
-#define PARALLAX_ENABLED
-#define PARALLAX_DISTANCE 40.0
-#define PARALLAX_SHADOWS_ENABLED
-//#define PARALLAX_SLOPE_NORMALS
-//#define PARALLAX_SMOOTH
-#define PARALLAX_DEPTH 0.25 // [0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
-#define PARALLAX_SAMPLES 32 // [16 32 64 128 256]
-#define PARALLAX_SHADOW_SAMPLES 32 // [16 32 64 128 256]
-#define PARALLAX_SOFTSHADOW_FACTOR 1.0
-//#define PARALLAX_USE_TEXELFETCH
-//#define PARALLAX_SHADOW_FIX
 
 
 // Shadow Options
@@ -68,6 +60,42 @@ const int colortex7Format = RGB16F;
 #define CSM_PLAYER_ID 0
 
 
+// Material Options
+#define SSS_ENABLED
+#define SSS_MAXDIST 2.8
+#define SSS_FILTER 0 // [0 1 2]
+#define SSS_PCF_SIZE 0.015 // [0.005 0.010 0.015 0.020 0.025 0.030 0.035 0.040 0.045 0.050 0.055 0.060 0.065 0.070 0.075 0.080 0.085 0.090 0.095 0.100]
+#define SSS_PCF_SAMPLES 12 // [12 24 36]
+
+
+// Material Parallax Options
+#define PARALLAX_ENABLED
+#define PARALLAX_DISTANCE 24.0
+#define PARALLAX_SHADOWS_ENABLED
+//#define PARALLAX_SMOOTH
+//#define PARALLAX_SMOOTH_NORMALS
+//#define PARALLAX_SLOPE_NORMALS
+#define PARALLAX_DEPTH 0.25 // [0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
+#define PARALLAX_SAMPLES 32 // [16 32 64 128 256]
+#define PARALLAX_SHADOW_SAMPLES 32 // [16 32 64 128 256]
+#define PARALLAX_SOFTSHADOW_FACTOR 1.0
+//#define PARALLAX_USE_TEXELFETCH
+//#define PARALLAX_SHADOW_FIX
+
+
+// Camera Options
+#define CAMERA_EXPOSURE_MODE 0 // [0 1 2]
+#define CAMERA_EXPOSURE 10 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
+#define EXPOSURE_LUM_MIN 0.02
+#define EXPOSURE_LUM_MAX 10.0
+#define EXPOSURE_POINT 0.1
+
+#define EXPOSURE_MODE_MANUAL 0
+#define EXPOSURE_MODE_EYEBRIGHTNESS 1
+#define EXPOSURE_MODE_MIPMAP 2
+#define EXPOSURE_MODE_HISTOGRAM 3
+
+
 // Effect Options
 //#define SSR_ENABLED
 #define RSM_ENABLED
@@ -79,13 +107,12 @@ const int colortex7Format = RGB16F;
 #define BLOOM_ENABLED
 #define BLOOM_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
-#define CAMERA_EXPOSURE 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
 
 
 // Debug Options
-#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9]
 #define IS_OPTIFINE
 
 #define DEBUG_VIEW_SHADOW_ALBEDO 1
@@ -95,14 +122,27 @@ const int colortex7Format = RGB16F;
 #define DEBUG_VIEW_SHADOW_DEPTH1 5
 #define DEBUG_VIEW_RSM 6
 #define DEBUG_VIEW_BLOOM 7
+#define DEBUG_VIEW_LUMINANCE 8
+#define DEBUG_VIEW_PREVIOUS 9
 
 
 // INTERNAL
 #define TITLE
 #define IOR_AIR 1.0
 #define PI 3.1415926538
-#define EPSILON 1e-6
+#define EPSILON 1e-7
 #define GAMMA 2.2
+
+#define BUFFER_COLOR colortex0
+#define BUFFER_NORMAL colortex1
+#define BUFFER_SPECULAR colortex2
+#define BUFFER_LIGHTING colortex3
+#define BUFFER_HDR colortex4
+#define BUFFER_HDR_PREVIOUS colortex5
+#define BUFFER_LUMINANCE colortex6
+#define BUFFER_BLOOM colortex7
+#define BUFFER_RSM_COLOR colortex8
+#define BUFFER_RSM_DEPTH colortex9
 
 const vec3 sunColor = vec3(1.0, 0.9, 0.8);
 const vec3 moonColor = vec3(0.5, 0.6, 1.0);
@@ -139,14 +179,17 @@ const float invPI = 1.0 / PI;
 // 	#define SHADOW_EXCLUDE_ENTITIES
 // #endif
 
-#ifndef PARALLAX_ENABLED
+#ifdef PARALLAX_ENABLED
+    #ifdef PARALLAX_SMOOTH
+        #undef PARALLAX_SLOPE_NORMALS
+    #else
+        #undef PARALLAX_SMOOTH_NORMALS
+    #endif
+#else
     #undef PARALLAX_SMOOTH
+    #undef PARALLAX_SMOOTH_NORMALS
     #undef PARALLAX_SLOPE_NORMALS
     #undef PARALLAX_SHADOWS_ENABLED
-#endif
-
-#ifdef PARALLAX_SMOOTH
-    #undef PARALLAX_SLOPE_NORMALS
 #endif
 
 #if !defined SHADOW_ENABLED || SHADOW_TYPE == 0

@@ -11,8 +11,8 @@ varying vec2 texcoord;
 #endif
 
 #ifdef RENDER_FRAG
-    //uniform sampler2D colortex3;
-    uniform sampler2D colortex4;
+    //uniform sampler2D BUFFER_LIGHTING;
+    uniform sampler2D BUFFER_HDR;
     uniform sampler2D depthtex0;
 
     //uniform mat4 gbufferModelView;
@@ -73,7 +73,7 @@ varying vec2 texcoord;
             color = sky.rgb;
         }
         else {
-            color = texelFetch(colortex4, itex, 0).rgb;
+            color = texelFetch(BUFFER_HDR, itex, 0).rgb;
         }
 
     /* DRAWBUFFERS:4 */

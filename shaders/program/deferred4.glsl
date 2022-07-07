@@ -27,26 +27,27 @@ varying vec2 texcoord;
 #endif
 
 #ifdef RENDER_FRAG
-	uniform sampler2D colortex0;
-    uniform sampler2D colortex1;
-    uniform sampler2D colortex2;
-    uniform sampler2D colortex3;
-    uniform sampler2D colortex4;
+	uniform sampler2D BUFFER_COLOR;
+    uniform sampler2D BUFFER_NORMAL;
+    uniform sampler2D BUFFER_SPECULAR;
+    uniform sampler2D BUFFER_LIGHTING;
+    uniform sampler2D BUFFER_HDR;
     uniform sampler2D lightmap;
     uniform sampler2D depthtex0;
 
     #ifdef SSR_ENABLED
-        uniform sampler2D colortex8;
+        uniform sampler2D BUFFER_HDR_PREVIOUS;
     #endif
 
     #ifdef RSM_ENABLED
-        uniform sampler2D colortex5;
+        uniform sampler2D BUFFER_RSM_COLOR;
     #endif
 
     uniform mat4 gbufferProjectionInverse;
     uniform mat4 gbufferModelView;
     uniform float viewWidth;
     uniform float viewHeight;
+    uniform float near;
     
     uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
@@ -85,6 +86,8 @@ varying vec2 texcoord;
 
 	void main() {
         vec3 final = PbrLighting();
+
+        final = clamp(final, vec3(0.0), vec3(1000.0));
 
 	/* DRAWBUFFERS:4 */
 		gl_FragData[0] = vec4(final, 1.0);

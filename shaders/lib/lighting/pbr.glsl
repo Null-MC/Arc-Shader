@@ -191,8 +191,8 @@
         float blockLight = (lmValue.x - (0.5/16.0)) / (15.0/16.0);
         float skyLight = (lmValue.y - (0.5/16.0)) / (15.0/16.0);
 
-        blockLight = blockLight*blockLight*blockLight;
-        skyLight = skyLight*skyLight*skyLight;
+        // blockLight = blockLight*blockLight*blockLight;
+        // skyLight = skyLight*skyLight*skyLight;
 
         // Increase skylight when in direct sunlight
         skyLight = max(skyLight, shadow);
@@ -207,7 +207,7 @@
             vec2 reflectCoord = GetReflectCoord(reflectDir);
 
             ivec2 iTexReflect = ivec2(reflectCoord * vec2(viewWidth, viewHeight));
-            reflectColor = texelFetch(colortex8, iTexReflect, 0);
+            reflectColor = texelFetch(BUFFER_HDR_PREVIOUS, iTexReflect, 0);
         #endif
 
         #if defined RSM_ENABLED && defined RENDER_DEFERRED
@@ -215,16 +215,16 @@
 
             #if RSM_SCALE == 0 || defined RSM_UPSCALE
                 ivec2 iuv = ivec2(texcoord * viewSize);
-                vec3 rsmColor = texelFetch(colortex5, iuv, 0).rgb;
+                vec3 rsmColor = texelFetch(BUFFER_RSM_COLOR, iuv, 0).rgb;
             #else
                 const float rsm_scale = 1.0 / exp2(RSM_SCALE);
-                vec3 rsmColor = texture2DLod(colortex5, texcoord * rsm_scale, 0).rgb;
+                vec3 rsmColor = texture2DLod(BUFFER_RSM_COLOR, texcoord * rsm_scale, 0).rgb;
             #endif
         #endif
 
-        vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * skyLight; //skyLightColor;
+        vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * skyLight*skyLight; //skyLightColor;
 
-        vec3 blockAmbient = 0.002 + max(vec3(blockLight), skyAmbient);
+        vec3 blockAmbient = 0.002 + max(vec3(blockLight*blockLight), skyAmbient);
         //return vec4(blockAmbient, 1.0);
 
         vec3 ambient = blockAmbient * material.occlusion;

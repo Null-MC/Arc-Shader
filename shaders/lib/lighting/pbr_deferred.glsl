@@ -13,13 +13,13 @@
         if (screenDepth == 1.0) {
             //discard;
             //return vec4(vec3(1.0), 0.0);
-            return texelFetch(colortex4, iTex, 0).rgb;
+            return texelFetch(BUFFER_HDR, iTex, 0).rgb;
         }
 
-        vec3 colorMap = texelFetch(colortex0, iTex, 0).rgb;
-        vec4 normalMap = texelFetch(colortex1, iTex, 0);
-        vec4 specularMap = texelFetch(colortex2, iTex, 0);
-        vec4 lightingMap = texelFetch(colortex3, iTex, 0);
+        vec3 colorMap = texelFetch(BUFFER_COLOR, iTex, 0).rgb;
+        vec4 normalMap = texelFetch(BUFFER_NORMAL, iTex, 0);
+        vec4 specularMap = texelFetch(BUFFER_SPECULAR, iTex, 0);
+        vec4 lightingMap = texelFetch(BUFFER_LIGHTING, iTex, 0);
 
         vec3 clipPos = vec3(texcoord, screenDepth) * 2.0 - 1.0;
         vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);

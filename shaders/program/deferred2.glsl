@@ -61,8 +61,8 @@ varying vec2 texcoord;
 #endif
 
 #ifdef RENDER_FRAG
-    uniform sampler2D colortex1;
-    uniform sampler2D colortex3;
+    uniform sampler2D BUFFER_NORMAL;
+    uniform sampler2D BUFFER_LIGHTING;
     uniform sampler2D shadowtex1;
     uniform sampler2D depthtex0;
     uniform usampler2D shadowcolor0;
@@ -100,7 +100,7 @@ varying vec2 texcoord;
 
     #include "/lib/rsm.glsl"
 
-    /* RENDERTARGETS: 5,6 */
+    /* RENDERTARGETS: 8,9 */
     out vec3 outColor;
     #ifdef RSM_UPSCALE
         out float outDepth;
@@ -115,10 +115,10 @@ varying vec2 texcoord;
         vec2 normal = vec2(0.0);
 
         if (clipDepth < 1.0) {
-            float skyLight = texelFetch(colortex3, itex, 0).g;
+            float skyLight = texelFetch(BUFFER_LIGHTING, itex, 0).g;
 
             if (skyLight >= 1.0 / 16.0) {
-                normal = texelFetch(colortex1, itex, 0).rg;
+                normal = texelFetch(BUFFER_NORMAL, itex, 0).rg;
 
                 vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
 

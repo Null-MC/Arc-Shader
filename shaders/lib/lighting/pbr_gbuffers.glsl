@@ -12,13 +12,9 @@
             vec3 traceCoordDepth = vec3(1.0);
             vec3 tanViewDir = normalize(tanViewPos);
 
-            if (viewPos.z < PARALLAX_DISTANCE) {
-                #ifdef PARALLAX_USE_TEXELFETCH
-                    atlasCoord = GetParallaxCoord(tanViewDir, texDepth, traceCoordDepth);
-                #else
-                    atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, texDepth, traceCoordDepth);
-                #endif
-            }
+            float viewDist = length(viewPos);
+            if (viewDist < PARALLAX_DISTANCE)
+                atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, viewDist, texDepth, traceCoordDepth);
         #endif
         
         #ifdef AF_ENABLED
@@ -39,12 +35,28 @@
             colorMap.rgb = mix(colorMap.rgb, entityColor.rgb, entityColor.a);
         #endif
 
-        #ifdef PARALLAX_SMOOTH
-            #ifdef PARALLAX_USE_TEXELFETCH
-                normalMap.rgb = TexelFetchLinearRGB(normals, atlasCoord * atlasSize);
-            #else
-                normalMap.rgb = TextureGradLinearRGB(normals, atlasCoord, atlasSize, dFdXY);
-            #endif
+        #ifdef PARALLAX_SMOOTH_NORMALS
+            ////normalMap.rgb = TexelFetchLinearRGB(normals, atlasCoord * atlasSize);
+            //normalMap.rgb = TextureGradLinearRGB(normals, atlasCoord, atlasSize, dFdXY);
+
+            vec2 uv[4];
+            //vec2 localCoord = GetLocalCoord(atlasCoord);
+            //vec2 atlasTileSize = atlasBounds[1] * atlasSize;
+            vec2 f = GetLinearCoords(atlasCoord, atlasSize, uv);
+
+            uv[0] = GetAtlasCoord(GetLocalCoord(uv[0]));
+            uv[1] = GetAtlasCoord(GetLocalCoord(uv[1]));
+            uv[2] = GetAtlasCoord(GetLocalCoord(uv[2]));
+            uv[3] = GetAtlasCoord(GetLocalCoord(uv[3]));
+
+            ivec2 iuv[4];
+            iuv[0] = ivec2(uv[0] * atlasSize);
+            iuv[1] = ivec2(uv[1] * atlasSize);
+            iuv[2] = ivec2(uv[2] * atlasSize);
+            iuv[3] = ivec2(uv[3] * atlasSize);
+
+            //normalMap.rgb = TextureGradLinearRGB(normals, uv, dFdXY, f);
+            normalMap.rgb = TexelFetchLinearRGB(normals, iuv, 0, f);
         #else
             normalMap.rgb = texture2DGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).rgb;
         #endif

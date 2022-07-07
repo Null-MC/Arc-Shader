@@ -15,12 +15,9 @@
                 mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
             #endif
 
-            if (viewPos.z < PARALLAX_DISTANCE) {
-                #ifdef PARALLAX_USE_TEXELFETCH
-                    atlasCoord = GetParallaxCoord(tanViewDir, texDepth, traceCoordDepth);
-                #else
-                    atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, texDepth, traceCoordDepth);
-                #endif
+            float viewDist = length(viewPos);
+            if (viewDist < PARALLAX_DISTANCE) {
+                atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, viewDist, texDepth, traceCoordDepth);
             }
         #endif
 

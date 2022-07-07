@@ -5,46 +5,55 @@ vec2 GetAtlasCoord(const in vec2 localCoord) {
 }
 
 vec2 GetLocalCoord(const in vec2 atlasCoord) {
-    return (atlasCoord - atlasBounds[0]) / atlasBounds[1];
+    return (atlasCoord - atlasBounds[0]) / max(atlasBounds[1], EPSILON);
 }
 
-vec2 GetParallaxCoord(const in mat2 dFdXY, const in vec3 tanViewDir, out float texDepth, out vec3 traceDepth) {
+vec2 GetParallaxCoord(const in mat2 dFdXY, const in vec3 tanViewDir, const in float viewDist, out float texDepth, out vec3 traceDepth) {
     vec2 stepCoord = tanViewDir.xy * PARALLAX_DEPTH / (1.0 + tanViewDir.z * PARALLAX_SAMPLES);
     float stepDepth = 1.0 / PARALLAX_SAMPLES;
 
     #ifdef PARALLAX_SMOOTH
         vec2 atlasPixelSize = 1.0 / atlasSize;
-        float prevTexDepth = 1.0;
+        float prevTexDepth;
     #endif
 
+    float viewDistF = 1.0 - clamp(viewDist / PARALLAX_DISTANCE, 0.0, 1.0);
+    int maxSampleCount = int(viewDistF * PARALLAX_SAMPLES);
+
     int i;
-    //int sampleCount = PARALLAX_SAMPLES;
     texDepth = 1.0;
-    for (i = 0; i <= PARALLAX_SAMPLES; i++) {
-        vec2 traceAtlasCoord = GetAtlasCoord(localCoord - i * stepCoord);
-
-        #ifdef PARALLAX_SMOOTH
-            #ifdef PARALLAX_USE_TEXELFETCH
-                texDepth = FetchLinear(normals, traceAtlasCoord * atlasSize, 3);
-            #else
-                texDepth = SampleLinear(normals, traceAtlasCoord, atlasSize, 3);
-            #endif
-        #else
-            #ifdef PARALLAX_USE_TEXELFETCH
-                texDepth = texelFetch(normals, ivec2(traceAtlasCoord * atlasSize), 0).a;
-            #else
-                texDepth = texture2DGrad(normals, traceAtlasCoord, dFdXY[0], dFdXY[1]).a;
-            #endif
-        #endif
-
-        if (texDepth >= 1.0 - i * stepDepth) break;
-        //sampleCount *= int(step(texDepth, 1.0 - i * stepDepth));
-
+    float depthDist = 1.0;
+    for (i = 0; i <= maxSampleCount && depthDist >= (1.0/255.0); i++) {
         #ifdef PARALLAX_SMOOTH
             prevTexDepth = texDepth;
         #endif
+
+        vec2 localTraceCoord = localCoord - i * stepCoord;
+
+        #ifdef PARALLAX_SMOOTH
+            //vec2 traceAtlasCoord = GetAtlasCoord(localCoord - i * stepCoord);
+            //texDepth = TextureGradLinear(normals, traceAtlasCoord, atlasSize, dFdXY, 3);
+
+            vec2 uv[4];
+            vec2 atlasTileSize = atlasBounds[1] * atlasSize;
+            vec2 f = GetLinearCoords(localTraceCoord, atlasTileSize, uv);
+
+            uv[0] = GetAtlasCoord(uv[0]);
+            uv[1] = GetAtlasCoord(uv[1]);
+            uv[2] = GetAtlasCoord(uv[2]);
+            uv[3] = GetAtlasCoord(uv[3]);
+
+            texDepth = TextureGradLinear(normals, uv, dFdXY, f, 3);
+        #else
+            vec2 traceAtlasCoord = GetAtlasCoord(localTraceCoord);
+            texDepth = texture2DGrad(normals, traceAtlasCoord, dFdXY[0], dFdXY[1]).a;
+        #endif
+
+        depthDist = 1.0 - i * stepDepth - texDepth;
+        //if (texDepth >= 1.0 - i * stepDepth) break;
     }
 
+    i = max(i - 1, 0);
     int pI = max(i - 1, 0);
     //traceDepth.xy = localCoord - pI * stepCoord;
     //traceDepth.z = 1.0 - pI * stepDepth;
@@ -67,9 +76,10 @@ vec2 GetParallaxCoord(const in mat2 dFdXY, const in vec3 tanViewDir, out float t
 
     //return GetAtlasCoord(localCoord - i * stepCoord);
     #ifdef PARALLAX_SMOOTH
-        return i == 0 ? texcoord : GetAtlasCoord(traceDepth.xy);
+        //return i == 1 ? texcoord : GetAtlasCoord(traceDepth.xy);
+        return GetAtlasCoord(traceDepth.xy);
     #else
-        return i == 0 ? texcoord : GetAtlasCoord(localCoord - i * stepCoord);
+        return GetAtlasCoord(localCoord - i * stepCoord);
     #endif
 }
 
@@ -90,13 +100,9 @@ float GetParallaxShadow(const in vec3 traceTex, const in mat2 dFdXY, const in ve
         vec2 atlasCoord = GetAtlasCoord(traceTex.xy + i * stepCoord);
 
         #ifdef PARALLAX_SMOOTH
-            float texDepth = SampleLinear(normals, atlasCoord, atlasPixelSize, 3);
+            float texDepth = TextureGradLinear(normals, atlasCoord, atlasPixelSize, dFdXY, 3);
         #else
-            #ifdef PARALLAX_USE_TEXELFETCH
-                float texDepth = texelFetch(normals, ivec2(atlasCoord * atlasSize), 0).a;
-            #else
-                float texDepth = texture2DGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).a;
-            #endif
+            float texDepth = texture2DGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).a;
         #endif
 
         #ifdef PARALLAX_USE_TEXELFETCH

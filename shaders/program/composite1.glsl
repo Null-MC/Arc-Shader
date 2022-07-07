@@ -13,15 +13,12 @@ varying vec2 texcoord;
 #endif
 
 #ifdef RENDER_FRAG
+    uniform sampler2D BUFFER_HDR;
     uniform sampler2D depthtex0;
-    uniform sampler2D colortex4;
 
     uniform float viewWidth;
     uniform float viewHeight;
-    //uniform float near;
-    //uniform float far;
 
-    //#include "/lib/depth.glsl"
     #include "/lib/bloom.glsl"
 
 
@@ -64,11 +61,21 @@ varying vec2 texcoord;
             vec2 tileTex = (texcoord - tileMin) / tileSize;
             //tileTex = clamp(tileTex, 0.5 * pixelSize, 1.0 - 0.5 * pixelSize);
 
-            final = texture2DLod(colortex4, tileTex, tile).rgb;
+            final = texture2DLod(BUFFER_HDR, tileTex, tile).rgb;
+            // vec2 uv1 = tileTex + vec2();
+            // vec2 uv2 = tileTex + vec2();
+            // vec2 uv3 = tileTex + vec2();
+            // vec2 uv4 = tileTex + vec2();
+
+            // vec3 sample1 = texture2DLod(BUFFER_HDR, uv1, tile).rgb;
+            // vec3 sample2 = texture2DLod(BUFFER_HDR, uv2, tile).rgb;
+            // vec3 sample3 = texture2DLod(BUFFER_HDR, uv3, tile).rgb;
+            // vec3 sample4 = texture2DLod(BUFFER_HDR, uv4, tile).rgb;
+            
             //final *= (0.5 + 0.5 * depthFactor);
 
             float lum = luminance(final) / exp2(5.0 + 0.2 * tile);
-            final *= clamp(lum, 0.0, 1.0);
+            final = clamp(final * lum, 0.0, 1000.0);
         }
 
     /* DRAWBUFFERS:7 */

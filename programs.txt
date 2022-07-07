@@ -6,6 +6,6 @@ deferred5	Fog + Sky
 composite1	Bloom threshold/downsampling
 composite2	Bloom Blur H
 composite3	Bloom Blur V
-composite4	Bloom combine; HDR>LDR; Debug view
+composite4	Luminance, previous frame
 
-final		nothing?
+final	Bloom combine; HDR>LDR; Debug view

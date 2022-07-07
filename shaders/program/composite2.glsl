@@ -14,8 +14,8 @@ varying vec2 texcoord;
 #endif
 
 #ifdef RENDER_FRAG
-    uniform sampler2D colortex4;
-    uniform sampler2D colortex7;
+    uniform sampler2D BUFFER_HDR;
+    uniform sampler2D BUFFER_BLOOM;
 
     uniform float viewWidth;
     uniform float viewHeight;

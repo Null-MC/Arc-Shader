@@ -158,7 +158,9 @@ varying vec4 glcolor;
                 viewTangent.y, viewBinormal.y, viewNormal.y,
                 viewTangent.z, viewBinormal.z, viewNormal.z);
 
-            viewPosTan = matViewTBN * viewPos.xyz;
+            #ifdef SSS_ENABLED
+                viewPosTan = matViewTBN * viewPos.xyz;
+            #endif
         #endif
     }
 #endif
@@ -205,6 +207,7 @@ varying vec4 glcolor;
         #else
             float alpha = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]).a * glcolor.a;
             if (alpha < 0.5) discard;
+            vec3 colorMap = vec3(0.0);
         #endif
 
         // #ifdef RSM_ENABLED

@@ -85,6 +85,7 @@ varying float geoNoL;
 
     uniform ivec2 eyeBrightnessSmooth;
     uniform float rainStrength;
+    uniform float near;
 
     uniform vec3 skyColor;
     uniform vec3 fogColor;
@@ -104,7 +105,6 @@ varying float geoNoL;
 	        uniform usampler2D shadowcolor0;
 	        uniform sampler2D shadowtex0;
 
-	        uniform float near;
 	        uniform float far;
 
 	        #ifdef SHADOW_ENABLE_HWCOMP

@@ -54,10 +54,10 @@ varying vec2 texcoord;
 #endif
 
 #ifdef RENDER_FRAG
-    uniform sampler2D colortex1;
-    uniform sampler2D colortex3;
-    uniform sampler2D colortex5;
-    uniform sampler2D colortex6;
+    uniform sampler2D BUFFER_NORMAL;
+    uniform sampler2D BUFFER_LIGHTING;
+    uniform sampler2D BUFFER_RSM_COLOR;
+    uniform sampler2D BUFFER_RSM_DEPTH;
     uniform usampler2D shadowcolor0;
     uniform sampler2D shadowtex1;
     uniform sampler2D depthtex0;
@@ -105,11 +105,11 @@ varying vec2 texcoord;
 
         vec3 final = vec3(0.0);
         if (clipDepth < 1.0) {
-            vec2 normalTex = texelFetch(colortex1, itexFull, 0).rg;
+            vec2 normalTex = texelFetch(BUFFER_NORMAL, itexFull, 0).rg;
 
             vec2 texLow = texcoord * rsm_scale;
             //ivec2 itexLow = ivec2(texLow * vec2(viewWidth, viewHeight));
-            vec4 rsmDepths = textureGather(colortex6, texLow, 0);
+            vec4 rsmDepths = textureGather(BUFFER_RSM_DEPTH, texLow, 0);
             float rsmDepthMin = min(min(rsmDepths.x, rsmDepths.y), min(rsmDepths.z, rsmDepths.w));
             float rsmDepthMax = max(max(rsmDepths.x, rsmDepths.y), max(rsmDepths.z, rsmDepths.w));
 
@@ -132,10 +132,10 @@ varying vec2 texcoord;
             //bool normalTest = dot(rsmViewNormal, viewNormal) > 0.2;
 
             if (depthTest) {
-                final = texture2DLod(colortex5, texLow, 0).rgb;
+                final = texture2DLod(BUFFER_RSM_COLOR, texLow, 0).rgb;
             }
             else {
-                float skyLight = texelFetch(colortex3, itexFull, 0).g;
+                float skyLight = texelFetch(BUFFER_LIGHTING, itexFull, 0).g;
 
                 if (skyLight >= 1.0 / 16.0) {
                     vec4 localPos = gbufferModelViewInverse * viewPos;
@@ -153,12 +153,12 @@ varying vec2 texcoord;
                 }
             }
 
-            //final = texture2DLod(colortex5, texLow, 0).rgb;
+            //final = texture2DLod(BUFFER_RSM_COLOR, texLow, 0).rgb;
             //final = vec3(rsmDepth);
         }
 
 
-	/* DRAWBUFFERS:5 */
+	/* DRAWBUFFERS:8 */
 		gl_FragData[0] = vec4(final, 1.0);
 	}
 #endif

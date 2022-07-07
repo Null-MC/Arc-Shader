@@ -1,6 +1,6 @@
 int GetBloomTileCount() {
-    int lodCount = textureQueryLevels(colortex4);
-    return clamp(lodCount, 1, 12);
+    int lodCount = textureQueryLevels(BUFFER_HDR);
+    return max(lodCount - 1, 1);
 }
 
 float GetBloomTilePos(const in int tile) {
@@ -55,35 +55,35 @@ int GetBloomTileInnerIndex(const in int tileCount, out vec2 tileMin, out vec2 ti
         0.1964825501511404, 0.2969069646728344, 0.2969069646728344, 0.09447039785044732,
         0.09447039785044732, 0.010381362401148057, 0.010381362401148057);
 
-    vec3 BloomBlur13_x(const in vec2 uv, const in vec2 tileMin, const in vec2 tileMax, const in vec2 direction) {
-        vec2 pixelSize = 1.0 / vec2(viewWidth, viewHeight);
+    // vec3 BloomBlur13_x(const in vec2 uv, const in vec2 tileMin, const in vec2 tileMax, const in vec2 direction) {
+    //     vec2 pixelSize = 1.0 / vec2(viewWidth, viewHeight);
 
-        vec2 off1 = BloomOffsets[0] * direction * pixelSize;
-        vec2 off2 = BloomOffsets[1] * direction * pixelSize;
-        vec2 off3 = BloomOffsets[2] * direction * pixelSize;
+    //     vec2 off1 = BloomOffsets[0] * direction * pixelSize;
+    //     vec2 off2 = BloomOffsets[1] * direction * pixelSize;
+    //     vec2 off3 = BloomOffsets[2] * direction * pixelSize;
 
-        vec3 color = texture2DLod(colortex7, uv, 0).rgb * BloomWeights[0];
+    //     vec3 color = texture2DLod(BUFFER_BLOOM, uv, 0).rgb * BloomWeights[0];
 
-        vec2 uv1 = min(uv + off1, tileMax);
-        color += texture2DLod(colortex7, uv1, 0).rgb * BloomWeights[1];
+    //     vec2 uv1 = min(uv + off1, tileMax);
+    //     color += texture2DLod(BUFFER_BLOOM, uv1, 0).rgb * BloomWeights[1];
 
-        vec2 uv2 = max(uv - off1, tileMin);
-        color += texture2DLod(colortex7, uv2, 0).rgb * BloomWeights[2];
+    //     vec2 uv2 = max(uv - off1, tileMin);
+    //     color += texture2DLod(BUFFER_BLOOM, uv2, 0).rgb * BloomWeights[2];
 
-        vec2 uv3 = min(uv + off2, tileMax);
-        color += texture2DLod(colortex7, uv3, 0).rgb * BloomWeights[3];
+    //     vec2 uv3 = min(uv + off2, tileMax);
+    //     color += texture2DLod(BUFFER_BLOOM, uv3, 0).rgb * BloomWeights[3];
 
-        vec2 uv4 = max(uv - off2, tileMin);
-        color += texture2DLod(colortex7, uv4, 0).rgb * BloomWeights[4];
+    //     vec2 uv4 = max(uv - off2, tileMin);
+    //     color += texture2DLod(BUFFER_BLOOM, uv4, 0).rgb * BloomWeights[4];
 
-        vec2 uv5 = min(uv + off3, tileMax);
-        color += texture2DLod(colortex7, uv5, 0).rgb * BloomWeights[5];
+    //     vec2 uv5 = min(uv + off3, tileMax);
+    //     color += texture2DLod(BUFFER_BLOOM, uv5, 0).rgb * BloomWeights[5];
 
-        vec2 uv6 = max(uv - off3, tileMin);
-        color += texture2DLod(colortex7, uv6, 0).rgb * BloomWeights[6];
+    //     vec2 uv6 = max(uv - off3, tileMin);
+    //     color += texture2DLod(BUFFER_BLOOM, uv6, 0).rgb * BloomWeights[6];
 
-        return color;
-    }
+    //     return color;
+    // }
 
     vec3 BloomBlur13(const in vec2 uv, const in vec2 tileMin, const in vec2 tileMax, const in vec2 direction) {
         vec2 pixelSize = 1.0 / vec2(viewWidth, viewHeight);
@@ -92,31 +92,31 @@ int GetBloomTileInnerIndex(const in int tileCount, out vec2 tileMin, out vec2 ti
         vec2 off2 = BloomOffsets[1] * direction * pixelSize;
         vec2 off3 = BloomOffsets[2] * direction * pixelSize;
 
-        vec3 color = texture2DLod(colortex7, uv, 0).rgb * BloomWeights[0];
+        vec3 color = texture2DLod(BUFFER_BLOOM, uv, 0).rgb * BloomWeights[0];
 
         vec2 uv1 = uv + off1;
         if (uv1.x < tileMax.x && uv1.y < tileMax.y)
-            color += texture2DLod(colortex7, uv1, 0).rgb * BloomWeights[1];
+            color += texture2DLod(BUFFER_BLOOM, uv1, 0).rgb * BloomWeights[1];
 
         vec2 uv2 = uv - off1;
         if (uv2.x > tileMin.x && uv2.y > tileMin.y)
-            color += texture2DLod(colortex7, uv2, 0).rgb * BloomWeights[2];
+            color += texture2DLod(BUFFER_BLOOM, uv2, 0).rgb * BloomWeights[2];
 
         vec2 uv3 = uv + off2;
         if (uv3.x < tileMax.x && uv3.y < tileMax.y)
-            color += texture2DLod(colortex7, uv3, 0).rgb * BloomWeights[3];
+            color += texture2DLod(BUFFER_BLOOM, uv3, 0).rgb * BloomWeights[3];
 
         vec2 uv4 = uv - off2;
         if (uv4.x > tileMin.x && uv4.y > tileMin.y)
-            color += texture2DLod(colortex7, uv4, 0).rgb * BloomWeights[4];
+            color += texture2DLod(BUFFER_BLOOM, uv4, 0).rgb * BloomWeights[4];
 
         vec2 uv5 = uv + off3;
         if (uv5.x < tileMax.x && uv5.y < tileMax.y)
-            color += texture2DLod(colortex7, uv5, 0).rgb * BloomWeights[5];
+            color += texture2DLod(BUFFER_BLOOM, uv5, 0).rgb * BloomWeights[5];
 
         vec2 uv6 = uv - off3;
         if (uv6.x > tileMin.x && uv6.y > tileMin.y)
-            color += texture2DLod(colortex7, uv6, 0).rgb * BloomWeights[6];
+            color += texture2DLod(BUFFER_BLOOM, uv6, 0).rgb * BloomWeights[6];
 
         return color;
     }
