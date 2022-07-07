@@ -197,8 +197,15 @@ varying vec4 glcolor;
              || screenCascadePos.y < 0 || screenCascadePos.y >= 0.5) discard;
         #endif
 
-        vec4 colorMap = texture(gtexture, texcoord) * glcolor;
-        if (colorMap.a < 0.5) discard;
+        mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
+
+        #ifdef RSM_ENABLED
+            vec4 colorMap = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]) * glcolor;
+            if (colorMap.a < 0.5) discard;
+        #else
+            float alpha = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]).a * glcolor.a;
+            if (alpha < 0.5) discard;
+        #endif
 
         // #ifdef RSM_ENABLED
         //     float specularMapR = texture(specular, texcoord).r;
@@ -210,16 +217,16 @@ varying vec4 glcolor;
 
         vec3 viewNormal = vec3(0.0);
         #if defined RSM_ENABLED
-            vec2 normalMap = texture(normals, texcoord).rg;
+            vec2 normalMap = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).rg;
             viewNormal = RestoreNormalZ(normalMap) * matViewTBN;
         #endif
 
         float sss = 0.0;
         #ifdef SSS_ENABLED
-            vec3 specularMap = texture(specular, texcoord).rgb;
-            vec3 viewDirT = -normalize(viewPosTan);
+            float specularMapB = textureGrad(specular, texcoord, dFdXY[0], dFdXY[1]).b;
+            vec3 viewDirT = normalize(viewPosTan);
 
-            sss = GetLabPbr_SSS(specularMap.b) * abs(viewDirT.z);
+            sss = GetLabPbr_SSS(specularMapB) * abs(viewDirT.z);
 
             //if (sss > EPSILON) {
             //    vec3 viewDirT = -normalize(viewPosTan);
@@ -242,14 +249,9 @@ varying vec4 glcolor;
             //}
         #endif
 
-        uvec2 outColor;
-        outColor.r = packUnorm4x8(vec4(colorMap.rgb, sss));
-        outColor.g = packUnorm2x16(viewNormal.xy * 0.5 + 0.5);
-
-        #ifdef IS_OPTIFINE
-            outColor0 = outColor;
-        #else
-            //gl_FragData[0] = uvec4(outColor, 0.0, 1.0);
+        #if defined SSS_ENABLED || defined RSM_ENABLED
+            outColor0.r = packUnorm4x8(vec4(colorMap.rgb, sss));
+            outColor0.g = packUnorm2x16(viewNormal.xy * 0.5 + 0.5);
         #endif
     }
 #endif

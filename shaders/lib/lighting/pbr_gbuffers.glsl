@@ -70,62 +70,65 @@
         float shadow = step(minSkylightThreshold, lmcoord.y);
         float lightSSS = 0.0;
 
-        #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
-            #if SHADOW_TYPE == 3
-                vec3 _shadowPos[4] = shadowPos;
-            #else
-                vec4 _shadowPos = shadowPos;
-            #endif
-
-            #if defined PARALLAX_ENABLED && defined PARALLAX_SHADOW_FIX
-                float depth = 1.0 - traceCoordDepth.z;
-                float eyeDepth = 0.0; //depth / max(geoNoV, EPSILON);
-
-                #if SHADOW_TYPE == 3
-                    _shadowPos[0] = mix(shadowPos[0], shadowParallaxPos[0], depth) - eyeDepth;
-                    _shadowPos[1] = mix(shadowPos[1], shadowParallaxPos[1], depth) - eyeDepth;
-                    _shadowPos[2] = mix(shadowPos[2], shadowParallaxPos[2], depth) - eyeDepth;
-                    _shadowPos[3] = mix(shadowPos[3], shadowParallaxPos[3], depth) - eyeDepth;
-                #else
-                    _shadowPos = mix(shadowPos, shadowParallaxPos, depth) - eyeDepth;
-                #endif
-            #endif
-
+        #if defined SHADOW_ENABLED
             vec3 tanLightDir = normalize(tanLightPos);
             float NoL = dot(normal, tanLightDir);
 
             shadow *= step(EPSILON, geoNoL);
             shadow *= step(EPSILON, NoL);
+            
+            #if SHADOW_TYPE != 0
+                #if SHADOW_TYPE == 3
+                    vec3 _shadowPos[4] = shadowPos;
+                #else
+                    vec4 _shadowPos = shadowPos;
+                #endif
 
-            if (shadow > EPSILON) {
-                shadow *= GetShadowing(_shadowPos);
+                #if defined PARALLAX_ENABLED && defined PARALLAX_SHADOW_FIX
+                    float depth = 1.0 - traceCoordDepth.z;
+                    float eyeDepth = 0.0; //depth / max(geoNoV, EPSILON);
 
-                // #if SHADOW_COLORS == 1
-                //     vec3 shadowColor = GetShadowColor();
-
-                //     shadowColor = mix(vec3(1.0), shadowColor, shadow);
-
-                //     //also make colors less intense when the block light level is high.
-                //     shadowColor = mix(shadowColor, vec3(1.0), blockLight);
-
-                //     lightColor *= shadowColor;
-                // #endif
-            }
-
-            #ifdef SSS_ENABLED
-                float materialSSS = GetLabPbr_SSS(specularMap.b);
-                if (materialSSS > EPSILON)
-                    lightSSS = GetShadowSSS(_shadowPos);
-            #endif
-
-            #ifdef PARALLAX_SHADOWS_ENABLED
-                if (shadow > EPSILON && traceCoordDepth.z + EPSILON < 1.0) {
-                    #ifdef PARALLAX_USE_TEXELFETCH
-                        shadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
+                    #if SHADOW_TYPE == 3
+                        _shadowPos[0] = mix(shadowPos[0], shadowParallaxPos[0], depth) - eyeDepth;
+                        _shadowPos[1] = mix(shadowPos[1], shadowParallaxPos[1], depth) - eyeDepth;
+                        _shadowPos[2] = mix(shadowPos[2], shadowParallaxPos[2], depth) - eyeDepth;
+                        _shadowPos[3] = mix(shadowPos[3], shadowParallaxPos[3], depth) - eyeDepth;
                     #else
-                        shadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
+                        _shadowPos = mix(shadowPos, shadowParallaxPos, depth) - eyeDepth;
                     #endif
+                #endif
+
+
+                if (shadow > EPSILON) {
+                    shadow *= GetShadowing(_shadowPos);
+
+                    // #if SHADOW_COLORS == 1
+                    //     vec3 shadowColor = GetShadowColor();
+
+                    //     shadowColor = mix(vec3(1.0), shadowColor, shadow);
+
+                    //     //also make colors less intense when the block light level is high.
+                    //     shadowColor = mix(shadowColor, vec3(1.0), blockLight);
+
+                    //     lightColor *= shadowColor;
+                    // #endif
                 }
+
+                #ifdef SSS_ENABLED
+                    float materialSSS = GetLabPbr_SSS(specularMap.b);
+                    if (materialSSS > EPSILON)
+                        lightSSS = GetShadowSSS(_shadowPos);
+                #endif
+
+                #ifdef PARALLAX_SHADOWS_ENABLED
+                    if (shadow > EPSILON && traceCoordDepth.z + EPSILON < 1.0) {
+                        #ifdef PARALLAX_USE_TEXELFETCH
+                            shadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
+                        #else
+                            shadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
+                        #endif
+                    }
+                #endif
             #endif
         #endif
         

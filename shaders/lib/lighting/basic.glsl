@@ -28,7 +28,7 @@
 
             matTBN = viewTBN;
 
-            #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
+            #if defined SHADOW_ENABLED
                 tanLightPos = viewTBN * shadowLightPosition;
 
                 vec3 lightDir = normalize(shadowLightPosition);

@@ -33,15 +33,16 @@ varying float geoNoL;
 #endif
 
 #ifdef RENDER_VERTEX
+	uniform vec3 cameraPosition;
+	
 	#ifdef SHADOW_ENABLED
 		uniform mat4 gbufferModelView;
 		uniform mat4 gbufferModelViewInverse;
-
-	    uniform float rainStrength;
-
+		uniform vec3 shadowLightPosition;
 		uniform mat4 shadowModelView;
 		uniform mat4 shadowProjection;
-		uniform vec3 shadowLightPosition;
+
+	    uniform float rainStrength;
 		uniform float far;
 
 		#if SHADOW_TYPE == 3

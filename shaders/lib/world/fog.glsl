@@ -1,6 +1,3 @@
-const vec3 caveFogColor = vec3(0.02);
-
-
 float GetFogFactor(const in float viewDist, const in float start, const in float end, const in float strength) {
     float distFactor = min(max(viewDist - start, 0.0) / (end - start), 1.0);
     return pow(distFactor, strength);
@@ -12,7 +9,7 @@ float GetCaveFogFactor(const in float viewDist) {
 }
 
 float GetCustomFogFactor(const in float viewDist) {
-    float near = mix(8.0, 0.0, rainStrength);
+    float near = 0.0; //mix(8.0, 0.0, rainStrength);
     float strength = mix(3.0, 0.36, rainStrength);
     return GetFogFactor(viewDist, near, fogEnd, strength);
 }

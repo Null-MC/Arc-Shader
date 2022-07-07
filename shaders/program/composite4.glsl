@@ -29,6 +29,9 @@ varying vec2 texcoord;
 #endif
 
 #ifdef RENDER_FRAG
+    uniform float viewWidth;
+    uniform float viewHeight;
+    
     #if DEBUG_VIEW == DEBUG_VIEW_SHADOW_ALBEDO
         // Shadow Albedo
         uniform usampler2D shadowcolor0;
@@ -56,8 +59,6 @@ varying vec2 texcoord;
 
         uniform ivec2 eyeBrightnessSmooth;
         uniform float screenBrightness;
-        uniform float viewWidth;
-        uniform float viewHeight;
 
         #include "/lib/bloom.glsl"
         #include "/lib/tonemap.glsl"

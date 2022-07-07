@@ -17,7 +17,7 @@ varying vec3 tanViewPos;
     varying vec2 localCoord;
 #endif
 
-#if defined SHADOW_ENABLED && SHADOW_TYPE != 0
+#if defined SHADOW_ENABLED
     varying vec3 tanLightPos;
 
 	#if SHADOW_TYPE == 3
@@ -26,7 +26,7 @@ varying vec3 tanViewPos;
 		varying vec2 shadowProjectionSizes[4];
         varying float cascadeSizes[4];
         flat varying int shadowCascade;
-	#else
+	#elif SHADOW_TYPE != 0
 		varying vec4 shadowPos;
         varying vec4 shadowParallaxPos;
 	#endif
