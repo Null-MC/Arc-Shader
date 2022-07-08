@@ -89,6 +89,7 @@ const bool colortex9Clear = false;
 #define EXPOSURE_LUM_MIN 0.02
 #define EXPOSURE_LUM_MAX 10.0
 #define EXPOSURE_POINT 0.1
+#define EXPOSURE_SPEED 0.016
 
 #define EXPOSURE_MODE_MANUAL 0
 #define EXPOSURE_MODE_EYEBRIGHTNESS 1
@@ -130,6 +131,7 @@ const bool colortex9Clear = false;
 #define TITLE
 #define IOR_AIR 1.0
 #define PI 3.1415926538
+#define TAU 6.2831853076
 #define EPSILON 1e-7
 #define GAMMA 2.2
 

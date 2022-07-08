@@ -265,7 +265,7 @@
 
         //ambient += minLight;
 
-        float emissive = material.emission * 8.0;
+        float emissive = material.emission*material.emission * 16.0;
 
         vec4 final = material.albedo;
         final.rgb = final.rgb * (ambient + emissive) + diffuse + specular;
