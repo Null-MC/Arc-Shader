@@ -1,4 +1,4 @@
-#extension GL_ARB_shading_language_packing : enable
+//#extension GL_ARB_shading_language_packing : enable
 
 #define RENDER_GBUFFER
 #define RENDER_TEXTURED
@@ -6,42 +6,42 @@
 #undef PARALLAX_ENABLED
 #undef AF_ENABLED
 
-varying vec2 lmcoord;
-varying vec2 texcoord;
-varying vec4 glcolor;
-varying vec3 viewPos;
-varying vec3 viewNormal;
-varying float geoNoL;
-
-#ifdef SHADOW_ENABLED
-    uniform vec3 sunPosition;
-    uniform vec3 moonPosition;
-    uniform vec3 upPosition;
-
-    flat varying vec3 skyLightColor;
-
-	#if SHADOW_TYPE == 3
-		varying vec3 shadowPos[4];
-        varying vec3 shadowParallaxPos[4];
-		varying vec2 shadowProjectionSizes[4];
-        varying float cascadeSizes[4];
-        flat varying int shadowCascade;
-	#elif SHADOW_TYPE != 0
-		varying vec4 shadowPos;
-        varying vec4 shadowParallaxPos;
-	#endif
-#endif
-
 #ifdef RENDER_VERTEX
+	out vec2 lmcoord;
+	out vec2 texcoord;
+	out vec4 glcolor;
+	out vec3 viewPos;
+	out vec3 viewNormal;
+	out float geoNoL;
+
+	#ifdef SHADOW_ENABLED
+	    flat out vec3 skyLightColor;
+
+		#if SHADOW_TYPE == 3
+			out vec3 shadowPos[4];
+	        out vec3 shadowParallaxPos[4];
+			out vec2 shadowProjectionSizes[4];
+	        out float cascadeSizes[4];
+	        flat out int shadowCascade;
+		#elif SHADOW_TYPE != 0
+			out vec4 shadowPos;
+	        out vec4 shadowParallaxPos;
+		#endif
+	#endif
+
 	uniform mat4 gbufferModelView;
 	uniform mat4 gbufferModelViewInverse;
 
+    uniform vec3 sunPosition;
+    uniform vec3 moonPosition;
+    uniform vec3 upPosition;
     uniform float rainStrength;
 
 	#ifdef SHADOW_ENABLED
 		uniform mat4 shadowModelView;
 		uniform mat4 shadowProjection;
 		uniform vec3 shadowLightPosition;
+
 		uniform float far;
 
 		#if SHADOW_TYPE == 3
@@ -80,10 +80,35 @@ varying float geoNoL;
 #endif
 
 #ifdef RENDER_FRAG
+	in vec2 lmcoord;
+	in vec2 texcoord;
+	in vec4 glcolor;
+	in vec3 viewPos;
+	in vec3 viewNormal;
+	in float geoNoL;
+
+	#ifdef SHADOW_ENABLED
+	    flat in vec3 skyLightColor;
+
+		#if SHADOW_TYPE == 3
+			in vec3 shadowPos[4];
+	        in vec3 shadowParallaxPos[4];
+			in vec2 shadowProjectionSizes[4];
+	        in float cascadeSizes[4];
+	        flat in int shadowCascade;
+		#elif SHADOW_TYPE != 0
+			in vec4 shadowPos;
+	        in vec4 shadowParallaxPos;
+		#endif
+	#endif
+
 	uniform sampler2D gtexture;
 	uniform sampler2D lightmap;
 
     uniform ivec2 eyeBrightnessSmooth;
+    uniform vec3 sunPosition;
+    uniform vec3 moonPosition;
+    uniform vec3 upPosition;
     uniform float rainStrength;
     uniform float near;
 

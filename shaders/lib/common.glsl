@@ -85,11 +85,11 @@ const bool colortex9Clear = false;
 
 // Camera Options
 #define CAMERA_EXPOSURE_MODE 0 // [0 1 2]
-#define CAMERA_EXPOSURE 10 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
-#define EXPOSURE_LUM_MIN 0.02
-#define EXPOSURE_LUM_MAX 10.0
-#define EXPOSURE_POINT 0.1
-#define EXPOSURE_SPEED 0.016
+#define CAMERA_EXPOSURE 1 // [-4 -3 -2 -1 0 1 2 3 4 5 6]
+#define CAMERA_LUM_MIN 0.02
+#define CAMERA_LUM_MAX 80.0
+#define EXPOSURE_POINT 0.2
+#define EXPOSURE_SPEED 0.005
 
 #define EXPOSURE_MODE_MANUAL 0
 #define EXPOSURE_MODE_EYEBRIGHTNESS 1
@@ -114,6 +114,7 @@ const bool colortex9Clear = false;
 
 // Debug Options
 #define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9]
+#define DEBUG_EXPOSURE_METERS
 #define IS_OPTIFINE
 
 #define DEBUG_VIEW_SHADOW_ALBEDO 1
@@ -149,7 +150,7 @@ const bool colortex9Clear = false;
 const vec3 sunColor = vec3(1.0, 0.9, 0.8);
 const vec3 moonColor = vec3(0.5, 0.6, 1.0);
 const float sunIntensity = 1.0;
-const float moonIntensity = 0.08;
+const float moonIntensity = 0.01;
 
 const vec3 minLight = vec3(0.01);
 const float tile_dist_bias_factor = 0.012288;

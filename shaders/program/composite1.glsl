@@ -1,11 +1,12 @@
 #extension GL_ARB_texture_query_levels : enable
 
 #define RENDER_COMPOSITE
-//#define RENDER_COMPOSITE_BLOOM_DOWNSCALE
-
-varying vec2 texcoord;
+//#define RENDER_COMPOSITE_PREV_LUMINANCE
 
 #ifdef RENDER_VERTEX
+    out vec2 texcoord;
+
+
     void main() {
         gl_Position = ftransform();
         texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
@@ -13,72 +14,38 @@ varying vec2 texcoord;
 #endif
 
 #ifdef RENDER_FRAG
-    uniform sampler2D BUFFER_HDR;
-    uniform sampler2D depthtex0;
+    in vec2 texcoord;
 
+
+    uniform sampler2D BUFFER_HDR;
+    uniform sampler2D BUFFER_LUMINANCE;
+
+    uniform float frameTimeCounter;
+    uniform float frameTime;
     uniform float viewWidth;
     uniform float viewHeight;
-
-    #include "/lib/bloom.glsl"
-
-
-    int GetBloomTileOuterIndex(const in int tileCount) {
-        vec2 tileMin, tileMax;
-        for (int i = 0; i < tileCount; i++) {
-            GetBloomTileOuterBounds(i, tileMin, tileMax);
-
-            if (texcoord.x > tileMin.x && texcoord.x <= tileMax.x
-             && texcoord.y > tileMin.y && texcoord.y <= tileMax.y) return i;
-        }
-
-        return -1;
-    }
+    
 
     void main() {
-        int tileCount = GetBloomTileCount();
-        int tile = GetBloomTileOuterIndex(tileCount);
+        vec3 color = textureLod(BUFFER_HDR, texcoord, 0).rgb;
 
-        vec3 final = vec3(0.0);
-        if (tile >= 0) {
-            vec2 viewSize = vec2(viewWidth, viewHeight);
-            vec2 pixelSize = 1.0 / viewSize;
+        float lum = 0.0;
+        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+            ivec2 iuv = ivec2(texcoord * 0.5 * vec2(viewWidth, viewHeight));
+            //float lumPrev = texelFetch(BUFFER_LUMINANCE, iuv, 0).r;
+            vec4 samples = textureGather(BUFFER_LUMINANCE, texcoord);
+            float lumPrev = 0.25 * (samples[0] + samples[1] + samples[2] + samples[3]);
 
-            vec2 tileMin, tileMax;
-            GetBloomTileInnerBounds(tile, tileMin, tileMax);
+            lum = log(luminance(color));
 
-            //vec4 clipPos = vec4(texcoord, 0.0, 1.0);
+            float timeDelta = (frameTimeCounter - frameTime) / 3600;
+            timeDelta += step(timeDelta, -EPSILON);
 
-            //ivec2 itex = ivec2(texcoord * viewSize);
-            //float clipDepth = texelFetch(depthtex0, itex, 0).r;
-            //float depthLinear = linearizeDepth(clipDepth * 2.0 - 1.0, near, far);
-            //float depthFactor = clamp(1.0 - (depthLinear - near) / far, 0.0, 1.0);
-            //clipPos = clipPos * 2.0 - 1.0;
+            lum = lumPrev + (lum - lumPrev) * (1.0 - exp(-timeDelta * TAU * EXPOSURE_SPEED));
+        #endif
 
-            //vec4 viewPos = gbufferProjectionInverse * clipPos;
-            //viewPos.xyz /= viewPos.w;
-
-            vec2 tileSize = tileMax - tileMin;
-            vec2 tileTex = (texcoord - tileMin) / tileSize;
-            //tileTex = clamp(tileTex, 0.5 * pixelSize, 1.0 - 0.5 * pixelSize);
-
-            final = texture2DLod(BUFFER_HDR, tileTex, tile).rgb;
-            // vec2 uv1 = tileTex + vec2();
-            // vec2 uv2 = tileTex + vec2();
-            // vec2 uv3 = tileTex + vec2();
-            // vec2 uv4 = tileTex + vec2();
-
-            // vec3 sample1 = texture2DLod(BUFFER_HDR, uv1, tile).rgb;
-            // vec3 sample2 = texture2DLod(BUFFER_HDR, uv2, tile).rgb;
-            // vec3 sample3 = texture2DLod(BUFFER_HDR, uv3, tile).rgb;
-            // vec3 sample4 = texture2DLod(BUFFER_HDR, uv4, tile).rgb;
-            
-            //final *= (0.5 + 0.5 * depthFactor);
-
-            float lum = luminance(final) / exp2(5.0 + 0.2 * tile);
-            final = clamp(final * lum, 0.0, 1000.0);
-        }
-
-    /* DRAWBUFFERS:7 */
-        gl_FragData[0] = vec4(final, 1.0);
+    /* DRAWBUFFERS:56 */
+        gl_FragData[0] = vec4(color, 1.0);
+        gl_FragData[1] = vec4(lum, 0.0, 0.0, 1.0);
     }
 #endif

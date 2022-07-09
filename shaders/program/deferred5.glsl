@@ -1,42 +1,45 @@
 #define RENDER_DEFERRED
 //#define RENDER_DEFERRED_ATMOSPHERE
 
-varying vec2 texcoord;
-
 #ifdef RENDER_VERTEX
+    out vec2 texcoord;
+
+    uniform mat4 gbufferProjection;
+    uniform mat4 gbufferModelView;
+
+
     void main() {
-        gl_Position = ftransform();
-        texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+        //texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+        texcoord = gl_MultiTexCoord0.xy;
+
+        gl_Position = gbufferProjection * gbufferModelView * gl_Vertex;
     }
 #endif
 
 #ifdef RENDER_FRAG
-    //uniform sampler2D BUFFER_LIGHTING;
+    in vec2 texcoord;
+
     uniform sampler2D BUFFER_HDR;
     uniform sampler2D depthtex0;
 
-    //uniform mat4 gbufferModelView;
     uniform mat4 gbufferProjectionInverse;
     uniform mat4 gbufferModelViewInverse;
     uniform float eyeAltitude;
     uniform vec3 sunPosition;
     uniform float viewWidth;
     uniform float viewHeight;
-    // uniform vec3 fogColor;
-    // uniform vec3 skyColor;
-    // uniform float fogStart;
-    // uniform float fogEnd;
 
 
     #include "/lib/world/atmosphere.glsl"
-    //#include "/lib/world/fog.glsl"
+
+    /* DRAWBUFFERS:4 */
+    out vec3 outColor;
 
 
     void main() {
         ivec2 itex = ivec2(texcoord * vec2(viewWidth, viewHeight));
         float depth = texelFetch(depthtex0, itex, 0).r;
 
-        vec3 color;
         if (depth >= 1.0 - EPSILON) {
             vec3 clipPos = vec3(texcoord, depth) * 2.0 - 1.0;
             vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
@@ -70,13 +73,10 @@ varying vec2 texcoord;
 
             vec4 sky = ComputeSkyInscattering(setting, eye, localViewDir, localSunDir);
 
-            color = sky.rgb;
+            outColor = sky.rgb;
         }
         else {
-            color = texelFetch(BUFFER_HDR, itex, 0).rgb;
+            outColor = texelFetch(BUFFER_HDR, itex, 0).rgb;
         }
-
-    /* DRAWBUFFERS:4 */
-        gl_FragData[0] = vec4(color, 1.0);
     }
 #endif

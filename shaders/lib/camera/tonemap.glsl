@@ -18,7 +18,7 @@ vec3 tonemap_HejlBurgess(const in vec3 color)
 {
     const float f = 1.0 / 1.1;
 
-    const vec3 t = max(vec3(0.0), color * f - 0.0008);
+    vec3 t = max(vec3(0.0), color * f - 0.0008);
     return color * (6.2 * t + 0.5) / (t * (6.2 * t + 1.7) + 0.06);
 }
 

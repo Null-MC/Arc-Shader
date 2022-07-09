@@ -1,13 +1,15 @@
+#extension GL_EXT_gpu_shader4 : enable
+
 #define RENDER_DEFERRED
 #define RENDER_OPAQUE_FINAL
 
-varying vec2 texcoord;
-
-#ifdef SHADOW_ENABLED
-    flat varying vec3 skyLightColor;
-#endif
-
 #ifdef RENDER_VERTEX
+    out vec2 texcoord;
+
+    #ifdef SHADOW_ENABLED
+        flat out vec3 skyLightColor;
+    #endif
+
     uniform float rainStrength;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
@@ -27,6 +29,12 @@ varying vec2 texcoord;
 #endif
 
 #ifdef RENDER_FRAG
+    in vec2 texcoord;
+
+    #ifdef SHADOW_ENABLED
+        flat in vec3 skyLightColor;
+    #endif
+
 	uniform sampler2D BUFFER_COLOR;
     uniform sampler2D BUFFER_NORMAL;
     uniform sampler2D BUFFER_SPECULAR;

@@ -64,11 +64,11 @@ float TextureGradLinear(const in sampler2D samplerName, const in vec2 texcoord, 
     return TextureGradLinear(samplerName, uv, dFdXY, f, comp);
 }
 
-float TexelGatherLinear(const in sampler2D samplerName, const in vec2 texcoordFull, const in int comp) {
-    vec2 f = fract(texcoordFull);
-    vec4 samples = textureGather(samplerName, texcoordFull, comp);
-    return LinearBlend4(samples, f);
-}
+// float TexelGatherLinear(const in sampler2D samplerName, const in vec2 texcoordFull, const in int comp) {
+//     vec2 f = fract(texcoordFull);
+//     vec4 samples = textureGather(samplerName, texcoordFull, comp);
+//     return LinearBlend4(samples, f);
+// }
 
 vec3 TextureLodLinearRGB(const in sampler2D samplerName, const in vec2 uv[4], const in int lod, const in vec2 f) {
     vec3 samples[4];

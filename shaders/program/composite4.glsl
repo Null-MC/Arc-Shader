@@ -1,43 +1,48 @@
-#define RENDER_COMPOSITE
-//#define RENDER_COMPOSITE_PREV_LUMINANCE
+#extension GL_ARB_texture_query_levels : enable
 
-varying vec2 texcoord;
+#define RENDER_COMPOSITE
+#define RENDER_COMPOSITE_BLOOM_BLUR
+//#define RENDER_COMPOSITE_BLOOM_BLUR_V
 
 #ifdef RENDER_VERTEX
+    out vec2 texcoord;
+    flat out int tileCount;
+
+    uniform sampler2D BUFFER_HDR;
+
+    #include "/lib/camera/bloom.glsl"
+
+
     void main() {
         gl_Position = ftransform();
         texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+
+        tileCount = GetBloomTileCount();
     }
 #endif
 
 #ifdef RENDER_FRAG
-    uniform sampler2D BUFFER_HDR;
-    uniform sampler2D BUFFER_LUMINANCE;
+    in vec2 texcoord;
+    flat in int tileCount;
 
-    uniform float frameTimeCounter;
-    uniform float frameTime;
+    uniform sampler2D BUFFER_BLOOM;
+
     uniform float viewWidth;
     uniform float viewHeight;
-    
+
+    #include "/lib/camera/bloom.glsl"
+
+    const vec2 direction = vec2(0.0, 1.0);
+
 
     void main() {
-        vec3 color = textureLod(BUFFER_HDR, texcoord, 0).rgb;
+        vec2 tileMin, tileMax;
+        int tile = GetBloomTileInnerIndex(tileCount, tileMin, tileMax);
 
-        float lum = 0.0;
-        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            ivec2 iuv = ivec2(texcoord * 0.5 * vec2(viewWidth, viewHeight));
-            float lumPrev = texelFetch(BUFFER_LUMINANCE, iuv, 0).r;
+        vec3 final = vec3(0.0);
+        if (tile >= 0) final = BloomBlur13(texcoord, tileMin, tileMax, direction);
 
-            lum = log(luminance(color));
-
-            float timeDelta = (frameTimeCounter - frameTime) / 3600;
-            timeDelta += step(timeDelta, -EPSILON);
-
-            lum = lumPrev + (lum - lumPrev) * (1.0 - exp(-timeDelta * TAU * EXPOSURE_SPEED));
-        #endif
-
-    /* DRAWBUFFERS:56 */
-        gl_FragData[0] = vec4(color, 1.0);
-        gl_FragData[1] = vec4(lum, 0.0, 0.0, 1.0);
+    /* DRAWBUFFERS:7 */
+        gl_FragData[0] = vec4(final, 1.0);
     }
 #endif

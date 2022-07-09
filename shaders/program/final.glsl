@@ -1,34 +1,95 @@
-#extension GL_ARB_shading_language_packing : enable
+//#extension GL_ARB_shading_language_packing : enable
 #extension GL_ARB_texture_query_levels : enable
 
 #define RENDER_FINAL
 
-varying vec2 texcoord;
-
-#if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-    flat varying vec2 skyLightIntensity;
-#endif
 
 #ifdef RENDER_VERTEX
+    out vec2 texcoord;
+    flat out float exposure;
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP //&& DEBUG_VIEW == DEBUG_VIEW_LUMINANCE
+        flat out int luminanceLod;
+    #endif
+
+    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+        flat out float averageLuminance;
+        flat out float EV100;
+    #endif
+
+    #ifdef BLOOM_ENABLED
+        flat out int bloomTileCount;
+    #endif
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        uniform ivec2 eyeBrightnessSmooth;
+    #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+        uniform sampler2D BUFFER_LUMINANCE;
+    #endif
+
     uniform float rainStrength;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
     uniform vec3 upPosition;
 
+    #ifdef BLOOM_ENABLED
+        uniform sampler2D BUFFER_HDR;
+
+        #include "/lib/camera/bloom.glsl"
+    #endif
+
     #include "/lib/world/sky.glsl"
+    #include "/lib/camera/exposure.glsl"
 
 
     void main() {
         gl_Position = ftransform();
         texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
-        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-            skyLightIntensity = GetSkyLightIntensity();
+        #ifdef BLOOM_ENABLED
+            bloomTileCount = GetBloomTileCount();
         #endif
+
+        #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+            #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+                vec2 skyLightIntensity = GetSkyLightIntensity();
+                vec2 eyeBrightness = eyeBrightnessSmooth / 240.0;
+                averageLuminance = GetAverageLuminance_EyeBrightness(eyeBrightness, skyLightIntensity);
+            #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+                luminanceLod = textureQueryLevels(BUFFER_LUMINANCE) - 1;
+                averageLuminance = GetAverageLuminance_Mipmap(luminanceLod);
+            #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_HISTOGRAM
+                averageLuminance = GetAverageLuminance_Histogram();
+            #else
+                averageLuminance = 0.0;
+            #endif
+
+            EV100 = GetEV100(averageLuminance);
+        #else
+            const float EV100 = CAMERA_EXPOSURE;
+        #endif
+
+        exposure = GetExposure(EV100);
     }
 #endif
 
 #ifdef RENDER_FRAG
+    in vec2 texcoord;
+    flat in float exposure;
+
+    #ifdef BLOOM_ENABLED
+        flat in int bloomTileCount;
+    #endif
+
+    #if DEBUG_VIEW == DEBUG_VIEW_LUMINANCE
+        flat in int luminanceLod;
+    #endif
+
+    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+        flat in float averageLuminance;
+        flat in float EV100;
+    #endif
+
     uniform float viewWidth;
     uniform float viewHeight;
     
@@ -67,18 +128,32 @@ varying vec2 texcoord;
         #ifdef BLOOM_ENABLED
             uniform sampler2D BUFFER_BLOOM;
 
-            #include "/lib/bloom.glsl"
+            #include "/lib/camera/bloom.glsl"
         #endif
 
-        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            uniform sampler2D BUFFER_LUMINANCE;
-        #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-            uniform ivec2 eyeBrightnessSmooth;
-        #endif
+        //#if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+        //    uniform sampler2D BUFFER_LUMINANCE;
+        //#endif
 
-        #include "/lib/tonemap.glsl"
+        //#include "/lib/camera/exposure.glsl"
+        #include "/lib/camera/tonemap.glsl"
     #endif
 
+
+    #ifdef DEBUG_EXPOSURE_METERS
+        void RenderLuminanceMeters(inout vec3 color, const in float avgLum, const in float EV100) {
+            if (gl_FragCoord.x < 8) {
+                color = vec3(1.0, 0.0, 0.0) * step(texcoord.y, avgLum);
+            }
+            else if (gl_FragCoord.x < 16) {
+                color = vec3(0.0, 1.0, 0.0) * step(texcoord.y, (EV100 + 3.0) / 10.0);
+
+                vec2 pixelSize = 1.0 / vec2(viewWidth, viewHeight);
+                if (abs(texcoord.y - (3.0 / 10.0)) < 2.0 * pixelSize.y)
+                    color = vec3(1.0, 1.0, 1.0);
+            }
+        }
+    #endif
 
     #if DEBUG_VIEW == 0
         mat4 GetSaturationMatrix(const in float saturation) {
@@ -97,52 +172,41 @@ varying vec2 texcoord;
 
         vec3 GetFinalColor() {
             ivec2 itex = ivec2(texcoord * vec2(viewWidth, viewHeight));
-            vec3 color = texelFetch(BUFFER_HDR, itex, 0).rgb;
-
-            float averageLuminance = 0.0;
-            #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-                int minMip = textureQueryLevels(BUFFER_LUMINANCE);
-                averageLuminance = textureLod(BUFFER_LUMINANCE, vec2(0.5), minMip).r;
-                averageLuminance = exp2(averageLuminance);
-            #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-                vec2 eyeBrightness = eyeBrightnessSmooth / 240.0;
-                eyeBrightness.y *= max(skyLightIntensity.x, skyLightIntensity.y);
-                averageLuminance = 0.04 + 0.06 * max(eyeBrightness.x, eyeBrightness.y);
-            #endif
+            vec3 color = texelFetch(BUFFER_HDR, itex, 0).rgb * exposure;
 
             #ifdef BLOOM_ENABLED
-                int tileCount = GetBloomTileCount();
-
                 vec3 bloom = vec3(0.0);
-                for (int i = 0; i < tileCount; i++) {
+                for (int i = 0; i < bloomTileCount; i++) {
                     vec2 tileMin, tileMax;
                     GetBloomTileInnerBounds(i, tileMin, tileMax);
 
                     vec2 tileTex = texcoord * (tileMax - tileMin) + tileMin;
                     tileTex = clamp(tileTex, tileMin, tileMax);
 
-                    vec3 sample = textureLod(BUFFER_BLOOM, tileTex, 0).rgb;
-                    bloom += clamp(sample, 0.0, 1.0);
+                    bloom += textureLod(BUFFER_BLOOM, tileTex, 0).rgb;
+                    //bloom += clamp(sample, 0.0, 1.0);
                 }
 
-                float lum = luminance(bloom);
+                //float lum = luminance(bloom);
                 //color /= 1.0 + lum;
 
                 color += bloom * (0.01 * BLOOM_STRENGTH);
             #endif
 
-            #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-                float exposure = EXPOSURE_POINT / clamp(averageLuminance, EXPOSURE_LUM_MIN, EXPOSURE_LUM_MAX);
-            #else
-                const float exposure = 0.1 * CAMERA_EXPOSURE;
-            #endif
-
-            color = ApplyTonemap(color * exposure);
+            //float avgLum = GetAverageLuminance();
+            //float exposure = GetExposure(avgLum);
+            color = ApplyTonemap(color);
 
             //mat4 matSaturation = GetSaturationMatrix(1.5);
             //color = mat3(matSaturation) * color;
 
-            return TonemapLinearToRGB(color);
+            color = TonemapLinearToRGB(color);
+
+            #if defined DEBUG_EXPOSURE_METERS && CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+                RenderLuminanceMeters(color, averageLuminance, EV100);
+            #endif
+
+            return color;
         }
     #endif
 
@@ -182,9 +246,13 @@ varying vec2 texcoord;
             color = texture(BUFFER_BLOOM, texcoord).rgb;
         #elif DEBUG_VIEW == DEBUG_VIEW_LUMINANCE
             // Luminance
-            //int minMip = textureQueryLevels(BUFFER_LUMINANCE);
-            float logLum = textureLod(BUFFER_LUMINANCE, texcoord, 0).r;
+            int lod = texcoord.x < 0.5 ? 0 : luminanceLod-2;
+            float logLum = textureLod(BUFFER_LUMINANCE, texcoord, lod).r;
             color = vec3(exp2(logLum));
+
+            #if defined DEBUG_EXPOSURE_METERS && CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+                RenderLuminanceMeters(color, averageLuminance, EV100);
+            #endif
         #elif DEBUG_VIEW == DEBUG_VIEW_PREVIOUS
             // HDR Previous Frame
             color = texture(BUFFER_HDR_PREVIOUS, texcoord).rgb;

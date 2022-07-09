@@ -3,9 +3,9 @@ deferred3	RSM full-res
 deferred4	Opaque PBR
 deferred5	Fog + Sky
 
-composite1	Bloom threshold/downsampling
-composite2	Bloom Blur H
-composite3	Bloom Blur V
-composite4	Luminance, previous frame
+composite1	Luminance, previous frame
+composite2	Bloom threshold/downsampling
+composite3	Bloom Blur H
+composite4	Bloom Blur V
 
 final	Bloom combine; HDR>LDR; Debug view

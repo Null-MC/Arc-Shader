@@ -1,17 +1,17 @@
 #define RENDER_DEFERRED
 #define RENDER_RSM
 
-varying vec2 texcoord;
-
-#if SHADOW_TYPE == 3
-    flat varying float cascadeSizes[4];
-    flat varying mat4 matShadowProjections[4];
-
-    //flat varying vec4 matShadowProjectionParts[4];
-    //flat varying vec2 matShadowProjectionOffsets[4];
-#endif
-
 #ifdef RENDER_VERTEX
+    out vec2 texcoord;
+
+    #if SHADOW_TYPE == 3
+        flat out float cascadeSizes[4];
+        flat out mat4 matShadowProjections[4];
+
+        //flat varying vec4 matShadowProjectionParts[4];
+        //flat varying vec2 matShadowProjectionOffsets[4];
+    #endif
+
     #if SHADOW_TYPE == 3
         uniform mat4 shadowModelView;
         uniform float near;
@@ -61,6 +61,16 @@ varying vec2 texcoord;
 #endif
 
 #ifdef RENDER_FRAG
+    in vec2 texcoord;
+
+    #if SHADOW_TYPE == 3
+        flat in float cascadeSizes[4];
+        flat in mat4 matShadowProjections[4];
+
+        //flat varying vec4 matShadowProjectionParts[4];
+        //flat varying vec2 matShadowProjectionOffsets[4];
+    #endif
+
     uniform sampler2D BUFFER_NORMAL;
     uniform sampler2D BUFFER_LIGHTING;
     uniform sampler2D shadowtex1;
