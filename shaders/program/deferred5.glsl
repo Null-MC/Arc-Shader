@@ -9,10 +9,11 @@
 
 
     void main() {
-        //texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-        texcoord = gl_MultiTexCoord0.xy;
+        texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+        gl_Position = ftransform();
+        //texcoord = gl_MultiTexCoord0.xy;
 
-        gl_Position = gbufferProjection * gbufferModelView * gl_Vertex;
+        //gl_Position = gbufferProjection * gbufferModelView * gl_Vertex;
     }
 #endif
 
@@ -40,6 +41,8 @@
         ivec2 itex = ivec2(texcoord * vec2(viewWidth, viewHeight));
         float depth = texelFetch(depthtex0, itex, 0).r;
 
+        outColor = texelFetch(BUFFER_HDR, itex, 0).rgb;
+
         if (depth >= 1.0 - EPSILON) {
             vec3 clipPos = vec3(texcoord, depth) * 2.0 - 1.0;
             vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
@@ -52,7 +55,7 @@
 
             ScatteringParams setting;
             setting.sunRadius = 3000.0;
-            setting.sunRadiance = 120.0;
+            setting.sunRadiance = 441.0 * WM2ToLumen;
             setting.mieG = 0.96;
             setting.mieHeight = 1200.0;
             setting.rayleighHeight = 8000.0;
@@ -73,10 +76,10 @@
 
             vec4 sky = ComputeSkyInscattering(setting, eye, localViewDir, localSunDir);
 
-            outColor = sky.rgb;
+            outColor += sky.rgb;
         }
-        else {
-            outColor = texelFetch(BUFFER_HDR, itex, 0).rgb;
-        }
+        // else {
+        //     outColor = texelFetch(BUFFER_HDR, itex, 0).rgb;
+        // }
     }
 #endif

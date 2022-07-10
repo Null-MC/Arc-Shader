@@ -88,6 +88,7 @@ flat varying int materialId;
 		#endif
 	#endif
 
+    #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/pbr.glsl"
@@ -102,7 +103,9 @@ flat varying int materialId;
         BasicVertex(matViewTBN);
         PbrVertex(matViewTBN);
 
-        skyLightColor = GetSkyLightColor();
+        //skyLightColor = GetSkyLightColor();
+        vec2 skyLightLevels = GetSkyLightLevels();
+        skyLightColor = GetSkyLightLuminance(skyLightLevels);
 
         if (mc_Entity.x == 100.0)
             materialId = 1;
@@ -186,6 +189,7 @@ flat varying int materialId;
         #include "/lib/parallax.glsl"
     #endif
 
+    #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/fog.glsl"
     #include "/lib/lighting/basic.glsl"

@@ -54,20 +54,23 @@
 #ifdef RENDER_FRAG
     vec3 GetSkyAmbientLight(const in vec3 normal) {
         vec3 upDir = normalize(upPosition);
-
         vec3 sunLightDir = normalize(sunPosition);
-        float sunLightStrength = max(dot(upDir, sunLightDir), 0.0);
-        float sunLightNormal = max(dot(normal, sunLightDir), 0.0);
-        sunLightStrength = pow(sunLightStrength, 0.3);
-
         vec3 moonLightDir = normalize(moonPosition);
-        float moonLightStrength = max(dot(upDir, moonLightDir), 0.0);
-        float moonLightNormal = max(dot(normal, moonLightDir), 0.0);
-        moonLightStrength = pow(moonLightStrength, 0.3);
 
-        vec3 sunLight = sunColor * sunLightNormal * sunLightStrength * sunIntensity;
-        vec3 moonLight = moonColor * moonLightNormal * moonLightStrength * moonIntensity;
+        vec2 skyLightLevels;
+        skyLightLevels.x = dot(upDir, sunLightDir);
+        skyLightLevels.y = dot(upDir, moonLightDir);
 
-        return SHADOW_BRIGHTNESS * (skyColor + sunLight + moonLight);
+        vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
+
+        vec3 sunLightLum = GetSunLightLuminance(skyLightTemp.x, skyLightLevels.x);
+        sunLightLum *= dot(normal, sunLightDir) * 0.5 + 0.5;
+
+        vec3 moonLightLum = GetMoonLightLuminance(skyLightTemp.y, skyLightLevels.y);
+        moonLightLum *= dot(normal, moonLightDir) * 0.5 + 0.5;
+
+        vec3 skyLightLum = RGBToLinear(skyColor);
+
+        return SHADOW_BRIGHTNESS * (skyLightLum + sunLightLum + moonLightLum);
     }
 #endif

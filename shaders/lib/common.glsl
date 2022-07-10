@@ -84,12 +84,13 @@ const bool colortex9Clear = false;
 
 
 // Camera Options
-#define CAMERA_EXPOSURE_MODE 0 // [0 1 2]
-#define CAMERA_EXPOSURE 1 // [-4 -3 -2 -1 0 1 2 3 4 5 6]
-#define CAMERA_LUM_MIN 0.02
-#define CAMERA_LUM_MAX 80.0
+#define CAMERA_EXPOSURE_MODE 2 // [0 1 2]
+#define CAMERA_EXPOSURE 0 // [-5 -4 -3 -2 -1 0 1 2 3 4 5]
+#define CAMERA_LUM_MIN 0.06
+#define CAMERA_LUM_MAX 20000.0
 #define EXPOSURE_POINT 0.2
-#define EXPOSURE_SPEED 0.005
+#define EXPOSURE_SPEED_UP 0.001
+#define EXPOSURE_SPEED_DOWN 0.004
 
 #define EXPOSURE_MODE_MANUAL 0
 #define EXPOSURE_MODE_EYEBRIGHTNESS 1
@@ -114,7 +115,7 @@ const bool colortex9Clear = false;
 
 // Debug Options
 #define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9]
-#define DEBUG_EXPOSURE_METERS
+//#define DEBUG_EXPOSURE_METERS
 #define IS_OPTIFINE
 
 #define DEBUG_VIEW_SHADOW_ALBEDO 1
@@ -147,10 +148,19 @@ const bool colortex9Clear = false;
 #define BUFFER_RSM_COLOR colortex8
 #define BUFFER_RSM_DEPTH colortex9
 
-const vec3 sunColor = vec3(1.0, 0.9, 0.8);
-const vec3 moonColor = vec3(0.5, 0.6, 1.0);
-const float sunIntensity = 1.0;
-const float moonIntensity = 0.01;
+//const vec3 sunColor = vec3(1.0, 0.9, 0.8);
+//const vec3 moonColor = vec3(0.5, 0.6, 1.0);
+//const float sunIntensity = 4.0;
+//const float moonIntensity = 0.01;
+
+const float LumenToWM2 = 0.001464;
+const float WM2ToLumen = 683.0;
+const float SunIntensityWM2 = 441; // 120000
+const float MoonIntensityWM2 = 0.0006; // 0.1
+const float StarIntensityWM2 = 2.0; // 0.1
+
+const float sunLuminanceNoon = 0.0;
+const float sunIlluminanceNoon = 0.0;
 
 const vec3 minLight = vec3(0.01);
 const float tile_dist_bias_factor = 0.012288;

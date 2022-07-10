@@ -32,16 +32,26 @@
         float lum = 0.0;
         #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
             ivec2 iuv = ivec2(texcoord * 0.5 * vec2(viewWidth, viewHeight));
-            //float lumPrev = texelFetch(BUFFER_LUMINANCE, iuv, 0).r;
-            vec4 samples = textureGather(BUFFER_LUMINANCE, texcoord);
-            float lumPrev = 0.25 * (samples[0] + samples[1] + samples[2] + samples[3]);
+            float lumPrev = texelFetch(BUFFER_LUMINANCE, iuv, 0).r;
+            lumPrev = max(exp(lumPrev) - EPSILON, 0.0);
 
-            lum = log(luminance(color));
+            lum = luminance(color);
+            //lum = clamp(lum, 0.0, 10000.0);
 
-            float timeDelta = (frameTimeCounter - frameTime) / 3600;
-            timeDelta += step(timeDelta, -EPSILON);
+            //if (lumPrev < EPSILON) lumPrev = lum;
+            //else lumPrev = exp(lumPrev);
 
-            lum = lumPrev + (lum - lumPrev) * (1.0 - exp(-timeDelta * TAU * EXPOSURE_SPEED));
+            const float timeDeltaF = 1.0 / 3600.0;
+            float timeDelta = (frameTimeCounter - frameTime) * timeDeltaF;
+            timeDelta += step(frameTime, frameTimeCounter);
+
+            float speed = 0.0;
+            speed += step(lum + EPSILON, lumPrev) * EXPOSURE_SPEED_DOWN;
+            speed += step(lumPrev + EPSILON, lum) * EXPOSURE_SPEED_UP;
+
+            lum = lumPrev + (lum - lumPrev) * (1.0 - exp(-timeDelta * TAU * speed));
+            //lum = clamp(lum, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
+            lum = log(lum + EPSILON);
         #endif
 
     /* DRAWBUFFERS:56 */

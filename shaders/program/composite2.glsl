@@ -33,15 +33,15 @@
             #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_HISTOGRAM
                 averageLuminance = GetAverageLuminance_Histogram();
             #else
-                averageLuminance = 0.0;
+                averageLuminance = 2.0;
             #endif
 
             float EV100 = GetEV100(averageLuminance);
         #else
-            const float EV100 = CAMERA_EXPOSURE;
+            const float EV100 = 0.0;
         #endif
 
-        exposure = GetExposure(EV100);
+        exposure = GetExposure(EV100 - CAMERA_EXPOSURE);
     }
 #endif
 
@@ -112,17 +112,20 @@
             
             //final *= (0.5 + 0.5 * depthFactor);
 
-            float lum = luminance(final * exposure);
+            float lum = luminance(final) * exposure;
 
             //lum /= clamp(exp2(5.0 + 0.2 * tile), 0.001, 1000);
             //float lum = luminance(final);
 
             //lum = clamp(lum / exp2(3 + 0.2 * tile), 0.0, 1.0);
-            lum = clamp(lum / (8.0 + 0.1 * tile), 0.0, 1.0);
+            //lum = clamp(lum / (16.0 + 0.1 * tile), 0.0, 65000.0);
+            lum = lum / exp2(11 + tile);
             //lum = pow(lum, 4.0);
 
             //lum = pow(lum, 8.0 + tile);
-            final = final / (final + 1.0) * lum;
+            final *= lum;
+
+            final = final / (final + 1.0);
         }
 
     /* DRAWBUFFERS:7 */

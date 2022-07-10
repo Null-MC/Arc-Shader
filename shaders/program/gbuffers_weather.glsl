@@ -64,6 +64,7 @@ varying float geoNoL;
 		#endif
 	#endif
 
+    #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/lighting/basic.glsl"
 
@@ -77,7 +78,9 @@ varying float geoNoL;
         mat3 matViewTBN;
         BasicVertex(matViewTBN);
 
-        skyLightColor = GetSkyLightColor();
+        //skyLightColor = GetSkyLightColor();
+        vec2 skyLightLevels = GetSkyLightLevels();
+        skyLightColor = GetSkyLightLuminance(skyLightLevels);
 	}
 #endif
 
@@ -136,6 +139,7 @@ varying float geoNoL;
 	    #endif
 	#endif
 
+    #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/fog.glsl"
     #include "/lib/lighting/basic.glsl"

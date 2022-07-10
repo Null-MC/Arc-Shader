@@ -143,7 +143,7 @@ vec3 tonemap_Tech(const in vec3 color)
 
 //====  compile-time global switch ====//
 
-vec3 ApplyTonemap(const in vec3 color)
+vec3 ApplyTonemap(const in vec3 color, const in float whitePoint)
 {
 #if TONEMAP == TONEMAP_HejlBurgess
     return tonemap_HejlBurgess(color);
@@ -154,7 +154,7 @@ vec3 ApplyTonemap(const in vec3 color)
 #elif TONEMAP == TONEMAP_ReinhardJodie
     return tonemap_ReinhardJodie(color);
 #elif TONEMAP == TONEMAP_Uncharted2
-    return tonemap_Uncharted2(color, 18.0);
+    return tonemap_Uncharted2(color, whitePoint);
 #elif TONEMAP == TONEMAP_ACESFit
     return tonemap_ACESFit(color);
 #elif TONEMAP == TONEMAP_ACESFit2

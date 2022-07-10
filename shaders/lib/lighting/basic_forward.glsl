@@ -20,7 +20,7 @@
         skyLight = skyLight*skyLight*skyLight;
 
         float shadow = step(EPSILON, geoNoL) * step(1.0 / 32.0, skyLight);
-        vec3 lightColor = skyLightColor;
+        //vec3 lightColor = skyLightColor;
 
         vec3 skyAmbient = SHADOW_BRIGHTNESS * GetSkyAmbientLight(viewNormal) * skyLight;
         vec3 blockAmbient = max(vec3(blockLight), skyAmbient);
@@ -48,7 +48,7 @@
         //vec3 lmColor = RGBToLinear(texture2D(lightmap, lmCoord).rgb);
 
         vec4 final = albedo;
-        final.rgb *= (minLight + blockAmbient + lightColor * shadow);
+        final.rgb *= (minLight + blockAmbient + skyLightColor * shadow);
 
         ApplyFog(final, viewPos, skyLight, EPSILON);
 

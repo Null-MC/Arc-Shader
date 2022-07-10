@@ -235,6 +235,8 @@ value.DEBUG_VIEW.7=Bloom
 value.DEBUG_VIEW.8=Luminance
 value.DEBUG_VIEW.9=Previous
 
+option.DEBUG_EXPOSURE_METERS=Exposure Meters
+option.DEBUG_EXPOSURE_METERS.comment=When enabled, two bars will be shown on the left screen edge. - The average luminance is the first bar in red. - The EV value is the second bar in green.
 
 option.IS_OPTIFINE=Using Optifine?
 option.IS_OPTIFINE.comment=Optifine currently has a bug with the gbuffer matrices in the shadow pass that requires a workaround using the previous-frame matrices. Disable this workaround if you are using Iris.

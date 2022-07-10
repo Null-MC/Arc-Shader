@@ -15,6 +15,7 @@
     uniform vec3 moonPosition;
     uniform vec3 upPosition;
 
+    #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
 
 
@@ -23,7 +24,9 @@
 		texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
         #ifdef SHADOW_ENABLED
-            skyLightColor = GetSkyLightColor();
+            //skyLightColor = GetSkyLightColor();
+            vec2 skyLightLevels = GetSkyLightLevels();
+            skyLightColor = GetSkyLightLuminance(skyLightLevels);
         #endif
 	}
 #endif
@@ -66,19 +69,20 @@
     uniform vec3 upPosition;
     uniform vec3 skyColor;
 
-    #ifndef ATMOSPHERE_ENABLED
+    //#ifndef ATMOSPHERE_ENABLED
         uniform vec3 fogColor;
         uniform float fogStart;
         uniform float fogEnd;
-    #endif
+    //#endif
 
     #ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;
     #endif
 
+    #include "/lib/lighting/blackbody.glsl"
+    #include "/lib/world/sky.glsl"
 
     #ifndef ATMOSPHERE_ENABLED
-        #include "/lib/world/sky.glsl"
         #include "/lib/world/fog.glsl"
     #endif
     
@@ -95,7 +99,7 @@
 	void main() {
         vec3 final = PbrLighting();
 
-        final = clamp(final, vec3(0.0), vec3(1000.0));
+        final = clamp(final, vec3(0.0), vec3(65000.0));
 
 	/* DRAWBUFFERS:4 */
 		gl_FragData[0] = vec4(final, 1.0);

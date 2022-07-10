@@ -13,9 +13,9 @@ float GetCustomFogFactor(const in float viewDist) {
     const float nightFogDensity = 1.2;
     const float rainFogDensity = 0.36;
 
-    float sunLightIntensity = GetSkyLightIntensity().x;
+    float sunLightLevel = GetSkyLightLevels().x;
 
-    float density = mix(nightFogDensity, dayFogDensity, sunLightIntensity);
+    float density = mix(nightFogDensity, dayFogDensity, sunLightLevel);
     density = mix(density, rainFogDensity, rainStrength);
 
     float strength = mix(0.4, 1.0, rainStrength);
@@ -32,7 +32,7 @@ float GetVanillaFogFactor(const in float viewDist) {
 float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightLevel) {
     #ifdef SHADOW_ENABLED
         vec3 viewDir = normalize(viewPos);
-        vec3 atmosphereColor = GetSkyColor(viewDir);
+        vec3 atmosphereColor = GetVanillaSkyColor(viewDir);
     #else
         vec3 atmosphereColor = RGBToLinear(fogColor);
     #endif

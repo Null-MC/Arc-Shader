@@ -63,6 +63,7 @@
 		#endif
 	#endif
 
+    #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/lighting/basic.glsl"
 
@@ -75,7 +76,9 @@
         mat3 matViewTBN;
         BasicVertex(matViewTBN);
 
-        skyLightColor = GetSkyLightColor();
+        //skyLightColor = GetSkyLightColor();
+        vec2 skyLightLevels = GetSkyLightLevels();
+        skyLightColor = GetSkyLightLuminance(skyLightLevels);
 	}
 #endif
 
@@ -163,6 +166,7 @@
 	    #endif
 	#endif
 
+    #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/fog.glsl"
     #include "/lib/lighting/basic.glsl"

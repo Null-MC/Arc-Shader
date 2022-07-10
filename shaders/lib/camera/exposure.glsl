@@ -6,8 +6,8 @@
 #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
     float GetAverageLuminance_Mipmap(const in int lod) {
         //int minMip = textureQueryLevels(BUFFER_LUMINANCE) - 1;
-        float averageLuminance = textureLod(BUFFER_LUMINANCE, vec2(0.5), lod).r;
-        return exp2(averageLuminance);
+        float averageLuminance = textureLod(BUFFER_LUMINANCE, vec2(0.5), lod-1).r;
+        return exp(averageLuminance);
     }
 #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_HISTOGRAM
     float GetAverageLuminance_Histogram() {
@@ -20,11 +20,15 @@ float GetEV100(const in float averageLuminance) {
     //return EXPOSURE_POINT / clamp(f, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
     float avgLumClamped = clamp(averageLuminance, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
 
-    const float S = 500.0;
+    //float lumMax = 9.6 * avgLumClamped;
+
+    const float S = 100.0;
     const float K = 12.5;
     return log2(avgLumClamped * S / K);
 }
 
 float GetExposure(const in float EV100) {
-    return 1.0 / exp2(EV100 - 3.0);
+    //return 1.0 / exp2(EV100 - 3.0);
+    float maxLum = 1.2 * exp2(EV100);
+    return 1.0 / maxLum;
 }

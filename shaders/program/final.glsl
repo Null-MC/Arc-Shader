@@ -38,6 +38,7 @@
         #include "/lib/camera/bloom.glsl"
     #endif
 
+    #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/camera/exposure.glsl"
 
@@ -56,7 +57,7 @@
                 vec2 eyeBrightness = eyeBrightnessSmooth / 240.0;
                 averageLuminance = GetAverageLuminance_EyeBrightness(eyeBrightness, skyLightIntensity);
             #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-                luminanceLod = textureQueryLevels(BUFFER_LUMINANCE) - 1;
+                luminanceLod = textureQueryLevels(BUFFER_LUMINANCE);
                 averageLuminance = GetAverageLuminance_Mipmap(luminanceLod);
             #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_HISTOGRAM
                 averageLuminance = GetAverageLuminance_Histogram();
@@ -66,10 +67,10 @@
 
             EV100 = GetEV100(averageLuminance);
         #else
-            const float EV100 = CAMERA_EXPOSURE;
+            const float EV100 = 2.0;
         #endif
 
-        exposure = GetExposure(EV100);
+        exposure = GetExposure(EV100 - CAMERA_EXPOSURE);
     }
 #endif
 
@@ -146,10 +147,10 @@
                 color = vec3(1.0, 0.0, 0.0) * step(texcoord.y, avgLum);
             }
             else if (gl_FragCoord.x < 16) {
-                color = vec3(0.0, 1.0, 0.0) * step(texcoord.y, (EV100 + 3.0) / 10.0);
+                color = vec3(0.0, 1.0, 0.0) * step(texcoord.y, (EV100 + 1.0) / 15.0);
 
                 vec2 pixelSize = 1.0 / vec2(viewWidth, viewHeight);
-                if (abs(texcoord.y - (3.0 / 10.0)) < 2.0 * pixelSize.y)
+                if (abs(texcoord.y - (2.0 / 15.0)) < 2.0 * pixelSize.y)
                     color = vec3(1.0, 1.0, 1.0);
             }
         }
@@ -193,9 +194,8 @@
                 color += bloom * (0.01 * BLOOM_STRENGTH);
             #endif
 
-            //float avgLum = GetAverageLuminance();
-            //float exposure = GetExposure(avgLum);
-            color = ApplyTonemap(color);
+            float whitePoint = 1.0;
+            color = ApplyTonemap(color, whitePoint);
 
             //mat4 matSaturation = GetSaturationMatrix(1.5);
             //color = mat3(matSaturation) * color;
@@ -246,9 +246,9 @@
             color = texture(BUFFER_BLOOM, texcoord).rgb;
         #elif DEBUG_VIEW == DEBUG_VIEW_LUMINANCE
             // Luminance
-            int lod = texcoord.x < 0.5 ? 0 : luminanceLod-2;
+            int lod = texcoord.x < 0.5 ? 0 : luminanceLod-1;
             float logLum = textureLod(BUFFER_LUMINANCE, texcoord, lod).r;
-            color = vec3(exp2(logLum));
+            color = vec3(exp(logLum));
 
             #if defined DEBUG_EXPOSURE_METERS && CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
                 RenderLuminanceMeters(color, averageLuminance, EV100);

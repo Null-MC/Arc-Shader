@@ -57,7 +57,8 @@
 
 		gl_Position = gl_ProjectionMatrix * viewPos;
 
-        skyLightColor = GetSkyLightColor();
+        //skyLightColor = GetSkyLightColor();
+        skyLightColor = GetSkyLightLuminance();
 	}
 #endif
 
