@@ -3,6 +3,13 @@
 
 #ifdef RENDER_VERTEX
     out vec2 texcoord;
+    flat out float exposure;
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+        uniform sampler2D BUFFER_HDR_PREVIOUS;
+    #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        uniform ivec2 eyeBrightnessSmooth;
+    #endif
 
     #if SHADOW_TYPE == 3
         flat out float cascadeSizes[4];
@@ -35,10 +42,27 @@
         #include "/lib/shadows/csm.glsl"
     #endif
 
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        uniform int heldBlockLightValue;
+        
+        uniform float rainStrength;
+        uniform vec3 sunPosition;
+        uniform vec3 moonPosition;
+        uniform vec3 upPosition;
+        uniform int moonPhase;
+
+        #include "/lib/lighting/blackbody.glsl"
+        #include "/lib/world/sky.glsl"
+    #endif
+
+    #include "/lib/camera/exposure.glsl"
+
 
 	void main() {
 		gl_Position = ftransform();
 		texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+
+        exposure = GetExposure();
 
         #if SHADOW_TYPE == 3
             cascadeSizes[0] = GetCascadeDistance(0);
@@ -62,6 +86,7 @@
 
 #ifdef RENDER_FRAG
     in vec2 texcoord;
+    flat in float exposure;
 
     #if SHADOW_TYPE == 3
         flat in float cascadeSizes[4];
@@ -143,7 +168,7 @@
             }
         }
 
-		outColor = color;
+        outColor = clamp(color, vec3(0.0), vec3(65000.0));
 
         #ifdef RSM_UPSCALE
             outDepth = clipDepth;

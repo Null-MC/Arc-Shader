@@ -136,11 +136,9 @@
     // Common Usage Pattern
 
     #ifdef HANDLIGHT_ENABLED
-        const vec3 handLightColor = vec3(0.851, 0.712, 0.545);
-
         float GetHandLightAttenuation(const in float lightLevel, const in float lightDist) {
-            float diffuseAtt = max(0.16*lightLevel - 0.5*lightDist, 0.0);
-            return diffuseAtt*diffuseAtt;
+            float diffuseAtt = max(0.0625*lightLevel - 0.08*lightDist, 0.0);
+            return pow(diffuseAtt, 5.0);
         }
 
         void ApplyHandLighting(inout vec3 diffuse, inout vec3 specular, const in PbrMaterial material, const in vec3 viewNormal, const in vec3 viewPos, const in vec3 viewDir, const in float NoVm, const in float roughL) {
@@ -162,8 +160,11 @@
             float VoHm = max(dot(viewDir, halfDir), EPSILON);
             //vec3 NxH = cross(viewNormal, halfDir);
 
-            diffuse += GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * attenuation * handLightColor;
-            specular += GetSpecularBRDF(material, NoVm, NoLm, NoHm, VoHm, roughL) * attenuation * handLightColor;
+            //vec3(0.851, 0.712, 0.545)
+            vec3 handLightColor = vec3(1.0) * attenuation * BlockLightLux;
+
+            diffuse += GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * handLightColor;
+            specular += GetSpecularBRDF(material, NoVm, NoLm, NoHm, VoHm, roughL) * handLightColor;
         }
     #endif
 
@@ -188,11 +189,8 @@
         float rough = 1.0 - material.smoothness;
         float roughL = max(rough * rough, 0.005);
 
-        float blockLight = (lmValue.x - (0.5/16.0)) / (15.0/16.0);
-        float skyLight = (lmValue.y - (0.5/16.0)) / (15.0/16.0);
-
-        // blockLight = blockLight*blockLight*blockLight;
-        // skyLight = skyLight*skyLight*skyLight;
+        float blockLight = clamp((lmValue.x - (0.5/16.0)) / (15.0/16.0), 0.0, 1.0);
+        float skyLight = clamp((lmValue.y - (0.5/16.0)) / (15.0/16.0), 0.0, 1.0);
 
         // Increase skylight when in direct sunlight
         skyLight = max(skyLight, shadow);
@@ -222,12 +220,12 @@
             #endif
         #endif
 
-        vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * skyLight*skyLight; //skyLightColor;
+        vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * pow(skyLight, 5.0); //skyLightColor;
 
-        vec3 blockAmbient = 0.002 + max(vec3(blockLight*blockLight), skyAmbient);
+        float blockAmbient = pow(blockLight, 5.0) * BlockLightLux;
         //return vec4(blockAmbient, 1.0);
 
-        vec3 ambient = blockAmbient * material.occlusion;
+        vec3 ambient = (0.1 + blockAmbient + skyAmbient) * material.occlusion;
 
         vec3 diffuseLight = skyLightColor * shadowFinal;
 
@@ -265,7 +263,7 @@
 
         //ambient += minLight;
 
-        float emissive = material.emission*material.emission * 256.0;
+        float emissive = material.emission*material.emission * EmissionLumens;
 
         vec4 final = material.albedo;
         final.rgb = final.rgb * (ambient + emissive) + diffuse + specular;
@@ -287,7 +285,7 @@
             }
         #endif
 
-        final.a = min(final.a + luminance(specular), 1.0);
+        final.a = min(final.a + luminance(specular) * exposure, 1.0);
 
         #if defined RENDER_DEFERRED && !defined ATMOSPHERE_ENABLED
             ApplyFog(final.rgb, viewPos.xyz, skyLight);

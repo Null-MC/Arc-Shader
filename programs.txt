@@ -1,11 +1,18 @@
+<sky>
+
+<opaque>
+
 deferred2	RSM low-res
 deferred3	RSM full-res
-deferred4	Opaque PBR
+deferred4	Opaque PBR: RGB1: pre-exposed color, R2: Raw Luminance
 deferred5	Fog + Sky
 
-composite1	Luminance, previous frame
+<transparent>
+<particles?>
+
 composite2	Bloom threshold/downsampling
 composite3	Bloom Blur H
 composite4	Bloom Blur V
+composite1	copy previous-frame = RGB: pre-exposed color
 
-final	Bloom combine; HDR>LDR; Debug view
+final		Bloom combine; tonemap; Debug view

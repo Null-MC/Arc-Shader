@@ -9,9 +9,13 @@ float GetCaveFogFactor(const in float viewDist) {
 }
 
 float GetCustomFogFactor(const in float viewDist) {
-    const float dayFogDensity = 2.5;
-    const float nightFogDensity = 1.2;
-    const float rainFogDensity = 0.36;
+    const float dayFogDensity = 1.5;
+    const float nightFogDensity = 1.0;
+    const float rainFogDensity = 0.75;
+
+    const float dayFogStrength = 0.3;
+    const float nightFogStrength = 0.5;
+    const float rainFogStrength = 1.0;
 
     float sunLightLevel = GetSkyLightLevels().x;
 
@@ -37,19 +41,27 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
         vec3 atmosphereColor = RGBToLinear(fogColor);
     #endif
 
+    vec3 caveFogColor = vec3(0.002);
     float viewDist = length(viewPos) - near;
     float maxFactor = 0.0;
 
     #ifdef CAVEFOG_ENABLED
         float caveLightFactor = min(6.0 * skyLightLevel, 1.0);
-        vec3 caveFogColor = mix(vec3(0.002), atmosphereColor, caveLightFactor);
+        vec3 caveFogColorBlend = mix(caveFogColor, atmosphereColor, caveLightFactor);
 
         float eyeBrightness = eyeBrightnessSmooth.y / 240.0;
         float cameraLightFactor = min(6.0 * eyeBrightness, 1.0);
     #endif
 
-    float customFogFactor = GetCustomFogFactor(viewDist);
-    maxFactor = max(maxFactor, customFogFactor);
+    // #ifdef RENDER_DEFERRED
+    //     atmosphereColor *= exposure;
+    //     caveFogColor *= exposure;
+    // #endif
+
+    #ifdef ATMOSFOG_ENABLED
+        float customFogFactor = GetCustomFogFactor(viewDist);
+        maxFactor = max(maxFactor, customFogFactor);
+    #endif
 
     float vanillaFogFactor = GetVanillaFogFactor(viewDist);
     maxFactor = max(maxFactor, vanillaFogFactor);
@@ -61,11 +73,14 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
         maxFactor = max(maxFactor, caveFogFactor);
     #endif
 
-    color = mix(color, atmosphereColor, customFogFactor);
+    #ifdef ATMOSFOG_ENABLED
+        color = mix(color, atmosphereColor, customFogFactor);
+    #endif
+
     color = mix(color, atmosphereColor, vanillaFogFactor);
 
     #ifdef CAVEFOG_ENABLED
-        color = mix(color, caveFogColor, caveFogFactor);
+        color = mix(color, caveFogColorBlend, caveFogFactor);
     #endif
 
     return maxFactor;

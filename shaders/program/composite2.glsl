@@ -6,13 +6,10 @@
 #ifdef RENDER_VERTEX
     out vec2 texcoord;
     flat out int tileCount;
-    flat out float exposure;
 
     uniform sampler2D BUFFER_HDR;
-    uniform sampler2D BUFFER_LUMINANCE;
 
     #include "/lib/camera/bloom.glsl"
-    #include "/lib/camera/exposure.glsl"
 
 
     void main() {
@@ -20,35 +17,12 @@
         texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
         tileCount = GetBloomTileCount();
-
-        float averageLuminance = 0.0;
-        #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-            #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-                vec2 skyLightIntensity = GetSkyLightIntensity();
-                vec2 eyeBrightness = eyeBrightnessSmooth / 240.0;
-                averageLuminance = GetAverageLuminance_EyeBrightness(eyeBrightness, skyLightIntensity);
-            #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-                int luminanceLod = textureQueryLevels(BUFFER_LUMINANCE) - 1;
-                averageLuminance = GetAverageLuminance_Mipmap(luminanceLod);
-            #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_HISTOGRAM
-                averageLuminance = GetAverageLuminance_Histogram();
-            #else
-                averageLuminance = 2.0;
-            #endif
-
-            float EV100 = GetEV100(averageLuminance);
-        #else
-            const float EV100 = 0.0;
-        #endif
-
-        exposure = GetExposure(EV100 - CAMERA_EXPOSURE);
     }
 #endif
 
 #ifdef RENDER_FRAG
     in vec2 texcoord;
     flat in int tileCount;
-    flat in float exposure;
 
     uniform sampler2D BUFFER_HDR;
     uniform sampler2D depthtex0;
@@ -97,35 +71,42 @@
             vec2 tileTex = (texcoord - tileMin) / tileSize;
             //tileTex = clamp(tileTex, 0.5 * pixelSize, 1.0 - 0.5 * pixelSize);
 
-            final = texture2DLod(BUFFER_HDR, tileTex, tile).rgb;
+            //final = texture2DLod(BUFFER_HDR, tileTex, tile).rgb;
             //final = textureGather(BUFFER_HDR, tileTex, tile).rgb;
 
-            // vec2 uv1 = tileTex + vec2();
-            // vec2 uv2 = tileTex + vec2();
-            // vec2 uv3 = tileTex + vec2();
-            // vec2 uv4 = tileTex + vec2();
+            vec2 tilePixelSize = pixelSize * exp2(tile);
 
-            // vec3 sample1 = texture2DLod(BUFFER_HDR, uv1, tile).rgb;
-            // vec3 sample2 = texture2DLod(BUFFER_HDR, uv2, tile).rgb;
-            // vec3 sample3 = texture2DLod(BUFFER_HDR, uv3, tile).rgb;
-            // vec3 sample4 = texture2DLod(BUFFER_HDR, uv4, tile).rgb;
+            vec2 uv1 = tileTex + vec2(-0.5, -0.5) * tilePixelSize;
+            vec2 uv2 = tileTex + vec2( 0.5, -0.5) * tilePixelSize;
+            vec2 uv3 = tileTex + vec2(-0.5,  0.5) * tilePixelSize;
+            vec2 uv4 = tileTex + vec2( 0.5,  0.5) * tilePixelSize;
+
+            vec3 sample1 = texture2DLod(BUFFER_HDR, uv1, tile).rgb;
+            vec3 sample2 = texture2DLod(BUFFER_HDR, uv2, tile).rgb;
+            vec3 sample3 = texture2DLod(BUFFER_HDR, uv3, tile).rgb;
+            vec3 sample4 = texture2DLod(BUFFER_HDR, uv4, tile).rgb;
             
+            final = (sample1 + sample2 + sample3 + sample4) * 0.25;
+
+            // WARN: this is a hacky fix for the NaN's that are coming through
+            final = clamp(final, vec3(0.0), vec3(10.0));
+
             //final *= (0.5 + 0.5 * depthFactor);
 
-            float lum = luminance(final) * exposure;
+            float lum = luminance(final);// * exposure;
 
             //lum /= clamp(exp2(5.0 + 0.2 * tile), 0.001, 1000);
             //float lum = luminance(final);
 
             //lum = clamp(lum / exp2(3 + 0.2 * tile), 0.0, 1.0);
             //lum = clamp(lum / (16.0 + 0.1 * tile), 0.0, 65000.0);
-            lum = lum / exp2(11 + tile);
+            float lumNew = lum / (0.8 * exp2(4 + tile));
             //lum = pow(lum, 4.0);
 
             //lum = pow(lum, 8.0 + tile);
-            final *= lum;
+            final *= (lumNew / max(lum, EPSILON));
 
-            final = final / (final + 1.0);
+            final = clamp(final / (final + 1.0), vec3(0.0), vec3(1.0));
         }
 
     /* DRAWBUFFERS:7 */

@@ -1,4 +1,5 @@
 #extension GL_ARB_shading_language_packing : enable
+#extension GL_ARB_texture_query_levels : enable
 
 #define RENDER_GBUFFER
 #define RENDER_WEATHER
@@ -12,6 +13,7 @@ varying vec4 glcolor;
 varying vec3 viewPos;
 varying vec3 viewNormal;
 varying float geoNoL;
+flat varying float exposure;
 
 #ifdef SHADOW_ENABLED
     uniform vec3 sunPosition;
@@ -34,6 +36,14 @@ varying float geoNoL;
 
 #ifdef RENDER_VERTEX
 	uniform vec3 cameraPosition;
+    uniform int moonPhase;
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+        uniform sampler2D BUFFER_HDR_PREVIOUS;
+    #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        uniform ivec2 eyeBrightnessSmooth;
+        uniform int heldBlockLightValue;
+    #endif
 	
 	#ifdef SHADOW_ENABLED
 		uniform mat4 gbufferModelView;
@@ -67,6 +77,7 @@ varying float geoNoL;
     #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/lighting/basic.glsl"
+    #include "/lib/camera/exposure.glsl"
 
 
 	void main() {
@@ -81,6 +92,8 @@ varying float geoNoL;
         //skyLightColor = GetSkyLightColor();
         vec2 skyLightLevels = GetSkyLightLevels();
         skyLightColor = GetSkyLightLuminance(skyLightLevels);
+
+        exposure = GetExposure();
 	}
 #endif
 
@@ -90,6 +103,7 @@ varying float geoNoL;
 
     uniform ivec2 eyeBrightnessSmooth;
     uniform float rainStrength;
+    uniform int moonPhase;
     uniform float near;
 
     uniform vec3 skyColor;
@@ -145,9 +159,22 @@ varying float geoNoL;
     #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/basic_forward.glsl"
 
+    /* DRAWBUFFERS:46 */
+    out vec4 outColor;
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+        out vec4 outLuminance;
+    #endif
+
 
 	void main() {
-	/* DRAWBUFFERS:4 */
-        gl_FragData[0] = BasicLighting();
+        outColor = BasicLighting();
+
+        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+            outLuminance.r = log(luminance(outColor.rgb) * outColor.a + EPSILON);
+            outLuminance.a = outColor.a;
+        #endif
+
+        outColor.rgb = clamp(outColor.rgb * exposure, vec3(0.0), vec3(65000));
 	}
 #endif

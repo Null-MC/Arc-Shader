@@ -1,3 +1,4 @@
+#extension GL_ARB_texture_query_levels : enable
 #extension GL_ARB_gpu_shader5 : enable
 
 #define RENDER_GBUFFER
@@ -43,6 +44,15 @@ flat varying int materialId;
 #endif
 
 #ifdef RENDER_VERTEX
+    flat out float exposure;
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+        uniform sampler2D BUFFER_HDR_PREVIOUS;
+    #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        uniform ivec2 eyeBrightnessSmooth;
+        uniform int heldBlockLightValue;
+    #endif
+
 	in vec4 mc_Entity;
 	in vec3 vaPosition;
     in vec4 at_tangent;
@@ -57,6 +67,7 @@ flat varying int materialId;
 	uniform vec3 cameraPosition;
 
     uniform float rainStrength;
+    uniform int moonPhase;
 
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
     	uniform vec3 chunkOffset;
@@ -92,6 +103,7 @@ flat varying int materialId;
     #include "/lib/world/sky.glsl"
     #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/pbr.glsl"
+    #include "/lib/camera/exposure.glsl"
 
 
 	void main() {
@@ -107,14 +119,16 @@ flat varying int materialId;
         vec2 skyLightLevels = GetSkyLightLevels();
         skyLightColor = GetSkyLightLuminance(skyLightLevels);
 
-        if (mc_Entity.x == 100.0)
-            materialId = 1;
-        else
-            materialId = 0;
+        if (mc_Entity.x == 100.0) materialId = 1;
+        else materialId = 0;
+
+        exposure = GetExposure();
 	}
 #endif
 
 #ifdef RENDER_FRAG
+    flat in float exposure;
+
 	uniform sampler2D gtexture;
     uniform sampler2D normals;
     uniform sampler2D specular;
@@ -124,6 +138,7 @@ flat varying int materialId;
     uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
     uniform float rainStrength;
+    uniform int moonPhase;
     uniform float near;
 
     uniform vec3 skyColor;
@@ -199,9 +214,22 @@ flat varying int materialId;
     #include "/lib/lighting/pbr.glsl"
     #include "/lib/lighting/pbr_forward.glsl"
 
+    /* DRAWBUFFERS:46 */
+    out vec4 outColor;
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+        out vec4 outLuminance;
+    #endif
+
 
 	void main() {
-    /* DRAWBUFFERS:4 */
-        gl_FragData[0] = PbrLighting();
+        outColor = PbrLighting();
+
+        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+            outLuminance.r = log(luminance(outColor.rgb) + EPSILON);
+            outLuminance.a = outColor.a;
+        #endif
+
+        outColor.rgb = clamp(outColor.rgb * exposure, vec3(0.0), vec3(65000));
 	}
 #endif

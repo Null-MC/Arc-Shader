@@ -1,30 +1,81 @@
+#extension GL_ARB_texture_query_levels : enable
+
 #define RENDER_GBUFFER
 #define RENDER_CLOUDS
 
-varying vec2 texcoord;
-varying vec4 glcolor;
-
 #ifdef RENDER_VERTEX
-	void main() {
-		gl_Position = ftransform();
-		texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-		glcolor = gl_Color;
-	}
+    out vec2 texcoord;
+    out vec4 glcolor;
+    flat out float exposure;
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+        uniform sampler2D BUFFER_HDR_PREVIOUS;
+    #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        uniform ivec2 eyeBrightnessSmooth;
+        uniform int heldBlockLightValue;
+
+        uniform float rainStrength;
+        uniform vec3 upPosition;
+        uniform vec3 sunPosition;
+        uniform vec3 moonPosition;
+        uniform int moonPhase;
+
+        #include "/lib/lighting/blackbody.glsl"
+        #include "/lib/world/sky.glsl"
+    #endif
+
+    #include "/lib/camera/exposure.glsl"
+
+
+    void main() {
+        gl_Position = ftransform();
+        texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+        glcolor = gl_Color;
+
+        exposure = GetExposure();
+    }
 #endif
 
 #ifdef RENDER_FRAG
-	uniform sampler2D gtexture;
+    in vec2 texcoord;
+    in vec4 glcolor;
+    flat in float exposure;
+
+    uniform sampler2D gtexture;
+
+    uniform float rainStrength;
+    uniform vec3 upPosition;
+    uniform vec3 sunPosition;
+    uniform vec3 moonPosition;
+    uniform vec3 fogColor;
+    uniform vec3 skyColor;
+    uniform int moonPhase;
+
+    /* DRAWBUFFERS:46 */
+    out vec4 outColor;
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+        out float outLuminance;
+    #endif
+
+    #include "/lib/lighting/blackbody.glsl"
+    #include "/lib/world/sky.glsl"
 
 
-	void main() {
-		vec4 colorMap = texture2D(gtexture, texcoord) * glcolor;
-		//vec4 normalMap = vec4(0.0);
-		//vec4 specularMap = vec4(0.0);
-		//vec4 lightingMap = vec4(0.0);
+    void main() {
+        vec4 colorMap = texture2D(gtexture, texcoord) * glcolor;
+        colorMap.rgb = RGBToLinear(colorMap.rgb);
 
-		colorMap.rgb = RGBToLinear(colorMap.rgb);
+        vec2 skyLightLevels = GetSkyLightLevels();
+        float sunLightLux = GetSunLightLevel(skyLightLevels.x) * DaySkyLumen;
+        float moonLightLux = GetMoonLightLevel(skyLightLevels.y) * NightSkyLumen;
+        colorMap.rgb *= sunLightLux + moonLightLux;
 
-    /* DRAWBUFFERS:4 */
-        gl_FragData[0] = colorMap;
-	}
+        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+            outLuminance = log(luminance(colorMap.rgb) + EPSILON);
+        #endif
+
+        colorMap.rgb = clamp(colorMap.rgb * exposure, vec3(0.0), vec3(65000));
+        outColor = colorMap;
+    }
 #endif

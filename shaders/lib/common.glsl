@@ -3,13 +3,14 @@ const float sunPathRotation = -30; // [-60 -50 -40 -30 -20 -15 -10 -5 0 5 10 15 
 /*
 const int colortex4Format = RGB16F;
 const bool colortex4MipmapEnabled = true;
+const bool colortex5Clear = false;
 
-const int colortex5Format = RGB16F;
+const int colortex5Format = RGBA16F;
 const bool colortex5MipmapEnabled = true;
 const bool colortex5Clear = false;
 
 const int colortex6Format = R16F;
-const bool colortex6MipmapEnabled = true;
+const bool colortex6MipmapEnabled = false;
 const bool colortex6Clear = false;
 
 const int colortex7Format = RGB16F;
@@ -84,10 +85,10 @@ const bool colortex9Clear = false;
 
 
 // Camera Options
-#define CAMERA_EXPOSURE_MODE 2 // [0 1 2]
-#define CAMERA_EXPOSURE 0 // [-5 -4 -3 -2 -1 0 1 2 3 4 5]
-#define CAMERA_LUM_MIN 0.06
-#define CAMERA_LUM_MAX 20000.0
+#define CAMERA_EXPOSURE_MODE 1 // [0 1 2]
+#define CAMERA_EXPOSURE 0 // [-17 -16 -15 -14 -13 -12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6]
+#define CAMERA_LUM_MIN 40.0
+#define CAMERA_LUM_MAX 200000.0
 #define EXPOSURE_POINT 0.2
 #define EXPOSURE_SPEED_UP 0.001
 #define EXPOSURE_SPEED_DOWN 0.004
@@ -114,8 +115,10 @@ const bool colortex9Clear = false;
 
 
 // Debug Options
-#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10]
 //#define DEBUG_EXPOSURE_METERS
+//#define CAVEFOG_ENABLED
+#define ATMOSFOG_ENABLED
 #define IS_OPTIFINE
 
 #define DEBUG_VIEW_SHADOW_ALBEDO 1
@@ -126,7 +129,8 @@ const bool colortex9Clear = false;
 #define DEBUG_VIEW_RSM 6
 #define DEBUG_VIEW_BLOOM 7
 #define DEBUG_VIEW_LUMINANCE 8
-#define DEBUG_VIEW_PREVIOUS 9
+#define DEBUG_VIEW_PREV_COLOR 9
+#define DEBUG_VIEW_PREV_LUMINANCE 10
 
 
 // INTERNAL
@@ -148,19 +152,18 @@ const bool colortex9Clear = false;
 #define BUFFER_RSM_COLOR colortex8
 #define BUFFER_RSM_DEPTH colortex9
 
-//const vec3 sunColor = vec3(1.0, 0.9, 0.8);
-//const vec3 moonColor = vec3(0.5, 0.6, 1.0);
-//const float sunIntensity = 4.0;
-//const float moonIntensity = 0.01;
+const float sunLumen = 16000000;
+const float moonLumen = 2500.0;
+const float StarLumen = 2000.0;
+//const float BlockLightLumen = 2000;
+const float EmissionLumens = 100000.0;
 
-const float LumenToWM2 = 0.001464;
-const float WM2ToLumen = 683.0;
-const float SunIntensityWM2 = 441; // 120000
-const float MoonIntensityWM2 = 0.0006; // 0.1
-const float StarIntensityWM2 = 2.0; // 0.1
+const float SunLux = 113000.0;
+const float MoonLux = 10.0;
+const float BlockLightLux = 24000;
 
-const float sunLuminanceNoon = 0.0;
-const float sunIlluminanceNoon = 0.0;
+const float DaySkyLumen = 120000.0;
+const float NightSkyLumen = 1200.0;
 
 const vec3 minLight = vec3(0.01);
 const float tile_dist_bias_factor = 0.012288;

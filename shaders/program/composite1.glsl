@@ -1,7 +1,7 @@
 #extension GL_ARB_texture_query_levels : enable
 
 #define RENDER_COMPOSITE
-//#define RENDER_COMPOSITE_PREV_LUMINANCE
+//#define RENDER_COMPOSITE_PREV_FRAME
 
 #ifdef RENDER_VERTEX
     out vec2 texcoord;
@@ -16,30 +16,30 @@
 #ifdef RENDER_FRAG
     in vec2 texcoord;
 
-
     uniform sampler2D BUFFER_HDR;
-    uniform sampler2D BUFFER_LUMINANCE;
 
-    uniform float frameTimeCounter;
-    uniform float frameTime;
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+        uniform sampler2D BUFFER_LUMINANCE;
+        uniform sampler2D BUFFER_HDR_PREVIOUS;
+    #endif
+    
     uniform float viewWidth;
     uniform float viewHeight;
-    
+    uniform float frameTimeCounter;
+    uniform float frameTime;
+
 
     void main() {
         vec3 color = textureLod(BUFFER_HDR, texcoord, 0).rgb;
-
         float lum = 0.0;
+
         #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+            lum = textureLod(BUFFER_LUMINANCE, texcoord, 0).r;
+            lum = max(exp(lum) - EPSILON, 0.0);
+
             ivec2 iuv = ivec2(texcoord * 0.5 * vec2(viewWidth, viewHeight));
-            float lumPrev = texelFetch(BUFFER_LUMINANCE, iuv, 0).r;
+            float lumPrev = texelFetch(BUFFER_HDR_PREVIOUS, iuv, 0).a;
             lumPrev = max(exp(lumPrev) - EPSILON, 0.0);
-
-            lum = luminance(color);
-            //lum = clamp(lum, 0.0, 10000.0);
-
-            //if (lumPrev < EPSILON) lumPrev = lum;
-            //else lumPrev = exp(lumPrev);
 
             const float timeDeltaF = 1.0 / 3600.0;
             float timeDelta = (frameTimeCounter - frameTime) * timeDeltaF;
@@ -54,8 +54,7 @@
             lum = log(lum + EPSILON);
         #endif
 
-    /* DRAWBUFFERS:56 */
-        gl_FragData[0] = vec4(color, 1.0);
-        gl_FragData[1] = vec4(lum, 0.0, 0.0, 1.0);
+    /* DRAWBUFFERS:5 */
+        gl_FragData[0] = vec4(color, lum);
     }
 #endif

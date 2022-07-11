@@ -5,7 +5,7 @@
 #endif
 
 #ifdef RENDER_FRAG
-    vec3 PbrLighting() {
+    vec4 PbrLighting() {
         ivec2 iTex = ivec2(texcoord * vec2(viewWidth, viewHeight));
         float screenDepth = texelFetch(depthtex0, iTex, 0).r;
 
@@ -13,7 +13,8 @@
         if (screenDepth == 1.0) {
             //discard;
             //return vec4(vec3(1.0), 0.0);
-            return texelFetch(BUFFER_HDR, iTex, 0).rgb;
+            vec3 skyColor = texelFetch(BUFFER_HDR, iTex, 0).rgb;
+            return vec4(skyColor, 0.0);
         }
 
         vec3 colorMap = texelFetch(BUFFER_COLOR, iTex, 0).rgb;
@@ -27,6 +28,8 @@
 
         PbrMaterial material = PopulateMaterial(colorMap, normalMap, specularMap);
 
-        return PbrLighting2(material, lightingMap.xy, lightingMap.b, lightingMap.a, viewPos.xyz).rgb;
+        vec3 final = PbrLighting2(material, lightingMap.xy, lightingMap.b, lightingMap.a, viewPos.xyz).rgb;
+
+        return vec4(final, 1.0);
     }
 #endif
