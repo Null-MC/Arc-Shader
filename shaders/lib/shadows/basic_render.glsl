@@ -55,9 +55,9 @@
 
 	float SampleDepth(const in vec4 shadowPos, const in vec2 offset) {
         #if !defined IS_OPTIFINE && defined SHADOW_ENABLE_HWCOMP
-            return texture2D(shadowtex1, shadowPos.xy + offset * shadowPos.w).r;
+            return texture(shadowtex1, shadowPos.xy + offset * shadowPos.w).r;
         #else
-            return texture2D(shadowtex0, shadowPos.xy + offset * shadowPos.w).r;
+            return texture(shadowtex0, shadowPos.xy + offset * shadowPos.w).r;
         #endif
 	}
 
@@ -65,9 +65,9 @@
         // returns: [0] when depth occluded, [1] otherwise
         float CompareDepth(const in vec4 shadowPos, const in vec2 offset) {
             #ifndef IS_OPTIFINE
-                return shadow2D(shadowtex1HW, shadowPos.xyz + vec3(offset * shadowPos.w, 0.0)).r;
+                return texture(shadowtex1HW, shadowPos.xyz + vec3(offset * shadowPos.w, 0.0));
             #else
-                return shadow2D(shadowtex1, shadowPos.xyz + vec3(offset * shadowPos.w, 0.0)).r;
+                return texture(shadowtex1, shadowPos.xyz + vec3(offset * shadowPos.w, 0.0));
             #endif
         }
     #endif

@@ -74,7 +74,7 @@
 
 	float SampleDepth(const in vec2 shadowPos, const in vec2 offset) {
         #if !defined IS_OPTIFINE && defined SHADOW_ENABLE_HWCOMP
-            return texture2D(shadowtex1, shadowPos + offset).r;
+            return texture(shadowtex1, shadowPos + offset).r;
         #else
             ivec2 itex = ivec2((shadowPos + offset) * shadowMapSize);
             return texelFetch(shadowtex0, itex, 0).r;
@@ -140,9 +140,9 @@
         // returns: [0] when depth occluded, [1] otherwise
         float CompareDepth(const in vec3 shadowPos, const in vec2 offset, const in float bias) {
             #ifndef IS_OPTIFINE
-                return shadow2D(shadowtex1HW, shadowPos + vec3(offset, -bias)).r;
+                return texture(shadowtex1HW, shadowPos + vec3(offset, -bias)).r;
             #else
-                return shadow2D(shadowtex1, shadowPos + vec3(offset, -bias)).r;
+                return texture(shadowtex1, shadowPos + vec3(offset, -bias)).r;
             #endif
         }
 
@@ -207,7 +207,7 @@
 
 				//when colored shadows are enabled and there's nothing OPAQUE between us and the sun,
 				//perform a 2nd check to see if there's anything translucent between us and the sun.
-				float depth = texture2D(shadowtex0, shadowPos[i].xy).r;
+				float depth = texture(shadowtex0, shadowPos[i].xy).r;
 				if (depth + EPSILON < 1.0 && depth < shadowPos[i].z && depth < depthLast) {
 					depthLast = depth;
 					cascade = i;
@@ -303,7 +303,7 @@
 
     #ifdef SSS_ENABLED
         vec4 SampleShadowColorSSS(const in vec2 shadowPos) {
-            uint data = texture2D(shadowcolor0, shadowPos).r;
+            uint data = texture(shadowcolor0, shadowPos).r;
             return unpackUnorm4x8(data);
         }
 

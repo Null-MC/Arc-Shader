@@ -12,6 +12,8 @@
 	flat out vec3 sunLightLum;
 	flat out vec3 moonLightLum;
     flat out float exposure;
+    
+    uniform float screenBrightness;
 
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         uniform sampler2D BUFFER_HDR_PREVIOUS;

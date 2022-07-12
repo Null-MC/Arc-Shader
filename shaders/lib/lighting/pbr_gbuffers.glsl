@@ -144,12 +144,18 @@
             #endif
         #endif
         
+        vec2 lm = lmcoord;
+        #ifdef DIRECTIONAL_LIGHTMAP
+            vec3 texViewNormal = normalize(normal.xyz * matTBN);
+            ApplyDirectionalLightmap(lm.x, texViewNormal);
+        #endif
+
         #ifdef RENDER_WATER
             // TODO: blend in deferred output?
         #endif
 
         normalMap.xy = (normal.xyz * matTBN).xy * 0.5 + 0.5;
 
-        lightingMap = vec4(lmcoord, shadow, lightSSS);
+        lightingMap = vec4(lm, shadow, lightSSS);
     }
 #endif

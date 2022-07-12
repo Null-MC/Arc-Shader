@@ -222,10 +222,13 @@
 
         vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * pow(skyLight, 5.0); //skyLightColor;
 
-        float blockAmbient = pow(blockLight, 5.0) * BlockLightLux;
-        //return vec4(blockAmbient, 1.0);
+        #ifdef DIRECTIONAL_LIGHTMAP
+            float blockLightAmbient = pow2(blockLight) * BlockLightLux;
+        #else
+            float blockLightAmbient = pow(blockLight, 5.0) * BlockLightLux;
+        #endif
 
-        vec3 ambient = (1.0 + blockAmbient + skyAmbient) * material.occlusion;
+        vec3 ambient = (1.0 + blockLightAmbient + skyAmbient) * material.occlusion;
 
         vec3 diffuseLight = skyLightColor * shadowFinal;
 
@@ -270,11 +273,11 @@
 
         #ifdef SSS_ENABLED
             //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
-            vec3 ambient_sss = skyAmbient * material.scattering * material.occlusion;
+            vec3 ambient_sss = 9.0 * skyAmbient * material.scattering * material.occlusion;
 
             // Transmission
             vec3 sss = (1.0 - shadowFinal) * shadowSSS * material.scattering * skyLightColor;// * max(-NoL, 0.0);
-            final.rgb += material.albedo.rgb * invPI * (ambient_sss + sss) * 1.25;
+            final.rgb += material.albedo.rgb * invPI * (ambient_sss + sss);
         #endif
 
         #ifdef SHADOW_ENABLED

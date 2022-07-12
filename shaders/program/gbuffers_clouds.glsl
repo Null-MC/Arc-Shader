@@ -7,6 +7,8 @@
     out vec2 texcoord;
     out vec4 glcolor;
     flat out float exposure;
+    
+    uniform float screenBrightness;
 
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         uniform sampler2D BUFFER_HDR_PREVIOUS;

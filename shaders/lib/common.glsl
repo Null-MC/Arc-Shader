@@ -29,6 +29,7 @@ const bool colortex9Clear = false;
 
 // World Options
 #define ENABLE_WAVING
+#define DIRECTIONAL_LIGHTMAP
 #define HANDLIGHT_ENABLED
 #define SHADOW_BRIGHTNESS 0.10 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define RAIN_DARKNESS 0.2
@@ -37,6 +38,8 @@ const bool colortex9Clear = false;
 
 // Atmosphere Options
 //#define ATMOSPHERE_ENABLED
+#define ATMOSFOG_ENABLED
+#define CAVEFOG_ENABLED
 #define HCM_AMBIENT 0.16
 
 
@@ -122,8 +125,6 @@ const bool colortex9Clear = false;
 // Debug Options
 #define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15]
 //#define DEBUG_EXPOSURE_METERS
-#define CAVEFOG_ENABLED
-#define ATMOSFOG_ENABLED
 #define IS_OPTIFINE
 
 #define DEBUG_VIEW_GBUFFER_COLOR 1
@@ -186,7 +187,6 @@ const float invPI = 1.0 / PI;
 
 #if MC_VERSION < 11700 || !defined IS_OPTIFINE
     const float alphaTestRef = 0.1;
-    //const vec3 chunkOffset = vec3(0.0);
 #endif
 
 // #ifdef WORLD_NETHER
@@ -244,6 +244,10 @@ const float invPI = 1.0 / PI;
 #ifdef RSM_UPSCALE
 #endif
 
+
+float pow2(const in float x) {
+    return x * x;
+}
 
 float RGBToLinear(const in float color) {
     return pow(color, GAMMA);

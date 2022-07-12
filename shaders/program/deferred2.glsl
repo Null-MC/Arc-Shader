@@ -7,6 +7,7 @@
     out vec2 texcoord;
     flat out float exposure;
     
+    uniform float screenBrightness;
     uniform float viewWidth;
     uniform float viewHeight;
 

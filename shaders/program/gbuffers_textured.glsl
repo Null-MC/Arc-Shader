@@ -45,6 +45,7 @@
 
     uniform mat4 gbufferModelView;
     uniform mat4 gbufferModelViewInverse;
+    uniform float screenBrightness;
 
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
@@ -195,16 +196,19 @@
     void main() {
         vec4 outColor = BasicLighting();
 
-        #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
             vec4 outLuminance = vec4(0.0);
             outLuminance.r = log2(luminance(outColor.rgb) * outColor.a + EPSILON);
             outLuminance.a = outColor.a;
-            gl_FragData[1] = outLuminance;
         #endif
 
         outColor.rgb = clamp(outColor.rgb * exposure, vec3(0.0), vec3(65000));
 
     /* DRAWBUFFERS:46 */
         gl_FragData[0] = outColor;
+
+        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+            gl_FragData[1] = outLuminance;
+        #endif
     }
 #endif

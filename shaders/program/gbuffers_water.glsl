@@ -68,6 +68,7 @@
 
     uniform mat4 gbufferModelView;
     uniform mat4 gbufferModelViewInverse;
+    uniform float screenBrightness;
     uniform vec3 cameraPosition;
 
     uniform float rainStrength;

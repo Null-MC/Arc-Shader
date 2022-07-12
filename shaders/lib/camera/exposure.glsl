@@ -15,7 +15,7 @@
 
         blockLightBrightness = pow(blockLightBrightness, 5.0) * BlockLightLux;
 
-        return 0.1 * max(blockLightBrightness, skyLightBrightness);
+        return max(blockLightBrightness, skyLightBrightness);
     }
 #endif
 
@@ -32,7 +32,7 @@ float GetEV100(const in float averageLuminance) {
 
 float GetExposure(const in float EV100) {
     //return 1.0 / exp2(EV100 - 3.0);
-    float maxLum = 1.2 * exp2(EV100);
+    float maxLum = (2.0 - screenBrightness) * exp2(EV100);
     return 1.0 / maxLum;
 }
 

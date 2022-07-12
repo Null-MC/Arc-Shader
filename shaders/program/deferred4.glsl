@@ -23,6 +23,7 @@
         flat out vec3 skyLightColor;
     #endif
 
+    uniform float screenBrightness;
     uniform int heldBlockLightValue;
     
     uniform float rainStrength;
@@ -121,7 +122,6 @@
 
 
 	void main() {
-        //ivec2 iTex = ivec2(texcoord * vec2(viewWidth, viewHeight));
         ivec2 iTex = ivec2(gl_FragCoord.xy);
         float screenDepth = texelFetch(depthtex0, iTex, 0).r;
 

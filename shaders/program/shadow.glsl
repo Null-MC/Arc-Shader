@@ -3,12 +3,10 @@
 
 /*
 const int shadowtex0Format = R32F;
-const int shadowtex1Format = R32F;
+const bool shadowtex0Nearest = false;
+
 const int shadowcolor0Format = RG32UI;
 const bool shadowcolor0Nearest = true;
-
-shadowtex0Nearest = false;
-shadowtex1Nearest = false;
 */
 
 const float shadowDistanceRenderMul = 1.0;
@@ -204,7 +202,9 @@ const float shadowDistanceRenderMul = 1.0;
     #include "/lib/lighting/material_reader.glsl"
 
     /* RENDERTARGETS: 0 */
-    out uvec2 outColor0;
+    #if defined SSS_ENABLED || defined RSM_ENABLED
+        out uvec2 outColor0;
+    #endif
 
 
     void main() {

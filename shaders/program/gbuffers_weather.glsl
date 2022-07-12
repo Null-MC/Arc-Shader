@@ -35,6 +35,7 @@
         #endif
     #endif
 
+    uniform float screenBrightness;
     uniform vec3 cameraPosition;
     uniform int moonPhase;
 

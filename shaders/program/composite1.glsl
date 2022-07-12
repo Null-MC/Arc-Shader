@@ -23,7 +23,6 @@
 
         #include "/lib/lighting/blackbody.glsl"
         #include "/lib/world/sky.glsl"
-        //#include "/lib/camera/exposure.glsl"
 
         float GetEyeBrightnessLuminance() {
             vec2 eyeBrightnessLinear = eyeBrightness / 240.0;

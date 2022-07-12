@@ -22,7 +22,9 @@
         uniform ivec2 eyeBrightness;
     #endif
 
+    uniform float screenBrightness;
     uniform int heldBlockLightValue;
+    
     uniform float rainStrength;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
