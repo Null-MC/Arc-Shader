@@ -79,8 +79,8 @@
 
     uniform mat4 gbufferProjectionInverse;
     uniform mat4 gbufferModelView;
-    // uniform float viewWidth;
-    // uniform float viewHeight;
+    uniform float viewWidth;
+    uniform float viewHeight;
     uniform float near;
     
     uniform ivec2 eyeBrightnessSmooth;
@@ -151,7 +151,7 @@
                 outLuminance = log2(luminance(color) + EPSILON);
             #endif
 
-            outColor = clamp(color * exposure, vec3(0.0), vec3(65000.0));
+            outColor = clamp(color * exposure, vec3(0.0), vec3(10.0));
         }
 	}
 #endif

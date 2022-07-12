@@ -1,14 +1,21 @@
+#extension GL_ARB_texture_query_levels : enable
+
 #define RENDER_DEFERRED
 #define RENDER_RSM
 
 #ifdef RENDER_VERTEX
     out vec2 texcoord;
     flat out float exposure;
+    
+    uniform float viewWidth;
+    uniform float viewHeight;
 
-    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         uniform sampler2D BUFFER_HDR_PREVIOUS;
-    #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-        uniform ivec2 eyeBrightnessSmooth;
+    #endif
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        uniform ivec2 eyeBrightness;
     #endif
 
     #if SHADOW_TYPE == 3
