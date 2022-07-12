@@ -94,20 +94,13 @@
 
             //final *= (0.5 + 0.5 * depthFactor);
 
-            float lum = luminance(final);// * exposure;
+            float lum = luminance(final);// / exposure;
 
             //lum /= clamp(exp2(5.0 + 0.2 * tile), 0.001, 1000);
             //float lum = luminance(final);
 
-            //lum = clamp(lum / exp2(3 + 0.2 * tile), 0.0, 1.0);
-            //lum = clamp(lum / (16.0 + 0.1 * tile), 0.0, 65000.0);
-            float lumNew = lum / (0.8 * exp2(4 + tile));
-            //lum = pow(lum, 4.0);
-
-            //lum = pow(lum, 8.0 + tile);
+            float lumNew = (lum * BLOOM_SCALE) / exp2(BLOOM_POWER + tile);
             final *= (lumNew / max(lum, EPSILON));
-
-            final = clamp(final / (final + 1.0), vec3(0.0), vec3(1.0));
         }
 
     /* DRAWBUFFERS:7 */

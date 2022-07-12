@@ -12,27 +12,19 @@ const bool colortex5Clear = false;
 const int colortex6Format = R16F;
 const bool colortex6MipmapEnabled = false;
 const bool colortex6Clear = false;
+
+const int colortex7Format = RGB16F;
+const bool colortex7MipmapEnabled = false;
+const bool colortex7Clear = false;
+
+const int colortex8Format = RGB16F;
+const bool colortex8MipmapEnabled = false;
+const bool colortex8Clear = false;
+
+const int colortex9Format = R16F;
+const bool colortex9MipmapEnabled = false;
+const bool colortex9Clear = false;
 */
-
-#ifdef BLOOM_ENABLED
-    /*
-    const int colortex7Format = RGB16F;
-    const bool colortex7MipmapEnabled = false;
-    const bool colortex7Clear = false;
-    */
-#endif
-
-#ifdef RSM_ENABLED
-    /*
-    const int colortex8Format = RGB16F;
-    const bool colortex8MipmapEnabled = false;
-    const bool colortex8Clear = false;
-
-    const int colortex9Format = R16F;
-    const bool colortex9MipmapEnabled = false;
-    const bool colortex9Clear = false;
-    */
-#endif
 
 
 // World Options
@@ -118,7 +110,9 @@ const bool colortex6Clear = false;
 #define RSM_SCALE 1 // [0 1 2]
 //#define RSM_UPSCALE
 #define BLOOM_ENABLED
-//#define BLOOM_SMOOTH
+#define BLOOM_SMOOTH
+#define BLOOM_POWER 3.0
+#define BLOOM_SCALE 1.0
 #define BLOOM_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
 //#define AF_ENABLED
