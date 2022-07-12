@@ -8,7 +8,7 @@ float GetCaveFogFactor(const in float viewDist) {
     return GetFogFactor(viewDist, 0.0, end, 1.0);
 }
 
-float GetCustomFogFactor(const in float viewDist) {
+float GetCustomFogFactor(const in float viewDist, const in float sunLightLevel) {
     const float dayFogDensity = 1.5;
     const float nightFogDensity = 1.0;
     const float rainFogDensity = 0.75;
@@ -16,8 +16,6 @@ float GetCustomFogFactor(const in float viewDist) {
     const float dayFogStrength = 0.3;
     const float nightFogStrength = 0.5;
     const float rainFogStrength = 1.0;
-
-    float sunLightLevel = GetSkyLightLevels().x;
 
     float density = mix(nightFogDensity, dayFogDensity, sunLightLevel);
     density = mix(density, rainFogDensity, rainStrength);
@@ -41,12 +39,12 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
         vec3 atmosphereColor = RGBToLinear(fogColor);
     #endif
 
-    vec3 caveFogColor = vec3(0.002);
+    vec3 caveFogColor = 0.001 * RGBToLinear(vec3(0.3294, 0.1961, 0.6588));
     float viewDist = length(viewPos) - near;
     float maxFactor = 0.0;
 
+    float caveLightFactor = min(6.0 * skyLightLevel, 1.0);
     #ifdef CAVEFOG_ENABLED
-        float caveLightFactor = min(6.0 * skyLightLevel, 1.0);
         vec3 caveFogColorBlend = mix(caveFogColor, atmosphereColor, caveLightFactor);
 
         float eyeBrightness = eyeBrightnessSmooth.y / 240.0;
@@ -59,8 +57,10 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
     // #endif
 
     #ifdef ATMOSFOG_ENABLED
-        float customFogFactor = GetCustomFogFactor(viewDist);
-        maxFactor = max(maxFactor, customFogFactor);
+        vec2 skyLightLevels = GetSkyLightLevels();
+        float sunLightLevel = GetSunLightLevel(skyLightLevels.x);
+
+        float customFogFactor = GetCustomFogFactor(viewDist, sunLightLevel);
     #endif
 
     float vanillaFogFactor = GetVanillaFogFactor(viewDist);
@@ -74,6 +74,10 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
     #endif
 
     #ifdef ATMOSFOG_ENABLED
+        // TODO: reduce cave-fog-factor with distance
+        customFogFactor *= caveLightFactor;
+
+        maxFactor = max(maxFactor, customFogFactor);
         color = mix(color, atmosphereColor, customFogFactor);
     #endif
 

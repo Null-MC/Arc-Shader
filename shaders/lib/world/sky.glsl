@@ -58,12 +58,22 @@ float GetMoonLightLevel(const in float skyLightLevel) {
         return blackbody(temp) * GetMoonLightLevel(skyLightLevel);
     }
 
+    vec3 GetSunLightLux(const in float temp, const in float skyLightLevel) {
+        float lux = mix(SunLux, SunOvercastLux, rainStrength);
+        return GetSunLightColor(temp, skyLightLevel) * lux;
+    }
+
+    vec3 GetMoonLightLux(const in float temp, const in float skyLightLevel) {
+        float lux = mix(MoonLux, MoonOvercastLux, rainStrength);
+        return GetSunLightColor(temp, skyLightLevel) * lux;
+    }
+
     vec3 GetSkyLightLuminance(const in vec2 skyLightLevels) {
         //vec2 skyLightLevels = GetSkyLightLevels();
         vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
 
-        vec3 sunLum = GetSunLightColor(skyLightTemp.x, skyLightLevels.x) * SunLux;
-        vec3 moonLum = GetMoonLightColor(skyLightTemp.y, skyLightLevels.y) * MoonLux;
+        vec3 sunLum = GetSunLightLux(skyLightTemp.x, skyLightLevels.x); //GetSunLightColor(skyLightTemp.x, skyLightLevels.x) * SunLux;
+        vec3 moonLum = GetMoonLightLux(skyLightTemp.y, skyLightLevels.y); //GetMoonLightColor(skyLightTemp.y, skyLightLevels.y) * MoonLux;
 
         return sunLum + moonLum;
     }

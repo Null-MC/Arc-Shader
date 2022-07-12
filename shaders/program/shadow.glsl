@@ -14,24 +14,24 @@ shadowtex1Nearest = false;
 const float shadowDistanceRenderMul = 1.0;
 
 
-varying vec2 lmcoord;
-varying vec2 texcoord;
-varying vec4 glcolor;
-
-#ifdef SSS_ENABLED
-    varying vec3 viewPosTan;
-#endif
-
-#if defined RSM_ENABLED
-    flat varying mat3 matViewTBN;
-#endif
-
-#if SHADOW_TYPE == 3
-    flat varying float cascadeSizes[4];
-    flat varying vec2 shadowCascadePos;
-#endif
-
 #ifdef RENDER_VERTEX
+    out vec2 lmcoord;
+    out vec2 texcoord;
+    out vec4 glcolor;
+
+    #ifdef SSS_ENABLED
+        out vec3 viewPosTan;
+    #endif
+
+    #if defined RSM_ENABLED
+        flat out mat3 matViewTBN;
+    #endif
+
+    #if SHADOW_TYPE == 3
+        flat out float cascadeSizes[4];
+        flat out vec2 shadowCascadePos;
+    #endif
+
     in vec4 mc_Entity;
     in vec3 vaPosition;
     in vec3 at_midBlock;
@@ -166,6 +166,23 @@ varying vec4 glcolor;
 #endif
 
 #ifdef RENDER_FRAG
+    in vec2 lmcoord;
+    in vec2 texcoord;
+    in vec4 glcolor;
+
+    #ifdef SSS_ENABLED
+        in vec3 viewPosTan;
+    #endif
+
+    #if defined RSM_ENABLED
+        flat in mat3 matViewTBN;
+    #endif
+
+    #if SHADOW_TYPE == 3
+        flat in float cascadeSizes[4];
+        flat in vec2 shadowCascadePos;
+    #endif
+
     uniform sampler2D gtexture;
 
     uniform mat4 shadowModelViewInverse;
@@ -187,9 +204,7 @@ varying vec4 glcolor;
     #include "/lib/lighting/material_reader.glsl"
 
     /* RENDERTARGETS: 0 */
-    #ifdef IS_OPTIFINE
-        out uvec2 outColor0;
-    #endif
+    out uvec2 outColor0;
 
 
     void main() {

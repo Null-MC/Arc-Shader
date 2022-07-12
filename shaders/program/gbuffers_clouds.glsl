@@ -8,10 +8,15 @@
     out vec4 glcolor;
     flat out float exposure;
 
-    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         uniform sampler2D BUFFER_HDR_PREVIOUS;
-    #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-        uniform ivec2 eyeBrightnessSmooth;
+        
+        uniform float viewWidth;
+        uniform float viewHeight;
+    #endif
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        uniform ivec2 eyeBrightness;
         uniform int heldBlockLightValue;
 
         uniform float rainStrength;
@@ -54,7 +59,7 @@
     /* DRAWBUFFERS:46 */
     out vec4 outColor;
 
-    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         out float outLuminance;
     #endif
 
@@ -71,8 +76,8 @@
         float moonLightLux = GetMoonLightLevel(skyLightLevels.y) * NightSkyLumen;
         colorMap.rgb *= sunLightLux + moonLightLux;
 
-        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            outLuminance = log(luminance(colorMap.rgb) + EPSILON);
+        #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+            outLuminance = log2(luminance(colorMap.rgb) + EPSILON);
         #endif
 
         colorMap.rgb = clamp(colorMap.rgb * exposure, vec3(0.0), vec3(65000));

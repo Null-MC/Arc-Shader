@@ -1,25 +1,21 @@
 #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-    float GetAverageLuminance_EyeBrightness(const in vec2 eyeBrightness, const in float skyLightLux) {
-        float blockLightBrightness = eyeBrightness.x;
+    float GetEyeBrightnessLuminance() {
+        vec2 eyeBrightnessLinear = eyeBrightness / 240.0;
+
+        vec2 skyLightLevels = GetSkyLightLevels();
+        float sunLightLux = GetSunLightLevel(skyLightLevels.x) * SunLux;
+        float moonLightLux = GetMoonLightLevel(skyLightLevels.y) * MoonLux;
+        float skyLightBrightness = pow(eyeBrightnessLinear.y, 5.0) * (sunLightLux + moonLightLux);
+
+        float blockLightBrightness = eyeBrightnessLinear.x;
 
         #ifdef HANDLIGHT_ENABLED
             blockLightBrightness = max(blockLightBrightness, heldBlockLightValue * 0.0625);
         #endif
 
-        blockLightBrightness = blockLightBrightness*blockLightBrightness * BlockLightLux;
-        float skyLightBrightness = eyeBrightness.y * skyLightLux;
+        blockLightBrightness = pow(blockLightBrightness, 5.0) * BlockLightLux;
+
         return 0.1 * max(blockLightBrightness, skyLightBrightness);
-    }
-#elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-    float GetAverageLuminance_Mipmap(const in int lod) {
-        //int minMip = textureQueryLevels(BUFFER_LUMINANCE) - 1;
-        float averageLuminance = textureLod(BUFFER_HDR_PREVIOUS, vec2(0.5), lod).a;
-        return exp(averageLuminance);
-    }
-#elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_HISTOGRAM
-    float GetAverageLuminance_Histogram() {
-        // TODO: Not Yet Implemented
-        return 0.0;
     }
 #endif
 
@@ -43,7 +39,7 @@ float GetExposure(const in float EV100) {
 
 // Auto
 
-#if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+#if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
     int GetLuminanceLod() {
         return textureQueryLevels(BUFFER_HDR_PREVIOUS)-1;
     }
@@ -51,21 +47,21 @@ float GetExposure(const in float EV100) {
 
 float GetAverageLuminance() {
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-            vec2 skyLightLevels = GetSkyLightLevels();
-            float sunLightLux = GetSunLightLevel(skyLightLevels.x) * SunLux;
-            float moonLightLux = GetMoonLightLevel(skyLightLevels.y) * MoonLux;
+        int luminanceLod = GetLuminanceLod();
 
-            vec2 eyeBrightness = eyeBrightnessSmooth / 240.0;
-            return GetAverageLuminance_EyeBrightness(eyeBrightness, sunLightLux + moonLightLux);
-        #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            int luminanceLod = GetLuminanceLod();
-            return GetAverageLuminance_Mipmap(luminanceLod);
-        #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_HISTOGRAM
-            return GetAverageLuminance_Histogram();
-        #else
-            return 0.0;
-        #endif
+        float averageLuminance = 0.0;
+        ivec2 size = ivec2(vec2(viewWidth, viewHeight) / exp2(luminanceLod));
+        for (int y = 0; y < size.y; y++) {
+            for (int x = 0; x < size.x; x++) {
+                float sampleLum = textureLod(BUFFER_HDR_PREVIOUS, ivec2(x, y), luminanceLod).a;
+                averageLuminance += max(exp2(sampleLum) - EPSILON, 0.0);
+            }
+        }
+
+        averageLuminance /= size.x*size.y;
+        //averageLuminance = textureLod(BUFFER_HDR_PREVIOUS, vec2(0.5), luminanceLod).a;
+        //return exp2(averageLuminance);
+        return averageLuminance;
     #else
         return 0.0;
     #endif

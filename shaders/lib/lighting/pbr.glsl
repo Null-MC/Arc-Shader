@@ -225,7 +225,7 @@
         float blockAmbient = pow(blockLight, 5.0) * BlockLightLux;
         //return vec4(blockAmbient, 1.0);
 
-        vec3 ambient = (0.1 + blockAmbient + skyAmbient) * material.occlusion;
+        vec3 ambient = (1.0 + blockAmbient + skyAmbient) * material.occlusion;
 
         vec3 diffuseLight = skyLightColor * shadowFinal;
 
@@ -287,7 +287,7 @@
 
         final.a = min(final.a + luminance(specular) * exposure, 1.0);
 
-        #if defined RENDER_DEFERRED && !defined ATMOSPHERE_ENABLED
+        #if defined RENDER_DEFERRED
             ApplyFog(final.rgb, viewPos.xyz, skyLight);
         #elif defined RENDER_GBUFFER
             #ifdef RENDER_WATER

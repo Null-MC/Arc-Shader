@@ -31,10 +31,15 @@
         #endif
     #endif
 
-    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         uniform sampler2D BUFFER_HDR_PREVIOUS;
-    #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-        uniform ivec2 eyeBrightnessSmooth;
+        
+        uniform float viewWidth;
+        uniform float viewHeight;
+    #endif
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        uniform ivec2 eyeBrightness;
         uniform int heldBlockLightValue;
     #endif
 
@@ -190,14 +195,16 @@
     void main() {
         vec4 outColor = BasicLighting();
 
-        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            outLuminance.r = log(luminance(outColor.rgb) * outColor.a + EPSILON);
+        #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+            vec4 outLuminance = vec4(0.0);
+            outLuminance.r = log2(luminance(outColor.rgb) * outColor.a + EPSILON);
             outLuminance.a = outColor.a;
+            gl_FragData[1] = outLuminance;
         #endif
 
         outColor.rgb = clamp(outColor.rgb * exposure, vec3(0.0), vec3(65000));
 
-    /* DRAWBUFFERS:4 */
+    /* DRAWBUFFERS:46 */
         gl_FragData[0] = outColor;
     }
 #endif

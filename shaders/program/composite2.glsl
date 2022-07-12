@@ -71,22 +71,23 @@
             vec2 tileTex = (texcoord - tileMin) / tileSize;
             //tileTex = clamp(tileTex, 0.5 * pixelSize, 1.0 - 0.5 * pixelSize);
 
-            //final = texture2DLod(BUFFER_HDR, tileTex, tile).rgb;
-            //final = textureGather(BUFFER_HDR, tileTex, tile).rgb;
+            #ifdef BLOOM_SMOOTH
+                vec2 tilePixelSize = pixelSize * exp2(tile);
 
-            vec2 tilePixelSize = pixelSize * exp2(tile);
+                vec2 uv1 = tileTex + vec2(-0.5, -0.5) * tilePixelSize;
+                vec2 uv2 = tileTex + vec2( 0.5, -0.5) * tilePixelSize;
+                vec2 uv3 = tileTex + vec2(-0.5,  0.5) * tilePixelSize;
+                vec2 uv4 = tileTex + vec2( 0.5,  0.5) * tilePixelSize;
 
-            vec2 uv1 = tileTex + vec2(-0.5, -0.5) * tilePixelSize;
-            vec2 uv2 = tileTex + vec2( 0.5, -0.5) * tilePixelSize;
-            vec2 uv3 = tileTex + vec2(-0.5,  0.5) * tilePixelSize;
-            vec2 uv4 = tileTex + vec2( 0.5,  0.5) * tilePixelSize;
-
-            vec3 sample1 = texture2DLod(BUFFER_HDR, uv1, tile).rgb;
-            vec3 sample2 = texture2DLod(BUFFER_HDR, uv2, tile).rgb;
-            vec3 sample3 = texture2DLod(BUFFER_HDR, uv3, tile).rgb;
-            vec3 sample4 = texture2DLod(BUFFER_HDR, uv4, tile).rgb;
-            
-            final = (sample1 + sample2 + sample3 + sample4) * 0.25;
+                vec3 sample1 = texture2DLod(BUFFER_HDR, uv1, tile).rgb;
+                vec3 sample2 = texture2DLod(BUFFER_HDR, uv2, tile).rgb;
+                vec3 sample3 = texture2DLod(BUFFER_HDR, uv3, tile).rgb;
+                vec3 sample4 = texture2DLod(BUFFER_HDR, uv4, tile).rgb;
+                
+                final = (sample1 + sample2 + sample3 + sample4) * 0.25;
+            #else
+                final = texture2DLod(BUFFER_HDR, tileTex, tile).rgb;
+            #endif
 
             // WARN: this is a hacky fix for the NaN's that are coming through
             final = clamp(final, vec3(0.0), vec3(10.0));

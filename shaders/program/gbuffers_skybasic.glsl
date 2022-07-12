@@ -3,13 +3,16 @@
 #define RENDER_GBUFFER
 #define RENDER_SKYBASIC
 
-varying vec3 starData;
-
 #ifdef RENDER_VERTEX
+    out vec3 starData;
+    flat out float sunLightLevel;
     flat out float exposure;
 
-    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         uniform sampler2D BUFFER_HDR_PREVIOUS;
+        
+        uniform float viewWidth;
+        uniform float viewHeight;
     #endif
 
     //uniform ivec2 eyeBrightnessSmooth;
@@ -17,18 +20,17 @@ varying vec3 starData;
     #include "/lib/lighting/blackbody.glsl"
 
     #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-        uniform ivec2 eyeBrightnessSmooth;
+        uniform ivec2 eyeBrightness;
         uniform int heldBlockLightValue;
-        uniform float rainStrength;
-
-        uniform vec3 upPosition;
-        uniform vec3 sunPosition;
-        uniform vec3 moonPosition;
-        uniform int moonPhase;
-
-        #include "/lib/world/sky.glsl"
     #endif
 
+    uniform float rainStrength;
+    uniform vec3 sunPosition;
+    uniform vec3 moonPosition;
+    uniform vec3 upPosition;
+    uniform int moonPhase;
+
+    #include "/lib/world/sky.glsl"
     #include "/lib/camera/exposure.glsl"
 
 
@@ -40,11 +42,16 @@ varying vec3 starData;
         float starTemp = mix(5300, 6000, starFactor);
         starData = blackbody(starTemp) * starFactor * StarLumen;
 
+        vec2 skyLightLevels = GetSkyLightLevels();
+        sunLightLevel = GetSunLightLevel(skyLightLevels.x);
+
         exposure = GetExposure();
     }
 #endif
 
 #ifdef RENDER_FRAG
+    in vec3 starData;
+    flat in float sunLightLevel;
     flat in float exposure;
 
     uniform mat4 gbufferModelView;
@@ -62,6 +69,14 @@ varying vec3 starData;
 
     #include "/lib/world/sky.glsl"
 
+    #ifdef ATMOSPHERE_ENABLED
+        uniform mat4 gbufferModelViewInverse;
+        uniform float eyeAltitude;
+        uniform float near;
+
+        #include "/lib/world/atmosphere.glsl"
+    #endif
+
     /* DRAWBUFFERS:46 */
     out vec3 outColor;
 
@@ -73,17 +88,47 @@ varying vec3 starData;
     void main() {
         vec3 color = starData;
 
-        #ifndef ATMOSPHERE_ENABLED
-            vec3 clipPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), 1.0) * 2.0 - 1.0;
-            vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
-            viewPos.xyz /= viewPos.w;
+        vec3 clipPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), 1.0) * 2.0 - 1.0;
+        vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
+        viewPos.xyz /= viewPos.w;
 
+        #ifdef ATMOSPHERE_ENABLED
+            vec3 localSunPos = mat3(gbufferModelViewInverse) * sunPosition;
+            vec3 localSunDir = normalize(localSunPos);
+
+            vec3 localViewPos = mat3(gbufferModelViewInverse) * viewPos.xyz;
+
+            ScatteringParams setting;
+            setting.sunRadius = 3000.0;
+            setting.sunRadiance = sunLightLevel * sunLumen;
+            setting.mieG = 0.96;
+            setting.mieHeight = 1200.0;
+            setting.rayleighHeight = 8000.0;
+            setting.earthRadius = 6360000.0;
+            setting.earthAtmTopRadius = 6420000.0;
+            setting.earthCenter = vec3(0.0, -6360000.0, 0.0);
+            setting.waveLambdaMie = vec3(2e-7);
+
+            vec3 localViewDir = normalize(localViewPos);
+            
+            // wavelength with 680nm, 550nm, 450nm
+            setting.waveLambdaRayleigh = ComputeWaveLambdaRayleigh(vec3(680e-9, 550e-9, 450e-9));
+            
+            // see https://www.shadertoy.com/view/MllBR2
+            setting.waveLambdaOzone = vec3(1.36820899679147, 3.31405330400124, 0.13601728252538) * 0.6e-6 * 2.504;
+
+            vec3 eye = vec3(0.0, 200.0 * eyeAltitude, 0.0);
+
+            vec4 sky = ComputeSkyInscattering(setting, eye, localViewDir, localSunDir);
+
+            color += sky.rgb;
+        #else
             vec3 viewDir = normalize(viewPos.xyz);
             color += GetVanillaSkyColor(viewDir);
         #endif
 
         #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            outLuminance = log(luminance(color) + EPSILON);
+            outLuminance = log2(luminance(color) + EPSILON);
         #endif
 
         outColor = clamp(color * exposure, vec3(0.0), vec3(65000));

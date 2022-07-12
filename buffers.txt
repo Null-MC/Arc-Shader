@@ -1,3 +1,5 @@
+shadowcolor0	RG32UI
+
 colortex0	RGBA8	colorMap
 colortex1	RGBA8	normalMap
 colortex2	RGBA8	specularMap

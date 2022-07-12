@@ -3,96 +3,129 @@
 #define RENDER_GBUFFER
 #define RENDER_ENTITIES
 
-varying vec2 lmcoord;
-varying vec2 texcoord;
-varying vec4 glcolor;
-varying vec3 viewPos;
-varying vec3 viewNormal;
-varying float geoNoL;
-varying mat3 matTBN;
-varying vec3 tanViewPos;
-
-#ifdef PARALLAX_ENABLED
-    varying mat2 atlasBounds;
-    varying vec2 localCoord;
-#endif
-
-#ifdef SHADOW_ENABLED
-    varying vec3 tanLightPos;
-
-	#if SHADOW_TYPE == 3
-		varying vec3 shadowPos[4];
-        varying vec3 shadowParallaxPos[4];
-		varying vec2 shadowProjectionSizes[4];
-        varying float cascadeSizes[4];
-        flat varying int shadowCascade;
-	#elif SHADOW_TYPE != 0
-		varying vec4 shadowPos;
-        varying vec4 shadowParallaxPos;
-	#endif
-#endif
-
-#ifdef AF_ENABLED
-    varying vec4 spriteBounds;
-#endif
-
 #ifdef RENDER_VERTEX
+    out vec2 lmcoord;
+    out vec2 texcoord;
+    out vec4 glcolor;
+    out vec3 viewPos;
+    out vec3 viewNormal;
+    out float geoNoL;
+    out mat3 matTBN;
+    out vec3 tanViewPos;
+
+    #ifdef PARALLAX_ENABLED
+        out mat2 atlasBounds;
+        out vec2 localCoord;
+    #endif
+
+    #ifdef SHADOW_ENABLED
+        out vec3 tanLightPos;
+
+        #if SHADOW_TYPE == 3
+            out vec3 shadowPos[4];
+            out vec3 shadowParallaxPos[4];
+            out vec2 shadowProjectionSizes[4];
+            out float cascadeSizes[4];
+            flat out int shadowCascade;
+        #elif SHADOW_TYPE != 0
+            out vec4 shadowPos;
+            out vec4 shadowParallaxPos;
+        #endif
+    #endif
+
+    #ifdef AF_ENABLED
+        out vec4 spriteBounds;
+    #endif
+
     in vec4 at_tangent;
 
     #if defined PARALLAX_ENABLED || defined AF_ENABLED
         in vec4 mc_midTexCoord;
     #endif
 
-	uniform mat4 gbufferModelView;
-	uniform mat4 gbufferModelViewInverse;
+    uniform mat4 gbufferModelView;
+    uniform mat4 gbufferModelViewInverse;
     uniform vec3 cameraPosition;
 
-	#ifdef SHADOW_ENABLED
-		uniform mat4 shadowModelView;
-		uniform mat4 shadowProjection;
-		uniform vec3 shadowLightPosition;
-		uniform float far;
+    #ifdef SHADOW_ENABLED
+        uniform mat4 shadowModelView;
+        uniform mat4 shadowProjection;
+        uniform vec3 shadowLightPosition;
+        uniform float far;
 
-		#if SHADOW_TYPE == 3
-			attribute vec3 at_midBlock;
+        #if SHADOW_TYPE == 3
+            attribute vec3 at_midBlock;
 
             #ifdef IS_OPTIFINE
                 uniform mat4 gbufferPreviousProjection;
                 uniform mat4 gbufferPreviousModelView;
             #endif
 
-			uniform mat4 gbufferProjection;
-			uniform int entityId;
-			uniform float near;
+            uniform mat4 gbufferProjection;
+            uniform int entityId;
+            uniform float near;
 
-			#include "/lib/shadows/csm.glsl"
-			#include "/lib/shadows/csm_render.glsl"
-		#elif SHADOW_TYPE != 0
-			#include "/lib/shadows/basic.glsl"
+            #include "/lib/shadows/csm.glsl"
+            #include "/lib/shadows/csm_render.glsl"
+        #elif SHADOW_TYPE != 0
+            #include "/lib/shadows/basic.glsl"
             #include "/lib/shadows/basic_render.glsl"
-		#endif
-	#endif
-	
+        #endif
+    #endif
+    
     #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/pbr.glsl"
 
 
-	void main() {
-		texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-		lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
-		glcolor = gl_Color;
+    void main() {
+        texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+        lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
+        glcolor = gl_Color;
 
         mat3 matViewTBN;
         BasicVertex(matViewTBN);
         PbrVertex(matViewTBN);
-	}
+    }
 #endif
 
 #ifdef RENDER_FRAG
-	uniform sampler2D gtexture;
+    in vec2 lmcoord;
+    in vec2 texcoord;
+    in vec4 glcolor;
+    in vec3 viewPos;
+    in vec3 viewNormal;
+    in float geoNoL;
+    in mat3 matTBN;
+    in vec3 tanViewPos;
+
+    #ifdef PARALLAX_ENABLED
+        in mat2 atlasBounds;
+        in vec2 localCoord;
+    #endif
+
+    #ifdef SHADOW_ENABLED
+        in vec3 tanLightPos;
+
+        #if SHADOW_TYPE == 3
+            in vec3 shadowPos[4];
+            in vec3 shadowParallaxPos[4];
+            in vec2 shadowProjectionSizes[4];
+            in float cascadeSizes[4];
+            flat in int shadowCascade;
+        #elif SHADOW_TYPE != 0
+            in vec4 shadowPos;
+            in vec4 shadowParallaxPos;
+        #endif
+    #endif
+
+    #ifdef AF_ENABLED
+        in vec4 spriteBounds;
+    #endif
+
+    uniform sampler2D gtexture;
     uniform sampler2D normals;
     uniform sampler2D specular;
-	uniform sampler2D lightmap;
+    uniform sampler2D lightmap;
 
     uniform vec4 entityColor;
 
@@ -101,10 +134,10 @@ varying vec3 tanViewPos;
     #endif
 
     #ifdef AF_ENABLED
-    	uniform float viewHeight;
+        uniform float viewHeight;
     #endif
-	
-	#ifdef SHADOW_ENABLED
+    
+    #ifdef SHADOW_ENABLED
         uniform usampler2D shadowcolor0;
         uniform sampler2D shadowtex0;
 
@@ -123,30 +156,30 @@ varying vec3 tanViewPos;
             uniform sampler2D shadowtex1;
         #endif
 
-		uniform vec3 shadowLightPosition;
+        uniform vec3 shadowLightPosition;
         uniform float near;
         uniform float far;
 
-		#if SHADOW_PCF_SAMPLES == 12
-			#include "/lib/sampling/poisson_12.glsl"
-		#elif SHADOW_PCF_SAMPLES == 24
-			#include "/lib/sampling/poisson_24.glsl"
-		#elif SHADOW_PCF_SAMPLES == 36
-			#include "/lib/sampling/poisson_36.glsl"
-		#endif
+        #if SHADOW_PCF_SAMPLES == 12
+            #include "/lib/sampling/poisson_12.glsl"
+        #elif SHADOW_PCF_SAMPLES == 24
+            #include "/lib/sampling/poisson_24.glsl"
+        #elif SHADOW_PCF_SAMPLES == 36
+            #include "/lib/sampling/poisson_36.glsl"
+        #endif
 
         //#include "/lib/depth.glsl"
 
-		#if SHADOW_TYPE == 3
-			#include "/lib/shadows/csm.glsl"
-			#include "/lib/shadows/csm_render.glsl"
-		#elif SHADOW_TYPE != 0
-			uniform mat4 shadowProjection;
-		
-			#include "/lib/shadows/basic.glsl"
+        #if SHADOW_TYPE == 3
+            #include "/lib/shadows/csm.glsl"
+            #include "/lib/shadows/csm_render.glsl"
+        #elif SHADOW_TYPE != 0
+            uniform mat4 shadowProjection;
+        
+            #include "/lib/shadows/basic.glsl"
             #include "/lib/shadows/basic_render.glsl"
-		#endif
-	#endif
+        #endif
+    #endif
     
     #ifdef PARALLAX_ENABLED
         uniform ivec2 atlasSize;
@@ -163,7 +196,7 @@ varying vec3 tanViewPos;
     #include "/lib/lighting/pbr_gbuffers.glsl"
 
 
-	void main() {
+    void main() {
         vec4 colorMap, normalMap, specularMap, lightingMap;
         PbrLighting(colorMap, normalMap, specularMap, lightingMap);
 
@@ -172,5 +205,5 @@ varying vec3 tanViewPos;
         gl_FragData[1] = normalMap; //gdepth
         gl_FragData[2] = specularMap; //gnormal
         gl_FragData[3] = lightingMap; //composite
-	}
+    }
 #endif

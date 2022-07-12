@@ -5,7 +5,6 @@
 deferred2	RSM low-res
 deferred3	RSM full-res
 deferred4	Opaque PBR: RGB1: pre-exposed color, R2: Raw Luminance
-deferred5	Fog + Sky
 
 <transparent>
 <particles?>

@@ -6,25 +6,20 @@
 
 #ifdef RENDER_VERTEX
     out vec2 texcoord;
-    //flat out float exposure;
-
-    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP //&& DEBUG_VIEW == DEBUG_VIEW_LUMINANCE
-        flat out int luminanceLod;
-    #endif
 
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+        flat out int luminanceLod;
         flat out float averageLuminance;
         flat out float EV100;
-    #endif
 
-    #ifdef BLOOM_ENABLED
-        flat out int bloomTileCount;
+        uniform sampler2D BUFFER_HDR_PREVIOUS;
+
+        uniform float viewWidth;
+        uniform float viewHeight;
     #endif
 
     #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-        uniform ivec2 eyeBrightnessSmooth;
-    #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-        uniform sampler2D BUFFER_HDR_PREVIOUS;
+        uniform ivec2 eyeBrightness;
     #endif
 
     uniform int heldBlockLightValue;
@@ -35,6 +30,8 @@
     uniform int moonPhase;
 
     #ifdef BLOOM_ENABLED
+        flat out int bloomTileCount;
+
         uniform sampler2D BUFFER_HDR;
 
         #include "/lib/camera/bloom.glsl"
@@ -53,6 +50,10 @@
             bloomTileCount = GetBloomTileCount();
         #endif
 
+        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+            luminanceLod = GetLuminanceLod();
+        #endif
+
         #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
             averageLuminance = GetAverageLuminance();
             EV100 = GetEV100(averageLuminance);
@@ -68,7 +69,7 @@
         flat in int bloomTileCount;
     #endif
 
-    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP //DEBUG_VIEW == DEBUG_VIEW_LUMINANCE
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
         flat in int luminanceLod;
     #endif
 
@@ -80,7 +81,19 @@
     uniform float viewWidth;
     uniform float viewHeight;
     
-    #if DEBUG_VIEW == DEBUG_VIEW_SHADOW_ALBEDO
+    #if DEBUG_VIEW == DEBUG_VIEW_GBUFFER_COLOR
+        // Deferred Color
+        uniform sampler2D BUFFER_COLOR;
+    #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_NORMAL
+        // Deferred Normal
+        uniform sampler2D BUFFER_NORMAL;
+    #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SPECULAR
+        // Deferred Specular
+        uniform sampler2D BUFFER_SPECULAR;
+    #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_LIGHTING
+        // Deferred Lighting
+        uniform sampler2D BUFFER_LIGHTING;
+    #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_ALBEDO
         // Shadow Albedo
         uniform usampler2D shadowcolor0;
     #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_NORMAL
@@ -95,15 +108,18 @@
     #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_DEPTH1
         // Shadow Depth [1]
         uniform sampler2D shadowtex1;
+    #elif DEBUG_VIEW == DEBUG_VIEW_HDR
+        // HDR
+        uniform sampler2D BUFFER_HDR;
+    #elif DEBUG_VIEW == DEBUG_VIEW_LUMINANCE
+        // Luminance
+        uniform sampler2D BUFFER_LUMINANCE;
     #elif DEBUG_VIEW == DEBUG_VIEW_RSM
         // RSM
         uniform sampler2D BUFFER_RSM_COLOR;
     #elif DEBUG_VIEW == DEBUG_VIEW_BLOOM
         // Bloom Tiles
         uniform sampler2D BUFFER_BLOOM;
-    #elif DEBUG_VIEW == DEBUG_VIEW_LUMINANCE
-        // Luminance
-        uniform sampler2D BUFFER_LUMINANCE;
     #elif DEBUG_VIEW == DEBUG_VIEW_PREV_COLOR
         // Previous HDR Color
         uniform sampler2D BUFFER_HDR_PREVIOUS;
@@ -113,19 +129,12 @@
     #else
         uniform sampler2D BUFFER_HDR;
 
-        //uniform float screenBrightness;
-
         #ifdef BLOOM_ENABLED
             uniform sampler2D BUFFER_BLOOM;
 
             #include "/lib/camera/bloom.glsl"
         #endif
 
-        //#if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-        //    uniform sampler2D BUFFER_LUMINANCE;
-        //#endif
-
-        //#include "/lib/camera/exposure.glsl"
         #include "/lib/camera/tonemap.glsl"
     #endif
 
@@ -175,11 +184,7 @@
                     tileTex = clamp(tileTex, tileMin, tileMax);
 
                     bloom += textureLod(BUFFER_BLOOM, tileTex, 0).rgb;
-                    //bloom += clamp(sample, 0.0, 1.0);
                 }
-
-                //float lum = luminance(bloom);
-                //color /= 1.0 + lum;
 
                 color += bloom * (0.01 * BLOOM_STRENGTH);
             #endif
@@ -202,7 +207,20 @@
 
     void main() {
         vec3 color = vec3(0.0);
-        #if DEBUG_VIEW == DEBUG_VIEW_SHADOW_ALBEDO
+        #if DEBUG_VIEW == DEBUG_VIEW_GBUFFER_COLOR
+            // Deferred Color
+            color = texture(BUFFER_COLOR, texcoord).rgb;
+        #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_NORMAL
+            // Deferred Normal
+            color.rg = texture(BUFFER_NORMAL, texcoord).rg;
+            color.b = 0.0;
+        #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SPECULAR
+            // Deferred Specular
+            color = texture(BUFFER_SPECULAR, texcoord).rgb;
+        #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_LIGHTING
+            // Deferred Lighting
+            color = texture(BUFFER_LIGHTING, texcoord).rgb;
+        #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_ALBEDO
             // Shadow Albedo
             uint data = texture(shadowcolor0, texcoord).r;
             color = unpackUnorm4x8(data).rgb;
@@ -220,6 +238,17 @@
         #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_DEPTH1
             // Shadow Depth [1]
             color = texture(shadowtex1, texcoord).rrr;
+        #elif DEBUG_VIEW == DEBUG_VIEW_HDR
+            // HDR
+            color = texture(BUFFER_HDR, texcoord).rgb;
+        #elif DEBUG_VIEW == DEBUG_VIEW_LUMINANCE
+            // Luminance
+            float logLum = textureLod(BUFFER_LUMINANCE, texcoord, 0).r;
+            color = vec3(exp2(logLum) - EPSILON) * 1e-6;
+
+            #if defined DEBUG_EXPOSURE_METERS && CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+                RenderLuminanceMeters(color, averageLuminance, EV100);
+            #endif
         #elif DEBUG_VIEW == DEBUG_VIEW_RSM
             // RSM
             vec2 viewSize = vec2(viewWidth, viewHeight);
@@ -234,22 +263,19 @@
         #elif DEBUG_VIEW == DEBUG_VIEW_BLOOM
             // Bloom Tiles
             color = texture(BUFFER_BLOOM, texcoord).rgb;
-        #elif DEBUG_VIEW == DEBUG_VIEW_LUMINANCE
-            // Luminance
-            float logLum = textureLod(BUFFER_LUMINANCE, texcoord, 0).a;
-            color = vec3(exp(logLum) - EPSILON) * 1e-5;
-
-            #if defined DEBUG_EXPOSURE_METERS && CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-                RenderLuminanceMeters(color, averageLuminance, EV100);
-            #endif
         #elif DEBUG_VIEW == DEBUG_VIEW_PREV_COLOR
             // Previous HDR Color
             color = textureLod(BUFFER_HDR_PREVIOUS, texcoord, 0).rgb;
         #elif DEBUG_VIEW == DEBUG_VIEW_PREV_LUMINANCE
             // Previous Luminance
-            int lod = texcoord.x < 0.5 ? 0 : luminanceLod;
+            int lod = 0;
+
+            #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+                if (texcoord.x >= 0.5) lod = luminanceLod;
+            #endif
+
             float logLum = textureLod(BUFFER_HDR_PREVIOUS, texcoord, lod).a;
-            color = vec3(exp(logLum) - EPSILON) * 1e-5;
+            color = vec3(exp2(logLum) - EPSILON) * 1e-5;
 
             #if defined DEBUG_EXPOSURE_METERS && CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
                 RenderLuminanceMeters(color, averageLuminance, EV100);

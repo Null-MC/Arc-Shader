@@ -12,17 +12,27 @@ const bool colortex5Clear = false;
 const int colortex6Format = R16F;
 const bool colortex6MipmapEnabled = false;
 const bool colortex6Clear = false;
-
-const int colortex7Format = RGB16F;
-const bool colortex7MipmapEnabled = false;
-const bool colortex7Clear = false;
-
-const int colortex8Format = RGB16F;
-const bool colortex8Clear = false;
-
-const int colortex9Format = R16F;
-const bool colortex9Clear = false;
 */
+
+#ifdef BLOOM_ENABLED
+    /*
+    const int colortex7Format = RGB16F;
+    const bool colortex7MipmapEnabled = false;
+    const bool colortex7Clear = false;
+    */
+#endif
+
+#ifdef RSM_ENABLED
+    /*
+    const int colortex8Format = RGB16F;
+    const bool colortex8MipmapEnabled = false;
+    const bool colortex8Clear = false;
+
+    const int colortex9Format = R16F;
+    const bool colortex9MipmapEnabled = false;
+    const bool colortex9Clear = false;
+    */
+#endif
 
 
 // World Options
@@ -87,7 +97,7 @@ const bool colortex9Clear = false;
 // Camera Options
 #define CAMERA_EXPOSURE_MODE 1 // [0 1 2]
 #define CAMERA_EXPOSURE 0 // [-17 -16 -15 -14 -13 -12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6]
-#define CAMERA_LUM_MIN 40.0
+#define CAMERA_LUM_MIN 120.0
 #define CAMERA_LUM_MAX 200000.0
 #define EXPOSURE_POINT 0.2
 #define EXPOSURE_SPEED_UP 0.001
@@ -108,6 +118,7 @@ const bool colortex9Clear = false;
 #define RSM_SCALE 1 // [0 1 2]
 //#define RSM_UPSCALE
 #define BLOOM_ENABLED
+//#define BLOOM_SMOOTH
 #define BLOOM_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
 //#define AF_ENABLED
@@ -115,22 +126,27 @@ const bool colortex9Clear = false;
 
 
 // Debug Options
-#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15]
 //#define DEBUG_EXPOSURE_METERS
-//#define CAVEFOG_ENABLED
+#define CAVEFOG_ENABLED
 #define ATMOSFOG_ENABLED
 #define IS_OPTIFINE
 
-#define DEBUG_VIEW_SHADOW_ALBEDO 1
-#define DEBUG_VIEW_SHADOW_NORMAL 2
-#define DEBUG_VIEW_SHADOW_SSS 3
-#define DEBUG_VIEW_SHADOW_DEPTH0 4
-#define DEBUG_VIEW_SHADOW_DEPTH1 5
-#define DEBUG_VIEW_RSM 6
-#define DEBUG_VIEW_BLOOM 7
-#define DEBUG_VIEW_LUMINANCE 8
-#define DEBUG_VIEW_PREV_COLOR 9
-#define DEBUG_VIEW_PREV_LUMINANCE 10
+#define DEBUG_VIEW_GBUFFER_COLOR 1
+#define DEBUG_VIEW_GBUFFER_NORMAL 2
+#define DEBUG_VIEW_GBUFFER_SPECULAR 3
+#define DEBUG_VIEW_GBUFFER_LIGHTING 4
+#define DEBUG_VIEW_SHADOW_ALBEDO 5
+#define DEBUG_VIEW_SHADOW_NORMAL 6
+#define DEBUG_VIEW_SHADOW_SSS 7
+#define DEBUG_VIEW_SHADOW_DEPTH0 8
+#define DEBUG_VIEW_SHADOW_DEPTH1 9
+#define DEBUG_VIEW_HDR 10
+#define DEBUG_VIEW_LUMINANCE 11
+#define DEBUG_VIEW_RSM 12
+#define DEBUG_VIEW_BLOOM 13
+#define DEBUG_VIEW_PREV_COLOR 14
+#define DEBUG_VIEW_PREV_LUMINANCE 15
 
 
 // INTERNAL
@@ -158,9 +174,11 @@ const float StarLumen = 2000.0;
 //const float BlockLightLumen = 2000;
 const float EmissionLumens = 100000.0;
 
-const float SunLux = 113000.0;
-const float MoonLux = 10.0;
-const float BlockLightLux = 24000;
+const float SunLux = 64000.0;
+const float SunOvercastLux = 1000;
+const float MoonLux = 20.0;
+const float MoonOvercastLux = 2.0;
+const float BlockLightLux = 32000;
 
 const float DaySkyLumen = 120000.0;
 const float NightSkyLumen = 1200.0;

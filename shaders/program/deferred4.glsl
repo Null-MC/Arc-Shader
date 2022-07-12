@@ -8,10 +8,15 @@
     out vec2 texcoord;
     flat out float exposure;
 
-    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         uniform sampler2D BUFFER_HDR_PREVIOUS;
-    #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-        uniform ivec2 eyeBrightnessSmooth;
+
+        uniform float viewWidth;
+        uniform float viewHeight;
+    #endif
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        uniform ivec2 eyeBrightness;
     #endif
 
     #ifdef SHADOW_ENABLED
@@ -36,7 +41,6 @@
 		texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
         #ifdef SHADOW_ENABLED
-            //skyLightColor = GetSkyLightColor();
             vec2 skyLightLevels = GetSkyLightLevels();
             skyLightColor = GetSkyLightLuminance(skyLightLevels);
         #endif
@@ -75,14 +79,12 @@
 
     uniform mat4 gbufferProjectionInverse;
     uniform mat4 gbufferModelView;
-    uniform float viewWidth;
-    uniform float viewHeight;
+    // uniform float viewWidth;
+    // uniform float viewHeight;
     uniform float near;
     
     uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
-    //uniform float frameTimeCounter;
-    //uniform float frameTime;
 
     uniform float rainStrength;
     uniform vec3 sunPosition;
@@ -91,31 +93,24 @@
     uniform vec3 skyColor;
     uniform int moonPhase;
 
-    //#ifndef ATMOSPHERE_ENABLED
-        uniform vec3 fogColor;
-        uniform float fogStart;
-        uniform float fogEnd;
-    //#endif
+    uniform vec3 fogColor;
+    uniform float fogStart;
+    uniform float fogEnd;
 
     #ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;
     #endif
 
+    #include "/lib/sampling/linear.glsl"
     #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
-
-    #ifndef ATMOSPHERE_ENABLED
-        #include "/lib/world/fog.glsl"
-    #endif
-    
-    #include "/lib/sampling/linear.glsl"
+    #include "/lib/world/fog.glsl"
     #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/material.glsl"
     #include "/lib/lighting/material_reader.glsl"
     #include "/lib/lighting/hcm.glsl"
     #include "/lib/lighting/pbr.glsl"
     #include "/lib/ssr.glsl"
-    //#include "/lib/lighting/pbr_deferred.glsl"
 
     /* DRAWBUFFERS:46 */
     out vec3 outColor;
@@ -126,7 +121,8 @@
 
 
 	void main() {
-        ivec2 iTex = ivec2(texcoord * vec2(viewWidth, viewHeight));
+        //ivec2 iTex = ivec2(texcoord * vec2(viewWidth, viewHeight));
+        ivec2 iTex = ivec2(gl_FragCoord.xy);
         float screenDepth = texelFetch(depthtex0, iTex, 0).r;
 
         // SKY
@@ -152,7 +148,7 @@
             vec3 color = PbrLighting2(material, lightingMap.xy, lightingMap.b, lightingMap.a, viewPos.xyz).rgb;
 
             #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-                outLuminance = log(luminance(color) + EPSILON);
+                outLuminance = log2(luminance(color) + EPSILON);
             #endif
 
             outColor = clamp(color * exposure, vec3(0.0), vec3(65000.0));
