@@ -29,7 +29,7 @@ const bool colortex9Clear = false;
 
 // World Options
 #define ENABLE_WAVING
-#define DIRECTIONAL_LIGHTMAP
+#define DIRECTIONAL_LIGHTMAP_STRENGTH 80 // [0 10 20 30 40 50 60 70 80 90 100]
 #define HANDLIGHT_ENABLED
 #define SHADOW_BRIGHTNESS 0.10 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define RAIN_DARKNESS 0.2
@@ -92,8 +92,8 @@ const bool colortex9Clear = false;
 // Camera Options
 #define CAMERA_EXPOSURE_MODE 1 // [0 1 2]
 #define CAMERA_EXPOSURE 0 // [-17 -16 -15 -14 -13 -12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6]
-#define CAMERA_LUM_MIN 120.0
-#define CAMERA_LUM_MAX 200000.0
+#define CAMERA_LUM_MIN 145.0
+#define CAMERA_LUM_MAX 60000.0
 #define EXPOSURE_POINT 0.2
 #define EXPOSURE_SPEED_UP 0.001
 #define EXPOSURE_SPEED_DOWN 0.004
@@ -114,8 +114,8 @@ const bool colortex9Clear = false;
 //#define RSM_UPSCALE
 #define BLOOM_ENABLED
 #define BLOOM_SMOOTH
-#define BLOOM_POWER 3.0
-#define BLOOM_SCALE 1.0
+#define BLOOM_POWER 3.7
+#define BLOOM_SCALE 2.0
 #define BLOOM_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
 //#define AF_ENABLED

@@ -57,7 +57,7 @@ vec3 GetWavingOffset() {
     float range = (mc_Entity.x == 10002.0 || mc_Entity.x == 10004.0) ? 0.01 : 0.06;
 
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
-        vec3 worldPos = floor(vaPosition.xyz + chunkOffset + cameraPosition);
+        vec3 worldPos = floor(vaPosition.xyz + chunkOffset + cameraPosition + 0.5);
     #else
         vec3 worldPos = gl_Vertex.xyz + at_midBlock / 64.0;
         #ifndef RENDER_SHADOW

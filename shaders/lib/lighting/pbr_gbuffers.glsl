@@ -145,7 +145,7 @@
         #endif
         
         vec2 lm = lmcoord;
-        #ifdef DIRECTIONAL_LIGHTMAP
+        #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
             vec3 texViewNormal = normalize(normal.xyz * matTBN);
             ApplyDirectionalLightmap(lm.x, texViewNormal);
         #endif

@@ -203,7 +203,7 @@
         #include "/lib/parallax.glsl"
     #endif
 
-    #ifdef DIRECTIONAL_LIGHTMAP
+    #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
         #include "/lib/lighting/directional.glsl"
     #endif
 

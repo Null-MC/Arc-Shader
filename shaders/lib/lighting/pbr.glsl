@@ -222,7 +222,7 @@
 
         vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * pow(skyLight, 5.0); //skyLightColor;
 
-        #ifdef DIRECTIONAL_LIGHTMAP
+        #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
             float blockLightAmbient = pow2(blockLight) * BlockLightLux;
         #else
             float blockLightAmbient = pow(blockLight, 5.0) * BlockLightLux;
