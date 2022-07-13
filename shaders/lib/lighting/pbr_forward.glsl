@@ -37,15 +37,13 @@
         #endif
 
         #ifdef PARALLAX_SLOPE_NORMALS
-            if (!isWater) {
-                float dO = max(texDepth - traceCoordDepth.z, 0.0);
-                if (dO >= 0.95 / 255.0) {
-                    #ifdef PARALLAX_USE_TEXELFETCH
-                        material.normal = GetParallaxSlopeNormal(atlasCoord, traceCoordDepth.z, tanViewDir);
-                    #else
-                        material.normal = GetParallaxSlopeNormal(atlasCoord, dFdXY, traceCoordDepth.z, tanViewDir);
-                    #endif
-                }
+            float dO = max(texDepth - traceCoordDepth.z, 0.0);
+            if (dO >= 0.95 / 255.0 && !isWater) {
+                #ifdef PARALLAX_USE_TEXELFETCH
+                    material.normal = GetParallaxSlopeNormal(atlasCoord, traceCoordDepth.z, tanViewDir);
+                #else
+                    material.normal = GetParallaxSlopeNormal(atlasCoord, dFdXY, traceCoordDepth.z, tanViewDir);
+                #endif
             }
         #endif
         

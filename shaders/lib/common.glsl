@@ -72,6 +72,7 @@ const bool colortex9Clear = false;
 #define SSS_FILTER 0 // [0 1 2]
 #define SSS_PCF_SIZE 0.015 // [0.005 0.010 0.015 0.020 0.025 0.030 0.035 0.040 0.045 0.050 0.055 0.060 0.065 0.070 0.075 0.080 0.085 0.090 0.095 0.100]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
+//#define SKYREFLECT_ENABLED
 
 
 // Material Parallax Options
@@ -232,6 +233,8 @@ const float invPI = 1.0 / PI;
 #ifdef TITLE
 #endif
 #ifdef ATMOSPHERE_ENABLED
+#endif
+#ifdef SKYREFLECT_ENABLED
 #endif
 #ifdef SHADOW_EXCLUDE_ENTITIES
 #endif

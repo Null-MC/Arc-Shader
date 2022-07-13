@@ -65,12 +65,16 @@
     uniform sampler2D BUFFER_HDR;
     uniform sampler2D lightmap;
     uniform sampler2D depthtex0;
+    uniform sampler2D colortex10; // IBL DFG_LUT
 
     #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
         uniform sampler2D BUFFER_LUMINANCE;
     #endif
 
     #ifdef SSR_ENABLED
+        uniform mat4 gbufferProjection;
+        uniform float far;
+
         uniform sampler2D BUFFER_HDR_PREVIOUS;
     #endif
 
@@ -111,7 +115,10 @@
     #include "/lib/lighting/material_reader.glsl"
     #include "/lib/lighting/hcm.glsl"
     #include "/lib/lighting/pbr.glsl"
-    #include "/lib/ssr.glsl"
+
+    #ifdef SSR_ENABLED
+        #include "/lib/ssr.glsl"
+    #endif
 
     /* DRAWBUFFERS:46 */
     out vec3 outColor;

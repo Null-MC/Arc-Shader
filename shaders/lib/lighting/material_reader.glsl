@@ -49,7 +49,7 @@ float GetLabPbr_Emission(const in float specularA) {
     	material.albedo.rgb = RGBToLinear(colorMap.rgb);
     	material.albedo.a = colorMap.a;
 
-        if (material.normal.x < EPSILON && material.normal.y < EPSILON)
+        if (normalMap.x < EPSILON && normalMap.y < EPSILON)
             material.normal = vec3(0.0, 0.0, 1.0);
         else {
             material.normal = GetLabPbr_Normal(normalMap.xy);

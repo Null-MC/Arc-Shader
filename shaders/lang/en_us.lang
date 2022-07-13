@@ -129,6 +129,7 @@ screen.MATERIAL_OPTIONS.comment=Options for PBR materials.
 option.SSS_ENABLED=Subsurface Scattering
 option.SSS_ENABLED.comment=When enabled, surfaces with SSS will allow light to scatter through.
 
+option.SKYREFLECT_ENABLED=Reflections
 
 screen.MATERIAL_PARALLAX_OPTIONS=Parallax
 screen.MATERIAL_PARALLAX_OPTIONS.comment=Options for Parallax Occlusion Mapping (POM).

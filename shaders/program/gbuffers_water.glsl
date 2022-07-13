@@ -173,6 +173,7 @@
     uniform sampler2D specular;
     uniform sampler2D lightmap;
     uniform sampler2D gcolor;
+    uniform sampler2D colortex10; // IBL DFG_LUT
 
     uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
@@ -254,7 +255,7 @@
     /* DRAWBUFFERS:46 */
     out vec4 outColor;
 
-    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
         out vec4 outLuminance;
     #endif
 
@@ -262,7 +263,7 @@
     void main() {
         outColor = PbrLighting();
 
-        #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
             outLuminance.r = log2(luminance(outColor.rgb) + EPSILON);
             outLuminance.a = outColor.a;
         #endif
