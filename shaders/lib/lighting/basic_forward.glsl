@@ -4,7 +4,7 @@
 
 #ifdef RENDER_FRAG
     vec4 BasicLighting() {
-        vec4 albedo = texture2D(gtexture, texcoord);
+        vec4 albedo = texture(gtexture, texcoord);
 
         #if !defined RENDER_TEXTURED && !defined RENDER_WEATHER
             if (albedo.a < alphaTestRef) discard;
@@ -47,7 +47,7 @@
         #endif
         
         //vec2 lmCoord = vec2(blockLight, skyLight) * (15.0/16.0) + (0.5/16.0);
-        //vec3 lmColor = RGBToLinear(texture2D(lightmap, lmCoord).rgb);
+        //vec3 lmColor = RGBToLinear(texture(lightmap, lmCoord).rgb);
 
         vec4 final = albedo;
         final.rgb *= (ambient + skyLightColor * shadow);

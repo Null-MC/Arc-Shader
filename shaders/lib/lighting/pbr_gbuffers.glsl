@@ -20,8 +20,7 @@
         #ifdef AF_ENABLED
             colorMap = textureAnisotropic(gtexture, atlasCoord, dFdXY);
         #else
-            //colorMap = textureGrad(gtexture, atlasCoord, dFdXY[0], dFdXY[1]);
-            colorMap = texture(gtexture, atlasCoord);
+            colorMap = textureGrad(gtexture, atlasCoord, dFdXY[0], dFdXY[1]);
         #endif
 
         #ifndef RENDER_WATER

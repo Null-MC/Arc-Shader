@@ -80,7 +80,7 @@
 
 
 	void main() {
-		outColor = texture2D(gtexture, texcoord) * glcolor;
+		outColor = texture(gtexture, texcoord) * glcolor;
 		outColor.rgb = RGBToLinear(outColor.rgb);
 
 		if (renderStage == MC_RENDER_STAGE_SUN) {

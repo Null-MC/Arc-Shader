@@ -70,7 +70,7 @@
 
 
     void main() {
-        vec4 colorMap = texture2D(gtexture, texcoord) * glcolor;
+        vec4 colorMap = texture(gtexture, texcoord) * glcolor;
         colorMap.rgb = RGBToLinear(colorMap.rgb);
 
         vec2 skyLightLevels = GetSkyLightLevels();

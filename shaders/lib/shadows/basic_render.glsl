@@ -41,11 +41,11 @@
 	// 	vec3 GetShadowColor() {
 	// 		//when colored shadows are enabled and there's nothing OPAQUE between us and the sun,
 	// 		//perform a 2nd check to see if there's anything translucent between us and the sun.
-	// 		if (texture2D(shadowtex0, shadowPos.xy).r >= shadowPos.z) return vec3(1.0);
+	// 		if (texture(shadowtex0, shadowPos.xy).r >= shadowPos.z) return vec3(1.0);
 
 	// 		//surface has translucent object between it and the sun. modify its color.
 	// 		//if the block light is high, modify the color less.
-	// 		vec4 shadowLightColor = texture2D(shadowcolor0, shadowPos.xy);
+	// 		vec4 shadowLightColor = texture(shadowcolor0, shadowPos.xy);
 	// 		vec3 color = RGBToLinear(shadowLightColor.rgb);
 
 	// 		//make colors more intense when the shadow light color is more opaque.

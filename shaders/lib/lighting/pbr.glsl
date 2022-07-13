@@ -230,11 +230,11 @@
                 // darken lower horizon
                 vec3 downDir = normalize(-upPosition);
                 float RoDm = max(dot(reflectDir, downDir), 0.0);
-                reflectF = 1.0 - 0.9 * RoDm;
+                reflectF = 1.0 - 0.9 * pow(RoDm, 0.5);
 
                 // occlude inward reflections
                 float NoRm = max(dot(reflectDir, -viewNormal), 0.0);
-                reflectF *= 1.0 - min(pow(NoRm, 0.5), 1.0);
+                reflectF *= 1.0 - pow(NoRm, 0.5);
 
                 reflectColor = GetVanillaSkyLux(reflectDir) * reflectF;
             #endif
@@ -248,7 +248,7 @@
                 vec3 rsmColor = texelFetch(BUFFER_RSM_COLOR, iuv, 0).rgb;
             #else
                 const float rsm_scale = 1.0 / exp2(RSM_SCALE);
-                vec3 rsmColor = texture2DLod(BUFFER_RSM_COLOR, texcoord * rsm_scale, 0).rgb;
+                vec3 rsmColor = textureLod(BUFFER_RSM_COLOR, texcoord * rsm_scale, 0).rgb;
             #endif
         #endif
 
@@ -270,26 +270,26 @@
 
         vec3 diffuse = GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * diffuseLight;
 
-        vec3 specular = vec3(0.0);
+        //vec3 specular = vec3(0.0);
         vec4 final = material.albedo;
+
+        // IBL
+        vec3 iblF = GetFresnel(material, NoVm, roughL);
+        vec2 envBRDF = texture(colortex10, vec2(NoVm, material.smoothness)).rg;
+        vec3 iblSpec = skyLight5 * reflectColor * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
+        vec3 specular = iblSpec;
+
+        float iblFavg = (iblF.x + iblF.y + iblF.z) / 3.0;
+        final.a = min(final.a + iblFavg, 1.0);
 
         #ifdef SHADOW_ENABLED
             float NoHm = max(dot(viewNormal, halfDir), EPSILON);
             float VoHm = max(dot(viewDir, halfDir), EPSILON);
 
             vec3 F = GetFresnel(material, VoHm, roughL);
-            specular = GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * skyLightColor * shadowFinal;
+            specular += GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * skyLightColor * shadowFinal;
 
             final.a = min(final.a + 0.0001 * luminance(specular), 1.0);
-
-            // IBL
-            vec3 iblF = GetFresnel(material, NoVm, rough);
-            vec2 envBRDF = texture(colortex10, vec2(NoVm, material.smoothness)).rg;
-            vec3 iblSpec = skyLight5 * reflectColor * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
-            specular += iblSpec;
-
-            float iblFavg = (iblF.x + iblF.y + iblF.z) / 3.0;
-            final.a = min(final.a + iblFavg, 1.0);
         #endif
 
         #ifdef HANDLIGHT_ENABLED

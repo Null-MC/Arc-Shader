@@ -95,31 +95,31 @@
             vec2 off2 = BloomOffsets[1] * direction * pixelSize;
             vec2 off3 = BloomOffsets[2] * direction * pixelSize;
 
-            vec3 color = texture2DLod(BUFFER_BLOOM, uv, 0).rgb * BloomWeights[0];
+            vec3 color = textureLod(BUFFER_BLOOM, uv, 0).rgb * BloomWeights[0];
 
             vec2 uv1 = uv + off1;
             if (uv1.x < tileMax.x && uv1.y < tileMax.y)
-                color += texture2DLod(BUFFER_BLOOM, uv1, 0).rgb * BloomWeights[1];
+                color += textureLod(BUFFER_BLOOM, uv1, 0).rgb * BloomWeights[1];
 
             vec2 uv2 = uv - off1;
             if (uv2.x > tileMin.x && uv2.y > tileMin.y)
-                color += texture2DLod(BUFFER_BLOOM, uv2, 0).rgb * BloomWeights[2];
+                color += textureLod(BUFFER_BLOOM, uv2, 0).rgb * BloomWeights[2];
 
             vec2 uv3 = uv + off2;
             if (uv3.x < tileMax.x && uv3.y < tileMax.y)
-                color += texture2DLod(BUFFER_BLOOM, uv3, 0).rgb * BloomWeights[3];
+                color += textureLod(BUFFER_BLOOM, uv3, 0).rgb * BloomWeights[3];
 
             vec2 uv4 = uv - off2;
             if (uv4.x > tileMin.x && uv4.y > tileMin.y)
-                color += texture2DLod(BUFFER_BLOOM, uv4, 0).rgb * BloomWeights[4];
+                color += textureLod(BUFFER_BLOOM, uv4, 0).rgb * BloomWeights[4];
 
             vec2 uv5 = uv + off3;
             if (uv5.x < tileMax.x && uv5.y < tileMax.y)
-                color += texture2DLod(BUFFER_BLOOM, uv5, 0).rgb * BloomWeights[5];
+                color += textureLod(BUFFER_BLOOM, uv5, 0).rgb * BloomWeights[5];
 
             vec2 uv6 = uv - off3;
             if (uv6.x > tileMin.x && uv6.y > tileMin.y)
-                color += texture2DLod(BUFFER_BLOOM, uv6, 0).rgb * BloomWeights[6];
+                color += textureLod(BUFFER_BLOOM, uv6, 0).rgb * BloomWeights[6];
 
             return color;
         }

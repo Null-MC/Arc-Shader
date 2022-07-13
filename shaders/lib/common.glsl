@@ -213,9 +213,9 @@ const float invPI = 1.0 / PI;
 // 	#define SHADOW_EXCLUDE_ENTITIES
 // #endif
 
-#if MATERIAL_FORMAT == 0
-    #undef PARALLAX_ENABLED
-#endif
+//#if MATERIAL_FORMAT == 0
+//    #undef PARALLAX_ENABLED
+//#endif
 
 #ifdef PARALLAX_ENABLED
     #ifdef PARALLAX_SMOOTH

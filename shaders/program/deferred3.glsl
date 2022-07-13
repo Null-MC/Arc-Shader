@@ -139,7 +139,7 @@
             //bool normalTest = dot(rsmViewNormal, viewNormal) > 0.2;
 
             if (depthTest) {
-                final = texture2DLod(BUFFER_RSM_COLOR, texLow, 0).rgb;
+                final = textureLod(BUFFER_RSM_COLOR, texLow, 0).rgb;
             }
             else {
                 float skyLight = texelFetch(BUFFER_LIGHTING, itexFull, 0).g;
@@ -160,7 +160,7 @@
                 }
             }
 
-            //final = texture2DLod(BUFFER_RSM_COLOR, texLow, 0).rgb;
+            //final = textureLod(BUFFER_RSM_COLOR, texLow, 0).rgb;
             //final = vec3(rsmDepth);
         }
 

@@ -52,7 +52,7 @@ varying vec3 tanViewPos;
         #ifdef PARALLAX_ENABLED
 			colorMap = textureAF(gtexture, texcoord) * glcolor;
         #else
-			colorMap = texture2D(gtexture, texcoord) * glcolor;
+			colorMap = texture(gtexture, texcoord) * glcolor;
         #endif
 
         if (colorMap.a < 0.98) discard;

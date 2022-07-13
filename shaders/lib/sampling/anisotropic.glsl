@@ -36,12 +36,12 @@ vec4 textureAnisotropic(const in sampler2D sampler, const in vec2 uv, const in m
     final.rgb = vec3(0.0);
 
     // preserve original alpha to prevent artifacts
-    final.a = texture2DLod(sampler, uv, lod).a;
+    final.a = textureLod(sampler, uv, lod).a;
 
     for (float i = -samplesDiv2 + 0.5; i < samplesDiv2; i++) { // sample along main axis at LOD min-radius
         vec2 sampleUV = uv + ADivSamples * i;
         sampleUV = mod(sampleUV - spriteBounds.xy, spriteDimensions) + spriteBounds.xy; // wrap sample UV to fit inside sprite
-        final.rgb += texture2DLod(sampler, sampleUV, lod).rgb;
+        final.rgb += textureLod(sampler, sampleUV, lod).rgb;
     }
 
     final.rgb /= AF_SAMPLES;

@@ -79,7 +79,7 @@
 
 
 	// vec4 ApplyLighting(const in vec4 albedo, const in vec3 lightColor, const in vec2 lm) {
-	// 	vec3 lmValue = texture2D(lightmap, lm).rgb * screenBrightness;
+	// 	vec3 lmValue = texture(lightmap, lm).rgb * screenBrightness;
 	// 	lmValue = RGBToLinear(lmValue);
 	// 	vec4 final = albedo;
 
@@ -120,7 +120,7 @@
         blockLight *= blockLight;
         skyLight *= skyLight;
 
-        vec4 albedo = texture2D(gtexture, texcoord) * glcolor;
+        vec4 albedo = texture(gtexture, texcoord) * glcolor;
         albedo.rgb = RGBToLinear(albedo.rgb);
 
         vec3 lightColor = skyLightColor;
@@ -157,7 +157,7 @@
         #endif
         
         vec2 lmCoord = vec2(blockLight, skyLight) * (15.0/16.0) + (0.5/16.0);
-        vec3 lmColor = RGBToLinear(texture2D(lightmap, lmCoord).rgb);
+        vec3 lmColor = RGBToLinear(texture(lightmap, lmCoord).rgb);
 
         vec4 final = albedo;
 

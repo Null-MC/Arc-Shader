@@ -36,10 +36,10 @@ vec3 LinearBlend4(const in vec3 samples[4], const in vec2 f) {
 
 float TextureLodLinear(const in sampler2D samplerName, const in vec2 uv[4], const in float lod, const in vec2 f, const in int comp) {
     vec4 samples;
-    samples[0] = texture2DLod(samplerName, uv[0], lod)[comp];
-    samples[1] = texture2DLod(samplerName, uv[1], lod)[comp];
-    samples[2] = texture2DLod(samplerName, uv[2], lod)[comp];
-    samples[3] = texture2DLod(samplerName, uv[3], lod)[comp];
+    samples[0] = textureLod(samplerName, uv[0], lod)[comp];
+    samples[1] = textureLod(samplerName, uv[1], lod)[comp];
+    samples[2] = textureLod(samplerName, uv[2], lod)[comp];
+    samples[3] = textureLod(samplerName, uv[3], lod)[comp];
     return LinearBlend4(samples, f);
 }
 
@@ -51,10 +51,10 @@ float TextureLodLinear(const in sampler2D samplerName, const in vec2 texcoord, c
 
 float TextureGradLinear(const in sampler2D samplerName, const in vec2 uv[4], const in mat2 dFdXY, const in vec2 f, const in int comp) {
     vec4 samples;
-    samples[0] = texture2DGrad(samplerName, uv[0], dFdXY[0], dFdXY[1])[comp];
-    samples[1] = texture2DGrad(samplerName, uv[1], dFdXY[0], dFdXY[1])[comp];
-    samples[2] = texture2DGrad(samplerName, uv[2], dFdXY[0], dFdXY[1])[comp];
-    samples[3] = texture2DGrad(samplerName, uv[3], dFdXY[0], dFdXY[1])[comp];
+    samples[0] = textureGrad(samplerName, uv[0], dFdXY[0], dFdXY[1])[comp];
+    samples[1] = textureGrad(samplerName, uv[1], dFdXY[0], dFdXY[1])[comp];
+    samples[2] = textureGrad(samplerName, uv[2], dFdXY[0], dFdXY[1])[comp];
+    samples[3] = textureGrad(samplerName, uv[3], dFdXY[0], dFdXY[1])[comp];
     return LinearBlend4(samples, f);
 }
 
@@ -72,10 +72,10 @@ float TextureGradLinear(const in sampler2D samplerName, const in vec2 texcoord, 
 
 vec3 TextureLodLinearRGB(const in sampler2D samplerName, const in vec2 uv[4], const in int lod, const in vec2 f) {
     vec3 samples[4];
-    samples[0] = texture2DLod(samplerName, uv[0], lod).rgb;
-    samples[1] = texture2DLod(samplerName, uv[1], lod).rgb;
-    samples[2] = texture2DLod(samplerName, uv[2], lod).rgb;
-    samples[3] = texture2DLod(samplerName, uv[3], lod).rgb;
+    samples[0] = textureLod(samplerName, uv[0], lod).rgb;
+    samples[1] = textureLod(samplerName, uv[1], lod).rgb;
+    samples[2] = textureLod(samplerName, uv[2], lod).rgb;
+    samples[3] = textureLod(samplerName, uv[3], lod).rgb;
     return LinearBlend4(samples, f);
 }
 
@@ -87,10 +87,10 @@ vec3 TextureLodLinearRGB(const in sampler2D samplerName, const in vec2 texcoord,
 
 vec3 TextureGradLinearRGB(const in sampler2D samplerName, const in vec2 uv[4], const in mat2 dFdXY, const in vec2 f) {
     vec3 samples[4];
-    samples[0] = texture2DGrad(samplerName, uv[0], dFdXY[0], dFdXY[1]).rgb;
-    samples[1] = texture2DGrad(samplerName, uv[1], dFdXY[0], dFdXY[1]).rgb;
-    samples[2] = texture2DGrad(samplerName, uv[2], dFdXY[0], dFdXY[1]).rgb;
-    samples[3] = texture2DGrad(samplerName, uv[3], dFdXY[0], dFdXY[1]).rgb;
+    samples[0] = textureGrad(samplerName, uv[0], dFdXY[0], dFdXY[1]).rgb;
+    samples[1] = textureGrad(samplerName, uv[1], dFdXY[0], dFdXY[1]).rgb;
+    samples[2] = textureGrad(samplerName, uv[2], dFdXY[0], dFdXY[1]).rgb;
+    samples[3] = textureGrad(samplerName, uv[3], dFdXY[0], dFdXY[1]).rgb;
     return LinearBlend4(samples, f);
 }
 

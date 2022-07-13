@@ -19,8 +19,8 @@ varying vec4 glcolor;
 	uniform sampler2D gtexture;
 
 	void main() {
-		vec4 color = texture2D(gtexture, texcoord) * glcolor;
-		color *= texture2D(lightmap, lmcoord);
+		vec4 color = texture(gtexture, texcoord) * glcolor;
+		color *= texture(lightmap, lmcoord);
 
 	/* DRAWBUFFERS:0 */
 		gl_FragData[0] = color; //gcolor

@@ -79,14 +79,14 @@
                 vec2 uv3 = tileTex + vec2(-0.5,  0.5) * tilePixelSize;
                 vec2 uv4 = tileTex + vec2( 0.5,  0.5) * tilePixelSize;
 
-                vec3 sample1 = texture2DLod(BUFFER_HDR, uv1, tile).rgb;
-                vec3 sample2 = texture2DLod(BUFFER_HDR, uv2, tile).rgb;
-                vec3 sample3 = texture2DLod(BUFFER_HDR, uv3, tile).rgb;
-                vec3 sample4 = texture2DLod(BUFFER_HDR, uv4, tile).rgb;
+                vec3 sample1 = textureLod(BUFFER_HDR, uv1, tile).rgb;
+                vec3 sample2 = textureLod(BUFFER_HDR, uv2, tile).rgb;
+                vec3 sample3 = textureLod(BUFFER_HDR, uv3, tile).rgb;
+                vec3 sample4 = textureLod(BUFFER_HDR, uv4, tile).rgb;
                 
                 final = (sample1 + sample2 + sample3 + sample4) * 0.25;
             #else
-                final = texture2DLod(BUFFER_HDR, tileTex, tile).rgb;
+                final = textureLod(BUFFER_HDR, tileTex, tile).rgb;
             #endif
 
             // WARN: this is a hacky fix for the NaN's that are coming through

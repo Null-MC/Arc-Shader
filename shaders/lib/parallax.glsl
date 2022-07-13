@@ -103,7 +103,7 @@ float GetParallaxShadow(const in vec3 traceTex, const in mat2 dFdXY, const in ve
         #ifdef PARALLAX_SMOOTH
             float texDepth = TextureGradLinear(normals, atlasCoord, atlasPixelSize, dFdXY, 3);
         #else
-            float texDepth = texture2DGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).a;
+            float texDepth = textureGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).a;
         #endif
 
         #ifdef PARALLAX_USE_TEXELFETCH
@@ -154,8 +154,8 @@ float GetParallaxShadow(const in vec3 traceTex, const in mat2 dFdXY, const in ve
             float height_x = texelFetch(normals, ivec2(tX * atlasSize), 0).a;
             float height_y = texelFetch(normals, ivec2(tY * atlasSize), 0).a;
         #else
-            float height_x = texture2DGrad(normals, tX, dFdXY[0], dFdXY[1]).a;
-            float height_y = texture2DGrad(normals, tY, dFdXY[0], dFdXY[1]).a;
+            float height_x = textureGrad(normals, tX, dFdXY[0], dFdXY[1]).a;
+            float height_y = textureGrad(normals, tY, dFdXY[0], dFdXY[1]).a;
         #endif
 
         if (dir) {
