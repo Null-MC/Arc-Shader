@@ -18,8 +18,8 @@ float map(float value, float min1, float max1, float min2, float max2) {
 
 float GetReflectColor(const in vec2 uv, const in float depth, const in vec3 viewPos, const in vec3 reflectDir, out vec2 reflectionUV) {
     //vec2 uv = fragCoord.xy / iResolution.xy;
-    ivec2 iuv = ivec2(uv * vec2(viewWidth, viewHeight));
-    float specularMapR = texelFetch(BUFFER_SPECULAR, iuv, 0).r;
+    //ivec2 iuv = ivec2(uv * vec2(viewWidth, viewHeight));
+    //float specularMapR = texelFetch(BUFFER_SPECULAR, iuv, 0).r;
     
     // We sample the Depth (Buffer A), the normal (Buffer B)
     // And gather the view ray intersection
@@ -28,8 +28,9 @@ float GetReflectColor(const in vec2 uv, const in float depth, const in vec3 view
     
     // ===== VIEW RAY =====
     // no idea what these are...
-    vec3 CAMERA;
-    vec3 EYE_POS;
+    vec3 CAMERA; // viewDir
+    vec3 EYE_POS; // viewPos
+
     vec2 fragCoord;
     float iTime;
 
@@ -93,7 +94,7 @@ float GetReflectColor(const in vec2 uv, const in float depth, const in vec3 view
             vec2 target = projectOnScreen(eye, position + marchReflection);
             target.x = map(target.x, -aspect, aspect, 0.0, 1.0); 
             target.y = map(target.y, -1.0, 1.0, 0.0, 1.0); 
-            float sampledDepth = texture(iChannel0, target).x;
+            float sampledDepth = textureLod(depthtex0, target, 0).x;
             float depthDiff = sampledDepth - currentDepth;
 
             if (depthDiff > 0.0 && depthDiff < targetDepth - currentDepth + _Thickness) {

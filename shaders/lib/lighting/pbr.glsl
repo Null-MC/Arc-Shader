@@ -206,9 +206,10 @@
 
         float skyLight5 = pow(skyLight, 5.0);
 
+        float reflectF = 0.0;
         vec3 reflectColor = vec3(0.0);
         if (material.smoothness > EPSILON) {
-            vec3 reflectDir = reflect(-viewDir, viewNormal);
+            vec3 reflectDir = normalize(reflect(-viewDir, viewNormal));
 
             #if defined SSR_ENABLED
                 //vec2 reflectCoord = GetReflectCoord(reflectDir);
@@ -217,25 +218,25 @@
                 float atten = GetReflectColor(texcoord, depth, viewPos, reflectDir, reflectionUV);
 
                 if (atten > EPSILON) {
-                    ivec2 iReflectUV = ivec2(reflectionUV * vec2(viewWidth, viewHeight));
+                    ivec2 iReflectUV = ivec2(reflectionUV * 0.5 * vec2(viewWidth, viewHeight));
                     reflectColor = texelFetch(BUFFER_HDR_PREVIOUS, iReflectUV, 0) / max(exposure, EPSILON);
                 }
 
                 if (atten + EPSILON < 1.0) {
-                    vec3 skyColor = GetVanillaSkyColor(reflectDir);
+                    vec3 skyColor = GetVanillaSkyLux(reflectDir);
                     reflectColor = mix(skyColor, reflectColor, atten);
                 }
             #elif defined SKYREFLECT_ENABLED
-                reflectColor = GetVanillaSkyColor(reflectDir);
-
                 // darken lower horizon
-                vec3 upDir = normalize(upPosition);
-                float RoUm = max(dot(reflectDir, -upPosition), 0.0);
-                reflectColor *= 1.0 - min(pow(RoUm, 1.0), 0.9);
+                vec3 downDir = normalize(-upPosition);
+                float RoDm = max(dot(reflectDir, downDir), 0.0);
+                reflectF = 1.0 - 0.9 * RoDm;
 
                 // occlude inward reflections
                 float NoRm = max(dot(reflectDir, -viewNormal), 0.0);
-                reflectColor *= 1.0 - min(NoRm * 10.0, 1.0);
+                reflectF *= 1.0 - min(pow(NoRm, 0.5), 1.0);
+
+                reflectColor = GetVanillaSkyLux(reflectDir) * reflectF;
             #endif
         }
 
@@ -275,19 +276,16 @@
         #ifdef SHADOW_ENABLED
             float NoHm = max(dot(viewNormal, halfDir), EPSILON);
             float VoHm = max(dot(viewDir, halfDir), EPSILON);
-            //vec3 NxH = cross(viewNormal, halfDir);
 
             vec3 F = GetFresnel(material, VoHm, roughL);
             specular = GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * skyLightColor * shadowFinal;
 
-            //float Favg = (F.x + F.y + F.z) / 3.0;
-            //final.a = min(final.a + Favg, 1.0);
             final.a = min(final.a + 0.0001 * luminance(specular), 1.0);
 
             // IBL
             vec3 iblF = GetFresnel(material, NoVm, rough);
             vec2 envBRDF = texture(colortex10, vec2(NoVm, material.smoothness)).rg;
-            vec3 iblSpec = skyLight5 * reflectColor * (F * envBRDF.x + envBRDF.y) * material.occlusion;
+            vec3 iblSpec = skyLight5 * reflectColor * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
             specular += iblSpec;
 
             float iblFavg = (iblF.x + iblF.y + iblF.z) / 3.0;
@@ -325,14 +323,6 @@
             final.rgb += material.albedo.rgb * invPI * (ambient_sss + sss);
         #endif
 
-        //if (final.a < 1.0 - EPSILON) {
-        //    //float F = SchlickRoughness(0.04, VoHm, roughL);
-        //    float F = F_schlick(NoVm, material.f0, 1.0);
-        //    final.a = min(final.a + F, 1.0);
-        //}
-
-        //final.a = min(final.a + 0.0001 * luminance(specular), 1.0);
-
         #if defined RENDER_DEFERRED
             ApplyFog(final.rgb, viewPos.xyz, skyLight);
         #elif defined RENDER_GBUFFER
@@ -343,7 +333,7 @@
             #endif
         #endif
 
-        //return mix(final, reflectColor, 0.5);
+        //return vec4(material.normal * 100.0, 1.0);
         //return vec4(iblSpec, 1.0);
         return final;
     }

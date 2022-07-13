@@ -150,7 +150,8 @@
             vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
             viewPos.xyz /= viewPos.w;
 
-            PbrMaterial material = PopulateMaterial(colorMap, normalMap, specularMap);
+            PbrMaterial material;
+            PopulateMaterial(material, colorMap, normalMap, specularMap);
 
             vec3 color = PbrLighting2(material, lightingMap.xy, lightingMap.b, lightingMap.a, viewPos.xyz).rgb;
 

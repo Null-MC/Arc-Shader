@@ -5,15 +5,12 @@
 #ifdef RENDER_FRAG
     vec4 PbrLighting() {
         vec2 atlasCoord = texcoord;
+        mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
 
         #ifdef PARALLAX_ENABLED
             float texDepth = 1.0;
             vec3 traceCoordDepth = vec3(1.0);
             vec3 tanViewDir = normalize(tanViewPos);
-
-            #ifndef PARALLAX_USE_TEXELFETCH
-                mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
-            #endif
 
             float viewDist = length(viewPos);
             if (viewDist < PARALLAX_DISTANCE) {
@@ -22,7 +19,7 @@
         #endif
 
         PbrMaterial material;
-        PopulateMaterial(atlasCoord, material);
+        PopulateMaterial(material, atlasCoord, dFdXY);
 
         bool isWater = false;
         #ifndef RENDER_WATER
@@ -39,11 +36,11 @@
         #ifdef PARALLAX_SLOPE_NORMALS
             float dO = max(texDepth - traceCoordDepth.z, 0.0);
             if (dO >= 0.95 / 255.0 && !isWater) {
-                #ifdef PARALLAX_USE_TEXELFETCH
-                    material.normal = GetParallaxSlopeNormal(atlasCoord, traceCoordDepth.z, tanViewDir);
-                #else
+                //#ifdef PARALLAX_USE_TEXELFETCH
+                //    material.normal = GetParallaxSlopeNormal(atlasCoord, traceCoordDepth.z, tanViewDir);
+                //#else
                     material.normal = GetParallaxSlopeNormal(atlasCoord, dFdXY, traceCoordDepth.z, tanViewDir);
-                #endif
+                //#endif
             }
         #endif
         
@@ -57,11 +54,11 @@
 
             #ifdef PARALLAX_SHADOWS_ENABLED
                 if (shadow > EPSILON && traceCoordDepth.z + EPSILON < 1.0) {
-                    #ifdef PARALLAX_USE_TEXELFETCH
-                        shadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
-                    #else
+                    //#ifdef PARALLAX_USE_TEXELFETCH
+                    //    shadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
+                    //#else
                         shadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
-                    #endif
+                    //#endif
                 }
             #endif
         #endif

@@ -20,7 +20,8 @@
         #ifdef AF_ENABLED
             colorMap = textureAnisotropic(gtexture, atlasCoord, dFdXY);
         #else
-            colorMap = texture2DGrad(gtexture, atlasCoord, dFdXY[0], dFdXY[1]);
+            //colorMap = textureGrad(gtexture, atlasCoord, dFdXY[0], dFdXY[1]);
+            colorMap = texture(gtexture, atlasCoord);
         #endif
 
         #ifndef RENDER_WATER
@@ -58,12 +59,12 @@
             //normalMap.rgb = TextureGradLinearRGB(normals, uv, dFdXY, f);
             normalMap.rgb = TexelFetchLinearRGB(normals, iuv, 0, f);
         #else
-            normalMap.rgb = texture2DGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).rgb;
+            normalMap.rgb = textureGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).rgb;
         #endif
 
         normalMap.a = 0.0;
 
-        specularMap = texture2DGrad(specular, atlasCoord, dFdXY[0], dFdXY[1]);
+        specularMap = textureGrad(specular, atlasCoord, dFdXY[0], dFdXY[1]);
 
         vec3 normal = RestoreNormalZ(normalMap.xy);
 

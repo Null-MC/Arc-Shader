@@ -126,7 +126,7 @@
             color += sky.rgb;
         #else
             vec3 viewDir = normalize(viewPos.xyz);
-            color += GetVanillaSkyColor(viewDir);
+            color += GetVanillaSkyLuminance(viewDir);
         #endif
 
         #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP

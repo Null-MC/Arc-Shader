@@ -67,12 +67,17 @@ const bool colortex9Clear = false;
 
 
 // Material Options
+#define MATERIAL_FORMAT 1 // [0 1 2]
 #define SSS_ENABLED
 #define SSS_MAXDIST 2.8
 #define SSS_FILTER 0 // [0 1 2]
 #define SSS_PCF_SIZE 0.015 // [0.005 0.010 0.015 0.020 0.025 0.030 0.035 0.040 0.045 0.050 0.055 0.060 0.065 0.070 0.075 0.080 0.085 0.090 0.095 0.100]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
 //#define SKYREFLECT_ENABLED
+
+#define MATERIAL_FORMAT_DEFAULT 0
+#define MATERIAL_FORMAT_LABPBR 1
+#define MATERIAL_FORMAT_OLDPBR 2
 
 
 // Material Parallax Options
@@ -207,6 +212,10 @@ const float invPI = 1.0 / PI;
 // #if defined IS_OPTIFINE && SHADOW_TYPE == 3 && defined SHADOW_CSM_TIGHTEN && !defined SHADOW_EXCLUDE_ENTITIES
 // 	#define SHADOW_EXCLUDE_ENTITIES
 // #endif
+
+#if MATERIAL_FORMAT == 0
+    #undef PARALLAX_ENABLED
+#endif
 
 #ifdef PARALLAX_ENABLED
     #ifdef PARALLAX_SMOOTH

@@ -46,7 +46,8 @@ vec2 GetParallaxCoord(const in mat2 dFdXY, const in vec3 tanViewDir, const in fl
             texDepth = TextureGradLinear(normals, uv, dFdXY, f, 3);
         #else
             vec2 traceAtlasCoord = GetAtlasCoord(localTraceCoord);
-            texDepth = texture2DGrad(normals, traceAtlasCoord, dFdXY[0], dFdXY[1]).a;
+            //texDepth = textureGrad(normals, traceAtlasCoord, dFdXY[0], dFdXY[1]).a;
+            texDepth = texture(normals, traceAtlasCoord).a;
         #endif
 
         depthDist = 1.0 - i * stepDepth - texDepth;

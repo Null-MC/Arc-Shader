@@ -23,46 +23,63 @@ float GetLabPbr_Emission(const in float specularA) {
 }
 
 #ifdef RENDER_DEFERRED
-    PbrMaterial PopulateMaterial(const in vec3 colorMap, const in vec4 normalMap, const in vec4 specularMap) {
-        PbrMaterial material;
+    void PopulateMaterial(out PbrMaterial material, const in vec3 colorMap, const in vec4 normalMap, const in vec4 specularMap) {
         material.albedo.rgb = RGBToLinear(colorMap);
-        material.normal = GetLabPbr_Normal(normalMap.xy);
-        material.occlusion = normalMap.z;
-        material.smoothness = specularMap.r;
+        material.albedo.a = 1.0;
+
         material.f0 = GetLabPbr_F0(specularMap.g);
         material.hcm = GetLabPbr_HCM(specularMap.g);
+        material.normal = RestoreNormalZ(normalMap.xy);
+        material.occlusion = normalMap.z;
+        material.smoothness = specularMap.r;
         material.porosity = GetLabPbr_Porosity(specularMap.b);
         material.scattering = GetLabPbr_SSS(specularMap.b);
         material.emission = GetLabPbr_Emission(specularMap.a);
-
-        if (material.f0 < EPSILON) material.f0 = 0.04;
-        material.albedo.a = 1.0;
-
-        return material;
     }
 #elif defined RENDER_WATER
-    void PopulateMaterial(const in vec2 atlasCoord, out PbrMaterial material) {
-    	vec4 colorMap = texture2D(gtexture, atlasCoord) * glcolor;
-    	vec4 normalMap = texture2D(normals, atlasCoord);
-    	vec4 specularMap = texture2D(specular, atlasCoord);
+    void PopulateMaterial(out PbrMaterial material, const in vec2 atlasCoord, const in mat2 dFdXY) {
+    	//vec4 colorMap = textureGrad(gtexture, atlasCoord, dFdXY[0], dFdXY[1]) * glcolor;
+    	//vec4 normalMap = textureGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]);
+    	//vec4 specularMap = textureGrad(specular, atlasCoord, dFdXY[0], dFdXY[1]);
+        vec4 colorMap = texture(gtexture, atlasCoord) * glcolor;
+        vec4 normalMap = texture(normals, atlasCoord);
+        vec4 specularMap = texture(specular, atlasCoord);
 
-    	material.albedo.rgb = RGBToLinear(colorMap.rgb);
-    	material.albedo.a = colorMap.a;
+        material.albedo.rgb = RGBToLinear(colorMap.rgb);
+        material.albedo.a = colorMap.a;
 
-        if (normalMap.x < EPSILON && normalMap.y < EPSILON)
+        #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
+            if (normalMap.x < EPSILON && normalMap.y < EPSILON)
+                material.normal = vec3(0.0, 0.0, 1.0);
+            else {
+                material.normal = GetLabPbr_Normal(normalMap.xy);
+            }
+
+            material.occlusion = normalMap.b;
+            material.smoothness = specularMap.r;
+            material.f0 = GetLabPbr_F0(specularMap.g);
+            material.hcm = GetLabPbr_HCM(specularMap.g);
+            material.porosity = GetLabPbr_Porosity(specularMap.b);
+            material.scattering = GetLabPbr_SSS(specularMap.b);
+            material.emission = GetLabPbr_Emission(specularMap.a);
+
+            if (material.f0 < EPSILON) material.f0 = 0.04;
+        #elif MATERIAL_FORMAT == MATERIAL_FORMAT_OLDPBR
+            if (normalMap.x < EPSILON && normalMap.y < EPSILON)
+                material.normal = vec3(0.0, 0.0, 1.0);
+            else {
+                material.normal = normalMap.xyz * 2.0 - 1.0;
+            }
+
+            material.f0 = specularMap.g < 0.5 ? 0.04 : 0.0;
+            material.hcm = specularMap.g >= 0.5 ? 15 : -1;
+            material.smoothness = specularMap.r;
+            material.occlusion = 1.0;
+        #else
             material.normal = vec3(0.0, 0.0, 1.0);
-        else {
-            material.normal = GetLabPbr_Normal(normalMap.xy);
-        }
-
-    	material.occlusion = normalMap.b;
-    	material.smoothness = specularMap.r;
-    	material.f0 = GetLabPbr_F0(specularMap.g);
-        material.hcm = GetLabPbr_HCM(specularMap.g);
-    	material.porosity = GetLabPbr_Porosity(specularMap.b);
-    	material.scattering = GetLabPbr_SSS(specularMap.b);
-    	material.emission = GetLabPbr_Emission(specularMap.a);
-
-    	if (material.f0 < EPSILON) material.f0 = 0.04;
+            material.smoothness = 0.08;
+            material.occlusion = 1.0;
+            material.f0 = 0.04;
+        #endif
     }
 #endif
