@@ -233,7 +233,7 @@
                 float NoRm = max(dot(reflectDir, -viewNormal), 0.0);
                 reflectF *= 1.0 - pow(NoRm, 0.5);
 
-                reflectColor = 0.25 * GetVanillaSkyLux(reflectDir) * reflectF;
+                reflectColor = GetVanillaSkyLux(reflectDir) * reflectF;
             #endif
         }
 
@@ -275,8 +275,12 @@
             // IBL
             vec3 iblF = GetFresnel(material, NoVm, roughL);
             vec2 envBRDF = texture(colortex10, vec2(NoVm, material.smoothness)).rg;
+            envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
+
             vec3 iblSpec = skyLight5 * reflectColor * hcmTint * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
             specular += iblSpec;
+
+            //return vec4(envBRDF * 500.0, 0.0, 1.0);
 
             float iblFavg = (iblF.x + iblF.y + iblF.z) / 3.0;
             final.a = min(final.a + iblFavg, 1.0);
@@ -290,7 +294,7 @@
             vec3 sunSpec = GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * hcmTint * skyLightColor * shadowFinal;
             specular += sunSpec;
 
-            final.a = min(final.a + 0.0001 * luminance(sunSpec), 1.0);
+            final.a = min(final.a + luminance(sunSpec) * exposure, 1.0);
         #endif
 
         #ifdef HANDLIGHT_ENABLED
@@ -305,13 +309,16 @@
         if (material.hcm >= 0) {
             //if (material.hcm < 8) specular *= material.albedo.rgb;
 
-            ambient *= 0.02;
+            diffuse *= HCM_AMBIENT;
+            ambient *= HCM_AMBIENT;
 
-            #if REFLECTION_MODE == REFLECTION_MODE_NONE
-                diffuse *= HCM_AMBIENT;
-            #else
-                diffuse = vec3(0.0);
-            #endif
+            // #if REFLECTION_MODE == REFLECTION_MODE_NONE
+            //     diffuse *= HCM_AMBIENT;
+            //     ambient *= 0.02;
+            // #else
+            //     diffuse = vec3(0.0);
+            //     ambient *= 0.02;
+            // #endif
         }
 
         //ambient += minLight;
