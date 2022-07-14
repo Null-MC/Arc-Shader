@@ -101,6 +101,8 @@
 
             float lumNew = (lum * BLOOM_SCALE) / exp2(BLOOM_POWER + tile);
             final *= (lumNew / max(lum, EPSILON));
+
+            final = final / (final + 1.0);
         }
 
     /* DRAWBUFFERS:7 */

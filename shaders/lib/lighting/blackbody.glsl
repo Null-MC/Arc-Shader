@@ -10,13 +10,12 @@ vec3 blackbody(const in float temp) {
     float y = 2.0*v / (2.0*u - 8.0*v + 4.0);
     float z = 1.0 - x - y;
     
-    float Y = 1.0;
-    float X = Y / y * x;
-    float Z = Y / y * z;
+    vec3 XYZ = vec3(1.0 / y * x, 1.0, 1.0 / y * z);
 
     const mat3 XYZtoRGB = mat3( 3.2404542, -1.5371385, -0.4985314,
                                -0.9692660,  1.8760108,  0.0415560,
                                 0.0556434, -0.2040259,  1.0572252);
 
-    return max(vec3(0.0), (vec3(X,Y,Z) * XYZtoRGB) * pow(temp * 0.0004, 4.0));
+    //return max(vec3(0.0), XYZ * XYZtoRGB * pow(temp * 0.0004, 4.0));
+    return max(vec3(0.0), XYZ * XYZtoRGB);
 }

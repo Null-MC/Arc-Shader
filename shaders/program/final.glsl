@@ -273,7 +273,7 @@
             int lod = 0;
 
             #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-                if (texcoord.x >= 0.5) lod = luminanceLod;
+                if (texcoord.x >= 0.5) lod = luminanceLod-2;
             #endif
 
             float logLum = textureLod(BUFFER_HDR_PREVIOUS, texcoord, lod).a;

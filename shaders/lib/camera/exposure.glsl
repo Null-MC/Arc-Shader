@@ -47,14 +47,19 @@ float GetExposure(const in float EV100) {
 
 float GetAverageLuminance() {
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-        int luminanceLod = GetLuminanceLod();
+        int luminanceLod = GetLuminanceLod()-2;
 
         float averageLuminance = 0.0;
-        ivec2 size = ivec2(vec2(viewWidth, viewHeight) / exp2(luminanceLod));
+        ivec2 size = ivec2(ceil(vec2(viewWidth, viewHeight) / exp2(luminanceLod)));
+        size = min(size, ivec2(12, 8));
+
         for (int y = 0; y < size.y; y++) {
             for (int x = 0; x < size.x; x++) {
-                float sampleLum = textureLod(BUFFER_HDR_PREVIOUS, ivec2(x, y), luminanceLod).a;
-                averageLuminance += max(exp2(sampleLum) - EPSILON, 0.0);
+                float sampleLum = texelFetch(BUFFER_HDR_PREVIOUS, ivec2(x, y), luminanceLod).a;
+                sampleLum = max(exp2(sampleLum) - EPSILON, 0.0);
+
+                averageLuminance += sampleLum;
+                //averageLuminance = max(averageLuminance, sampleLum);
             }
         }
 

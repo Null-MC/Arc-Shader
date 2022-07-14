@@ -131,6 +131,12 @@
 
         #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
             outLuminance = log2(luminance(color) + EPSILON);
+
+            #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FAST
+                vec3 sunDir = normalize(sunPosition);
+                float VoSun = max(dot(viewDir, sunDir), 0.0);
+                outLuminance += pow(max(VoSun - 0.99, 0.0) * 100.0, 0.5) * sunLumen;
+            #endif
         #endif
 
         outColor = clamp(color * exposure, vec3(0.0), vec3(65000));

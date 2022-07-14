@@ -144,7 +144,7 @@
             return pow(diffuseAtt, 5.0);
         }
 
-        void ApplyHandLighting(inout vec3 diffuse, inout vec3 specular, const in PbrMaterial material, const in vec3 reflectColor, const in vec3 viewNormal, const in vec3 viewPos, const in vec3 viewDir, const in float NoVm, const in float roughL) {
+        void ApplyHandLighting(inout vec3 diffuse, inout vec3 specular, const in PbrMaterial material, const in vec3 viewNormal, const in vec3 viewPos, const in vec3 viewDir, const in float NoVm, const in float roughL) {
             vec3 lightPos = handOffset - viewPos.xyz;
             vec3 lightDir = normalize(lightPos);
 
@@ -157,14 +157,10 @@
 
             vec3 halfDir = normalize(lightDir + viewDir);
             float LoHm = max(dot(lightDir, halfDir), EPSILON);
-
             float NoHm = max(dot(viewNormal, halfDir), EPSILON);
-            //float NoVm = max(dot(viewNormal, viewDir), EPSILON);
             float VoHm = max(dot(viewDir, halfDir), EPSILON);
-            //vec3 NxH = cross(viewNormal, halfDir);
 
-            //vec3(0.851, 0.712, 0.545)
-            vec3 handLightColor = vec3(1.0) * attenuation * BlockLightLux;
+            vec3 handLightColor = blockLightColor * attenuation;
 
             vec3 F = GetFresnel(material, VoHm, roughL);
 
@@ -230,13 +226,13 @@
                 // darken lower horizon
                 vec3 downDir = normalize(-upPosition);
                 float RoDm = max(dot(reflectDir, downDir), 0.0);
-                reflectF = 1.0 - 0.9 * pow(RoDm, 0.5);
+                reflectF = 1.0 - pow(RoDm, 0.5);
 
                 // occlude inward reflections
                 float NoRm = max(dot(reflectDir, -viewNormal), 0.0);
                 reflectF *= 1.0 - pow(NoRm, 0.5);
 
-                reflectColor = GetVanillaSkyLux(reflectDir) * reflectF;
+                reflectColor = 0.25 * GetVanillaSkyLux(reflectDir) * reflectF;
             #endif
         }
 
@@ -270,31 +266,35 @@
 
         vec3 diffuse = GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * diffuseLight;
 
-        //vec3 specular = vec3(0.0);
+        vec3 specular = vec3(0.0);
+        vec3 hcmTint = GetHCM_Tint(material.albedo.rgb, material.hcm);
         vec4 final = material.albedo;
 
-        // IBL
-        vec3 iblF = GetFresnel(material, NoVm, roughL);
-        vec2 envBRDF = texture(colortex10, vec2(NoVm, material.smoothness)).rg;
-        vec3 iblSpec = skyLight5 * reflectColor * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
-        vec3 specular = iblSpec;
+        #if REFLECTION_MODE != REFLECTION_MODE_NONE
+            // IBL
+            vec3 iblF = GetFresnel(material, NoVm, roughL);
+            vec2 envBRDF = texture(colortex10, vec2(NoVm, material.smoothness)).rg;
+            vec3 iblSpec = skyLight5 * reflectColor * hcmTint * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
+            specular += iblSpec;
 
-        float iblFavg = (iblF.x + iblF.y + iblF.z) / 3.0;
-        final.a = min(final.a + iblFavg, 1.0);
+            float iblFavg = (iblF.x + iblF.y + iblF.z) / 3.0;
+            final.a = min(final.a + iblFavg, 1.0);
+        #endif
 
         #ifdef SHADOW_ENABLED
             float NoHm = max(dot(viewNormal, halfDir), EPSILON);
             float VoHm = max(dot(viewDir, halfDir), EPSILON);
 
             vec3 F = GetFresnel(material, VoHm, roughL);
-            specular += GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * skyLightColor * shadowFinal;
+            vec3 sunSpec = GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * hcmTint * skyLightColor * shadowFinal;
+            specular += sunSpec;
 
-            final.a = min(final.a + 0.0001 * luminance(specular), 1.0);
+            final.a = min(final.a + 0.0001 * luminance(sunSpec), 1.0);
         #endif
 
         #ifdef HANDLIGHT_ENABLED
             if (heldBlockLightValue > EPSILON)
-                ApplyHandLighting(diffuse, specular, material, reflectColor, viewNormal, viewPos.xyz, viewDir, NoVm, roughL);
+                ApplyHandLighting(diffuse, specular, material, viewNormal, viewPos.xyz, viewDir, NoVm, roughL);
         #endif
 
         #if defined RSM_ENABLED && defined RENDER_DEFERRED
@@ -302,10 +302,15 @@
         #endif
 
         if (material.hcm >= 0) {
-            if (material.hcm < 8) specular *= material.albedo.rgb;
+            //if (material.hcm < 8) specular *= material.albedo.rgb;
 
-            ambient *= HCM_AMBIENT;
-            diffuse *= HCM_AMBIENT;
+            ambient *= 0.02;
+
+            #if REFLECTION_MODE == REFLECTION_MODE_NONE
+                diffuse *= HCM_AMBIENT;
+            #else
+                diffuse = vec3(0.0);
+            #endif
         }
 
         //ambient += minLight;
@@ -334,7 +339,6 @@
         #endif
 
         //return vec4(material.normal * 100.0, 1.0);
-        //return vec4(iblSpec, 1.0);
         return final;
     }
 #endif
