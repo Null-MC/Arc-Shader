@@ -22,7 +22,7 @@ float GetSunLightLevel(const in float skyLightLevel) {
     //return GetSolidAngle(angularDiameter);
 
     // TODO: This angle is wrong and sucks
-    return pow(max(0.1 + 0.9*skyLightLevel, 0.0), 0.8) * rainLevel;
+    return pow(max(skyLightLevel, 0.0), 0.4) * rainLevel;
 }
 
 float GetMoonLightLevel(const in float skyLightLevel) {
@@ -33,7 +33,7 @@ float GetMoonLightLevel(const in float skyLightLevel) {
     //return GetSolidAngle(angularDiameter) * moonPhaseLevel;
 
     // TODO: This angle is wrong and sucks
-    return pow(max(0.1 + 0.9*skyLightLevel, 0.0), 0.8) * rainLevel * moonPhaseLevel;
+    return pow(max(skyLightLevel, 0.0), 0.4) * rainLevel * moonPhaseLevel;
 }
 
 #ifndef RENDER_SKYBASIC

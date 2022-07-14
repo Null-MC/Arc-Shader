@@ -37,11 +37,7 @@ float GetLabPbr_Emission(const in float specularA) {
         material.emission = GetLabPbr_Emission(specularMap.a);
     }
 #elif defined RENDER_WATER
-    void PopulateMaterial(out PbrMaterial material, const in vec2 atlasCoord, const in mat2 dFdXY) {
-    	vec4 colorMap = textureGrad(gtexture, atlasCoord, dFdXY[0], dFdXY[1]) * glcolor;
-    	vec4 normalMap = textureGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]);
-    	vec4 specularMap = textureGrad(specular, atlasCoord, dFdXY[0], dFdXY[1]);
-
+    void PopulateMaterial(out PbrMaterial material, const in vec4 colorMap, const in vec3 normalMap, const in vec4 specularMap) {
         material.albedo.rgb = RGBToLinear(colorMap.rgb);
         material.albedo.a = colorMap.a;
 
@@ -65,7 +61,7 @@ float GetLabPbr_Emission(const in float specularA) {
             if (normalMap.x < EPSILON && normalMap.y < EPSILON)
                 material.normal = vec3(0.0, 0.0, 1.0);
             else {
-                material.normal = normalMap.xyz * 2.0 - 1.0;
+                material.normal = normalMap * 2.0 - 1.0;
             }
 
             material.f0 = specularMap.g < 0.5 ? 0.04 : 0.0;
@@ -76,7 +72,7 @@ float GetLabPbr_Emission(const in float specularA) {
             if (normalMap.x < EPSILON && normalMap.y < EPSILON)
                 material.normal = vec3(0.0, 0.0, 1.0);
             else {
-                material.normal = normalMap.xyz * 2.0 - 1.0;
+                material.normal = normalMap * 2.0 - 1.0;
             }
 
             material.smoothness = specularMap.r;

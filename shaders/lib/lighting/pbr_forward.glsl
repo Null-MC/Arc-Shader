@@ -18,8 +18,38 @@
             }
         #endif
 
+        vec4 colorMap = textureGrad(gtexture, atlasCoord, dFdXY[0], dFdXY[1]) * glcolor;
+        vec4 specularMap = textureGrad(specular, atlasCoord, dFdXY[0], dFdXY[1]);
+        vec3 normalMap;// = textureGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]);
+
+        #ifdef PARALLAX_SMOOTH_NORMALS
+            ////normalMap.rgb = TexelFetchLinearRGB(normals, atlasCoord * atlasSize);
+            //normalMap.rgb = TextureGradLinearRGB(normals, atlasCoord, atlasSize, dFdXY);
+
+            vec2 uv[4];
+            //vec2 localCoord = GetLocalCoord(atlasCoord);
+            //vec2 atlasTileSize = atlasBounds[1] * atlasSize;
+            vec2 f = GetLinearCoords(atlasCoord, atlasSize, uv);
+
+            uv[0] = GetAtlasCoord(GetLocalCoord(uv[0]));
+            uv[1] = GetAtlasCoord(GetLocalCoord(uv[1]));
+            uv[2] = GetAtlasCoord(GetLocalCoord(uv[2]));
+            uv[3] = GetAtlasCoord(GetLocalCoord(uv[3]));
+
+            ivec2 iuv[4];
+            iuv[0] = ivec2(uv[0] * atlasSize);
+            iuv[1] = ivec2(uv[1] * atlasSize);
+            iuv[2] = ivec2(uv[2] * atlasSize);
+            iuv[3] = ivec2(uv[3] * atlasSize);
+
+            //normalMap.rgb = TextureGradLinearRGB(normals, uv, dFdXY, f);
+            normalMap = TexelFetchLinearRGB(normals, iuv, 0, f);
+        #else
+            normalMap = textureGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).rgb;
+        #endif
+
         PbrMaterial material;
-        PopulateMaterial(material, atlasCoord, dFdXY);
+        PopulateMaterial(material, colorMap, normalMap, specularMap);
 
         bool isWater = false;
         #ifndef RENDER_WATER

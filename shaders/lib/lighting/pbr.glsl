@@ -103,7 +103,8 @@
         //float G = SmithHable(LoH, roughL);
         float G = SmithGGXCorrelated(NoV, NoL, roughL);
 
-        return clamp(D * F * G, 0.0, 6.0);
+        //return clamp(D * F * G, 0.0, 100000.0);
+        return D * F * G;
     }
 
     vec3 GetDiffuse_Burley(const in vec3 albedo, const in float NoV, const in float NoL, const in float LoH, const in float roughL)
