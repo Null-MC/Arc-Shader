@@ -1,40 +1,55 @@
 option.TITLE=Bullet Shader
 option.TITLE.comment=By NULL
 
-profile.comment=Potato - potato. Low - low. Medium - medium. High - high. Ultra - ultra.
-
 profile.POTATO=Potato
-profile.POTATO.comment=For machines that don't have anymore power than a simple potato.
+profile.POTATO.comment=Potato: For machines with less power than a potato.
 
 profile.LOW=Low
-profile.LOW.comment=For low-end devices, IGPU's and such.
+profile.LOW.comment=Low: For low-end devices, IGPU's and such.
 
 profile.MEDIUM=Medium
-profile.MEDIUM.comment=For mid-quality devices with decent graphics cards.
+profile.MEDIUM.comment=Medium: For mid-quality graphics cards.
 
 profile.HIGH=High
-profile.HIGH.comment=For high-end machines with a modern graphics card.
+profile.HIGH.comment=High: For high-end/modern graphics card.
 
 profile.ULTRA=Ultra
-profile.ULTRA.comment=Just, too much...
+profile.ULTRA.comment=Ultra: Just, too much...
+
 
 screen.WORLD_OPTIONS=World
 
-option.ENABLE_WAVING=Waving Plants
-option.ENABLE_WAVING.comment=When enabled, plants will wave using artificial wind.
-
-option.HANDLIGHT_ENABLED=Hand Light
-option.HANDLIGHT_ENABLED.comment=When enabled, the shader will be used for lighting from hand-held items instead of the vanilla block-light.
-
-
-screen.ATMOSPHERE_OPTIONS=Atmosphere
-
-option.ATMOSPHERE_ENABLED=Enabled
-option.ATMOSPHERE_ENABLED.comment=When enabled a more realistic atmosphere will be rendered instead of the vanilla sky.
+option.BLOCKLIGHT_TEMP=BlockLight Temp
+option.BLOCKLIGHT_TEMP.comment=Adjusts the color of block-lighting in the world based on the kelvin temperature scale.
+suffix.BLOCKLIGHT_TEMP=°k
 
 option.SHADOW_BRIGHTNESS=Ambient Brightness
 option.SHADOW_BRIGHTNESS.comment=Controls how dark shadows are.
 
+option.ENABLE_WAVING=Waving Plants
+option.ENABLE_WAVING.comment=Foliage (and other similar blocks) will wave using artificial wind.
+
+option.DIRECTIONAL_LIGHTMAP_STRENGTH=DLM Strength
+option.DIRECTIONAL_LIGHTMAP_STRENGTH.comment=Controls the strength of Directional Light Mapping.
+suffix.DIRECTIONAL_LIGHTMAP_STRENGTH=%
+
+option.HANDLIGHT_ENABLED=Hand Light
+option.HANDLIGHT_ENABLED.comment=Hand-held items will use the shaders lighting instead of the vanilla block-light level.
+
+
+screen.ATMOSPHERE_OPTIONS=Atmosphere
+
+option.ATMOSPHERE_TYPE=Type
+option.ATMOSPHERE_TYPE.comment=Fast: a simple vanilla blended sky. Fancy: A realistic computed atmosphere.
+value.ATMOSPHERE_TYPE.0=Fast
+value.ATMOSPHERE_TYPE.1=Fancy
+
+option.sunPathRotation=Sun Angle
+suffix.sunPathRotation=°
+
+option.ATMOSFOG_ENABLED=Haze Fog
+
+option.CAVEFOG_ENABLED=Cave Fog
 
 screen.SHADOW_OPTIONS=Shadows
 
@@ -71,31 +86,32 @@ value.SHADOW_COLORS.2=Ignored
 
 option.SHADOW_BIAS_SCALE=Bias Scale
 option.SHADOW_BIAS_SCALE.comment=Increase this if you get shadow acne. Decrease this if you get peter panning.
-value.SHADOW_BIAS_SCALE.0.1=10%
-value.SHADOW_BIAS_SCALE.0.2=20%
-value.SHADOW_BIAS_SCALE.0.3=30%
-value.SHADOW_BIAS_SCALE.0.4=40%
-value.SHADOW_BIAS_SCALE.0.5=50%
-value.SHADOW_BIAS_SCALE.0.6=60%
-value.SHADOW_BIAS_SCALE.0.7=70%
-value.SHADOW_BIAS_SCALE.0.8=80%
-value.SHADOW_BIAS_SCALE.0.9=90%
-value.SHADOW_BIAS_SCALE.1.0=100%
-value.SHADOW_BIAS_SCALE.1.1=110%
-value.SHADOW_BIAS_SCALE.1.2=120%
-value.SHADOW_BIAS_SCALE.1.3=130%
-value.SHADOW_BIAS_SCALE.1.4=140%
-value.SHADOW_BIAS_SCALE.1.5=150%
-value.SHADOW_BIAS_SCALE.1.6=160%
-value.SHADOW_BIAS_SCALE.1.7=170%
-value.SHADOW_BIAS_SCALE.1.8=180%
-value.SHADOW_BIAS_SCALE.1.9=190%
-value.SHADOW_BIAS_SCALE.2.0=200%
-value.SHADOW_BIAS_SCALE.2.1=210%
-value.SHADOW_BIAS_SCALE.2.2=220%
-value.SHADOW_BIAS_SCALE.2.3=230%
-value.SHADOW_BIAS_SCALE.2.4=240%
-value.SHADOW_BIAS_SCALE.2.5=250%
+suffix.SHADOW_BIAS_SCALE=%
+value.SHADOW_BIAS_SCALE.0.1=10
+value.SHADOW_BIAS_SCALE.0.2=20
+value.SHADOW_BIAS_SCALE.0.3=30
+value.SHADOW_BIAS_SCALE.0.4=40
+value.SHADOW_BIAS_SCALE.0.5=50
+value.SHADOW_BIAS_SCALE.0.6=60
+value.SHADOW_BIAS_SCALE.0.7=70
+value.SHADOW_BIAS_SCALE.0.8=80
+value.SHADOW_BIAS_SCALE.0.9=90
+value.SHADOW_BIAS_SCALE.1.0=100
+value.SHADOW_BIAS_SCALE.1.1=110
+value.SHADOW_BIAS_SCALE.1.2=120
+value.SHADOW_BIAS_SCALE.1.3=130
+value.SHADOW_BIAS_SCALE.1.4=140
+value.SHADOW_BIAS_SCALE.1.5=150
+value.SHADOW_BIAS_SCALE.1.6=160
+value.SHADOW_BIAS_SCALE.1.7=170
+value.SHADOW_BIAS_SCALE.1.8=180
+value.SHADOW_BIAS_SCALE.1.9=190
+value.SHADOW_BIAS_SCALE.2.0=200
+value.SHADOW_BIAS_SCALE.2.1=210
+value.SHADOW_BIAS_SCALE.2.2=220
+value.SHADOW_BIAS_SCALE.2.3=230
+value.SHADOW_BIAS_SCALE.2.4=240
+value.SHADOW_BIAS_SCALE.2.5=250
 
 option.SHADOW_DISTORT_FACTOR=Distortion
 option.SHADOW_DISTORT_FACTOR.comment=Distortion factor for the shadow map. Applies to distorted shadows only.
@@ -130,11 +146,15 @@ option.MATERIAL_FORMAT=Format
 value.MATERIAL_FORMAT.0=Default
 value.MATERIAL_FORMAT.1=Lab PBR
 value.MATERIAL_FORMAT.2=Old PBR
+value.MATERIAL_FORMAT.3=Patrix PBR
 
 option.SSS_ENABLED=Subsurface Scattering
 option.SSS_ENABLED.comment=When enabled, surfaces with SSS will allow light to scatter through.
 
-option.SKYREFLECT_ENABLED=Reflections
+option.REFLECTION_MODE=Reflections
+value.REFLECTION_MODE.0=None
+value.REFLECTION_MODE.1=Sky Only
+value.REFLECTION_MODE.2=Screen-Space
 
 screen.MATERIAL_PARALLAX_OPTIONS=Parallax
 screen.MATERIAL_PARALLAX_OPTIONS.comment=Options for Parallax Occlusion Mapping (POM).
@@ -170,7 +190,7 @@ option.CAMERA_EXPOSURE_MODE.comment=The method for controlling camera exposure. 
 value.CAMERA_EXPOSURE_MODE.0=Manual
 value.CAMERA_EXPOSURE_MODE.1=Cheap
 value.CAMERA_EXPOSURE_MODE.2=Fast
-#value.CAMERA_EXPOSURE_MODE.3=Fancy
+# value.CAMERA_EXPOSURE_MODE.3=Fancy
 
 option.CAMERA_EXPOSURE=Exposure
 

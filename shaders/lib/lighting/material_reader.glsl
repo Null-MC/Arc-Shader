@@ -72,6 +72,19 @@ float GetLabPbr_Emission(const in float specularA) {
             material.hcm = specularMap.g >= 0.5 ? 15 : -1;
             material.smoothness = specularMap.r;
             material.occlusion = 1.0;
+        #elif MATERIAL_FORMAT == MATERIAL_FORMAT_PATRIX
+            if (normalMap.x < EPSILON && normalMap.y < EPSILON)
+                material.normal = vec3(0.0, 0.0, 1.0);
+            else {
+                material.normal = normalMap.xyz * 2.0 - 1.0;
+            }
+
+            material.smoothness = specularMap.r;
+            material.scattering = GetLabPbr_SSS(specularMap.b);
+            material.emission = GetLabPbr_Emission(specularMap.a);
+            material.hcm = specularMap.g >= 0.5 ? 15 : -1;
+            material.occlusion = 1.0;
+            material.f0 = 0.04;
         #else
             material.normal = vec3(0.0, 0.0, 1.0);
             material.smoothness = 0.08;

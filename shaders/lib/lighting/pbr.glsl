@@ -211,7 +211,7 @@
         if (material.smoothness > EPSILON) {
             vec3 reflectDir = normalize(reflect(-viewDir, viewNormal));
 
-            #if defined SSR_ENABLED
+            #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
                 //vec2 reflectCoord = GetReflectCoord(reflectDir);
 
                 vec2 reflectionUV;
@@ -226,7 +226,7 @@
                     vec3 skyColor = GetVanillaSkyLux(reflectDir);
                     reflectColor = mix(skyColor, reflectColor, atten);
                 }
-            #elif defined SKYREFLECT_ENABLED
+            #elif REFLECTION_MODE == REFLECTION_MODE_SKY
                 // darken lower horizon
                 vec3 downDir = normalize(-upPosition);
                 float RoDm = max(dot(reflectDir, downDir), 0.0);
@@ -255,9 +255,9 @@
         vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * skyLight5; //skyLightColor;
 
         #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
-            float blockLightAmbient = pow2(blockLight) * BlockLightLux;
+            vec3 blockLightAmbient = pow2(blockLight)*blockLightColor;
         #else
-            float blockLightAmbient = pow(blockLight, 5.0) * BlockLightLux;
+            vec3 blockLightAmbient = pow(blockLight, 5.0)*blockLightColor;
         #endif
 
         vec3 ambient = (1.0 + blockLightAmbient + skyAmbient) * material.occlusion;

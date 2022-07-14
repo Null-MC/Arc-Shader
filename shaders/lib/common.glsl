@@ -29,18 +29,22 @@ const bool colortex9Clear = false;
 
 // World Options
 #define ENABLE_WAVING
-#define DIRECTIONAL_LIGHTMAP_STRENGTH 80 // [0 10 20 30 40 50 60 70 80 90 100]
 #define HANDLIGHT_ENABLED
+#define BLOCKLIGHT_TEMP 3000 // [2700 3000 3500 4000 5700 7000]
+#define DIRECTIONAL_LIGHTMAP_STRENGTH 80 // [0 10 20 30 40 50 60 70 80 90 100]
 #define SHADOW_BRIGHTNESS 0.10 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define RAIN_DARKNESS 0.2
 //#define ANIM_USE_WORLDTIME
 
 
 // Atmosphere Options
-//#define ATMOSPHERE_ENABLED
+#define ATMOSPHERE_TYPE 0 // [0 1]
 #define ATMOSFOG_ENABLED
 #define CAVEFOG_ENABLED
 #define HCM_AMBIENT 0.16
+
+#define ATMOSPHERE_TYPE_FAST 0
+#define ATMOSPHERE_TYPE_FANCY 1
 
 
 // Shadow Options
@@ -67,17 +71,23 @@ const bool colortex9Clear = false;
 
 
 // Material Options
-#define MATERIAL_FORMAT 1 // [0 1 2]
+#define MATERIAL_FORMAT 1 // [0 1 2 3]
 #define SSS_ENABLED
 #define SSS_MAXDIST 2.8
 #define SSS_FILTER 0 // [0 1 2]
 #define SSS_PCF_SIZE 0.015 // [0.005 0.010 0.015 0.020 0.025 0.030 0.035 0.040 0.045 0.050 0.055 0.060 0.065 0.070 0.075 0.080 0.085 0.090 0.095 0.100]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
-//#define SKYREFLECT_ENABLED
+#define SKYREFLECT_ENABLED
+#define REFLECTION_MODE 1 // [0 1]
 
 #define MATERIAL_FORMAT_DEFAULT 0
 #define MATERIAL_FORMAT_LABPBR 1
 #define MATERIAL_FORMAT_OLDPBR 2
+#define MATERIAL_FORMAT_PATRIX 3
+
+#define REFLECTION_MODE_NONE 0
+#define REFLECTION_MODE_SKY 1
+#define REFLECTION_MODE_SCREEN 2
 
 
 // Material Parallax Options
@@ -111,11 +121,10 @@ const bool colortex9Clear = false;
 
 
 // Effect Options
-//#define SSR_ENABLED
 #define RSM_ENABLED
-#define RSM_INTENSITY 6 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
+#define RSM_INTENSITY 2 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
 #define RSM_FILTER_SIZE 0.8 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.4 2.6 2.8 3.0]
-#define RSM_SAMPLE_COUNT 400 // [100 200 400]
+#define RSM_SAMPLE_COUNT 100 // [100 200 400]
 #define RSM_SCALE 1 // [0 1 2]
 //#define RSM_UPSCALE
 #define BLOOM_ENABLED
@@ -179,7 +188,7 @@ const float SunLux = 64000.0;
 const float SunOvercastLux = 1000;
 const float MoonLux = 20.0;
 const float MoonOvercastLux = 2.0;
-const float BlockLightLux = 32000;
+const float BlockLightLux = 6000;
 
 const float DaySkyLumen = 120000.0;
 const float NightSkyLumen = 1200.0;
@@ -240,10 +249,6 @@ const float invPI = 1.0 / PI;
 #endif
 
 #ifdef TITLE
-#endif
-#ifdef ATMOSPHERE_ENABLED
-#endif
-#ifdef SKYREFLECT_ENABLED
 #endif
 #ifdef SHADOW_EXCLUDE_ENTITIES
 #endif

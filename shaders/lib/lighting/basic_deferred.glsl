@@ -59,6 +59,8 @@
 
         //skyLightColor = GetSkyLightColor();
         skyLightColor = GetSkyLightLuminance();
+
+        blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
 	}
 #endif
 

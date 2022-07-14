@@ -15,6 +15,7 @@
     out vec3 tanViewPos;
     flat out float exposure;
     flat out int materialId;
+    flat out vec3 blockLightColor;
 
     #ifdef PARALLAX_ENABLED
         out mat2 atlasBounds;
@@ -120,6 +121,8 @@
         vec2 skyLightLevels = GetSkyLightLevels();
         skyLightColor = GetSkyLightLuminance(skyLightLevels);
 
+        blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
+
         if (mc_Entity.x == 100.0) materialId = 1;
         else materialId = 0;
 
@@ -138,6 +141,7 @@
     in vec3 tanViewPos;
     flat in float exposure;
     flat in int materialId;
+    flat in vec3 blockLightColor;
 
     #ifdef PARALLAX_ENABLED
         in mat2 atlasBounds;

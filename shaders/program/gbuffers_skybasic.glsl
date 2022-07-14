@@ -71,7 +71,7 @@
 
     #include "/lib/world/sky.glsl"
 
-    #ifdef ATMOSPHERE_ENABLED
+    #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FANCY
         uniform mat4 gbufferModelViewInverse;
         uniform float eyeAltitude;
         uniform float near;
@@ -94,7 +94,7 @@
         vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
         viewPos.xyz /= viewPos.w;
 
-        #ifdef ATMOSPHERE_ENABLED
+        #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FANCY
             vec3 localSunPos = mat3(gbufferModelViewInverse) * sunPosition;
             vec3 localSunDir = normalize(localSunPos);
 

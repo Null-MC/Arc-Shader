@@ -7,6 +7,7 @@
 #ifdef RENDER_VERTEX
     out vec2 texcoord;
     flat out float exposure;
+    flat out vec3 blockLightColor;
 
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         uniform sampler2D BUFFER_HDR_PREVIOUS;
@@ -46,6 +47,8 @@
             skyLightColor = GetSkyLightLuminance(skyLightLevels);
         #endif
 
+        blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
+
         exposure = GetExposure();
 	}
 #endif
@@ -53,6 +56,7 @@
 #ifdef RENDER_FRAG
     in vec2 texcoord;
     flat in float exposure;
+    flat in vec3 blockLightColor;
 
     #ifdef SHADOW_ENABLED
         flat in vec3 skyLightColor;
@@ -71,7 +75,7 @@
         uniform sampler2D BUFFER_LUMINANCE;
     #endif
 
-    #ifdef SSR_ENABLED
+    #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
         uniform mat4 gbufferProjection;
         uniform float far;
 
@@ -116,7 +120,7 @@
     #include "/lib/lighting/hcm.glsl"
     #include "/lib/lighting/pbr.glsl"
 
-    #ifdef SSR_ENABLED
+    #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
         #include "/lib/ssr.glsl"
     #endif
 
