@@ -289,11 +289,11 @@
             #if REFLECTION_MODE != REFLECTION_MODE_NONE
                 // IBL
                 vec3 iblF = GetFresnel(material, NoVm, roughL);
-                vec2 envBRDF = texture(colortex10, vec2(NoVm, material.smoothness)).rg;
+                vec2 envBRDF = texture(BUFFER_BRDF_LUT, vec2(NoVm, material.smoothness)).rg;
                 envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
 
                 vec3 iblSpec = skyLight5 * reflectColor * specularTint * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
-                specular += iblSpec;
+                specular += max(iblSpec, vec3(0.0));
 
                 //return vec4(envBRDF * 500.0, 0.0, 1.0);
 
@@ -326,7 +326,8 @@
             #endif
 
             vec3 sunDiffuse = GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * diffuseLight;
-            diffuse += (1.0 - specFmax) * sunDiffuse;
+            //diffuse += (1.0 - specFmax) * sunDiffuse;
+            diffuse += sunDiffuse;
         #endif
 
         #ifdef HANDLIGHT_ENABLED

@@ -64,7 +64,7 @@
 
     uniform usampler2D BUFFER_DEFERRED;
     uniform sampler2D BUFFER_HDR;
-    uniform sampler2D BUFFER_BRDF_LUT;
+    uniform sampler2D colortex10;
     uniform sampler2D lightmap;
     uniform sampler2D depthtex0;
 
