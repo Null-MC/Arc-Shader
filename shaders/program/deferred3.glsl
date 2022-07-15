@@ -115,7 +115,7 @@
         vec3 final = vec3(0.0);
         if (clipDepth < 1.0) {
             //vec2 normalTex = texelFetch(BUFFER_NORMAL, itexFull, 0).rg;
-            uvec2 deferredNormalLightingData = texelFetch(BUFFER_DEFERRED, iTex, 0).ga;
+            uvec2 deferredNormalLightingData = texelFetch(BUFFER_DEFERRED, itexFull, 0).ga;
 
             vec2 texLow = texcoord * rsm_scale;
             //ivec2 itexLow = ivec2(texLow * vec2(viewWidth, viewHeight));

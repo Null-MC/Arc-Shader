@@ -74,7 +74,6 @@
     
     uniform float viewWidth;
     uniform float viewHeight;
-    uniform float frameTimeCounter;
     uniform float frameTime;
 
     /* RENDERTARGETS: 5 */
@@ -102,13 +101,9 @@
             lum = clamp(lum, 0.0, 1.0e6);
             lumPrev = clamp(lumPrev, 0.0, 1.0e6);
 
-            const float timeDeltaF = 1.0 / 3600.0;
-            float timeDelta = max(frameTimeCounter - frameTime, EPSILON) * timeDeltaF;
-            timeDelta += step(frameTime, frameTimeCounter);
-
             float dir = step(lumPrev, lum);
             float speed = (1.0 - dir) * EXPOSURE_SPEED_DOWN + dir * EXPOSURE_SPEED_UP;
-            float timeF = exp(-timeDelta * TAU * speed);
+            float timeF = exp(-frameTime * TAU * speed);
 
             lum = lumPrev + (lum - lumPrev) * clamp(1.0 - timeF, 0.01, 1.0);
             //lum = clamp(lum, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
