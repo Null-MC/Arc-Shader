@@ -1,3 +1,3 @@
-# Bullet Shader
+# Arc Shader
 
 Work in progress...

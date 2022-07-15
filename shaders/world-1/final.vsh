@@ -1,8 +1,8 @@
-#version 120
+#version 400 compatibility
 
 #define RENDER_VERTEX
 #define WORLD_NETHER
 
-#include "/lib/common.glsl"
 #include "nether.glsl"
+#include "/lib/common.glsl"
 #include "/program/final.glsl"

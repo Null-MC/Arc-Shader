@@ -3,6 +3,6 @@
 #define RENDER_FRAG
 #define WORLD_OVERWORLD
 
-#include "lib/common.glsl"
 #include "overworld.glsl"
+#include "lib/common.glsl"
 #include "program/gbuffers_skybasic.glsl"

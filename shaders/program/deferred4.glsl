@@ -138,10 +138,20 @@
 
         // SKY
         if (screenDepth == 1.0) {
-            outColor = texelFetch(BUFFER_HDR, iTex, 0).rgb;
+            #ifdef SKY_ENABLED
+                outColor = texelFetch(BUFFER_HDR, iTex, 0).rgb;
 
-            #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-                outLuminance = texelFetch(BUFFER_LUMINANCE, iTex, 0).r;
+                #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+                    outLuminance = texelFetch(BUFFER_LUMINANCE, iTex, 0).r;
+                #endif
+            #else
+                vec3 color = RGBToLinear(fogColor) * 100.0;
+
+                #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+                    outLuminance = log2(luminance(color) + EPSILON);
+                #endif
+
+                outColor = clamp(color * exposure, 0.0, 65000.0);
             #endif
         }
         else {
@@ -163,7 +173,7 @@
                 outLuminance = log2(luminance(color) + EPSILON);
             #endif
 
-            outColor = clamp(color * exposure, vec3(0.0), vec3(10.0));
+            outColor = clamp(color * exposure, vec3(0.0), vec3(1000.0));
         }
 	}
 #endif

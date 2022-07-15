@@ -15,5 +15,6 @@ void ApplyDirectionalLightmap(inout float blockLight, const in vec3 texViewNorma
     float lmDot = max(dot(texViewNormal, lmDir), 0.0);
 
     float strength = DIRECTIONAL_LIGHTMAP_STRENGTH * 0.01;
-    blockLight *= 1.0 - (1.0 - pow2(blockLight)) * (1.0 - lmDot) * strength;
+    float light = 1.0 - (1.0 - pow2(blockLight)) * (1.0 - lmDot) * strength;
+    blockLight = clamp(blockLight * light, 0.0, 1.0);
 }

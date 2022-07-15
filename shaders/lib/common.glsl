@@ -48,7 +48,6 @@ const bool colortex9Clear = false;
 
 
 // Shadow Options
-#define SHADOW_ENABLED
 #define SHADOW_TYPE 2 // [0 1 2 3]
 #define SHADOW_FILTER 0 // [0 1 2]
 #define SHADOW_PCF_SIZE 0.040 // [0.005 0.010 0.015 0.020 0.025 0.030 0.035 0.040 0.045 0.050 0.055 0.060 0.065 0.070 0.075 0.080 0.085 0.090 0.095 0.100]

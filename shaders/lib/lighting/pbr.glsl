@@ -81,14 +81,31 @@
     }
 
     vec3 GetFresnel(const in PbrMaterial material, const in float VoH, const in float roughL) {
-        if (material.hcm >= 0) {
-            vec3 iorN, iorK;
-            GetHCM_IOR(material.albedo.rgb, material.hcm, iorN, iorK);
-            return F_conductor(VoH, IOR_AIR, iorN, iorK);
-        }
-        else {
-            return vec3(SchlickRoughness(material.f0, VoH, roughL));
-        }
+        #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
+            if (material.hcm >= 0) {
+                vec3 iorN, iorK;
+                GetHCM_IOR(material.albedo.rgb, material.hcm, iorN, iorK);
+                return F_conductor(VoH, IOR_AIR, iorN, iorK);
+            }
+            else {
+                return vec3(SchlickRoughness(material.f0, VoH, roughL));
+            }
+        #else
+            float dielectric_F = 0.0;
+            if (material.f0 + EPSILON < 1.0)
+                dielectric_F = SchlickRoughness(0.04, VoH, roughL);
+
+            vec3 conductor_F = vec3(0.0);
+            if (material.f0 - EPSILON > 0.04) {
+                vec3 iorN = vec3(f0ToIOR(material.albedo.rgb));
+                vec3 iorK = material.albedo.rgb;
+
+                conductor_F = F_conductor(VoH, IOR_AIR, iorN, iorK);
+            }
+
+            float metalF = clamp((material.f0 - 0.04) * (1.0/0.96), 0.0, 1.0);
+            return mix(vec3(dielectric_F), conductor_F, metalF);
+        #endif
     }
 
     vec3 GetSpecularBRDF(const in vec3 F, const in float NoV, const in float NoL, const in float NoH, const in float roughL)
@@ -149,7 +166,7 @@
             vec3 lightPos = handOffset - viewPos.xyz;
             vec3 lightDir = normalize(lightPos);
 
-            float NoLm = max(dot(viewNormal, lightDir), EPSILON);
+            float NoLm = max(dot(viewNormal, lightDir), 0.0);
             if (NoLm < EPSILON) return;
 
             float lightDist = length(lightPos);
@@ -249,44 +266,48 @@
             #endif
         #endif
 
-        vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * skyLight5; //skyLightColor;
-
         #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
             vec3 blockLightAmbient = pow2(blockLight)*blockLightColor;
         #else
             vec3 blockLightAmbient = pow(blockLight, 5.0)*blockLightColor;
         #endif
 
-        vec3 ambient = (1.0 + blockLightAmbient + skyAmbient) * material.occlusion;
-
-        vec3 diffuseLight = skyLightColor * shadowFinal;
-
-        #if defined RSM_ENABLED && defined RENDER_DEFERRED
-            diffuseLight += 20.0 * rsmColor * skyLightColor * material.scattering;
-        #endif
-
-        vec3 diffuse = GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * diffuseLight;
-
+        vec3 ambient = vec3(20.0 + blockLightAmbient);
+        vec3 diffuse = vec3(0.0);
         vec3 specular = vec3(0.0);
-        vec3 hcmTint = GetHCM_Tint(material.albedo.rgb, material.hcm);
-        vec4 final = material.albedo;
-
-        #if REFLECTION_MODE != REFLECTION_MODE_NONE
-            // IBL
-            vec3 iblF = GetFresnel(material, NoVm, roughL);
-            vec2 envBRDF = texture(colortex10, vec2(NoVm, material.smoothness)).rg;
-            envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
-
-            vec3 iblSpec = skyLight5 * reflectColor * hcmTint * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
-            specular += iblSpec;
-
-            //return vec4(envBRDF * 500.0, 0.0, 1.0);
-
-            float iblFavg = (iblF.x + iblF.y + iblF.z) / 3.0;
-            final.a = min(final.a + iblFavg, 1.0);
-        #endif
 
         #ifdef SHADOW_ENABLED
+            vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * skyLight5; //skyLightColor;
+            ambient += skyAmbient;
+
+            vec3 diffuseLight = skyLightColor * shadowFinal;
+
+            #if defined RSM_ENABLED && defined RENDER_DEFERRED
+                diffuseLight += 20.0 * rsmColor * skyLightColor * material.scattering;
+            #endif
+
+            diffuse = GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * diffuseLight;
+        #endif
+
+        vec4 final = material.albedo;
+        vec3 hcmTint = GetHCM_Tint(material.albedo.rgb, material.hcm);
+
+        #ifdef SHADOW_ENABLED
+            #if REFLECTION_MODE != REFLECTION_MODE_NONE
+                // IBL
+                vec3 iblF = GetFresnel(material, NoVm, roughL);
+                vec2 envBRDF = texture(colortex10, vec2(NoVm, material.smoothness)).rg;
+                envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
+
+                vec3 iblSpec = skyLight5 * reflectColor * hcmTint * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
+                specular += iblSpec;
+
+                //return vec4(envBRDF * 500.0, 0.0, 1.0);
+
+                float iblFavg = (iblF.x + iblF.y + iblF.z) / 3.0;
+                final.a = min(final.a + iblFavg, 1.0);
+            #endif
+
             float NoHm = max(dot(viewNormal, halfDir), EPSILON);
             float VoHm = max(dot(viewDir, halfDir), EPSILON);
 
@@ -325,7 +346,7 @@
 
         float emissive = material.emission*material.emission * EmissionLumens;
 
-        final.rgb = final.rgb * (ambient + emissive) + diffuse + specular;
+        final.rgb = final.rgb * (ambient * material.occlusion + emissive) + diffuse + specular;
 
         #ifdef SSS_ENABLED
             //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);

@@ -5,4 +5,4 @@
 
 #include "nether.glsl"
 #include "/lib/common.glsl"
-#include "/program/gbuffers_terrain.glsl"
+#include "/program/composite4.glsl"

@@ -32,19 +32,19 @@ float GetVanillaFogFactor(const in float viewDist) {
 }
 
 float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightLevel) {
-    #ifdef SHADOW_ENABLED
+    #ifdef SKY_ENABLED
         vec3 viewDir = normalize(viewPos);
         vec3 atmosphereColor = GetVanillaSkyLuminance(viewDir);
     #else
-        vec3 atmosphereColor = RGBToLinear(fogColor);
+        vec3 atmosphereColor = RGBToLinear(fogColor) * 100.0;
     #endif
 
-    vec3 caveFogColor = 0.001 * RGBToLinear(vec3(0.3294, 0.1961, 0.6588));
     float viewDist = length(viewPos) - near;
     float maxFactor = 0.0;
 
     float caveLightFactor = min(6.0 * skyLightLevel, 1.0);
-    #ifdef CAVEFOG_ENABLED
+    #if defined CAVEFOG_ENABLED && defined SHADOW_ENABLED
+        vec3 caveFogColor = 0.001 * RGBToLinear(vec3(0.3294, 0.1961, 0.6588));
         vec3 caveFogColorBlend = mix(caveFogColor, atmosphereColor, caveLightFactor);
 
         float eyeBrightness = eyeBrightnessSmooth.y / 240.0;
@@ -66,7 +66,7 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
     float vanillaFogFactor = GetVanillaFogFactor(viewDist);
     maxFactor = max(maxFactor, vanillaFogFactor);
 
-    #ifdef CAVEFOG_ENABLED
+    #if defined CAVEFOG_ENABLED && defined SHADOW_ENABLED
         float caveFogFactor = GetCaveFogFactor(viewDist);
         caveFogFactor *= 1.0 - caveLightFactor;
         //caveFogFactor *= 1.0 - cameraLightFactor * vanillaFogFactor;
@@ -83,7 +83,7 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
 
     color = mix(color, atmosphereColor, vanillaFogFactor);
 
-    #ifdef CAVEFOG_ENABLED
+    #if defined CAVEFOG_ENABLED && defined SHADOW_ENABLED
         color = mix(color, caveFogColorBlend, caveFogFactor);
     #endif
 

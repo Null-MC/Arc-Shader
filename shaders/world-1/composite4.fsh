@@ -1,8 +1,8 @@
 #version 400 compatibility
 
-#define RENDER_VERTEX
+#define RENDER_FRAG
 #define WORLD_NETHER
 
 #include "nether.glsl"
 #include "/lib/common.glsl"
-#include "/program/gbuffers_terrain.glsl"
+#include "/program/composite4.glsl"
