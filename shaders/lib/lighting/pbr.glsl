@@ -290,7 +290,12 @@
         #endif
 
         vec4 final = material.albedo;
-        vec3 hcmTint = GetHCM_Tint(material.albedo.rgb, material.hcm);
+
+        #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
+            vec3 specularTint = GetHCM_Tint(material.albedo.rgb, material.hcm);
+        #else
+            vec3 specularTint = mix(vec3(1.0), material.albedo.rgb, material.f0);
+        #endif
 
         #ifdef SHADOW_ENABLED
             #if REFLECTION_MODE != REFLECTION_MODE_NONE
@@ -299,7 +304,7 @@
                 vec2 envBRDF = texture(colortex10, vec2(NoVm, material.smoothness)).rg;
                 envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
 
-                vec3 iblSpec = skyLight5 * reflectColor * hcmTint * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
+                vec3 iblSpec = skyLight5 * reflectColor * specularTint * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
                 specular += iblSpec;
 
                 //return vec4(envBRDF * 500.0, 0.0, 1.0);
@@ -312,7 +317,7 @@
             float VoHm = max(dot(viewDir, halfDir), EPSILON);
 
             vec3 F = GetFresnel(material, VoHm, roughL);
-            vec3 sunSpec = GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * hcmTint * skyLightColor * shadowFinal;
+            vec3 sunSpec = GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * specularTint * skyLightColor * shadowFinal;
             specular += sunSpec;
 
             final.a = min(final.a + luminance(sunSpec) * exposure, 1.0);
@@ -327,20 +332,26 @@
             ambient += rsmColor * skyLightColor;
         #endif
 
-        if (material.hcm >= 0) {
-            //if (material.hcm < 8) specular *= material.albedo.rgb;
+        #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
+            if (material.hcm >= 0) {
+                //if (material.hcm < 8) specular *= material.albedo.rgb;
 
-            diffuse *= HCM_AMBIENT;
-            ambient *= HCM_AMBIENT;
+                diffuse *= HCM_AMBIENT;
+                ambient *= HCM_AMBIENT;
 
-            // #if REFLECTION_MODE == REFLECTION_MODE_NONE
-            //     diffuse *= HCM_AMBIENT;
-            //     ambient *= 0.02;
-            // #else
-            //     diffuse = vec3(0.0);
-            //     ambient *= 0.02;
-            // #endif
-        }
+                // #if REFLECTION_MODE == REFLECTION_MODE_NONE
+                //     diffuse *= HCM_AMBIENT;
+                //     ambient *= 0.02;
+                // #else
+                //     diffuse = vec3(0.0);
+                //     ambient *= 0.02;
+                // #endif
+            }
+        #else
+            float metalDarkF = 1.0 - material.f0 * (1.0 - HCM_AMBIENT);
+            diffuse *= metalDarkF;
+            ambient *= metalDarkF;
+        #endif
 
         //ambient += minLight;
 

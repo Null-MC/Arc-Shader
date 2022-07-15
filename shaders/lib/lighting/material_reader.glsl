@@ -27,8 +27,14 @@ float GetLabPbr_Emission(const in float specularA) {
         material.albedo.rgb = RGBToLinear(colorMap);
         material.albedo.a = 1.0;
 
-        material.f0 = GetLabPbr_F0(specularMap.g);
-        material.hcm = GetLabPbr_HCM(specularMap.g);
+        #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
+            material.f0 = GetLabPbr_F0(specularMap.g);
+            material.hcm = GetLabPbr_HCM(specularMap.g);
+        #else
+            material.f0 = specularMap.g;
+            material.hcm = -1;
+        #endif
+
         material.normal = RestoreNormalZ(normalMap.xy);
         material.occlusion = normalMap.z;
         material.smoothness = specularMap.r;
@@ -64,10 +70,11 @@ float GetLabPbr_Emission(const in float specularA) {
                 material.normal = normalMap * 2.0 - 1.0;
             }
 
-            material.f0 = specularMap.g < 0.5 ? 0.04 : 0.0;
-            material.hcm = specularMap.g >= 0.5 ? 15 : -1;
+            material.f0 = specularMap.g;
+            //material.hcm = specularMap.g >= 0.5 ? 15 : -1;
             material.smoothness = specularMap.r;
             material.occlusion = 1.0;
+            material.hcm = -1;
         #elif MATERIAL_FORMAT == MATERIAL_FORMAT_PATRIX
             if (normalMap.x < EPSILON && normalMap.y < EPSILON)
                 material.normal = vec3(0.0, 0.0, 1.0);
@@ -78,14 +85,17 @@ float GetLabPbr_Emission(const in float specularA) {
             material.smoothness = specularMap.r;
             material.scattering = GetLabPbr_SSS(specularMap.b);
             material.emission = GetLabPbr_Emission(specularMap.a);
-            material.hcm = specularMap.g >= 0.5 ? 15 : -1;
+            material.f0 = specularMap.g;
+            //material.hcm = specularMap.g >= 0.5 ? 15 : -1;
             material.occlusion = 1.0;
-            material.f0 = 0.04;
+            //material.f0 = 0.04;
+            material.hcm = -1;
         #else
             material.normal = vec3(0.0, 0.0, 1.0);
             material.smoothness = 0.08;
             material.occlusion = 1.0;
             material.f0 = 0.04;
+            material.hcm = -1;
         #endif
     }
 #endif
