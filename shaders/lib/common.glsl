@@ -1,9 +1,12 @@
 const float sunPathRotation = -30; // [-60 -50 -40 -30 -20 -15 -10 -5 0 5 10 15 20 30 40 50 60]
 
 /*
+const int colortex2Format = RGBA32UI;
+const bool colortex2MipmapEnabled = false;
+
 const int colortex4Format = RGB16F;
 const bool colortex4MipmapEnabled = true;
-const bool colortex5Clear = false;
+const bool colortex4Clear = false;
 
 const int colortex5Format = RGBA16F;
 const bool colortex5MipmapEnabled = true;
@@ -30,7 +33,7 @@ const bool colortex9Clear = false;
 // World Options
 #define ENABLE_WAVING
 #define HANDLIGHT_ENABLED
-#define BLOCKLIGHT_TEMP 3500 // [2700 3000 3500 4000 5700 7000]
+#define BLOCKLIGHT_TEMP 3500 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 80 // [0 10 20 30 40 50 60 70 80 90 100]
 #define SHADOW_BRIGHTNESS 0.10 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define RAIN_DARKNESS 0.2
@@ -166,16 +169,19 @@ const bool colortex9Clear = false;
 #define EPSILON 1e-7
 #define GAMMA 2.2
 
-#define BUFFER_COLOR colortex0
-#define BUFFER_NORMAL colortex1
-#define BUFFER_SPECULAR colortex2
-#define BUFFER_LIGHTING colortex3
+// #define BUFFER_COLOR colortex0
+// #define BUFFER_NORMAL colortex1
+// #define BUFFER_SPECULAR colortex2
+// #define BUFFER_LIGHTING colortex3
+
+#define BUFFER_DEFERRED colortex2
 #define BUFFER_HDR colortex4
 #define BUFFER_HDR_PREVIOUS colortex5
 #define BUFFER_LUMINANCE colortex6
 #define BUFFER_BLOOM colortex7
 #define BUFFER_RSM_COLOR colortex8
 #define BUFFER_RSM_DEPTH colortex9
+#define BUFFER_BRDF_LUT colortex10
 
 const float sunLumen = 240000.0;//16000000;
 const float moonLumen = 2500.0;

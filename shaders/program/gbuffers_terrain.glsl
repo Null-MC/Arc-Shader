@@ -211,15 +211,17 @@
     #include "/lib/lighting/basic_gbuffers.glsl"
     #include "/lib/lighting/pbr_gbuffers.glsl"
 
+    /* RENDERTARGETS: 2 */
+    out uvec4 outColor2;
+
 
     void main() {
         vec4 colorMap, normalMap, specularMap, lightingMap;
         PbrLighting(colorMap, normalMap, specularMap, lightingMap);
 
-    /* DRAWBUFFERS:0123 */
-        gl_FragData[0] = colorMap;
-        gl_FragData[1] = normalMap;
-        gl_FragData[2] = specularMap;
-        gl_FragData[3] = lightingMap;
+        outColor2.r = packUnorm4x8(colorMap);
+        outColor2.g = packUnorm4x8(normalMap);
+        outColor2.b = packUnorm4x8(specularMap);
+        outColor2.a = packUnorm4x8(lightingMap);
     }
 #endif

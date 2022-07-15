@@ -104,17 +104,16 @@
         //flat varying vec2 matShadowProjectionOffsets[4];
     #endif
 
-    uniform sampler2D BUFFER_NORMAL;
-    uniform sampler2D BUFFER_LIGHTING;
+    uniform usampler2D BUFFER_DEFERRED;
+    uniform usampler2D shadowcolor0;
     uniform sampler2D shadowtex1;
     uniform sampler2D depthtex0;
-    uniform usampler2D shadowcolor0;
 
-    #if SHADOW_TYPE == 3
-        uniform isampler2D shadowcolor1;
-    #else
-        uniform sampler2D shadowcolor1;
-    #endif
+    // #if SHADOW_TYPE == 3
+    //     uniform isampler2D shadowcolor1;
+    // #else
+    //     uniform sampler2D shadowcolor1;
+    // #endif
 
     uniform mat4 gbufferProjectionInverse;
     uniform mat4 gbufferModelViewInverse;
@@ -144,9 +143,9 @@
     #include "/lib/rsm.glsl"
 
     /* RENDERTARGETS: 8,9 */
-    out vec3 outColor;
+    out vec3 outColor8;
     #ifdef RSM_UPSCALE
-        out float outDepth;
+        out float outColor9;
     #endif
 
 
@@ -158,17 +157,19 @@
         vec2 normal = vec2(0.0);
 
         if (clipDepth < 1.0) {
-            float skyLight = texelFetch(BUFFER_LIGHTING, itex, 0).g;
+            uvec2 deferredNormalLightingData = texelFetch(BUFFER_DEFERRED, iTex, 0).ga;
+            float lightingMap = unpackUnorm4x8(deferredNormalLightingData.g).g;
 
-            if (skyLight >= 1.0 / 16.0) {
-                normal = texelFetch(BUFFER_NORMAL, itex, 0).rg;
+            if (lightingMap >= 1.0 / 16.0) {
+                //normal = texelFetch(BUFFER_NORMAL, itex, 0).rg;
 
                 vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
 
                 vec4 localPos = gbufferModelViewInverse * (gbufferProjectionInverse * vec4(clipPos, 1.0));
                 localPos.xyz /= localPos.w;
 
-                vec3 localNormal = mat3(gbufferModelViewInverse) * RestoreNormalZ(normal);
+                vec2 normalMap = unpackUnorm4x8(deferredNormalLightingData.r).xy;
+                vec3 localNormal = mat3(gbufferModelViewInverse) * RestoreNormalZ(normalMap);
 
                 vec3 shadowViewPos = (shadowModelView * vec4(localPos.xyz, 1.0)).xyz;
 
@@ -176,10 +177,10 @@
             }
         }
 
-        outColor = clamp(color, vec3(0.0), vec3(65000.0));
+        outColor8 = clamp(color, vec3(0.0), vec3(65000.0));
 
         #ifdef RSM_UPSCALE
-            outDepth = clipDepth;
+            outColor9 = clipDepth;
         #endif
 	}
 #endif

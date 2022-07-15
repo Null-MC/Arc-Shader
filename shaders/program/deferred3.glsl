@@ -61,19 +61,18 @@
         flat in mat4 matShadowProjections[4];
     #endif
 
-    uniform sampler2D BUFFER_NORMAL;
-    uniform sampler2D BUFFER_LIGHTING;
+    uniform usampler2D BUFFER_DEFERRED;
     uniform sampler2D BUFFER_RSM_COLOR;
     uniform sampler2D BUFFER_RSM_DEPTH;
     uniform usampler2D shadowcolor0;
     uniform sampler2D shadowtex1;
     uniform sampler2D depthtex0;
 
-    #if SHADOW_TYPE == 3
-        uniform isampler2D shadowcolor1;
-    #else
-        uniform sampler2D shadowcolor1;
-    #endif
+    // #if SHADOW_TYPE == 3
+    //     uniform isampler2D shadowcolor1;
+    // #else
+    //     uniform sampler2D shadowcolor1;
+    // #endif
 
     uniform mat4 shadowProjectionInverse;
     uniform mat4 shadowModelViewInverse;
@@ -103,6 +102,9 @@
     #include "/lib/depth.glsl"
     #include "/lib/rsm.glsl"
 
+    /* RENDERTARGETS: 8 */
+    out vec3 outColor8;
+
 
 	void main() {
         const float rsm_scale = 1.0 / exp2(RSM_SCALE);
@@ -112,7 +114,8 @@
 
         vec3 final = vec3(0.0);
         if (clipDepth < 1.0) {
-            vec2 normalTex = texelFetch(BUFFER_NORMAL, itexFull, 0).rg;
+            //vec2 normalTex = texelFetch(BUFFER_NORMAL, itexFull, 0).rg;
+            uvec2 deferredNormalLightingData = texelFetch(BUFFER_DEFERRED, iTex, 0).ga;
 
             vec2 texLow = texcoord * rsm_scale;
             //ivec2 itexLow = ivec2(texLow * vec2(viewWidth, viewHeight));
@@ -127,7 +130,8 @@
             vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
             //vec3 rsmViewNormal = RestoreNormalZ(rsmNormalDepth.xy);
 
-            vec3 viewNormal = RestoreNormalZ(normalTex);
+            vec2 normalMap = unpackUnorm4x8(deferredNormalLightingData.r).xy;
+            vec3 viewNormal = RestoreNormalZ(normalMap);
 
             //float dist = clamp((-viewPos.z - near) / (far - near), 0.0, 1.0);
             //float depthThreshold = mix(0.1, 0.001, dist) / (far - near);
@@ -142,9 +146,9 @@
                 final = textureLod(BUFFER_RSM_COLOR, texLow, 0).rgb;
             }
             else {
-                float skyLight = texelFetch(BUFFER_LIGHTING, itexFull, 0).g;
+                float lightingMap = unpackUnorm4x8(deferredNormalLightingData.g).g;
 
-                if (skyLight >= 1.0 / 16.0) {
+                if (lightingMap >= 1.0 / 16.0) {
                     vec4 localPos = gbufferModelViewInverse * viewPos;
                     localPos.xyz /= localPos.w;
 
@@ -159,13 +163,8 @@
                     #endif
                 }
             }
-
-            //final = textureLod(BUFFER_RSM_COLOR, texLow, 0).rgb;
-            //final = vec3(rsmDepth);
         }
 
-
-	/* DRAWBUFFERS:8 */
-		gl_FragData[0] = vec4(final, 1.0);
+		outColor8 = final;
 	}
 #endif

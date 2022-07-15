@@ -257,21 +257,21 @@
     #include "/lib/lighting/pbr_forward.glsl"
 
     /* DRAWBUFFERS:46 */
-    out vec4 outColor;
+    out vec4 outColor4;
 
     #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-        out vec4 outLuminance;
+        out vec4 outColor6;
     #endif
 
 
     void main() {
-        outColor = PbrLighting();
+        outColor4 = PbrLighting();
 
         #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            outLuminance.r = log2(luminance(outColor.rgb) + EPSILON);
-            outLuminance.a = outColor.a;
+            outColor6.r = log2(luminance(outColor4.rgb) + EPSILON);
+            outColor6.a = outColor4.a;
         #endif
 
-        outColor.rgb = clamp(outColor.rgb * exposure, vec3(0.0), vec3(65000));
+        outColor4.rgb = clamp(outColor4.rgb * exposure, vec3(0.0), vec3(65000));
     }
 #endif

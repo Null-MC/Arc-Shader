@@ -85,16 +85,16 @@
     
     #if DEBUG_VIEW == DEBUG_VIEW_GBUFFER_COLOR
         // Deferred Color
-        uniform sampler2D BUFFER_COLOR;
+        uniform usampler2D BUFFER_DEFERRED;
     #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_NORMAL
         // Deferred Normal
-        uniform sampler2D BUFFER_NORMAL;
+        uniform usampler2D BUFFER_DEFERRED;
     #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SPECULAR
         // Deferred Specular
-        uniform sampler2D BUFFER_SPECULAR;
+        uniform usampler2D BUFFER_DEFERRED;
     #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_LIGHTING
         // Deferred Lighting
-        uniform sampler2D BUFFER_LIGHTING;
+        uniform usampler2D BUFFER_DEFERRED;
     #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_ALBEDO
         // Shadow Albedo
         uniform usampler2D shadowcolor0;
@@ -208,20 +208,27 @@
     #endif
 
     void main() {
+        vec2 viewSize = vec2(viewWidth, viewHeight);
+        ivec2 iuv = ivec2(texcoord * viewSize);
+
         vec3 color = vec3(0.0);
         #if DEBUG_VIEW == DEBUG_VIEW_GBUFFER_COLOR
             // Deferred Color
-            color = texture(BUFFER_COLOR, texcoord).rgb;
+            uint deferredDataR = texture(BUFFER_DEFERRED, texcoord).r;
+            color = unpackUnorm4x8(deferredDataR).rgb;
         #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_NORMAL
             // Deferred Normal
-            color.rg = texture(BUFFER_NORMAL, texcoord).rg;
+            uint deferredDataG = texelFetch(BUFFER_DEFERRED, iuv, 0).g;
+            color.rg = unpackUnorm4x8(deferredDataG).rg;
             color.b = 0.0;
         #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SPECULAR
             // Deferred Specular
-            color = texture(BUFFER_SPECULAR, texcoord).rgb;
+            uint deferredDataB = texelFetch(BUFFER_DEFERRED, iuv, 0).b;
+            color = unpackUnorm4x8(deferredDataB).rgb;
         #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_LIGHTING
             // Deferred Lighting
-            color = texture(BUFFER_LIGHTING, texcoord).rgb;
+            uint deferredDataA = texelFetch(BUFFER_DEFERRED, iuv, 0).a;
+            color = unpackUnorm4x8(deferredDataA).rgb;
         #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_ALBEDO
             // Shadow Albedo
             uint data = texture(shadowcolor0, texcoord).r;
@@ -253,10 +260,7 @@
             #endif
         #elif DEBUG_VIEW == DEBUG_VIEW_RSM
             // RSM
-            vec2 viewSize = vec2(viewWidth, viewHeight);
-
             #if RSM_SCALE == 0 || defined RSM_UPSCALE
-                ivec2 iuv = ivec2(texcoord * viewSize);
                 color = texelFetch(BUFFER_RSM_COLOR, iuv, 0).rgb;
             #else
                 const float rsm_scale = 1.0 / exp2(RSM_SCALE);

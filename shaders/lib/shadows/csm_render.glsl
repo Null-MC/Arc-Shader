@@ -140,9 +140,9 @@
         // returns: [0] when depth occluded, [1] otherwise
         float CompareDepth(const in vec3 shadowPos, const in vec2 offset, const in float bias) {
             #ifndef IS_OPTIFINE
-                return texture(shadowtex1HW, shadowPos + vec3(offset, -bias)).r;
+                return texture(shadowtex1HW, shadowPos + vec3(offset, -bias));
             #else
-                return texture(shadowtex1, shadowPos + vec3(offset, -bias)).r;
+                return texture(shadowtex1, shadowPos + vec3(offset, -bias));
             #endif
         }
 

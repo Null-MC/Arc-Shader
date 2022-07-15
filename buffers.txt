@@ -1,9 +1,11 @@
 shadowcolor0	RG32UI
 
-colortex0	RGBA8	colorMap
-colortex1	RGBA8	normalMap
-colortex2	RGBA8	specularMap
-colortex3	RGBA8	lightingMap
+colortex2	RGBA32	color/normal/specular/lighting Map
+
+--colortex0	RGBA8	colorMap
+--colortex1	RGBA8	normalMap
+--colortex2	RGBA8	specularMap
+--colortex3	RGBA8	lightingMap
 
 colortex4	RGB16F	pre-exposed HDR scene
 colortex5	RGBA16F	HDR previous frame = RGB: pre-exposed HDR, A: Log Luminance

@@ -79,11 +79,11 @@
         #include "/lib/world/atmosphere.glsl"
     #endif
 
-    /* DRAWBUFFERS:46 */
-    out vec3 outColor;
+    /* RENDERTARGETS: 4,6 */
+    out vec3 outColor4;
 
     #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-        out float outLuminance;
+        out float outColor6;
     #endif
 
 
@@ -130,15 +130,15 @@
         #endif
 
         #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            outLuminance = log2(luminance(color) + EPSILON);
+            outColor6 = log2(luminance(color) + EPSILON);
 
             #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FAST
                 vec3 sunDir = normalize(sunPosition);
                 float VoSun = max(dot(viewDir, sunDir), 0.0);
-                outLuminance += pow(max(VoSun - 0.99, 0.0) * 100.0, 0.5) * sunLumen;
+                outColor6 += pow(max(VoSun - 0.99, 0.0) * 100.0, 0.5) * sunLumen;
             #endif
         #endif
 
-        outColor = clamp(color * exposure, vec3(0.0), vec3(65000));
+        outColor4 = clamp(color * exposure, vec3(0.0), vec3(65000));
     }
 #endif
