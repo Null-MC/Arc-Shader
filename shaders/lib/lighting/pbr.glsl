@@ -272,32 +272,20 @@
             vec3 blockLightAmbient = pow(blockLight, 5.0)*blockLightColor;
         #endif
 
-        vec3 ambient = vec3(20.0 + blockLightAmbient);
-        vec3 diffuse = vec3(0.0);
-        vec3 specular = vec3(0.0);
-
-        #ifdef SHADOW_ENABLED
-            vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * skyLight5; //skyLightColor;
-            ambient += skyAmbient;
-
-            vec3 diffuseLight = skyLightColor * shadowFinal;
-
-            #if defined RSM_ENABLED && defined RENDER_DEFERRED
-                diffuseLight += 20.0 * rsmColor * skyLightColor * material.scattering;
-            #endif
-
-            diffuse = GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * diffuseLight;
-        #endif
-
-        vec4 final = material.albedo;
-
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
             vec3 specularTint = GetHCM_Tint(material.albedo.rgb, material.hcm);
         #else
             vec3 specularTint = mix(vec3(1.0), material.albedo.rgb, material.f0);
         #endif
 
+        vec3 ambient = vec3(20.0 + blockLightAmbient);
+        vec3 diffuse = vec3(0.0);
+        vec3 specular = vec3(0.0);
+        vec4 final = material.albedo;
+
+        vec3 specFmax = vec3(0.0);
         #ifdef SHADOW_ENABLED
+            //float iblFavg = 0.0;
             #if REFLECTION_MODE != REFLECTION_MODE_NONE
                 // IBL
                 vec3 iblF = GetFresnel(material, NoVm, roughL);
@@ -309,8 +297,10 @@
 
                 //return vec4(envBRDF * 500.0, 0.0, 1.0);
 
-                float iblFavg = (iblF.x + iblF.y + iblF.z) / 3.0;
+                float iblFavg = clamp((iblF.x + iblF.y + iblF.z) / 3.0, 0.0, 1.0);
                 final.a = min(final.a + iblFavg, 1.0);
+
+                specFmax = max(specFmax, iblF);
             #endif
 
             float NoHm = max(dot(viewNormal, halfDir), EPSILON);
@@ -321,6 +311,22 @@
             specular += sunSpec;
 
             final.a = min(final.a + luminance(sunSpec) * exposure, 1.0);
+
+            specFmax = max(specFmax, F);
+        #endif
+
+        #ifdef SHADOW_ENABLED
+            vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * skyLight5; //skyLightColor;
+            ambient += skyAmbient;
+
+            vec3 diffuseLight = skyLightColor * shadowFinal;
+
+            #if defined RSM_ENABLED && defined RENDER_DEFERRED
+                diffuseLight += 20.0 * rsmColor * skyLightColor * material.scattering;
+            #endif
+
+            vec3 sunDiffuse = GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * diffuseLight;
+            diffuse += (1.0 - specFmax) * sunDiffuse;
         #endif
 
         #ifdef HANDLIGHT_ENABLED
@@ -361,11 +367,24 @@
 
         #ifdef SSS_ENABLED
             //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
-            vec3 ambient_sss = 9.0 * skyAmbient * material.scattering * material.occlusion;
+            vec3 ambient_sss = 4.0 * skyAmbient * material.scattering * material.occlusion;
 
             // Transmission
             vec3 sss = (1.0 - shadowFinal) * shadowSSS * material.scattering * skyLightColor;// * max(-NoL, 0.0);
             final.rgb += material.albedo.rgb * invPI * (ambient_sss + sss);
+        #endif
+
+        #ifdef VL_ENABLED
+            mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
+            vec4 shadowViewStart = matViewToShadowView * vec4(vec3(0.0), 1.0);
+            vec4 shadowViewEnd = matViewToShadowView * vec4(viewPos, 1.0);
+
+            shadowViewStart.xyz /= shadowViewStart.w;
+            shadowViewEnd.xyz /= shadowViewEnd.w;
+
+            float volLight = GetVolumtricLighting(shadowViewStart.xyz, shadowViewEnd.xyz);
+            //final.rgb += 0.5 * volLight;
+            final.rgb += smoothstep(0.0, 1.0, volLight) * skyLightColor;
         #endif
 
         #if defined RENDER_DEFERRED

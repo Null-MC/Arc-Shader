@@ -69,8 +69,8 @@
     //uniform float viewHeight;
     uniform int renderStage;
 
-    /* DRAWBUFFERS:4 */
-    out vec4 outColor4;
+    /* RENDERTARGETS: 4 */
+    out vec4 outColor0;
 
     //#if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
     //    out vec4 outLuminance;
@@ -78,16 +78,16 @@
 
 
     void main() {
-        outColor4 = texture(gtexture, texcoord) * glcolor;
-        outColor4.rgb = RGBToLinear(outColor4.rgb);
+        outColor0 = texture(gtexture, texcoord) * glcolor;
+        outColor0.rgb = RGBToLinear(outColor0.rgb);
 
         if (renderStage == MC_RENDER_STAGE_SUN) {
-            outColor4.rgb *= sunLightLum;
-            outColor4.a *= sunLightLevel;
+            outColor0.rgb *= sunLightLum;
+            outColor0.a *= sunLightLevel;
         }
         else if (renderStage == MC_RENDER_STAGE_MOON) {
-            outColor4.rgb *= moonLightLum;
-            outColor4.a *= moonLightLevel;
+            outColor0.rgb *= moonLightLum;
+            outColor0.a *= moonLightLevel;
         }
 
         // #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
@@ -100,6 +100,6 @@
         //     outLuminance = vec4(lum, 0.0, 0.0, 1.0);
         // #endif
 
-        outColor4.rgb = clamp(outColor4.rgb * exposure, vec3(0.0), vec3(65000));
+        outColor0.rgb = clamp(outColor0.rgb * exposure, vec3(0.0), vec3(65000));
     }
 #endif

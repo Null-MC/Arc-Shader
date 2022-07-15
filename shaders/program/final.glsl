@@ -140,6 +140,9 @@
         #include "/lib/camera/tonemap.glsl"
     #endif
 
+    /* RENDERTARGETS: 0 */
+    out vec3 outColor0;
+
 
     #ifdef DEBUG_EXPOSURE_METERS
         void RenderLuminanceMeters(inout vec3 color, const in float avgLum, const in float EV100) {
@@ -291,7 +294,6 @@
             color = GetFinalColor();
         #endif
 
-    /* DRAWBUFFERS:0 */
-        gl_FragData[0] = vec4(color, 1.0);
+        outColor0 = color;
     }
 #endif

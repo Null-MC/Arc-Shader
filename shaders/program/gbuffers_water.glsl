@@ -176,9 +176,10 @@
     uniform sampler2D normals;
     uniform sampler2D specular;
     uniform sampler2D lightmap;
-    uniform sampler2D gcolor;
-    uniform sampler2D colortex10; // IBL DFG_LUT
+    //uniform sampler2D gcolor;
+    uniform sampler2D BUFFER_BRDF_LUT;
 
+    uniform mat4 shadowProjection;
     uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
     uniform float rainStrength;
@@ -209,11 +210,15 @@
                 uniform isampler2D shadowcolor1;
             #endif
 
-            #if !defined IS_OPTIFINE && defined SHADOW_ENABLE_HWCOMP
-                uniform sampler2DShadow shadowtex1HW;
-                uniform sampler2D shadowtex1;
+            #ifdef SHADOW_ENABLE_HWCOMP
+                #ifndef IS_OPTIFINE
+                    uniform sampler2DShadow shadowtex1HW;
+                    uniform sampler2D shadowtex1;
+                #else
+                    uniform sampler2DShadow shadowtex1;
+                #endif
             #else
-                uniform sampler2DShadow shadowtex1;
+                uniform sampler2D shadowtex1;
             #endif
 
             #if SHADOW_PCF_SAMPLES == 12
@@ -228,12 +233,20 @@
                 #include "/lib/shadows/csm.glsl"
                 #include "/lib/shadows/csm_render.glsl"
             #else
-                uniform mat4 shadowProjection;
+                //uniform mat4 shadowProjection;
 
                 #include "/lib/shadows/basic.glsl"
                 #include "/lib/shadows/basic_render.glsl"
             #endif
         #endif
+    #endif
+
+    #ifdef VL_ENABLED
+        uniform mat4 gbufferModelViewInverse;
+        uniform mat4 shadowModelView;
+        //uniform mat4 shadowProjection;
+
+        #include "/lib/lighting/volumetric.glsl"
     #endif
 
     #ifdef PARALLAX_ENABLED
@@ -256,22 +269,22 @@
     #include "/lib/lighting/pbr.glsl"
     #include "/lib/lighting/pbr_forward.glsl"
 
-    /* DRAWBUFFERS:46 */
-    out vec4 outColor4;
+    /* RENDERTARGETS: 4,6 */
+    out vec4 outColor0;
 
     #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-        out vec4 outColor6;
+        out vec4 outColor1;
     #endif
 
 
     void main() {
-        outColor4 = PbrLighting();
+        outColor0 = PbrLighting();
 
         #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            outColor6.r = log2(luminance(outColor4.rgb) + EPSILON);
-            outColor6.a = outColor4.a;
+            outColor1.r = log2(luminance(outColor0.rgb) + EPSILON);
+            outColor1.a = outColor0.a;
         #endif
 
-        outColor4.rgb = clamp(outColor4.rgb * exposure, vec3(0.0), vec3(65000));
+        outColor0.rgb = clamp(outColor0.rgb * exposure, vec3(0.0), vec3(65000));
     }
 #endif

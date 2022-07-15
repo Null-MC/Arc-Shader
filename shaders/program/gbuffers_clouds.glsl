@@ -58,11 +58,11 @@
     uniform vec3 skyColor;
     uniform int moonPhase;
 
-    /* DRAWBUFFERS:46 */
-    out vec4 outColor;
+    /* RENDERTARGETS: 4,6 */
+    out vec4 outColor0;
 
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-        out float outLuminance;
+        out float outColor1;
     #endif
 
     #include "/lib/lighting/blackbody.glsl"
@@ -79,10 +79,10 @@
         colorMap.rgb *= sunLightLux + moonLightLux;
 
         #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-            outLuminance = log2(luminance(colorMap.rgb) + EPSILON);
+            outColor1 = log2(luminance(colorMap.rgb) + EPSILON);
         #endif
 
         colorMap.rgb = clamp(colorMap.rgb * exposure, vec3(0.0), vec3(65000));
-        outColor = colorMap;
+        outColor0 = colorMap;
     }
 #endif

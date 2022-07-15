@@ -32,6 +32,9 @@
 
     #include "/lib/camera/bloom.glsl"
 
+    /* RENDERTARGETS: 7 */
+    out vec3 outColor0;
+
 
     int GetBloomTileOuterIndex(const in int tileCount) {
         vec2 tileMin, tileMax;
@@ -105,7 +108,6 @@
             final = final / (final + 1.0);
         }
 
-    /* DRAWBUFFERS:7 */
-        gl_FragData[0] = vec4(final, 1.0);
+        outColor0 = final;
     }
 #endif

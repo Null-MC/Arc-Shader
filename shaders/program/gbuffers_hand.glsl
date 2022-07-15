@@ -198,16 +198,16 @@
     #include "/lib/lighting/pbr_gbuffers.glsl"
 
     /* RENDERTARGETS: 2 */
-    out uvec4 outColor2;
+    out uvec4 outColor0;
 
 
     void main() {
         vec4 colorMap, normalMap, specularMap, lightingMap;
         PbrLighting(colorMap, normalMap, specularMap, lightingMap);
 
-        outColor2.r = packUnorm4x8(colorMap);
-        outColor2.g = packUnorm4x8(normalMap);
-        outColor2.b = packUnorm4x8(specularMap);
-        outColor2.a = packUnorm4x8(lightingMap);
+        outColor0.r = packUnorm4x8(colorMap);
+        outColor0.g = packUnorm4x8(normalMap);
+        outColor0.b = packUnorm4x8(specularMap);
+        outColor0.a = packUnorm4x8(lightingMap);
     }
 #endif

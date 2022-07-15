@@ -80,10 +80,10 @@
     #endif
 
     /* RENDERTARGETS: 4,6 */
-    out vec3 outColor4;
+    out vec3 outColor0;
 
     #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-        out float outColor6;
+        out float outColor1;
     #endif
 
 
@@ -130,15 +130,15 @@
         #endif
 
         #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            outColor6 = log2(luminance(color) + EPSILON);
+            outColor1 = log2(luminance(color) + EPSILON);
 
             #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FAST
                 vec3 sunDir = normalize(sunPosition);
                 float VoSun = max(dot(viewDir, sunDir), 0.0);
-                outColor6 += pow(max(VoSun - 0.99, 0.0) * 100.0, 0.5) * sunLumen;
+                outColor1 += pow(max(VoSun - 0.99, 0.0) * 100.0, 0.5) * sunLumen;
             #endif
         #endif
 
-        outColor4 = clamp(color * exposure, vec3(0.0), vec3(65000));
+        outColor0 = clamp(color * exposure, vec3(0.0), vec3(65000));
     }
 #endif

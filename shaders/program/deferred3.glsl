@@ -103,7 +103,7 @@
     #include "/lib/rsm.glsl"
 
     /* RENDERTARGETS: 8 */
-    out vec3 outColor8;
+    out vec3 outColor0;
 
 
 	void main() {
@@ -165,6 +165,6 @@
             }
         }
 
-		outColor8 = final;
+		outColor0 = final;
 	}
 #endif

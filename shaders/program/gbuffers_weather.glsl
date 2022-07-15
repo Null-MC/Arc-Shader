@@ -193,22 +193,26 @@
     #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/basic_forward.glsl"
 
-    /* DRAWBUFFERS:46 */
-    out vec4 outColor;
+    /* RENDERTARGETS: 4,6 */
+    out vec4 outColor0;
 
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-        out vec4 outLuminance;
+        out vec4 outColor1;
     #endif
 
 
     void main() {
-        outColor = BasicLighting();
+        vec4 color = BasicLighting();
 
         #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-            outLuminance.r = log2(luminance(outColor.rgb) * outColor.a + EPSILON);
-            outLuminance.a = outColor.a;
+            vec4 outLuminance = vec4(0.0);
+            outLuminance.r = log2(luminance(color.rgb) * color.a + EPSILON);
+            outLuminance.a = color.a;
+
+            outColor1 = outLuminance;
         #endif
 
-        outColor.rgb = clamp(outColor.rgb * exposure, vec3(0.0), vec3(65000));
+        color.rgb = clamp(color.rgb * exposure, vec3(0.0), vec3(65000));
+        outColor0 = color;
     }
 #endif

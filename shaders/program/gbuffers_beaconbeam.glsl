@@ -46,6 +46,9 @@ varying vec3 tanViewPos;
     	uniform float viewHeight;
     #endif
 
+    /* RENDERTARGETS: 2 */
+    out uvec4 outColor0;
+
 
 	void main() {
 		vec4 colorMap;
@@ -62,10 +65,9 @@ varying vec3 tanViewPos;
 		vec4 specularMap = vec4(0.0, 0.02, 0.0, 0.9);
 		vec4 lightingMap = vec4(1.0, 0.0, 1.0, 0.0);
 
-    /* DRAWBUFFERS:0123 */
-        gl_FragData[0] = colorMap; //gcolor
-        gl_FragData[1] = normalMap; //gdepth
-        gl_FragData[2] = specularMap; //gnormal
-        gl_FragData[3] = lightingMap; //composite
+        outColor0.r = packUnorm4x8(colorMap);
+        outColor0.g = packUnorm4x8(normalMap);
+        outColor0.b = packUnorm4x8(specularMap);
+        outColor0.a = packUnorm4x8(lightingMap);
 	}
 #endif

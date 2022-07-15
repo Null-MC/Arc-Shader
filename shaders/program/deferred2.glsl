@@ -143,9 +143,9 @@
     #include "/lib/rsm.glsl"
 
     /* RENDERTARGETS: 8,9 */
-    out vec3 outColor8;
+    out vec3 outColor0;
     #ifdef RSM_UPSCALE
-        out float outColor9;
+        out float outColor1;
     #endif
 
 
@@ -157,7 +157,7 @@
         vec2 normal = vec2(0.0);
 
         if (clipDepth < 1.0) {
-            uvec2 deferredNormalLightingData = texelFetch(BUFFER_DEFERRED, iTex, 0).ga;
+            uvec2 deferredNormalLightingData = texelFetch(BUFFER_DEFERRED, itex, 0).ga;
             float lightingMap = unpackUnorm4x8(deferredNormalLightingData.g).g;
 
             if (lightingMap >= 1.0 / 16.0) {
@@ -177,10 +177,10 @@
             }
         }
 
-        outColor8 = clamp(color, vec3(0.0), vec3(65000.0));
+        outColor0 = clamp(color, vec3(0.0), vec3(65000.0));
 
         #ifdef RSM_UPSCALE
-            outColor9 = clipDepth;
+            outColor1 = clipDepth;
         #endif
 	}
 #endif

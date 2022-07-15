@@ -107,6 +107,24 @@
         uniform vec3 shadowLightPosition;
     #endif
 
+    #ifdef VL_ENABLED
+        #ifdef SHADOW_ENABLE_HWCOMP
+            uniform sampler2DShadow shadowtex1;
+        #else
+            uniform sampler2D shadowtex1;
+        #endif
+
+        uniform mat4 gbufferModelViewInverse;
+        uniform mat4 shadowModelView;
+        uniform mat4 shadowProjection;
+
+        #if SHADOW_TYPE == 2
+            #include "/lib/shadows/basic.glsl"
+        #endif
+
+        #include "/lib/lighting/volumetric.glsl"
+    #endif
+
     #include "/lib/sampling/linear.glsl"
     #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
@@ -122,10 +140,10 @@
     #endif
 
     /* RENDERTARGETS: 4,6 */
-    out vec3 outColor4;
+    out vec3 outColor0;
 
     #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-        out float outColor6;
+        out float outColor1;
     #endif
 
 
@@ -136,19 +154,19 @@
         // SKY
         if (screenDepth == 1.0) {
             #ifdef SKY_ENABLED
-                outColor4 = texelFetch(BUFFER_HDR, iTex, 0).rgb;
+                outColor0 = texelFetch(BUFFER_HDR, iTex, 0).rgb;
 
                 #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-                    outColor6 = texelFetch(BUFFER_LUMINANCE, iTex, 0).r;
+                    outColor1 = texelFetch(BUFFER_LUMINANCE, iTex, 0).r;
                 #endif
             #else
                 vec3 color = RGBToLinear(fogColor) * 100.0;
 
                 #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-                    outColor6 = log2(luminance(color) + EPSILON);
+                    outColor1 = log2(luminance(color) + EPSILON);
                 #endif
 
-                outColor4 = clamp(color * exposure, 0.0, 65000.0);
+                outColor0 = clamp(color * exposure, 0.0, 65000.0);
             #endif
         }
         else {
@@ -168,10 +186,10 @@
             vec3 color = PbrLighting2(material, lightingMap.xy, lightingMap.b, lightingMap.a, viewPos.xyz).rgb;
 
             #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-                outColor6 = log2(luminance(color) + EPSILON);
+                outColor1 = log2(luminance(color) + EPSILON);
             #endif
 
-            outColor4 = clamp(color * exposure, vec3(0.0), vec3(1000.0));
+            outColor0 = clamp(color * exposure, vec3(0.0), vec3(1000.0));
         }
     }
 #endif

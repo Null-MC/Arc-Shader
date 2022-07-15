@@ -39,10 +39,10 @@ float GetMoonLightLevel(const in float skyLightLevel) {
 #ifndef RENDER_SKYBASIC
     // returns: x:sun y:moon temp in kelvin
     vec2 GetSkyLightTemp(const in vec2 skyLightLevels) {
-        const float temp_sunrise = 1850; // 2000
-        const float temp_day = 5500; // 5000
-        const float temp_rain = 6500; // 8000
-        const float temp_moon = 4150; // 5500
+        const float temp_sunrise = 2200; // 2000
+        const float temp_day = 5000; // 5000
+        const float temp_rain = 7000; // 8000
+        const float temp_moon = 4100; // 5500
 
         float sunTemp = mix(temp_sunrise, temp_day, max(skyLightLevels.x, 0.0));
         sunTemp = mix(sunTemp, temp_rain, rainStrength);

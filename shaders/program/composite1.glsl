@@ -77,6 +77,9 @@
     uniform float frameTimeCounter;
     uniform float frameTime;
 
+    /* RENDERTARGETS: 5 */
+    out vec4 outColor0;
+
 
     void main() {
         vec3 color = textureLod(BUFFER_HDR, texcoord, 0).rgb;
@@ -112,7 +115,6 @@
             lum = log2(lum + EPSILON);
         #endif
 
-    /* DRAWBUFFERS:5 */
-        gl_FragData[0] = vec4(color, lum);
+        outColor0 = vec4(color, lum);
     }
 #endif
