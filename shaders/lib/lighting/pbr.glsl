@@ -326,8 +326,8 @@
             #endif
 
             vec3 sunDiffuse = GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * diffuseLight;
-            //diffuse += (1.0 - specFmax) * sunDiffuse;
-            diffuse += sunDiffuse;
+            diffuse += (1.0 - specFmax) * sunDiffuse;
+            //diffuse += sunDiffuse;
         #endif
 
         #ifdef HANDLIGHT_ENABLED
@@ -385,7 +385,7 @@
 
             float volLight = GetVolumtricLighting(shadowViewStart.xyz, shadowViewEnd.xyz);
             //final.rgb += 0.5 * volLight;
-            final.rgb += smoothstep(0.0, 1.0, volLight) * skyLightColor;
+            final.rgb += volLight * skyLightColor;
         #endif
 
         #if defined RENDER_DEFERRED

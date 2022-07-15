@@ -1,5 +1,5 @@
 #define VL_SAMPLE_COUNT 100
-#define VL_G_SCATTERING 0.0
+#define VL_G_SCATTERING 0.7
 
 float ComputeVolumetricScattering(const in float VoL) {
     const float G_scattering2 = VL_G_SCATTERING * VL_G_SCATTERING;
@@ -35,8 +35,8 @@ float GetVolumtricFactor(const in vec3 shadowViewStart, const in vec3 shadowView
         #endif
     }
 
-    //return smoothstep(0.0, 1.0, accumF / VL_SAMPLE_COUNT);
-    return accumF / VL_SAMPLE_COUNT;
+    //return accumF / VL_SAMPLE_COUNT;
+    return smoothstep(0.0, 1.0, accumF / VL_SAMPLE_COUNT);
 }
 
 float GetVolumtricLighting(const in vec3 shadowViewStart, const in vec3 shadowViewEnd) {
@@ -44,6 +44,8 @@ float GetVolumtricLighting(const in vec3 shadowViewStart, const in vec3 shadowVi
     const vec3 sunDirection = vec3(0.0, 0.0, 1.0);
 
     float VoL = dot(rayDirection, sunDirection);
+    //if (VoL < 0.0) return 0.0;
+
     float scattering = ComputeVolumetricScattering(VoL);
 
     return GetVolumtricFactor(shadowViewStart, shadowViewEnd) * scattering;
