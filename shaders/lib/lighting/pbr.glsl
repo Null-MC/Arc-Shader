@@ -207,8 +207,10 @@
         float blockLight = saturate((lmValue.x - (0.5/16.0)) / (15.0/16.0));
         float skyLight = saturate((lmValue.y - (0.5/16.0)) / (15.0/16.0));
 
-        // Increase skylight when in direct sunlight
-        skyLight = max(skyLight, shadow);
+        #ifdef SHADOW_ENABLED
+            // Increase skylight when in direct sunlight
+            skyLight = max(skyLight, shadow);
+        #endif
 
         // Make areas without skylight fully shadowed (light leak fix)
         float lightLeakFix = step(1.0 / 32.0, skyLight);
@@ -218,37 +220,39 @@
 
         float reflectF = 0.0;
         vec3 reflectColor = vec3(0.0);
-        if (material.smoothness > EPSILON) {
-            vec3 reflectDir = normalize(reflect(-viewDir, viewNormal));
+        #if REFLECTION_MODE != REFLECTION_MODE_NONE
+            if (material.smoothness > EPSILON) {
+                vec3 reflectDir = normalize(reflect(-viewDir, viewNormal));
 
-            #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-                //vec2 reflectCoord = GetReflectCoord(reflectDir);
+                #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
+                    //vec2 reflectCoord = GetReflectCoord(reflectDir);
 
-                vec2 reflectionUV;
-                float atten = GetReflectColor(texcoord, depth, viewPos, reflectDir, reflectionUV);
+                    vec2 reflectionUV;
+                    float atten = GetReflectColor(texcoord, depth, viewPos, reflectDir, reflectionUV);
 
-                if (atten > EPSILON) {
-                    ivec2 iReflectUV = ivec2(reflectionUV * 0.5 * vec2(viewWidth, viewHeight));
-                    reflectColor = texelFetch(BUFFER_HDR_PREVIOUS, iReflectUV, 0) / max(exposure, EPSILON);
-                }
+                    if (atten > EPSILON) {
+                        ivec2 iReflectUV = ivec2(reflectionUV * 0.5 * vec2(viewWidth, viewHeight));
+                        reflectColor = texelFetch(BUFFER_HDR_PREVIOUS, iReflectUV, 0) / max(exposure, EPSILON);
+                    }
 
-                if (atten + EPSILON < 1.0) {
-                    vec3 skyColor = GetVanillaSkyLux(reflectDir);
-                    reflectColor = mix(skyColor, reflectColor, atten);
-                }
-            #elif REFLECTION_MODE == REFLECTION_MODE_SKY
-                // darken lower horizon
-                vec3 downDir = normalize(-upPosition);
-                float RoDm = max(dot(reflectDir, downDir), 0.0);
-                reflectF = 1.0 - pow(RoDm, 0.5);
+                    if (atten + EPSILON < 1.0) {
+                        vec3 skyColor = GetVanillaSkyLux(reflectDir);
+                        reflectColor = mix(skyColor, reflectColor, atten);
+                    }
+                #elif REFLECTION_MODE == REFLECTION_MODE_SKY
+                    // darken lower horizon
+                    vec3 downDir = normalize(-upPosition);
+                    float RoDm = max(dot(reflectDir, downDir), 0.0);
+                    reflectF = 1.0 - pow(RoDm, 0.5);
 
-                // occlude inward reflections
-                float NoRm = max(dot(reflectDir, -viewNormal), 0.0);
-                reflectF *= 1.0 - pow(NoRm, 0.5);
+                    // occlude inward reflections
+                    float NoRm = max(dot(reflectDir, -viewNormal), 0.0);
+                    reflectF *= 1.0 - pow(NoRm, 0.5);
 
-                reflectColor = GetVanillaSkyLux(reflectDir) * reflectF;
-            #endif
-        }
+                    reflectColor = GetVanillaSkyLux(reflectDir) * reflectF;
+                #endif
+            }
+        #endif
 
         #if defined RSM_ENABLED && defined RENDER_DEFERRED
             vec2 viewSize = vec2(viewWidth, viewHeight);
@@ -309,9 +313,7 @@
             final.a = min(final.a + luminance(sunSpec) * exposure, 1.0);
 
             specFmax = max(specFmax, F);
-        #endif
 
-        #ifdef SHADOW_ENABLED
             float shadowBrightness = mix(0.5 * skyLight3, 0.95 * skyLight, rainStrength); // SHADOW_BRIGHTNESS
             vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * shadowBrightness;
             ambient += skyAmbient;
@@ -360,6 +362,12 @@
         //ambient += minLight;
 
         float emissive = material.emission*material.emission * EmissionLumens;
+
+        #ifdef RENDER_WATER
+            //ambient = vec3(0.0);
+            diffuse = vec3(0.0);
+            specular = vec3(0.0);
+        #endif
 
         final.rgb = final.rgb * (ambient * material.occlusion + emissive) + diffuse + specular;
 

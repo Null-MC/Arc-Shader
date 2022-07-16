@@ -42,7 +42,7 @@ float GetLabPbr_Emission(const in float specularA) {
         material.scattering = GetLabPbr_SSS(specularMap.b);
         material.emission = GetLabPbr_Emission(specularMap.a);
     }
-#elif defined RENDER_WATER
+#elif defined RENDER_WATER || defined RENDER_HAND_WATER
     void PopulateMaterial(out PbrMaterial material, const in vec4 colorMap, const in vec3 normalMap, const in vec4 specularMap) {
         material.albedo.rgb = RGBToLinear(colorMap.rgb);
         material.albedo.a = colorMap.a;

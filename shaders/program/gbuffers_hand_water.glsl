@@ -2,7 +2,7 @@
 #extension GL_ARB_gpu_shader5 : enable
 
 #define RENDER_GBUFFER
-#define RENDER_WATER
+#define RENDER_HAND_WATER
 
 #ifdef RENDER_VERTEX
     out vec2 lmcoord;
@@ -24,7 +24,7 @@
         out vec2 localCoord;
     #endif
 
-    #ifdef SHADOW_ENABLED
+    #if defined SHADOW_ENABLED
         uniform vec3 sunPosition;
         uniform vec3 moonPosition;
         uniform vec3 upPosition;
@@ -103,7 +103,7 @@
             #include "/lib/shadows/basic_render.glsl"
         #endif
     #endif
-
+    
     #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/lighting/basic.glsl"
@@ -155,7 +155,7 @@
         in vec2 localCoord;
     #endif
 
-    #ifdef SHADOW_ENABLED
+    #if defined SHADOW_ENABLED
         uniform vec3 sunPosition;
         uniform vec3 moonPosition;
         uniform vec3 upPosition;
@@ -183,7 +183,6 @@
     uniform sampler2D normals;
     uniform sampler2D specular;
     uniform sampler2D lightmap;
-    //uniform sampler2D gcolor;
     uniform sampler2D colortex10;
 
     uniform mat4 shadowProjection;
@@ -227,7 +226,7 @@
             #else
                 uniform sampler2D shadowtex1;
             #endif
-
+        
             #if SHADOW_PCF_SAMPLES == 12
                 #include "/lib/sampling/poisson_12.glsl"
             #elif SHADOW_PCF_SAMPLES == 24
@@ -235,11 +234,13 @@
             #elif SHADOW_PCF_SAMPLES == 36
                 #include "/lib/sampling/poisson_36.glsl"
             #endif
-
+            
             #if SHADOW_TYPE == 3
                 #include "/lib/shadows/csm.glsl"
                 #include "/lib/shadows/csm_render.glsl"
-            #else
+            #elif SHADOW_TYPE != 0
+                //uniform mat4 shadowProjection;
+            
                 #include "/lib/shadows/basic.glsl"
                 #include "/lib/shadows/basic_render.glsl"
             #endif

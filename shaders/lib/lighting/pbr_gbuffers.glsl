@@ -150,10 +150,6 @@
             ApplyDirectionalLightmap(lm.x, texViewNormal);
         #endif
 
-        #ifdef RENDER_WATER
-            // TODO: blend in deferred output?
-        #endif
-
         normalMap.xy = (normal.xyz * matTBN).xy * 0.5 + 0.5;
 
         lightingMap = vec4(lm, shadow, lightSSS);

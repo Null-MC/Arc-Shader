@@ -60,6 +60,7 @@
                 material.f0 = 0.02;
                 material.smoothness = 0.96;
                 material.normal = vec3(0.0, 0.0, 1.0);
+                material.occlusion = 1.0;
             }
         #endif
 
@@ -83,18 +84,13 @@
             shadow *= step(EPSILON, NoL);
 
             #ifdef PARALLAX_SHADOWS_ENABLED
-                if (shadow > EPSILON && traceCoordDepth.z + EPSILON < 1.0) {
-                    //#ifdef PARALLAX_USE_TEXELFETCH
-                    //    shadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
-                    //#else
-                        shadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
-                    //#endif
-                }
+                if (shadow > EPSILON && traceCoordDepth.z + EPSILON < 1.0)
+                    shadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
             #endif
         #endif
 
-        if (shadow > EPSILON) {
-            #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
+            if (shadow > EPSILON) {
                 shadow *= GetShadowing(shadowPos);
 
                 // #if SHADOW_COLORS == 1
@@ -109,8 +105,8 @@
                 // #endif
 
                 //skyLight = max(skyLight, shadow);
-            #endif
-        }
+            }
+        #endif
 
         float shadowSSS = 0.0;
         #ifdef SSS_ENABLED
@@ -121,6 +117,13 @@
 
         material.normal = material.normal * matTBN;
 
-        return PbrLighting2(material, lmcoord, shadow, shadowSSS, viewPos.xyz);
+        vec2 lm = lmcoord;
+        #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
+            ApplyDirectionalLightmap(lm.x, material.normal);
+        #endif
+
+        lm = vec2(0.0);
+
+        return PbrLighting2(material, lm, shadow, shadowSSS, viewPos.xyz);
     }
 #endif
