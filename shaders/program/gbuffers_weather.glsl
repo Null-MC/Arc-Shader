@@ -157,7 +157,7 @@
             uniform float far;
 
             #ifdef SHADOW_ENABLE_HWCOMP
-                #ifndef IS_OPTIFINE
+                #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
                     uniform sampler2DShadow shadowtex1HW;
                     uniform sampler2D shadowtex1;
                 #else

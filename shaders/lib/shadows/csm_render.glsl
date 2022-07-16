@@ -73,11 +73,13 @@
 	const int pcf_max = 4;
 
 	float SampleDepth(const in vec2 shadowPos, const in vec2 offset) {
-        #if !defined IS_OPTIFINE && defined SHADOW_ENABLE_HWCOMP
+        #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
             return texture(shadowtex1, shadowPos + offset).r;
+        #elif defined SHADOW_ENABLE_HWCOMP
+            return texture(shadowtex0, shadowPos + offset).r;
         #else
             ivec2 itex = ivec2((shadowPos + offset) * shadowMapSize);
-            return texelFetch(shadowtex0, itex, 0).r;
+            return texelFetch(shadowtex1, itex, 0).r;
         #endif
 	}
 
@@ -139,7 +141,7 @@
     #ifdef SHADOW_ENABLE_HWCOMP
         // returns: [0] when depth occluded, [1] otherwise
         float CompareDepth(const in vec3 shadowPos, const in vec2 offset, const in float bias) {
-            #ifndef IS_OPTIFINE
+            #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
                 return texture(shadowtex1HW, shadowPos + vec3(offset, -bias));
             #else
                 return texture(shadowtex1, shadowPos + vec3(offset, -bias));

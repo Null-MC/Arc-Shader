@@ -20,12 +20,10 @@ float GetVolumtricFactor(const in vec3 shadowViewStart, const in vec3 shadowView
         shadowPos = shadowPos * 0.5 + 0.5;
 
         #ifdef SHADOW_ENABLE_HWCOMP
-            #ifndef IS_OPTIFINE
-                float shadowDepth = textureLod(shadowtex1HW, shadowPos, 0);
-                accumF += step(0.5, shadowDepth);
+            #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+                accumF += textureLod(shadowtex1HW, shadowPos, 0);
             #else
-                float shadowDepth = textureLod(shadowtex1, shadowPos, 0);
-                accumF += step(0.5, shadowDepth);
+                accumF += textureLod(shadowtex1, shadowPos, 0);
             #endif
         #else
             float shadowDepth = textureLod(shadowtex1, shadowPos.xy, 0).r;

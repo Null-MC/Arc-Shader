@@ -144,6 +144,7 @@ const bool colortex9Clear = false;
 #define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15]
 //#define DEBUG_EXPOSURE_METERS
 #define IS_OPTIFINE
+//#define IRIS_FEATURE_SEPARATE_HW_SAMPLERS
 
 #define DEBUG_VIEW_GBUFFER_COLOR 1
 #define DEBUG_VIEW_GBUFFER_NORMAL 2
@@ -255,6 +256,8 @@ const float invPI = 1.0 / PI;
 #endif
 
 #ifdef TITLE
+#endif
+#ifdef CAVEFOG_ENABLED
 #endif
 #ifdef SHADOW_EXCLUDE_ENTITIES
 #endif

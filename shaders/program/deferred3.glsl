@@ -3,7 +3,7 @@
 #define RENDER_DEFERRED
 #define RENDER_RSM_FULL
 
-#ifdef RENDER_VERTEX
+#if defined RENDER_VERTEX && defined RSM_ENABLED
     out vec2 texcoord;
 
     #if SHADOW_TYPE == 3
@@ -53,7 +53,7 @@
 	}
 #endif
 
-#ifdef RENDER_FRAG
+#if defined RENDER_FRAG && defined RSM_ENABLED
     in vec2 texcoord;
 
     #if SHADOW_TYPE == 3
@@ -65,8 +65,13 @@
     uniform sampler2D BUFFER_RSM_COLOR;
     uniform sampler2D BUFFER_RSM_DEPTH;
     uniform usampler2D shadowcolor0;
-    uniform sampler2D shadowtex1;
     uniform sampler2D depthtex0;
+
+    #if defined SHADOW_ENABLE_HWCOMP && !defined IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+        uniform sampler2D shadowtex0;
+    #else
+        uniform sampler2D shadowtex1;
+    #endif
 
     // #if SHADOW_TYPE == 3
     //     uniform isampler2D shadowcolor1;
@@ -167,4 +172,9 @@
 
 		outColor0 = final;
 	}
+#endif
+
+// Temporary fix for disabling on Iris
+#ifndef RSM_ENABLED
+    void main() {}
 #endif

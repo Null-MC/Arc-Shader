@@ -1,3 +1,13 @@
+float SampleDepth(const in ivec2 itex) {
+    #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+        return texelFetch(shadowtex1, itex, 0).r;
+    #elif defined SHADOW_ENABLE_HWCOMP
+        return texelFetch(shadowtex0, itex, 0).r;
+    #else
+        return texelFetch(shadowtex1, itex, 0).r;
+    #endif
+}
+
 #if SHADOW_TYPE == 3
 	vec3 GetNearestDepth(const in vec3 shadowViewPos, out ivec2 uv_out, out int cascade) {
 		float depth = 1.0;
@@ -17,7 +27,8 @@
 			vec2 shadowTilePos = GetShadowCascadeClipPos(i);
 			ivec2 iuv = ivec2((shadowTilePos + 0.5 * shadowPos.xy) * shadowMapSize);
 			
-            float texDepth = texelFetch(shadowtex1, iuv, 0).r;
+            //float texDepth = texelFetch(shadowtex1, iuv, 0).r;
+            float texDepth = SampleDepth(iuv);
 
             if (texDepth < depth) {
 				depth = texDepth;
@@ -52,7 +63,8 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 localPos
 
 			uv = clipPos.xy * 0.5 + 0.5;
 			iuv = ivec2(uv * shadowMapSize);
-			clipPos.z = texelFetch(shadowtex1, iuv, 0).r * 2.0 - 1.0;
+			//clipPos.z = texelFetch(shadowtex1, iuv, 0).r * 2.0 - 1.0;
+			clipPos.z = SampleDepth(iuv) * 2.0 - 1.0;
 			vec4 _localPos = matShadowClipToLocal * clipPos;
 			x_p = _localPos.xyz;// / _localPos.w;
 		#elif SHADOW_TYPE == 2
@@ -64,7 +76,8 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 localPos
 
 			//clipPos.xy /= clipPos.w;
 
-			clipPos.z = texelFetch(shadowtex1, iuv, 0).r * 4.0 - 2.0;
+			//clipPos.z = texelFetch(shadowtex1, iuv, 0).r * 4.0 - 2.0;
+			clipPos.z = SampleDepth(iuv) * 4.0 - 2.0;
 			//clipPos.z /= clipPos.w;
 			//clipPos.w = 1.0;
 
