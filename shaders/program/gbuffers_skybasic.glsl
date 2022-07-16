@@ -6,6 +6,8 @@
 #ifdef RENDER_VERTEX
     out vec3 starData;
     flat out float sunLightLevel;
+    flat out vec3 sunColor;
+    flat out vec3 moonColor;
     flat out float exposure;
 
     uniform float screenBrightness;
@@ -19,8 +21,6 @@
 
     //uniform ivec2 eyeBrightnessSmooth;
 
-    #include "/lib/lighting/blackbody.glsl"
-
     #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
         uniform ivec2 eyeBrightness;
         uniform int heldBlockLightValue;
@@ -32,6 +32,7 @@
     uniform vec3 upPosition;
     uniform int moonPhase;
 
+    #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/camera/exposure.glsl"
 
@@ -46,6 +47,11 @@
 
         vec2 skyLightLevels = GetSkyLightLevels();
         sunLightLevel = GetSunLightLevel(skyLightLevels.x);
+        //skyLightLuminance = GetSkyLightLuminance(skyLightLevels);
+
+        vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
+        sunColor = GetSunLightColor(skyLightTemps.x, skyLightLevels.x) * sunLumen;
+        moonColor = GetMoonLightColor(skyLightTemps.y, skyLightLevels.y) * moonLumen;
 
         exposure = GetExposure();
     }
@@ -54,6 +60,8 @@
 #ifdef RENDER_FRAG
     in vec3 starData;
     flat in float sunLightLevel;
+    flat in vec3 sunColor;
+    flat in vec3 moonColor;
     flat in float exposure;
 
     uniform mat4 gbufferModelView;
@@ -69,6 +77,7 @@
     uniform vec3 skyColor;
     uniform int moonPhase;
 
+    #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
 
     #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FANCY
@@ -77,6 +86,8 @@
         uniform float near;
 
         #include "/lib/world/atmosphere.glsl"
+    #else
+        #include "/lib/lighting/scattering.glsl"
     #endif
 
     /* RENDERTARGETS: 4,6 */
@@ -93,6 +104,8 @@
         vec3 clipPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), 1.0) * 2.0 - 1.0;
         vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
         viewPos.xyz /= viewPos.w;
+
+        vec3 sunDir = normalize(sunPosition);
 
         #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FANCY
             vec3 localSunPos = mat3(gbufferModelViewInverse) * sunPosition;
@@ -127,13 +140,21 @@
         #else
             vec3 viewDir = normalize(viewPos.xyz);
             color += GetVanillaSkyLuminance(viewDir);
+
+            float sun_VoL = dot(viewDir, sunDir);
+            float sunScattering = ComputeVolumetricScattering(sun_VoL);
+            color += sunScattering * sunColor;
+
+            vec3 moonDir = normalize(moonPosition);
+            float moon_VoL = dot(viewDir, moonDir);
+            float moonScattering = ComputeVolumetricScattering(moon_VoL);
+            color += moonScattering * moonColor;
         #endif
 
         #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
             outColor1 = log2(luminance(color) + EPSILON);
 
             #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FAST
-                vec3 sunDir = normalize(sunPosition);
                 float VoSun = max(dot(viewDir, sunDir), 0.0);
                 outColor1 += pow(max(VoSun - 0.99, 0.0) * 100.0, 0.5) * sunLumen;
             #endif

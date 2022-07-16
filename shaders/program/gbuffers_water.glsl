@@ -246,6 +246,7 @@
         uniform mat4 shadowModelView;
         //uniform mat4 shadowProjection;
 
+        #include "/lib/lighting/scattering.glsl"
         #include "/lib/lighting/volumetric.glsl"
     #endif
 

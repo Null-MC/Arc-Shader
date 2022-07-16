@@ -105,7 +105,7 @@
             float speed = (1.0 - dir) * EXPOSURE_SPEED_DOWN + dir * EXPOSURE_SPEED_UP;
             float timeF = exp(-frameTime * TAU * speed);
 
-            lum = lumPrev + (lum - lumPrev) * clamp(1.0 - timeF, 0.01, 1.0);
+            lum = lumPrev + (lum - lumPrev) * clamp(1.0 - timeF, EPSILON, 1.0);
             //lum = clamp(lum, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
             lum = log2(lum + EPSILON);
         #endif

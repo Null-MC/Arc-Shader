@@ -107,6 +107,7 @@
         uniform vec3 shadowLightPosition;
     #endif
 
+
     #ifdef VL_ENABLED
         #ifdef SHADOW_ENABLE_HWCOMP
             uniform sampler2DShadow shadowtex1;
@@ -122,6 +123,7 @@
             #include "/lib/shadows/basic.glsl"
         #endif
 
+        #include "/lib/lighting/scattering.glsl"
         #include "/lib/lighting/volumetric.glsl"
     #endif
 

@@ -193,11 +193,6 @@
     #include "/lib/lighting/basic_forward.glsl"
 
     /* RENDERTARGETS: 4,6 */
-    out vec4 outColor0;
-
-    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-        out vec4 outColor1;
-    #endif
 
 
     void main() {
@@ -208,10 +203,10 @@
             outLuminance.r = log2(luminance(color.rgb) * color.a + EPSILON);
             outLuminance.a = color.a;
 
-            outColor1 = outLuminance;
+            gl_FragData[1] = outLuminance;
         #endif
 
         color.rgb = clamp(color.rgb * exposure, vec3(0.0), vec3(65000));
-        outColor0 = color;
+        gl_FragData[0] = color;
     }
 #endif

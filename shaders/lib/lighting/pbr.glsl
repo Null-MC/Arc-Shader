@@ -375,20 +375,6 @@
             final.rgb += material.albedo.rgb * invPI * (ambient_sss + sss);
         #endif
 
-        #ifdef VL_ENABLED
-            mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
-            vec4 shadowViewStart = matViewToShadowView * vec4(vec3(0.0), 1.0);
-            vec4 shadowViewEnd = matViewToShadowView * vec4(viewPos, 1.0);
-
-            shadowViewStart.xyz /= shadowViewStart.w;
-            shadowViewEnd.xyz /= shadowViewEnd.w;
-
-            vec3 skyLum = GetVanillaSkyLuminance(-viewDir);
-            float volLight = GetVolumtricLighting(shadowViewStart.xyz, shadowViewEnd.xyz);
-            final.rgb += volLight * skyLightColor;
-            //final.rgb += volLight * skyLum;
-        #endif
-
         #if defined RENDER_DEFERRED
             ApplyFog(final.rgb, viewPos.xyz, skyLight);
         #elif defined RENDER_GBUFFER
@@ -399,7 +385,21 @@
             #endif
         #endif
 
-        //return vec4(material.normal * 100.0, 1.0);
+        #ifdef VL_ENABLED
+            mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
+
+            vec4 shadowViewStart = matViewToShadowView * vec4(vec3(0.0), 1.0);
+            shadowViewStart.xyz /= shadowViewStart.w;
+
+            vec4 shadowViewEnd = matViewToShadowView * vec4(viewPos, 1.0);
+            shadowViewEnd.xyz /= shadowViewEnd.w;
+
+            vec3 volLight = GetVolumtricLighting(shadowViewStart.xyz, shadowViewEnd.xyz) * skyLightColor;
+
+            final.a = min(final.a + luminance(volLight) * exposure, 1.0);
+            final.rgb += volLight;
+        #endif
+
         return final;
     }
 #endif

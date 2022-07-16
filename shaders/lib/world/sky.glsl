@@ -36,71 +36,46 @@ float GetMoonLightLevel(const in float skyLightLevel) {
     return pow(max(skyLightLevel, 0.0), 0.4) * rainLevel * moonPhaseLevel;
 }
 
-#ifndef RENDER_SKYBASIC
-    // returns: x:sun y:moon temp in kelvin
-    vec2 GetSkyLightTemp(const in vec2 skyLightLevels) {
-        const float temp_sunrise = 2200; // 2000
-        const float temp_day = 5000; // 5000
-        const float temp_rain = 7000; // 8000
-        const float temp_moon = 4100; // 5500
+// returns: x:sun y:moon temp in kelvin
+vec2 GetSkyLightTemp(const in vec2 skyLightLevels) {
+    const float temp_sunrise = 2200; // 2000
+    const float temp_day = 5000; // 5000
+    const float temp_rain = 7000; // 8000
+    const float temp_moon = 4100; // 5500
 
-        float sunTemp = mix(temp_sunrise, temp_day, max(skyLightLevels.x, 0.0));
-        sunTemp = mix(sunTemp, temp_rain, rainStrength);
+    float sunTemp = mix(temp_sunrise, temp_day, max(skyLightLevels.x, 0.0));
+    sunTemp = mix(sunTemp, temp_rain, rainStrength);
 
-        return vec2(sunTemp, temp_moon);
-    }
+    return vec2(sunTemp, temp_moon);
+}
 
-    vec3 GetSunLightColor(const in float temp, const in float skyLightLevel) {
-        return blackbody(temp) * GetSunLightLevel(skyLightLevel);
-    }
+vec3 GetSunLightColor(const in float temp, const in float skyLightLevel) {
+    return blackbody(temp) * GetSunLightLevel(skyLightLevel);
+}
 
-    vec3 GetMoonLightColor(const in float temp, const in float skyLightLevel) {
-        return blackbody(temp) * GetMoonLightLevel(skyLightLevel);
-    }
+vec3 GetMoonLightColor(const in float temp, const in float skyLightLevel) {
+    return blackbody(temp) * GetMoonLightLevel(skyLightLevel);
+}
 
-    vec3 GetSunLightLux(const in float temp, const in float skyLightLevel) {
-        float lux = mix(SunLux, SunOvercastLux, rainStrength);
-        return GetSunLightColor(temp, skyLightLevel) * lux;
-    }
+vec3 GetSunLightLux(const in float temp, const in float skyLightLevel) {
+    float lux = mix(SunLux, SunOvercastLux, rainStrength);
+    return GetSunLightColor(temp, skyLightLevel) * lux;
+}
 
-    vec3 GetMoonLightLux(const in float temp, const in float skyLightLevel) {
-        float lux = mix(MoonLux, MoonOvercastLux, rainStrength);
-        return GetSunLightColor(temp, skyLightLevel) * lux;
-    }
+vec3 GetMoonLightLux(const in float temp, const in float skyLightLevel) {
+    float lux = mix(MoonLux, MoonOvercastLux, rainStrength);
+    return GetSunLightColor(temp, skyLightLevel) * lux;
+}
 
-    vec3 GetSkyLightLuminance(const in vec2 skyLightLevels) {
-        //vec2 skyLightLevels = GetSkyLightLevels();
-        vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
+vec3 GetSkyLightLuminance(const in vec2 skyLightLevels) {
+    //vec2 skyLightLevels = GetSkyLightLevels();
+    vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
 
-        vec3 sunLum = GetSunLightLux(skyLightTemp.x, skyLightLevels.x); //GetSunLightColor(skyLightTemp.x, skyLightLevels.x) * SunLux;
-        vec3 moonLum = GetMoonLightLux(skyLightTemp.y, skyLightLevels.y); //GetMoonLightColor(skyLightTemp.y, skyLightLevels.y) * MoonLux;
+    vec3 sunLum = GetSunLightLux(skyLightTemp.x, skyLightLevels.x); //GetSunLightColor(skyLightTemp.x, skyLightLevels.x) * SunLux;
+    vec3 moonLum = GetMoonLightLux(skyLightTemp.y, skyLightLevels.y); //GetMoonLightColor(skyLightTemp.y, skyLightLevels.y) * MoonLux;
 
-        return sunLum + moonLum;
-    }
-
-    // returns: x:sun y:moon
-    // vec2 GetSkyLightIntensity() {
-    //     vec2 skyLightLevels = GetSkyLightLevels();
-    //     float sunLightStrength = pow(skyLightLevels.x, 0.3);
-    //     float moonLightStrength = pow(skyLightLevels.y, 0.3);
-
-    //     vec2 skyLightIntensity = vec2(
-    //         sunLightStrength * sunIntensity,
-    //         moonLightStrength * moonIntensity);
-
-    //     skyLightIntensity *= 1.0 - rainStrength * (1.0 - RAIN_DARKNESS);
-
-    //     return skyLightIntensity;
-    // }
-
-    // vec3 GetSkyLightColor(const in vec2 skyLightIntensity) {
-    //     return sunColor * skyLightIntensity.x + moonColor * skyLightIntensity.y;
-    // }
-
-    // vec3 GetSkyLightColor() {
-    //     return GetSkyLightColor(GetSkyLightIntensity());
-    // }
-#endif
+    return sunLum + moonLum;
+}
 
 #ifdef RENDER_FRAG
     float GetVanillaSkyFog(float x, float w) {
