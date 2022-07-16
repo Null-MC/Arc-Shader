@@ -141,13 +141,15 @@
             vec3 viewDir = normalize(viewPos.xyz);
             color += GetVanillaSkyLuminance(viewDir);
 
+            float G_scattering = mix(G_SCATTERING_CLEAR, G_SCATTERING_RAIN, rainStrength);
+
             float sun_VoL = dot(viewDir, sunDir);
-            float sunScattering = ComputeVolumetricScattering(sun_VoL);
+            float sunScattering = ComputeVolumetricScattering(sun_VoL, G_scattering);
             color += sunScattering * sunColor;
 
             vec3 moonDir = normalize(moonPosition);
             float moon_VoL = dot(viewDir, moonDir);
-            float moonScattering = ComputeVolumetricScattering(moon_VoL);
+            float moonScattering = ComputeVolumetricScattering(moon_VoL, G_scattering);
             color += moonScattering * moonColor;
         #endif
 

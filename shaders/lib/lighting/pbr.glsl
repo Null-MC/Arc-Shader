@@ -394,7 +394,8 @@
             vec4 shadowViewEnd = matViewToShadowView * vec4(viewPos, 1.0);
             shadowViewEnd.xyz /= shadowViewEnd.w;
 
-            vec3 volLight = GetVolumtricLighting(shadowViewStart.xyz, shadowViewEnd.xyz) * skyLightColor;
+            float G_scattering = mix(G_SCATTERING_CLEAR, G_SCATTERING_RAIN, rainStrength);
+            vec3 volLight = GetVolumtricLighting(shadowViewStart.xyz, shadowViewEnd.xyz, G_scattering) * skyLightColor;
 
             final.a = min(final.a + luminance(volLight) * exposure, 1.0);
             final.rgb += volLight;
