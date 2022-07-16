@@ -46,12 +46,10 @@
         starData = blackbody(starTemp) * starFactor * StarLumen;
 
         vec2 skyLightLevels = GetSkyLightLevels();
-        sunLightLevel = GetSunLightLevel(skyLightLevels.x);
-        //skyLightLuminance = GetSkyLightLuminance(skyLightLevels);
-
         vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
         sunColor = GetSunLightColor(skyLightTemps.x, skyLightLevels.x) * sunLumen;
         moonColor = GetMoonLightColor(skyLightTemps.y, skyLightLevels.y) * moonLumen;
+        sunLightLevel = GetSunLightLevel(skyLightLevels.x);
 
         exposure = GetExposure();
     }

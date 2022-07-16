@@ -15,6 +15,8 @@
     out vec3 tanViewPos;
     flat out float exposure;
     flat out int materialId;
+    flat out vec3 sunColor;
+    flat out vec3 moonColor;
     flat out vec3 blockLightColor;
 
     #ifdef PARALLAX_ENABLED
@@ -119,6 +121,9 @@
         PbrVertex(matViewTBN);
 
         vec2 skyLightLevels = GetSkyLightLevels();
+        vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
+        sunColor = GetSunLightColor(skyLightTemps.x, skyLightLevels.x) * sunLumen;
+        moonColor = GetMoonLightColor(skyLightTemps.y, skyLightLevels.y) * moonLumen;
         skyLightColor = GetSkyLightLuminance(skyLightLevels);
 
         blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
@@ -141,6 +146,8 @@
     in vec3 tanViewPos;
     flat in float exposure;
     flat in int materialId;
+    flat in vec3 sunColor;
+    flat in vec3 moonColor;
     flat in vec3 blockLightColor;
 
     #ifdef PARALLAX_ENABLED
@@ -241,12 +248,14 @@
         #endif
     #endif
 
+    #include "/lib/lighting/scattering.glsl"
+    #include "/lib/lighting/blackbody.glsl"
+
     #ifdef VL_ENABLED
         uniform mat4 gbufferModelViewInverse;
         uniform mat4 shadowModelView;
         //uniform mat4 shadowProjection;
 
-        #include "/lib/lighting/scattering.glsl"
         #include "/lib/lighting/volumetric.glsl"
     #endif
 
@@ -260,7 +269,6 @@
         #include "/lib/parallax.glsl"
     #endif
 
-    #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/fog.glsl"
     #include "/lib/lighting/basic.glsl"

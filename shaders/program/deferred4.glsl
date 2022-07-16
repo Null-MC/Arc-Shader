@@ -21,6 +21,8 @@
     #endif
 
     #ifdef SHADOW_ENABLED
+        flat out vec3 sunColor;
+        flat out vec3 moonColor;
         flat out vec3 skyLightColor;
     #endif
 
@@ -44,6 +46,9 @@
 
         #ifdef SHADOW_ENABLED
             vec2 skyLightLevels = GetSkyLightLevels();
+            vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
+            sunColor = GetSunLightColor(skyLightTemps.x, skyLightLevels.x) * sunLumen;
+            moonColor = GetMoonLightColor(skyLightTemps.y, skyLightLevels.y) * moonLumen;
             skyLightColor = GetSkyLightLuminance(skyLightLevels);
         #endif
 
@@ -59,6 +64,8 @@
     flat in vec3 blockLightColor;
 
     #ifdef SHADOW_ENABLED
+        flat in vec3 sunColor;
+        flat in vec3 moonColor;
         flat in vec3 skyLightColor;
     #endif
 
@@ -107,6 +114,9 @@
         uniform vec3 shadowLightPosition;
     #endif
 
+    #include "/lib/sampling/linear.glsl"
+    #include "/lib/lighting/scattering.glsl"
+    #include "/lib/lighting/blackbody.glsl"
 
     #ifdef VL_ENABLED
         #ifdef SHADOW_ENABLE_HWCOMP
@@ -123,12 +133,9 @@
             #include "/lib/shadows/basic.glsl"
         #endif
 
-        #include "/lib/lighting/scattering.glsl"
         #include "/lib/lighting/volumetric.glsl"
     #endif
 
-    #include "/lib/sampling/linear.glsl"
-    #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/fog.glsl"
     #include "/lib/lighting/basic.glsl"

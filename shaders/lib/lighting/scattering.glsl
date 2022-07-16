@@ -1,6 +1,3 @@
-#define G_SCATTERING_CLEAR 0.9
-#define G_SCATTERING_RAIN 0.6
-
 float ComputeVolumetricScattering(const in float VoL, const in float G_scattering) {
     const float G_scattering2 = G_scattering * G_scattering;
 

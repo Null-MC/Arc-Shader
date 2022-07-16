@@ -194,8 +194,6 @@ value.CAMERA_EXPOSURE_MODE.2=Fast
 
 option.CAMERA_EXPOSURE=Exposure
 
-screen.EFFECT_OPTIONS=Effects
-
 option.TONEMAP=Tonemap
 value.TONEMAP.0=None
 value.TONEMAP.1=Hejl-Burgess
@@ -212,6 +210,12 @@ value.TONEMAP.11=Reinhard Extended Luminance
 value.TONEMAP.12=Tech
 
 
+screen.EFFECT_OPTIONS=Effects
+
+option.VL_ENABLED=Volumetric Light
+option.VL_ENABLED.comment=Makes light rays more visible by simulating atmospheric scattering in lit volumes.
+
+
 screen.EFFECT_BLOOM_OPTIONS=Bloom
 
 option.BLOOM_ENABLED=Enabled
@@ -222,7 +226,7 @@ option.BLOOM_STRENGTH.comment=How strong/visible the effect should be.
 suffix.BLOOM_STRENGTH=%
 
 
-screen.EFFECT_RSM_OPTIONS=RSM GI
+screen.EFFECT_RSM_OPTIONS=Global Illumination
 screen.EFFECT_RSM_OPTIONS.comment=Reflective Shadow Mapping for Global Illumination.
 
 option.RSM_ENABLED=Enabled

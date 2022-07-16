@@ -21,6 +21,8 @@
         uniform vec3 moonPosition;
         uniform vec3 upPosition;
 
+        flat out vec3 sunColor;
+        flat out vec3 moonColor;
         flat out vec3 skyLightColor;
 
         #if SHADOW_TYPE == 3
@@ -95,8 +97,10 @@
         mat3 matViewTBN;
         BasicVertex(matViewTBN);
 
-        //skyLightColor = GetSkyLightColor();
         vec2 skyLightLevels = GetSkyLightLevels();
+        vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
+        sunColor = GetSunLightColor(skyLightTemps.x, skyLightLevels.x) * sunLumen;
+        moonColor = GetMoonLightColor(skyLightTemps.y, skyLightLevels.y) * moonLumen;
         skyLightColor = GetSkyLightLuminance(skyLightLevels);
 
         exposure = GetExposure();
@@ -117,6 +121,8 @@
         uniform vec3 moonPosition;
         uniform vec3 upPosition;
 
+        flat in vec3 sunColor;
+        flat in vec3 moonColor;
         flat in vec3 skyLightColor;
 
         #if SHADOW_TYPE == 3
@@ -188,6 +194,7 @@
     #endif
 
     #include "/lib/lighting/blackbody.glsl"
+    #include "/lib/lighting/scattering.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/fog.glsl"
     #include "/lib/lighting/basic.glsl"

@@ -176,5 +176,7 @@
 
 // Temporary fix for disabling on Iris
 #ifndef RSM_ENABLED
-    void main() {}
+    void main() {
+        /* RENDERTARGETS: 8 */
+    }
 #endif
