@@ -119,7 +119,10 @@
     #include "/lib/lighting/blackbody.glsl"
 
     #ifdef VL_ENABLED
-        #ifdef SHADOW_ENABLE_HWCOMP
+        #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+            uniform sampler2DShadow shadowtex1HW;
+        #elif defined SHADOW_ENABLE_HWCOMP
+            uniform sampler2D shadowtex0;
             uniform sampler2DShadow shadowtex1;
         #else
             uniform sampler2D shadowtex1;
@@ -129,8 +132,14 @@
         uniform mat4 shadowModelView;
         uniform mat4 shadowProjection;
 
-        #if SHADOW_TYPE == 2
+        #if SHADOW_TYPE == 1
+            #include "/lib/shadows/basic_render.glsl"
+        #elif SHADOW_TYPE == 2
             #include "/lib/shadows/basic.glsl"
+            #include "/lib/shadows/basic_render.glsl"
+        #elif SHADOW_TYPE == 3
+            #include "/lib/shadows/csm.glsl"
+            #include "/lib/shadows/csm_render.glsl"
         #endif
 
         #include "/lib/lighting/volumetric.glsl"

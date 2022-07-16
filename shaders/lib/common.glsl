@@ -46,6 +46,7 @@ const bool colortex9Clear = false;
 #define ATMOSFOG_ENABLED
 #define CAVEFOG_ENABLED
 #define HCM_AMBIENT 0.16
+#define WEATHER_OPACITY 0.4
 #define G_SCATTERING_CLEAR 0.9
 #define G_SCATTERING_RAIN 0.6
 
@@ -116,7 +117,7 @@ const bool colortex9Clear = false;
 #define CAMERA_LUM_MIN 20.0
 #define CAMERA_LUM_MAX 20000.0
 #define EXPOSURE_POINT 0.2
-#define EXPOSURE_SPEED_UP 0.02
+#define EXPOSURE_SPEED_UP 0.04
 #define EXPOSURE_SPEED_DOWN 0.04
 
 #define EXPOSURE_MODE_MANUAL 0
@@ -195,7 +196,7 @@ const float StarLumen = 2000.0;
 const float EmissionLumens = 100000.0;
 
 const float SunLux = 64000.0;
-const float SunOvercastLux = 1000;
+const float SunOvercastLux = 24000;
 const float MoonLux = 30.0;
 const float MoonOvercastLux = 2.0;
 const float BlockLightLux = 9000;
@@ -253,6 +254,12 @@ const float invPI = 1.0 / PI;
 #if !defined SHADOW_ENABLED || SHADOW_TYPE == 0
     #undef RSM_ENABLED
     #undef SSS_ENABLED
+    #undef VL_ENABLED
+#endif
+
+#if SHADOW_TYPE == 3
+    // VL is not currently supported with CSM
+    #undef VL_ENABLED
 #endif
 
 #if !defined RSM_ENABLED || RSM_SCALE == 0
@@ -275,9 +282,20 @@ const float invPI = 1.0 / PI;
 #endif
 
 
-float pow2(const in float x) {
-    return x * x;
-}
+// float pow2(const in float x) {
+//     return x * x;
+// }
+
+// float pow3(const in float x) {
+//     return x * x * x;
+// }
+
+#define pow2(x) (x*x)
+#define pow3(x) (x*x*x)
+#define pow4(x) (x*x*x*x)
+#define pow5(x) (x*x*x*x*x)
+#define saturate(x) clamp(x, 0.0, 1.0)
+#define rcp(x) (1.0 / x)
 
 float RGBToLinear(const in float color) {
     return pow(color, GAMMA);

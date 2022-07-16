@@ -143,6 +143,7 @@
     uniform ivec2 eyeBrightnessSmooth;
     //uniform ivec2 eyeBrightness;
     uniform float rainStrength;
+    uniform float wetness;
     uniform int moonPhase;
     uniform float near;
 
@@ -210,6 +211,7 @@
 
     void main() {
         vec4 color = BasicLighting();
+        color.a *= WEATHER_OPACITY;
 
         #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
             vec4 outLuminance = vec4(0.0);

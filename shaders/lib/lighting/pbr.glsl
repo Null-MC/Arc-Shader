@@ -15,24 +15,24 @@
 #endif
 
 #ifdef RENDER_FRAG
-    float F_schlick(const in float cos_theta, const in float f0, const in float f90)
-    {
-        return f0 + (f90 - f0) * pow(1.0 - cos_theta, 5.0);
+    float F_schlick(const in float cos_theta, const in float f0, const in float f90) {
+        float invCosTheta = saturate(1.0 - cos_theta);
+        return f0 + (f90 - f0) * pow5(invCosTheta);
     }
 
     float SchlickRoughness(const in float f0, const in float cos_theta, const in float rough) {
-        return f0 + (max(1.0 - rough, f0) - f0) * pow(clamp(1.0 - cos_theta, 0.0, 1.0), 5.0);
+        float invCosTheta = saturate(1.0 - cos_theta);
+        return f0 + (max(1.0 - rough, f0) - f0) * pow5(invCosTheta);
     }
 
-    vec3 F_conductor(const in float VoH, const in float n1, const in vec3 n2, const in vec3 k)
-    {
+    vec3 F_conductor(const in float VoH, const in float n1, const in vec3 n2, const in vec3 k) {
         vec3 eta = n2 / n1;
         vec3 eta_k = k / n1;
 
-        float cos_theta2 = VoH * VoH;
+        float cos_theta2 = pow2(VoH);
         float sin_theta2 = 1.0f - cos_theta2;
-        vec3 eta2 = eta * eta;
-        vec3 eta_k2 = eta_k * eta_k;
+        vec3 eta2 = pow2(eta);
+        vec3 eta_k2 = pow2(eta_k);
 
         vec3 t0 = eta2 - eta_k2 - sin_theta2;
         vec3 a2_plus_b2 = sqrt(t0 * t0 + 4.0f * eta2 * eta_k2);
@@ -48,36 +48,33 @@
         return 0.5f * (rp + rs);
     }
 
-    float GGX(const in float NoH, const in float roughL)
-    {
-        const float a = NoH * roughL;
-        const float k = roughL / (1.0 - NoH * NoH + a * a);
-        return k * k * (1.0 / PI);
+    float GGX(const in float NoH, const in float roughL) {
+        float a = NoH * roughL;
+        float k = roughL / (1.0 - pow2(NoH) + pow2(a));
+        return pow2(k) * invPI;
     }
 
-    float GGX_Fast(const in float NoH, const in vec3 NxH, const in float roughL)
-    {
+    float GGX_Fast(const in float NoH, const in vec3 NxH, const in float roughL) {
         float a = NoH * roughL;
-        float k = roughL / (dot(NxH, NxH) + a * a);
-        return min(k * k * invPI, 65504.0);
+        float k = roughL / (dot(NxH, NxH) + pow2(a));
+        return min(pow2(k) * invPI, 65504.0);
     }
 
     float SmithGGXCorrelated(const in float NoV, const in float NoL, const in float roughL) {
-        float a2 = roughL * roughL;
+        float a2 = pow2(roughL);
         float GGXV = NoL * sqrt(max(NoV * NoV * (1.0 - a2) + a2, EPSILON));
         float GGXL = NoV * sqrt(max(NoL * NoL * (1.0 - a2) + a2, EPSILON));
-        return clamp(0.5 / (GGXV + GGXL), 0.0, 1.0);
+        return saturate(0.5 / (GGXV + GGXL));
     }
 
     float SmithGGXCorrelated_Fast(const in float NoV, const in float NoL, const in float roughL) {
         float GGXV = NoL * (NoV * (1.0 - roughL) + roughL);
         float GGXL = NoV * (NoL * (1.0 - roughL) + roughL);
-        return clamp(0.5 / (GGXV + GGXL), 0.0, 1.0);
+        return saturate(0.5 / (GGXV + GGXL));
     }
 
-    float SmithHable(const in float LdotH, const in float alpha)
-    {
-        return 1.0 / mix(LdotH * LdotH, 1.0, alpha * alpha * 0.25);
+    float SmithHable(const in float LoH, const in float alpha) {
+        return rcp(mix(pow2(LoH), 1.0, pow2(alpha) * 0.25));
     }
 
     vec3 GetFresnel(const in PbrMaterial material, const in float VoH, const in float roughL) {
@@ -117,7 +114,6 @@
         float D = GGX(NoH, roughL);
 
         // Geometric Visibility
-        //float G = SmithHable(LoH, roughL);
         float G = SmithGGXCorrelated(NoV, NoL, roughL);
 
         //return clamp(D * F * G, 0.0, 100000.0);
@@ -126,14 +122,14 @@
 
     vec3 GetDiffuse_Burley(const in vec3 albedo, const in float NoV, const in float NoL, const in float LoH, const in float roughL)
     {
-        float f90 = 0.5 + 2.0 * roughL * LoH * LoH;
+        float f90 = 0.5 + 2.0 * roughL * pow2(LoH);
         float light_scatter = F_schlick(NoL, 1.0, f90);
         float view_scatter = F_schlick(NoV, 1.0, f90);
         return (albedo * invPI) * light_scatter * view_scatter * NoL;
     }
 
     vec3 GetSubsurface(const in vec3 albedo, const in float NoV, const in float NoL, const in float LoH, const in float roughL) {
-        float sssF90 = roughL * pow(LoH, 2);
+        float sssF90 = roughL * pow2(LoH);
         float sssF_In = F_schlick(NoV, 1.0, sssF90);
         float sssF_Out = F_schlick(NoL, 1.0, sssF90);
 
@@ -159,7 +155,7 @@
     #ifdef HANDLIGHT_ENABLED
         float GetHandLightAttenuation(const in float lightLevel, const in float lightDist) {
             float diffuseAtt = max(0.0625*lightLevel - 0.08*lightDist, 0.0);
-            return pow(diffuseAtt, 5.0);
+            return pow5(diffuseAtt);
         }
 
         void ApplyHandLighting(inout vec3 diffuse, inout vec3 specular, const in PbrMaterial material, const in vec3 viewNormal, const in vec3 viewPos, const in vec3 viewDir, const in float NoVm, const in float roughL) {
@@ -208,8 +204,8 @@
         float rough = 1.0 - material.smoothness;
         float roughL = max(rough * rough, 0.005);
 
-        float blockLight = clamp((lmValue.x - (0.5/16.0)) / (15.0/16.0), 0.0, 1.0);
-        float skyLight = clamp((lmValue.y - (0.5/16.0)) / (15.0/16.0), 0.0, 1.0);
+        float blockLight = saturate((lmValue.x - (0.5/16.0)) / (15.0/16.0));
+        float skyLight = saturate((lmValue.y - (0.5/16.0)) / (15.0/16.0));
 
         // Increase skylight when in direct sunlight
         skyLight = max(skyLight, shadow);
@@ -218,7 +214,7 @@
         float lightLeakFix = step(1.0 / 32.0, skyLight);
         float shadowFinal = shadow * lightLeakFix;
 
-        float skyLight5 = pow(skyLight, 5.0);
+        float skyLight3 = pow3(skyLight);
 
         float reflectF = 0.0;
         vec3 reflectColor = vec3(0.0);
@@ -269,7 +265,7 @@
         #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
             vec3 blockLightAmbient = pow2(blockLight)*blockLightColor;
         #else
-            vec3 blockLightAmbient = pow(blockLight, 5.0)*blockLightColor;
+            vec3 blockLightAmbient = pow5(blockLight)*blockLightColor;
         #endif
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
@@ -292,7 +288,7 @@
                 vec2 envBRDF = texture(BUFFER_BRDF_LUT, vec2(NoVm, material.smoothness)).rg;
                 envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
 
-                vec3 iblSpec = skyLight5 * reflectColor * specularTint * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
+                vec3 iblSpec = skyLight3 * reflectColor * specularTint * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
                 specular += max(iblSpec, vec3(0.0));
 
                 //return vec4(envBRDF * 500.0, 0.0, 1.0);
@@ -316,8 +312,9 @@
         #endif
 
         #ifdef SHADOW_ENABLED
-            vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * skyLight5; //skyLightColor;
-            ambient += SHADOW_BRIGHTNESS * skyAmbient;
+            float shadowBrightness = mix(0.5 * skyLight3, 0.95 * skyLight, rainStrength); // SHADOW_BRIGHTNESS
+            vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * shadowBrightness;
+            ambient += skyAmbient;
 
             vec3 diffuseLight = skyLightColor * shadowFinal;
 
@@ -368,7 +365,7 @@
 
         #ifdef SSS_ENABLED
             //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
-            vec3 ambient_sss = 4.0 * skyAmbient * material.scattering * material.occlusion;
+            vec3 ambient_sss = skyAmbient * material.scattering * material.occlusion;
 
             // Transmission
             vec3 sss = (1.0 - shadowFinal) * shadowSSS * material.scattering * skyLightColor;// * max(-NoL, 0.0);

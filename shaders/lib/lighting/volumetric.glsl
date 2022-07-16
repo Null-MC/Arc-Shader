@@ -10,24 +10,21 @@ float GetVolumtricFactor(const in vec3 shadowViewStart, const in vec3 shadowView
 
     for (int i = 1; i <= VL_SAMPLE_COUNT; i++) {
         vec3 currentShadowViewPos = shadowViewStart + i * rayDirection * stepLength;
-        vec3 shadowPos = (shadowProjection * vec4(currentShadowViewPos, 1.0)).xyz;
 
-        #if SHADOW_TYPE == 2
-            float distortFactor = getDistortFactor(shadowPos.xy);
-            shadowPos.xyz = distort(shadowPos.xyz, distortFactor);
-        #endif
+        #if SHADOW_TYPE == 3
+            // TODO: create 4 CSM projection matrices
 
-        shadowPos = shadowPos * 0.5 + 0.5;
-
-        #ifdef SHADOW_ENABLE_HWCOMP
-            #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
-                accumF += textureLod(shadowtex1HW, shadowPos, 0);
-            #else
-                accumF += textureLod(shadowtex1, shadowPos, 0);
-            #endif
+            accumF += CompareNearestDepth(shadowPos);
         #else
-            float shadowDepth = textureLod(shadowtex1, shadowPos.xy, 0).r;
-            accumF += step(shadowPos.z + EPSILON, shadowDepth);
+            vec4 shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
+
+            #if SHADOW_TYPE == 2
+                float distortFactor = getDistortFactor(shadowPos.xy);
+                shadowPos.xyz = distort(shadowPos.xyz, distortFactor);
+            #endif
+
+            shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
+            accumF += CompareDepth(shadowPos, vec2(0.0));
         #endif
     }
 
