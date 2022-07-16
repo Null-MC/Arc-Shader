@@ -137,11 +137,11 @@ int GetCascadeForScreenPos(const in vec2 pos) {
                 mat4 matSceneModelView = gbufferModelView;
             #endif
 
-            #ifdef RENDER_SHADOW
-                mat4 matShadowModelView = gl_ModelViewMatrix;
-            #else
+            //#ifdef RENDER_SHADOW
+            //    mat4 matShadowModelView = gl_ModelViewMatrix;
+            //#else
                 mat4 matShadowModelView = shadowModelView;
-            #endif
+            //#endif
 
             // project scene view frustum slices to shadow-view space and compute min/max XY bounds
             float rangeNear = cascade > 0 ? cascadeSizes[cascade - 1] : near;
@@ -194,7 +194,7 @@ int GetCascadeForScreenPos(const in vec2 pos) {
                 if (mc_Entity.x == 0.0) return vec3(0.0);
             #endif
 
-            #if MC_VERSION >= 11700 && defined IS_OPTIFINE
+            #if MC_VERSION >= 11700 && (defined IS_OPTIFINE || defined IRIS_FEATURE_CHUNK_OFFSET)
                 vec3 midBlockPosition = floor(vaPosition + chunkOffset + at_midBlock / 64.0 + fract(cameraPosition));
 
                 #ifdef RENDER_SHADOW

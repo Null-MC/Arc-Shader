@@ -16,7 +16,7 @@
         uniform float near;
         uniform float far;
 
-        #if MC_VERSION >= 11700 && defined IS_OPTIFINE
+        #if MC_VERSION >= 11700 && (defined IS_OPTIFINE || defined IRIS_FEATURE_CHUNK_OFFSET)
             uniform vec3 chunkOffset;
         #else
             uniform mat4 gbufferModelViewInverse;

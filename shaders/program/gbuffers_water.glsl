@@ -77,7 +77,7 @@
     uniform float rainStrength;
     uniform int moonPhase;
 
-    #if MC_VERSION >= 11700 && defined IS_OPTIFINE
+    #if MC_VERSION >= 11700 && (defined IS_OPTIFINE || defined IRIS_FEATURE_CHUNK_OFFSET)
         uniform vec3 chunkOffset;
     #endif
 

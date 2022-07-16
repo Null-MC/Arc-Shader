@@ -56,16 +56,18 @@ vec3 fbm(vec3 pos) {
 vec3 GetWavingOffset() {
     float range = (mc_Entity.x == 10002.0 || mc_Entity.x == 10004.0) ? 0.01 : 0.06;
 
-    #if MC_VERSION >= 11700 && defined IS_OPTIFINE
+    #if MC_VERSION >= 11700 && (defined IS_OPTIFINE || defined IRIS_FEATURE_CHUNK_OFFSET)
         vec3 worldPos = floor(vaPosition.xyz + chunkOffset + cameraPosition + 0.5);
     #else
-        vec3 worldPos = gl_Vertex.xyz + at_midBlock / 64.0;
+        vec3 localPos = gl_Vertex.xyz + at_midBlock / 64.0;
+
         #ifndef RENDER_SHADOW
-            worldPos = (gbufferModelViewInverse * (gl_ModelViewMatrix * vec4(worldPos, 1.0))).xyz;
+            vec3 worldPos = localPos;
         #else
-            worldPos = (shadowModelViewInverse * (gl_ModelViewMatrix * vec4(worldPos, 1.0))).xyz;
+            vec3 worldPos = (shadowModelViewInverse * (gl_ModelViewMatrix * vec4(localPos, 1.0))).xyz;
         #endif
-        worldPos = floor(worldPos + cameraPosition + 0.5);
+
+        worldPos = floor(worldPos + cameraPosition);
     #endif
 
     #ifdef ANIM_USE_WORLDTIME

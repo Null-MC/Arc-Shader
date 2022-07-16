@@ -35,6 +35,7 @@ const float shadowDistanceRenderMul = 1.0;
     in vec3 at_midBlock;
     in vec4 at_tangent;
 
+    uniform mat4 shadowModelView;
     uniform mat4 shadowModelViewInverse;
     uniform vec3 cameraPosition;
     
@@ -44,7 +45,7 @@ const float shadowDistanceRenderMul = 1.0;
         uniform float frameTimeCounter;
     #endif
 
-    #if MC_VERSION >= 11700 && defined IS_OPTIFINE
+    #if MC_VERSION >= 11700 && (defined IS_OPTIFINE || defined IRIS_FEATURE_CHUNK_OFFSET)
         uniform vec3 chunkOffset;
     #else
         uniform mat4 gbufferModelViewInverse;
@@ -185,9 +186,9 @@ const float shadowDistanceRenderMul = 1.0;
 
     uniform mat4 shadowModelViewInverse;
 
-    //#if MC_VERSION >= 11700 && defined IS_OPTIFINE
-    //    uniform float alphaTestRef;
-    //#endif
+    #if MC_VERSION >= 11700 && defined IS_OPTIFINE
+       uniform float alphaTestRef;
+    #endif
 
     #ifdef RSM_ENABLED
         uniform sampler2D normals;
@@ -217,12 +218,18 @@ const float shadowDistanceRenderMul = 1.0;
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
 
         #ifdef RSM_ENABLED
-            vec4 colorMap = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]) * glcolor;
-            if (colorMap.a < 0.5) discard;
+            const float alphaDiscard = 0.5;
         #else
-            float alpha = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]).a * glcolor.a;
-            if (alpha < 0.5) discard;
+            float alphaDiscard = alphaTestRef;
+        #endif
+
+        #ifdef RSM_ENABLED
+            vec4 colorMap = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]) * glcolor;
+            if (colorMap.a < alphaDiscard) discard;
+        #else
             vec3 colorMap = vec3(0.0);
+            float alpha = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]).a * glcolor.a;
+            if (alpha < alphaDiscard) discard;
         #endif
 
         // #ifdef RSM_ENABLED
