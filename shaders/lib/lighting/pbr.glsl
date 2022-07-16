@@ -317,7 +317,7 @@
 
         #ifdef SHADOW_ENABLED
             vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * skyLight5; //skyLightColor;
-            ambient += skyAmbient;
+            ambient += SHADOW_BRIGHTNESS * skyAmbient;
 
             vec3 diffuseLight = skyLightColor * shadowFinal;
 

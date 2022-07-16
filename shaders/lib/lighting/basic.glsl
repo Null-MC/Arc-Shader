@@ -71,6 +71,6 @@
 
         vec3 skyLightLum = RGBToLinear(skyColor);
 
-        return SHADOW_BRIGHTNESS * (skyLightLum + sunLightLum + moonLightLum);
+        return 0.1 * (skyLightLum + sunLightLum + moonLightLum);
     }
 #endif
