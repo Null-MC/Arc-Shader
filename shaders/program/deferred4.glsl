@@ -47,8 +47,8 @@
         #ifdef SHADOW_ENABLED
             vec2 skyLightLevels = GetSkyLightLevels();
             vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
-            sunColor = GetSunLightColor(skyLightTemps.x, skyLightLevels.x) * sunLumen;
-            moonColor = GetMoonLightColor(skyLightTemps.y, skyLightLevels.y) * moonLumen;
+            sunColor = GetSunLightLux(skyLightTemps.x, skyLightLevels.x);
+            moonColor = GetMoonLightLux(skyLightTemps.y, skyLightLevels.y);
             skyLightColor = GetSkyLightLuminance(skyLightLevels);
         #endif
 

@@ -36,17 +36,17 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
         vec3 viewDir = normalize(viewPos);
         vec3 atmosphereColor = GetVanillaSkyLuminance(viewDir);
 
-        float G_scattering = mix(G_SCATTERING_CLEAR, G_SCATTERING_RAIN, rainStrength);
+        // float G_scattering = mix(G_SCATTERING_CLEAR, G_SCATTERING_RAIN, rainStrength);
 
-        vec3 sunDir = normalize(sunPosition);
-        float sun_VoL = dot(viewDir, sunDir);
-        float sunScattering = ComputeVolumetricScattering(sun_VoL, G_scattering);
-        atmosphereColor += sunScattering * sunColor;
+        // vec3 sunDir = normalize(sunPosition);
+        // float sun_VoL = dot(viewDir, sunDir);
+        // float sunScattering = ComputeVolumetricScattering(sun_VoL, G_scattering);
+        // atmosphereColor += sunScattering * sunColor;
 
-        vec3 moonDir = normalize(moonPosition);
-        float moon_VoL = dot(viewDir, moonDir);
-        float moonScattering = ComputeVolumetricScattering(moon_VoL, G_scattering);
-        atmosphereColor += moonScattering * moonColor;
+        // vec3 moonDir = normalize(moonPosition);
+        // float moon_VoL = dot(viewDir, moonDir);
+        // float moonScattering = ComputeVolumetricScattering(moon_VoL, G_scattering);
+        // atmosphereColor += moonScattering * moonColor;
     #else
         vec3 atmosphereColor = RGBToLinear(fogColor) * 100.0;
     #endif

@@ -278,7 +278,7 @@
             vec3 specularTint = mix(vec3(1.0), material.albedo.rgb, material.f0);
         #endif
 
-        vec3 ambient = vec3(20.0 + blockLightAmbient);
+        vec3 ambient = vec3(MinWorldLux + blockLightAmbient);
         vec3 diffuse = vec3(0.0);
         vec3 specular = vec3(0.0);
         vec4 final = material.albedo;
@@ -395,7 +395,8 @@
             shadowViewEnd.xyz /= shadowViewEnd.w;
 
             float G_scattering = mix(G_SCATTERING_CLEAR, G_SCATTERING_RAIN, rainStrength);
-            vec3 volLight = GetVolumtricLighting(shadowViewStart.xyz, shadowViewEnd.xyz, G_scattering) * skyLightColor;
+            float volScatter = GetVolumtricLighting(shadowViewStart.xyz, shadowViewEnd.xyz, G_scattering);
+            vec3 volLight = volScatter * (sunColor + moonColor);
 
             final.a = min(final.a + luminance(volLight) * exposure, 1.0);
             final.rgb += volLight;
