@@ -383,8 +383,10 @@
             shadowViewStart.xyz /= shadowViewStart.w;
             shadowViewEnd.xyz /= shadowViewEnd.w;
 
+            vec3 skyLum = GetVanillaSkyLuminance(-viewDir);
             float volLight = GetVolumtricLighting(shadowViewStart.xyz, shadowViewEnd.xyz);
             final.rgb += volLight * skyLightColor;
+            //final.rgb += volLight * skyLum;
         #endif
 
         #if defined RENDER_DEFERRED
