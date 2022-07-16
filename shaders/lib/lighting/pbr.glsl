@@ -384,7 +384,6 @@
             shadowViewEnd.xyz /= shadowViewEnd.w;
 
             float volLight = GetVolumtricLighting(shadowViewStart.xyz, shadowViewEnd.xyz);
-            //final.rgb += 0.5 * volLight;
             final.rgb += volLight * skyLightColor;
         #endif
 

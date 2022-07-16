@@ -1,5 +1,5 @@
 #define VL_SAMPLE_COUNT 100
-#define VL_G_SCATTERING 0.7
+#define VL_G_SCATTERING 0.9
 
 float ComputeVolumetricScattering(const in float VoL) {
     const float G_scattering2 = VL_G_SCATTERING * VL_G_SCATTERING;
@@ -27,8 +27,13 @@ float GetVolumtricFactor(const in vec3 shadowViewStart, const in vec3 shadowView
         shadowPos = shadowPos * 0.5 + 0.5;
 
         #ifdef SHADOW_ENABLE_HWCOMP
-            float shadowDepth = textureLod(shadowtex1, shadowPos, 0);
-            accumF += step(0.5, shadowDepth);
+            #ifndef IS_OPTIFINE
+                float shadowDepth = textureLod(shadowtex1HW, shadowPos, 0);
+                accumF += step(0.5, shadowDepth);
+            #else
+                float shadowDepth = textureLod(shadowtex1, shadowPos, 0);
+                accumF += step(0.5, shadowDepth);
+            #endif
         #else
             float shadowDepth = textureLod(shadowtex1, shadowPos.xy, 0).r;
             accumF += step(shadowPos.z + EPSILON, shadowDepth);
