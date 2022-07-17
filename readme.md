@@ -6,13 +6,13 @@ Attempts to provide high-quality lighting while focusing on performance and conf
 
 # Settings
 
-- [World](World-Settings)
-- [Materials](Material-Settings)
-- [Atmosphere](Atmosphere-Settings)
-- [Shadows](Shadow-Settings)
-- [Camera](Camera-Settings)
-- [Effects](Effect-Settings)
-- [Debug](Debug-Settings)
+- [World](https://github.com/null511/MC-Arc-Shader/wiki/World-Settings)
+- [Materials](https://github.com/null511/MC-Arc-Shader/wiki/Material-Settings)
+- [Atmosphere](https://github.com/null511/MC-Arc-Shader/wiki/Atmosphere-Settings)
+- [Shadows](https://github.com/null511/MC-Arc-Shader/wiki/Shadow-Settings)
+- [Camera](https://github.com/null511/MC-Arc-Shader/wiki/Camera-Settings)
+- [Effects](https://github.com/null511/MC-Arc-Shader/wiki/Effect-Settings)
+- [Debug](https://github.com/null511/MC-Arc-Shader/wiki/Debug-Settings)
 
 # Compatibility
 ### Optifine
