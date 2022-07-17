@@ -19,6 +19,12 @@
     flat out vec3 moonColor;
     flat out vec3 blockLightColor;
 
+    #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+        flat out float matSmooth;
+        flat out float matMetal;
+        flat out float matSSS;
+    #endif
+
     #ifdef PARALLAX_ENABLED
         out mat2 atlasBounds;
         out vec2 localCoord;
@@ -104,6 +110,16 @@
         #endif
     #endif
 
+    #ifdef WATER_WAVES_ENABLED
+        uniform float frameTimeCounter;
+
+        #include "/lib/world/gerstner_waves.glsl"
+    #endif
+
+    #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+        #include "/lib/material/default.glsl"
+    #endif
+
     #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/lighting/basic.glsl"
@@ -116,6 +132,9 @@
         lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
         glcolor = gl_Color;
 
+        if (mc_Entity.x == 100.0) materialId = 1;
+        else materialId = 0;
+
         mat3 matViewTBN;
         BasicVertex(matViewTBN);
         PbrVertex(matViewTBN);
@@ -127,9 +146,6 @@
         skyLightColor = GetSkyLightLuminance(skyLightLevels);
 
         blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
-
-        if (mc_Entity.x == 100.0) materialId = 1;
-        else materialId = 0;
 
         exposure = GetExposure();
     }
@@ -149,6 +165,12 @@
     flat in vec3 sunColor;
     flat in vec3 moonColor;
     flat in vec3 blockLightColor;
+
+    #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+        flat in float matSmooth;
+        flat in float matMetal;
+        flat in float matSSS;
+    #endif
 
     #ifdef PARALLAX_ENABLED
         in mat2 atlasBounds;
@@ -183,7 +205,6 @@
     uniform sampler2D normals;
     uniform sampler2D specular;
     uniform sampler2D lightmap;
-    //uniform sampler2D gcolor;
     uniform sampler2D colortex10;
 
     uniform mat4 shadowProjection;
@@ -249,6 +270,13 @@
     #include "/lib/lighting/scattering.glsl"
     #include "/lib/lighting/blackbody.glsl"
 
+    #ifdef WATER_WAVES_ENABLED
+        uniform vec3 cameraPosition;
+        uniform float frameTimeCounter;
+
+        #include "/lib/world/gerstner_waves.glsl"
+    #endif
+
     #ifdef VL_ENABLED
         uniform mat4 gbufferModelViewInverse;
         uniform mat4 shadowModelView;
@@ -273,14 +301,16 @@
 
     #include "/lib/world/sky.glsl"
     #include "/lib/world/fog.glsl"
+    #include "/lib/material/hcm.glsl"
+    #include "/lib/material/material.glsl"
+    #include "/lib/material/material_reader.glsl"
     #include "/lib/lighting/basic.glsl"
-    #include "/lib/lighting/material.glsl"
-    #include "/lib/lighting/material_reader.glsl"
-    #include "/lib/lighting/hcm.glsl"
     #include "/lib/lighting/pbr.glsl"
     #include "/lib/lighting/pbr_forward.glsl"
 
     /* RENDERTARGETS: 4,6 */
+    out vec4 outColor0;
+    out vec4 outColor1;
 
 
     void main() {
@@ -291,10 +321,10 @@
             outLum.r = log2(luminance(color.rgb) + EPSILON);
             outLum.a = color.a;
 
-            gl_FragData[1] = outLum;
+            outColor1 = outLum;
         #endif
 
         color.rgb = clamp(color.rgb * exposure, vec3(0.0), vec3(65000));
-        gl_FragData[0] = color;
+        outColor0 = color;
     }
 #endif

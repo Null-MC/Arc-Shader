@@ -116,6 +116,9 @@
         lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
         glcolor = gl_Color;
 
+        if (mc_Entity.x == 100.0) materialId = 1;
+        else materialId = 0;
+
         mat3 matViewTBN;
         BasicVertex(matViewTBN);
         PbrVertex(matViewTBN);
@@ -127,9 +130,6 @@
         skyLightColor = GetSkyLightLuminance(skyLightLevels);
 
         blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
-
-        if (mc_Entity.x == 100.0) materialId = 1;
-        else materialId = 0;
 
         exposure = GetExposure();
     }
@@ -274,10 +274,10 @@
 
     #include "/lib/world/sky.glsl"
     #include "/lib/world/fog.glsl"
+    #include "/lib/material/hcm.glsl"
+    #include "/lib/material/material.glsl"
+    #include "/lib/material/material_reader.glsl"
     #include "/lib/lighting/basic.glsl"
-    #include "/lib/lighting/material.glsl"
-    #include "/lib/lighting/material_reader.glsl"
-    #include "/lib/lighting/hcm.glsl"
     #include "/lib/lighting/pbr.glsl"
     #include "/lib/lighting/pbr_forward.glsl"
 

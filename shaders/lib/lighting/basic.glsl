@@ -2,16 +2,7 @@
     void BasicVertex(out mat3 viewTBN) {
         vec3 pos = gl_Vertex.xyz;
 
-        #if defined RENDER_TERRAIN && defined ENABLE_WAVING
-            if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0)
-                pos += GetWavingOffset();
-        #endif
-
-        viewPos = (gl_ModelViewMatrix * vec4(pos, 1.0)).xyz;
-
         viewNormal = normalize(gl_NormalMatrix * gl_Normal);
-
-        gl_Position = gl_ProjectionMatrix * vec4(viewPos, 1.0);
 
         #if defined RENDER_TEXTURED || defined RENDER_WEATHER || defined RENDER_BEACONBEAM
             // TODO: extract billboard direction from view matrix?
@@ -37,6 +28,25 @@
                 geoNoL = 1.0;
             #endif
         #endif
+
+        #if defined RENDER_TERRAIN && defined ENABLE_WAVING
+            if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0)
+                pos += GetWavingOffset();
+        #endif
+
+        #if defined RENDER_WATER && defined WATER_WAVES_ENABLED
+            if (mc_Entity.x == 100.0) {
+                vec3 normal;
+                ApplyGerstnerWaves(pos, normal);
+                //viewNormal = normal * viewTBN;
+                //vec2 waterTex = vec2(0.0);
+                //float offset = texture(BUFFER_WATER_WAVES, waterTex);
+            }
+        #endif
+
+        viewPos = (gl_ModelViewMatrix * vec4(pos, 1.0)).xyz;
+
+        gl_Position = gl_ProjectionMatrix * vec4(viewPos, 1.0);
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != 0 && !defined RENDER_SHADOW
             ApplyShadows(viewPos);

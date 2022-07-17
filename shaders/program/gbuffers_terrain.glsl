@@ -13,6 +13,12 @@
     out mat3 matTBN;
     out vec3 tanViewPos;
 
+    #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+        flat out float matSmooth;
+        flat out float matMetal;
+        flat out float matSSS;
+    #endif
+
     #ifdef PARALLAX_ENABLED
         out mat2 atlasBounds;
         out vec2 localCoord;
@@ -85,6 +91,10 @@
         #endif
     #endif
 
+    #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+        #include "/lib/material/default.glsl"
+    #endif
+
     #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/pbr.glsl"
 
@@ -109,6 +119,12 @@
     in float geoNoL;
     in mat3 matTBN;
     in vec3 tanViewPos;
+
+    #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+        flat in float matSmooth;
+        flat in float matMetal;
+        flat in float matSSS;
+    #endif
 
     #ifdef PARALLAX_ENABLED
         in mat2 atlasBounds;
@@ -207,7 +223,7 @@
         #include "/lib/lighting/directional.glsl"
     #endif
 
-    #include "/lib/lighting/material_reader.glsl"
+    #include "/lib/material/material_reader.glsl"
     #include "/lib/lighting/basic_gbuffers.glsl"
     #include "/lib/lighting/pbr_gbuffers.glsl"
 

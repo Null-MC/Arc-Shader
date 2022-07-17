@@ -34,11 +34,16 @@ const bool colortex9Clear = false;
 #define ENABLE_WAVING
 #define HANDLIGHT_ENABLED
 #define VL_ENABLED
+#define WATER_TYPE 0 // [0 1]
+//#define WATER_WAVES_ENABLED
 #define BLOCKLIGHT_TEMP 3500 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 80 // [0 10 20 30 40 50 60 70 80 90 100]
 #define SHADOW_BRIGHTNESS 0.10 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define RAIN_DARKNESS 0.2
 //#define ANIM_USE_WORLDTIME
+
+#define WATER_TYPE_FAST 0
+#define WATER_TYPE_FANCY 1
 
 
 // Atmosphere Options
@@ -188,6 +193,7 @@ const bool colortex9Clear = false;
 #define BUFFER_RSM_COLOR colortex8
 #define BUFFER_RSM_DEPTH colortex9
 #define BUFFER_BRDF_LUT colortex10
+#define BUFFER_WATER_WAVES colortex11
 
 const float sunLumen = 240000.0;//16000000;
 const float moonLumen = 2500.0;
@@ -234,9 +240,9 @@ const float invPI = 1.0 / PI;
 // 	#define SHADOW_EXCLUDE_ENTITIES
 // #endif
 
-//#if MATERIAL_FORMAT == 0
-//    #undef PARALLAX_ENABLED
-//#endif
+#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+    #undef PARALLAX_ENABLED
+#endif
 
 #ifdef PARALLAX_ENABLED
     #ifdef PARALLAX_SMOOTH

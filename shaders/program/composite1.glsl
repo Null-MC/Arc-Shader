@@ -1,115 +1,113 @@
 #extension GL_ARB_texture_query_levels : enable
 
 #define RENDER_COMPOSITE
-//#define RENDER_COMPOSITE_PREV_FRAME
+//#define RENDER_COMPOSITE_BLOOM_DOWNSCALE
 
 #ifdef RENDER_VERTEX
     out vec2 texcoord;
+    flat out int tileCount;
 
-    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-        flat out float eyeLum;
+    uniform sampler2D BUFFER_HDR;
 
-        uniform int heldBlockLightValue;
-        uniform ivec2 eyeBrightness;
-
-        uniform float rainStrength;
-        uniform vec3 sunPosition;
-        uniform vec3 moonPosition;
-        uniform vec3 upPosition;
-        uniform int moonPhase;
-
-        uniform vec3 skyColor;
-        uniform vec3 fogColor;
-
-        #include "/lib/lighting/blackbody.glsl"
-        #include "/lib/world/sky.glsl"
-
-        float GetEyeBrightnessLuminance() {
-            vec2 eyeBrightnessLinear = eyeBrightness / 240.0;
-
-            vec2 skyLightLevels = GetSkyLightLevels();
-            float sunLightLux = GetSunLightLevel(skyLightLevels.x) * SunLux;
-            float moonLightLux = GetMoonLightLevel(skyLightLevels.y) * MoonLux;
-            float skyLightBrightness = pow(eyeBrightnessLinear.y, 5.0) * (sunLightLux + moonLightLux);
-
-            float blockLightBrightness = eyeBrightnessLinear.x;
-
-            #ifdef HANDLIGHT_ENABLED
-                blockLightBrightness = max(blockLightBrightness, heldBlockLightValue * 0.0625);
-            #endif
-
-            blockLightBrightness = pow(blockLightBrightness, 5.0) * BlockLightLux;
-
-            return 0.1 * max(blockLightBrightness, skyLightBrightness);
-        }
-    #endif
+    #include "/lib/camera/bloom.glsl"
 
 
     void main() {
         gl_Position = ftransform();
         texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
-        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-            eyeLum = GetEyeBrightnessLuminance();
-        #endif
+        tileCount = GetBloomTileCount();
     }
 #endif
 
 #ifdef RENDER_FRAG
     in vec2 texcoord;
-
-    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-        flat in float eyeLum;
-    #endif
+    flat in int tileCount;
 
     uniform sampler2D BUFFER_HDR;
+    uniform sampler2D depthtex0;
 
-    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-        uniform sampler2D BUFFER_LUMINANCE;
-    #endif
-
-    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-        uniform sampler2D BUFFER_HDR_PREVIOUS;
-    #endif
-    
     uniform float viewWidth;
     uniform float viewHeight;
-    uniform float frameTime;
 
-    /* RENDERTARGETS: 5 */
-    out vec4 outColor0;
+    #include "/lib/camera/bloom.glsl"
 
+    /* RENDERTARGETS: 7 */
+    out vec3 outColor0;
+
+
+    int GetBloomTileOuterIndex(const in int tileCount) {
+        vec2 tileMin, tileMax;
+        for (int i = 0; i < tileCount; i++) {
+            GetBloomTileOuterBounds(i, tileMin, tileMax);
+
+            if (texcoord.x > tileMin.x && texcoord.x <= tileMax.x
+             && texcoord.y > tileMin.y && texcoord.y <= tileMax.y) return i;
+        }
+
+        return -1;
+    }
 
     void main() {
-        vec3 color = textureLod(BUFFER_HDR, texcoord, 0).rgb;
-        float lum = 0.0;
+        int tile = GetBloomTileOuterIndex(tileCount);
 
-        #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-            #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-                lum = eyeLum;
-            #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-                lum = textureLod(BUFFER_LUMINANCE, texcoord, 0).r;
-                lum = max(exp2(lum) - EPSILON, 0.0);
-            #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_HISTOGRAM
-                lum = 0.0;
+        vec3 final = vec3(0.0);
+        if (tile >= 0) {
+            vec2 viewSize = vec2(viewWidth, viewHeight);
+            vec2 pixelSize = 1.0 / viewSize;
+
+            vec2 tileMin, tileMax;
+            GetBloomTileInnerBounds(tile, tileMin, tileMax);
+
+            //vec4 clipPos = vec4(texcoord, 0.0, 1.0);
+
+            //ivec2 itex = ivec2(texcoord * viewSize);
+            //float clipDepth = texelFetch(depthtex0, itex, 0).r;
+            //float depthLinear = linearizeDepth(clipDepth * 2.0 - 1.0, near, far);
+            //float depthFactor = clamp(1.0 - (depthLinear - near) / far, 0.0, 1.0);
+            //clipPos = clipPos * 2.0 - 1.0;
+
+            //vec4 viewPos = gbufferProjectionInverse * clipPos;
+            //viewPos.xyz /= viewPos.w;
+
+            vec2 tileSize = tileMax - tileMin;
+            vec2 tileTex = (texcoord - tileMin) / tileSize;
+            //tileTex = clamp(tileTex, 0.5 * pixelSize, 1.0 - 0.5 * pixelSize);
+
+            #ifdef BLOOM_SMOOTH
+                vec2 tilePixelSize = pixelSize * exp2(tile);
+
+                vec2 uv1 = tileTex + vec2(-0.5, -0.5) * tilePixelSize;
+                vec2 uv2 = tileTex + vec2( 0.5, -0.5) * tilePixelSize;
+                vec2 uv3 = tileTex + vec2(-0.5,  0.5) * tilePixelSize;
+                vec2 uv4 = tileTex + vec2( 0.5,  0.5) * tilePixelSize;
+
+                vec3 sample1 = textureLod(BUFFER_HDR, uv1, tile).rgb;
+                vec3 sample2 = textureLod(BUFFER_HDR, uv2, tile).rgb;
+                vec3 sample3 = textureLod(BUFFER_HDR, uv3, tile).rgb;
+                vec3 sample4 = textureLod(BUFFER_HDR, uv4, tile).rgb;
+                
+                final = (sample1 + sample2 + sample3 + sample4) * 0.25;
+            #else
+                final = textureLod(BUFFER_HDR, tileTex, tile).rgb;
             #endif
 
-            ivec2 iuv = ivec2(texcoord * 0.5 * vec2(viewWidth, viewHeight));
-            float lumPrev = texelFetch(BUFFER_HDR_PREVIOUS, iuv, 0).a;
-            lumPrev = max(exp2(lumPrev) - EPSILON, 0.0);
+            // WARN: this is a hacky fix for the NaN's that are coming through
+            final = clamp(final, vec3(0.0), vec3(10.0));
 
-            lum = clamp(lum, 0.0, 1.0e6);
-            lumPrev = clamp(lumPrev, 0.0, 1.0e6);
+            //final *= (0.5 + 0.5 * depthFactor);
 
-            float dir = step(lumPrev, lum);
-            float speed = (1.0 - dir) * EXPOSURE_SPEED_DOWN + dir * EXPOSURE_SPEED_UP;
-            float timeF = exp(-frameTime * TAU * speed);
+            float lum = luminance(final);// / exposure;
 
-            lum = lumPrev + (lum - lumPrev) * clamp(1.0 - timeF, EPSILON, 1.0);
-            //lum = clamp(lum, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
-            lum = log2(lum + EPSILON);
-        #endif
+            //lum /= clamp(exp2(5.0 + 0.2 * tile), 0.001, 1000);
+            //float lum = luminance(final);
 
-        outColor0 = vec4(color, lum);
+            float lumNew = (lum * BLOOM_SCALE) / exp2(BLOOM_POWER + tile);
+            final *= (lumNew / max(lum, EPSILON));
+
+            final = final / (final + 1.0);
+        }
+
+        outColor0 = final;
     }
 #endif

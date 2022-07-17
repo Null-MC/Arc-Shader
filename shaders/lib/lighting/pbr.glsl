@@ -11,6 +11,10 @@
  
             localCoord = sign(coordNMid) * 0.5 + 0.5;
         #endif
+
+        #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && (defined RENDER_TERRAIN || defined RENDER_WATER)
+            ApplyHardCodedMaterials();
+        #endif
     }
 #endif
 

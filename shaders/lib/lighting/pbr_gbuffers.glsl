@@ -16,7 +16,7 @@
             if (viewDist < PARALLAX_DISTANCE)
                 atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, viewDist, texDepth, traceCoordDepth);
         #endif
-        
+            
         #ifdef AF_ENABLED
             colorMap = textureAnisotropic(gtexture, atlasCoord, dFdXY);
         #else
@@ -35,47 +35,58 @@
             colorMap.rgb = mix(colorMap.rgb, entityColor.rgb, entityColor.a);
         #endif
 
-        #ifdef PARALLAX_SMOOTH_NORMALS
-            ////normalMap.rgb = TexelFetchLinearRGB(normals, atlasCoord * atlasSize);
-            //normalMap.rgb = TextureGradLinearRGB(normals, atlasCoord, atlasSize, dFdXY);
+        #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
+            #ifdef PARALLAX_SMOOTH_NORMALS
+                ////normalMap.rgb = TexelFetchLinearRGB(normals, atlasCoord * atlasSize);
+                //normalMap.rgb = TextureGradLinearRGB(normals, atlasCoord, atlasSize, dFdXY);
 
-            vec2 uv[4];
-            //vec2 localCoord = GetLocalCoord(atlasCoord);
-            //vec2 atlasTileSize = atlasBounds[1] * atlasSize;
-            vec2 f = GetLinearCoords(atlasCoord, atlasSize, uv);
+                vec2 uv[4];
+                //vec2 localCoord = GetLocalCoord(atlasCoord);
+                //vec2 atlasTileSize = atlasBounds[1] * atlasSize;
+                vec2 f = GetLinearCoords(atlasCoord, atlasSize, uv);
 
-            uv[0] = GetAtlasCoord(GetLocalCoord(uv[0]));
-            uv[1] = GetAtlasCoord(GetLocalCoord(uv[1]));
-            uv[2] = GetAtlasCoord(GetLocalCoord(uv[2]));
-            uv[3] = GetAtlasCoord(GetLocalCoord(uv[3]));
+                uv[0] = GetAtlasCoord(GetLocalCoord(uv[0]));
+                uv[1] = GetAtlasCoord(GetLocalCoord(uv[1]));
+                uv[2] = GetAtlasCoord(GetLocalCoord(uv[2]));
+                uv[3] = GetAtlasCoord(GetLocalCoord(uv[3]));
 
-            ivec2 iuv[4];
-            iuv[0] = ivec2(uv[0] * atlasSize);
-            iuv[1] = ivec2(uv[1] * atlasSize);
-            iuv[2] = ivec2(uv[2] * atlasSize);
-            iuv[3] = ivec2(uv[3] * atlasSize);
+                ivec2 iuv[4];
+                iuv[0] = ivec2(uv[0] * atlasSize);
+                iuv[1] = ivec2(uv[1] * atlasSize);
+                iuv[2] = ivec2(uv[2] * atlasSize);
+                iuv[3] = ivec2(uv[3] * atlasSize);
 
-            //normalMap.rgb = TextureGradLinearRGB(normals, uv, dFdXY, f);
-            normalMap.rgb = TexelFetchLinearRGB(normals, iuv, 0, f);
+                //normalMap.rgb = TextureGradLinearRGB(normals, uv, dFdXY, f);
+                normalMap.rgb = TexelFetchLinearRGB(normals, iuv, 0, f);
+            #else
+                normalMap.rgb = textureGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).rgb;
+            #endif
+
+            normalMap.a = 0.0;
+
+            specularMap = textureGrad(specular, atlasCoord, dFdXY[0], dFdXY[1]);
+
+            vec3 normal = RestoreNormalZ(normalMap.xy);
+
+            #ifdef PARALLAX_SLOPE_NORMALS
+                float dO = max(texDepth - traceCoordDepth.z, 0.0);
+                if (dO >= 0.95 / 255.0) {
+                    #ifdef PARALLAX_USE_TEXELFETCH
+                        normal = GetParallaxSlopeNormal(atlasCoord, traceCoordDepth.z, tanViewDir);
+                    #else
+                        normal = GetParallaxSlopeNormal(atlasCoord, dFdXY, traceCoordDepth.z, tanViewDir);
+                    #endif
+                }
+            #endif
         #else
-            normalMap.rgb = textureGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).rgb;
-        #endif
+            vec3 normal = vec3(0.0, 0.0, 1.0);
 
-        normalMap.a = 0.0;
-
-        specularMap = textureGrad(specular, atlasCoord, dFdXY[0], dFdXY[1]);
-
-        vec3 normal = RestoreNormalZ(normalMap.xy);
-
-        #ifdef PARALLAX_SLOPE_NORMALS
-            float dO = max(texDepth - traceCoordDepth.z, 0.0);
-            if (dO >= 0.95 / 255.0) {
-                #ifdef PARALLAX_USE_TEXELFETCH
-                    normal = GetParallaxSlopeNormal(atlasCoord, traceCoordDepth.z, tanViewDir);
-                #else
-                    normal = GetParallaxSlopeNormal(atlasCoord, dFdXY, traceCoordDepth.z, tanViewDir);
-                #endif
-            }
+            #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined RENDER_TERRAIN
+                float sss = (0.25 + 0.75 * matSSS) * step(EPSILON, matSSS);
+                specularMap = vec4(matSmooth, matMetal, sss, 0.0);
+            #else
+                specularMap = vec4(0.08, 0.04, 0.0, 0.0);
+            #endif
         #endif
 
         const float minSkylightThreshold = 1.0 / 32.0 + EPSILON;
@@ -145,7 +156,7 @@
         #endif
         
         vec2 lm = lmcoord;
-        #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
+        #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
             vec3 texViewNormal = normalize(normal.xyz * matTBN);
             ApplyDirectionalLightmap(lm.x, texViewNormal);
         #endif

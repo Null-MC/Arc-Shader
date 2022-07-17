@@ -193,7 +193,7 @@
         #include "/lib/lighting/directional.glsl"
     #endif
 
-    #include "/lib/lighting/material_reader.glsl"
+    #include "/lib/material/material_reader.glsl"
     #include "/lib/lighting/basic_gbuffers.glsl"
     #include "/lib/lighting/pbr_gbuffers.glsl"
 

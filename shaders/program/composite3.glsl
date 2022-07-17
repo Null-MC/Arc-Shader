@@ -2,7 +2,7 @@
 
 #define RENDER_COMPOSITE
 #define RENDER_COMPOSITE_BLOOM_BLUR
-//#define RENDER_COMPOSITE_BLOOM_BLUR_H
+//#define RENDER_COMPOSITE_BLOOM_BLUR_V
 
 #ifdef RENDER_VERTEX
     out vec2 texcoord;
@@ -32,7 +32,7 @@
 
     #include "/lib/camera/bloom.glsl"
 
-    const vec2 direction = vec2(1.0, 0.0);
+    const vec2 direction = vec2(0.0, 1.0);
 
     /* RENDERTARGETS: 7 */
     out vec3 outColor0;

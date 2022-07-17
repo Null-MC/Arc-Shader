@@ -147,10 +147,10 @@
 
     #include "/lib/world/sky.glsl"
     #include "/lib/world/fog.glsl"
+    #include "/lib/material/hcm.glsl"
+    #include "/lib/material/material.glsl"
+    #include "/lib/material/material_reader.glsl"
     #include "/lib/lighting/basic.glsl"
-    #include "/lib/lighting/material.glsl"
-    #include "/lib/lighting/material_reader.glsl"
-    #include "/lib/lighting/hcm.glsl"
     #include "/lib/lighting/pbr.glsl"
 
     #if REFLECTION_MODE == REFLECTION_MODE_SCREEN

@@ -17,6 +17,12 @@ const float shadowDistanceRenderMul = 1.0;
     out vec2 texcoord;
     out vec4 glcolor;
 
+    #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
+        flat out float matSmooth;
+        flat out float matMetal;
+        flat out float matSSS;
+    #endif
+
     #ifdef SSS_ENABLED
         out vec3 viewPosTan;
     #endif
@@ -70,6 +76,10 @@ const float shadowDistanceRenderMul = 1.0;
         #include "/lib/shadows/csm.glsl"
     #elif SHADOW_TYPE != 0
         #include "/lib/shadows/basic.glsl"
+    #endif
+
+    #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
+        #include "/lib/material/default.glsl"
     #endif
 
 
@@ -160,6 +170,10 @@ const float shadowDistanceRenderMul = 1.0;
             #ifdef SSS_ENABLED
                 viewPosTan = matViewTBN * viewPos.xyz;
             #endif
+
+            #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+                ApplyHardCodedMaterials();
+            #endif
         #endif
     }
 #endif
@@ -168,6 +182,12 @@ const float shadowDistanceRenderMul = 1.0;
     in vec2 lmcoord;
     in vec2 texcoord;
     in vec4 glcolor;
+
+    #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
+        flat in float matSmooth;
+        flat in float matMetal;
+        flat in float matSSS;
+    #endif
 
     #ifdef SSS_ENABLED
         in vec3 viewPosTan;
@@ -198,9 +218,9 @@ const float shadowDistanceRenderMul = 1.0;
         uniform sampler2D specular;
     #endif
 
-    #include "/lib/lighting/hcm.glsl"
-    #include "/lib/lighting/material.glsl"
-    #include "/lib/lighting/material_reader.glsl"
+    #include "/lib/material/hcm.glsl"
+    #include "/lib/material/material.glsl"
+    #include "/lib/material/material_reader.glsl"
 
     /* RENDERTARGETS: 0 */
     #if defined SSS_ENABLED || defined RSM_ENABLED
@@ -251,7 +271,11 @@ const float shadowDistanceRenderMul = 1.0;
             float specularMapB = textureGrad(specular, texcoord, dFdXY[0], dFdXY[1]).b;
             vec3 viewDirT = normalize(viewPosTan);
 
-            sss = GetLabPbr_SSS(specularMapB) * abs(viewDirT.z);
+            #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+                sss = matSSS * abs(viewDirT.z);
+            #else
+                sss = GetLabPbr_SSS(specularMapB) * abs(viewDirT.z);
+            #endif
 
             //if (sss > EPSILON) {
             //    vec3 viewDirT = -normalize(viewPosTan);

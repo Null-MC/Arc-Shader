@@ -9,5 +9,6 @@ colortex6	R16F	Log Luminance
 colortex7	RGB16F	bloom tiles
 colortex8	RGB16F	RSM color
 colortex9	R16F	RSM depth
+colortex11	RG16F	Water Waves
 
 colortex10	n/a		BRDF LUT
