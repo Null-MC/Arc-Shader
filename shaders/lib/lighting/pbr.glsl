@@ -254,6 +254,8 @@
             }
         #endif
 
+        //return vec4(reflectColor, 0.9);
+
         #if defined RSM_ENABLED && defined RENDER_DEFERRED
             vec2 viewSize = vec2(viewWidth, viewHeight);
 
@@ -292,12 +294,12 @@
                 vec2 envBRDF = texture(BUFFER_BRDF_LUT, vec2(NoVm, material.smoothness)).rg;
                 envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
 
-                vec3 iblSpec = skyLight3 * reflectColor * specularTint * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
+                vec3 iblSpec = skyLight * reflectColor * specularTint * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
                 specular += max(iblSpec, vec3(0.0));
 
-                //return vec4(envBRDF * 500.0, 0.0, 1.0);
+                //return vec4(iblSpec, 1.0);
 
-                float iblFavg = clamp((iblF.x + iblF.y + iblF.z) / 3.0, 0.0, 1.0);
+                float iblFavg = saturate((iblF.x + iblF.y + iblF.z) / 3.0);
                 final.a = min(final.a + iblFavg, 1.0);
 
                 specFmax = max(specFmax, iblF);
@@ -407,6 +409,7 @@
             final.rgb += volLight;
         #endif
 
+        //final.a = 0.9;
         return final;
     }
 #endif

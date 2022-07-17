@@ -61,6 +61,7 @@
                 material.smoothness = 0.96;
                 material.normal = vec3(0.0, 0.0, 1.0);
                 material.occlusion = 1.0;
+                material.albedo.a = 0.06;
             }
         #endif
 
@@ -122,7 +123,7 @@
             ApplyDirectionalLightmap(lm.x, material.normal);
         #endif
 
-        lm = vec2(0.0);
+        //lm = vec2(0.0);
 
         return PbrLighting2(material, lm, shadow, shadowSSS, viewPos.xyz);
     }
