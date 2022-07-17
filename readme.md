@@ -2,6 +2,8 @@
 
 Attempts to provide high-quality lighting while focusing on performance and configurability.
 
+[Download Latest](https://github.com/null511/MC-Arc-Shader/archive/refs/heads/main.zip)
+
 # Settings
 
 - [World](World-Settings)
