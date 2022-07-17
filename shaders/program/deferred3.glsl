@@ -114,15 +114,20 @@
 	void main() {
         const float rsm_scale = 1.0 / exp2(RSM_SCALE);
 
-        ivec2 itexFull = ivec2(texcoord * vec2(viewWidth, viewHeight));
+        vec2 viewSize = vec2(viewWidth, viewHeight);
+        ivec2 itexFull = ivec2(texcoord * viewSize);
         float clipDepth = texelFetch(depthtex0, itexFull, 0).r;
 
         vec3 final = vec3(0.0);
         if (clipDepth < 1.0) {
-            //vec2 normalTex = texelFetch(BUFFER_NORMAL, itexFull, 0).rg;
             uvec2 deferredNormalLightingData = texelFetch(BUFFER_DEFERRED, itexFull, 0).ga;
 
             vec2 texLow = texcoord * rsm_scale;
+
+            #ifndef IS_OPTIFINE
+                texLow *= rsm_scale;
+            #endif
+
             //ivec2 itexLow = ivec2(texLow * vec2(viewWidth, viewHeight));
             vec4 rsmDepths = textureGather(BUFFER_RSM_DEPTH, texLow, 0);
             float rsmDepthMin = min(min(rsmDepths.x, rsmDepths.y), min(rsmDepths.z, rsmDepths.w));

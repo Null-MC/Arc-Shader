@@ -34,7 +34,52 @@ option.DIRECTIONAL_LIGHTMAP_STRENGTH.comment=Controls the strength of Directiona
 suffix.DIRECTIONAL_LIGHTMAP_STRENGTH=%
 
 option.HANDLIGHT_ENABLED=Hand Light
-option.HANDLIGHT_ENABLED.comment=Hand-held items will use the shaders lighting instead of the vanilla block-light level.
+option.HANDLIGHT_ENABLED.comment=Hand-held items will use the shader for lighting instead of the vanilla block-light level.
+
+
+screen.MATERIAL_OPTIONS=Materials
+screen.MATERIAL_OPTIONS.comment=Options for PBR materials.
+
+option.MATERIAL_FORMAT=Format
+option.MATERIAL_FORMAT.comment=Specifies the format of the currently loaded resource packs.
+value.MATERIAL_FORMAT.0=Default
+value.MATERIAL_FORMAT.1=Lab PBR
+value.MATERIAL_FORMAT.2=Old PBR
+value.MATERIAL_FORMAT.3=Patrix PBR
+
+option.SSS_ENABLED=Subsurface Scattering
+option.SSS_ENABLED.comment=When enabled, surfaces with SSS will allow light to scatter through.
+
+option.REFLECTION_MODE=Reflections
+value.REFLECTION_MODE.0=None
+value.REFLECTION_MODE.1=Sky Only
+value.REFLECTION_MODE.2=Screen-Space
+
+screen.MATERIAL_PARALLAX_OPTIONS=Parallax
+screen.MATERIAL_PARALLAX_OPTIONS.comment=Options for Parallax Occlusion Mapping (POM).
+
+option.PARALLAX_ENABLED=Enabled
+
+option.PARALLAX_SMOOTH=Smooth
+option.PARALLAX_SMOOTH.comment=When enabled, the displacement will be linearly filtered for a smooth surface.
+
+option.PARALLAX_SMOOTH_NORMALS=Smooth Normals
+option.PARALLAX_SMOOTH_NORMALS.comment=When enabled, the normals will be linearly filtered for a smooth angle.
+
+option.PARALLAX_SHADOWS_ENABLED=Shadows
+option.PARALLAX_SHADOWS_ENABLED.comment=When enabled, displaced pixels will cast shadows.
+
+option.PARALLAX_SLOPE_NORMALS=Slope Normals
+option.PARALLAX_SLOPE_NORMALS.comment=When enabled, the vertical walls between pixels will be given proper normals.
+
+option.PARALLAX_DEPTH=Depth
+option.PARALLAX_DEPTH.comment=The maximum amount of displacement.
+
+option.PARALLAX_SAMPLES=Samples
+option.PARALLAX_SAMPLES.comment=The maximum number of depth samples to trace when locating the displaced surface.
+
+option.PARALLAX_SHADOW_SAMPLES=Shadow Samples
+option.PARALLAX_SHADOW_SAMPLES.comment=The maximum number of depth samples to trace when determining shadowing for displaced surfaces.
 
 
 screen.ATMOSPHERE_OPTIONS=Atmosphere
@@ -137,50 +182,6 @@ option.SHADOW_PCF_SAMPLES.comment=The number of samples to use when blurring.
 
 option.SHADOW_ENABLE_HWCOMP=HW-Accelerated
 option.SHADOW_ENABLE_HWCOMP.comment=When enabled, shadows will leverage hardware-filtering for better quality and performance. NOTE: May only work on NVidia!
-
-
-screen.MATERIAL_OPTIONS=Materials
-screen.MATERIAL_OPTIONS.comment=Options for PBR materials.
-
-option.MATERIAL_FORMAT=Format
-value.MATERIAL_FORMAT.0=Default
-value.MATERIAL_FORMAT.1=Lab PBR
-value.MATERIAL_FORMAT.2=Old PBR
-value.MATERIAL_FORMAT.3=Patrix PBR
-
-option.SSS_ENABLED=Subsurface Scattering
-option.SSS_ENABLED.comment=When enabled, surfaces with SSS will allow light to scatter through.
-
-option.REFLECTION_MODE=Reflections
-value.REFLECTION_MODE.0=None
-value.REFLECTION_MODE.1=Sky Only
-value.REFLECTION_MODE.2=Screen-Space
-
-screen.MATERIAL_PARALLAX_OPTIONS=Parallax
-screen.MATERIAL_PARALLAX_OPTIONS.comment=Options for Parallax Occlusion Mapping (POM).
-
-option.PARALLAX_ENABLED=Enabled
-
-option.PARALLAX_SMOOTH=Smooth
-option.PARALLAX_SMOOTH.comment=When enabled, the displacement will be linearly filtered for a smooth surface.
-
-option.PARALLAX_SMOOTH_NORMALS=Smooth Normals
-option.PARALLAX_SMOOTH_NORMALS.comment=When enabled, the normals will be linearly filtered for a smooth angle.
-
-option.PARALLAX_SHADOWS_ENABLED=Shadows
-option.PARALLAX_SHADOWS_ENABLED.comment=When enabled, displaced pixels will cast shadows.
-
-option.PARALLAX_SLOPE_NORMALS=Slope Normals
-option.PARALLAX_SLOPE_NORMALS.comment=When enabled, the vertical walls between pixels will be given proper normals.
-
-option.PARALLAX_DEPTH=Depth
-option.PARALLAX_DEPTH.comment=The maximum amount of displacement.
-
-option.PARALLAX_SAMPLES=Samples
-option.PARALLAX_SAMPLES.comment=The maximum number of depth samples to trace when locating the displaced surface.
-
-option.PARALLAX_SHADOW_SAMPLES=Shadow Samples
-option.PARALLAX_SHADOW_SAMPLES.comment=The maximum number of depth samples to trace when determining shadowing for displaced surfaces.
 
 
 screen.CAMERA_OPTIONS=Camera

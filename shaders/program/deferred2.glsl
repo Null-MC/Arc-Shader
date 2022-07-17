@@ -155,7 +155,9 @@
 
 
 	void main() {
-        ivec2 itex = ivec2(texcoord * vec2(viewWidth, viewHeight));
+        vec2 viewSize = vec2(viewWidth, viewHeight);
+
+        ivec2 itex = ivec2(texcoord * viewSize);
         float clipDepth = texelFetch(depthtex0, itex, 0).r;
 
         vec3 color = vec3(0.0);
