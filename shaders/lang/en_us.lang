@@ -105,10 +105,10 @@ value.SHADOW_TYPE.1=Basic
 value.SHADOW_TYPE.2=Distorted
 value.SHADOW_TYPE.3=Cascaded
 
-option.shadowMapResolution=Shadow Resolution
+option.shadowMapResolution=Resolution
 option.shadowMapResolution.comment=Resolution of the shadow map. Higher numbers mean more accurate shadows.
 
-option.shadowDistance=Shadow Distance
+option.shadowDistance=Distance
 option.shadowDistance.comment=How far away shadows will be rendered.
 
 option.SHADOW_FILTER=Filtering

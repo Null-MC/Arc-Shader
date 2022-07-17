@@ -256,7 +256,7 @@
         #elif DEBUG_VIEW == DEBUG_VIEW_LUMINANCE
             // Luminance
             float logLum = textureLod(BUFFER_LUMINANCE, texcoord, 0).r;
-            color = vec3(exp2(logLum) - EPSILON) * 1e-6;
+            color = vec3(exp2(logLum) - EPSILON) * 1e-4;
 
             #if defined DEBUG_EXPOSURE_METERS && CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
                 RenderLuminanceMeters(color, averageLuminance, EV100);

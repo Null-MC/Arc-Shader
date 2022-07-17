@@ -363,11 +363,11 @@
 
         float emissive = material.emission*material.emission * EmissionLumens;
 
-        #ifdef RENDER_WATER
-            //ambient = vec3(0.0);
-            diffuse = vec3(0.0);
-            specular = vec3(0.0);
-        #endif
+        // #ifdef RENDER_WATER
+        //     //ambient = vec3(0.0);
+        //     diffuse = vec3(0.0);
+        //     specular = vec3(0.0);
+        // #endif
 
         final.rgb = final.rgb * (ambient * material.occlusion + emissive) + diffuse + specular;
 
