@@ -75,9 +75,6 @@
     uniform vec3 skyColor;
     uniform int moonPhase;
 
-    #include "/lib/lighting/blackbody.glsl"
-    #include "/lib/world/sky.glsl"
-
     #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FANCY
         uniform mat4 gbufferModelViewInverse;
         uniform float eyeAltitude;
@@ -85,8 +82,11 @@
 
         #include "/lib/world/atmosphere.glsl"
     #else
-        #include "/lib/lighting/scattering.glsl"
+        #include "/lib/world/scattering.glsl"
     #endif
+
+    #include "/lib/lighting/blackbody.glsl"
+    #include "/lib/world/sky.glsl"
 
     /* RENDERTARGETS: 4,6 */
     out vec3 outColor0;
@@ -138,17 +138,7 @@
         #else
             vec3 viewDir = normalize(viewPos.xyz);
             color += GetVanillaSkyLuminance(viewDir);
-
-            float G_scattering = mix(G_SCATTERING_CLEAR, G_SCATTERING_RAIN, rainStrength);
-
-            float sun_VoL = dot(viewDir, sunDir);
-            float sunScattering = ComputeVolumetricScattering(sun_VoL, G_scattering);
-            color += sunScattering * sunColor;
-
-            vec3 moonDir = normalize(moonPosition);
-            float moon_VoL = dot(viewDir, moonDir);
-            float moonScattering = ComputeVolumetricScattering(moon_VoL, G_scattering);
-            color += moonScattering * moonColor;
+            color += GetVanillaSkyScattering(viewDir, sunColor, moonColor);
         #endif
 
         #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP

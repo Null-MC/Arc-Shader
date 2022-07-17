@@ -247,7 +247,7 @@
         #endif
     #endif
 
-    #include "/lib/lighting/scattering.glsl"
+    #include "/lib/world/scattering.glsl"
     #include "/lib/lighting/blackbody.glsl"
 
     #ifdef VL_ENABLED

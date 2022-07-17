@@ -20,9 +20,12 @@
         uniform ivec2 eyeBrightness;
     #endif
 
-    #ifdef SHADOW_ENABLED
+    #ifdef SKY_ENABLED
         flat out vec3 sunColor;
         flat out vec3 moonColor;
+    #endif
+
+    #ifdef SHADOW_ENABLED
         flat out vec3 skyLightColor;
     #endif
 
@@ -44,7 +47,7 @@
         gl_Position = ftransform();
         texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
-        #ifdef SHADOW_ENABLED
+        #ifdef SKY_ENABLED
             vec2 skyLightLevels = GetSkyLightLevels();
             vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
             sunColor = GetSunLightLux(skyLightTemps.x, skyLightLevels.x);
@@ -63,9 +66,12 @@
     flat in float exposure;
     flat in vec3 blockLightColor;
 
-    #ifdef SHADOW_ENABLED
+    #ifdef SKY_ENABLED
         flat in vec3 sunColor;
         flat in vec3 moonColor;
+    #endif
+
+    #ifdef SHADOW_ENABLED
         flat in vec3 skyLightColor;
     #endif
 
@@ -115,7 +121,7 @@
     #endif
 
     #include "/lib/sampling/linear.glsl"
-    #include "/lib/lighting/scattering.glsl"
+    #include "/lib/world/scattering.glsl"
     #include "/lib/lighting/blackbody.glsl"
 
     #ifdef VL_ENABLED

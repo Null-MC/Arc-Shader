@@ -254,6 +254,7 @@
                     reflectF *= 1.0 - pow(NoRm, 0.5);
 
                     reflectColor = GetVanillaSkyLux(reflectDir) * reflectF;
+                    reflectColor += GetVanillaSkyScattering(reflectDir, sunColor, moonColor) * reflectF;
                 #endif
             }
         #endif
@@ -299,7 +300,7 @@
                 envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
 
                 vec3 iblSpec = skyLight * reflectColor * specularTint * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
-                specular += max(iblSpec, vec3(0.0));
+                //specular += max(iblSpec, vec3(0.0));
 
                 //return vec4(iblSpec, 1.0);
 

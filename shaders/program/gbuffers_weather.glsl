@@ -195,7 +195,7 @@
     #endif
 
     #include "/lib/lighting/blackbody.glsl"
-    #include "/lib/lighting/scattering.glsl"
+    #include "/lib/world/scattering.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/fog.glsl"
     #include "/lib/lighting/basic.glsl"
