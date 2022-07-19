@@ -1,8 +1,10 @@
 #ifdef RENDER_VERTEX
     void PbrVertex(const in mat3 matViewTBN) {
-        #ifdef PARALLAX_ENABLED
+        //#if defined PARALLAX_ENABLED || defined WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
             tanViewPos = matViewTBN * viewPos;
+        //#endif
 
+        #ifdef PARALLAX_ENABLED
             vec2 coordMid = (gl_TextureMatrix[0] * mc_midTexCoord).xy;
             vec2 coordNMid = texcoord - coordMid;
 

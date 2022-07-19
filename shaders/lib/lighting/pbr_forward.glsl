@@ -28,6 +28,9 @@
         float waterDepth = 0.0;
         PbrMaterial material;
 
+        //#if defined PARALLAX_ENABLED || defined WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
+            vec3 tanViewDir = normalize(tanViewPos);
+        //#endif
 
         #ifdef RENDER_WATER
             if (materialId == 1) {
@@ -60,7 +63,7 @@
                         waterLocalPos.y > -0.5 && waterLocalPos.y < 0.5
                     ) {
                         float viewDist = length(viewPos);
-                        vec3 tanViewDir = normalize(tanViewPos);
+                        //vec3 tanViewDir = normalize(tanViewPos);
                         vec2 waterTex = waterLocalPos + 0.5;
 
                         if (viewDist < WATER_RADIUS) {
@@ -107,8 +110,6 @@
         #endif
 
             #ifdef PARALLAX_ENABLED
-                vec3 tanViewDir = normalize(tanViewPos);
-
                 float viewDist = length(viewPos);
                 if (viewDist < PARALLAX_DISTANCE)
                     atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, viewDist, texDepth, traceCoordDepth);

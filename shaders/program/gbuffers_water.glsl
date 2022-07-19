@@ -293,7 +293,7 @@
         #include "/lib/world/wind.glsl"
         #include "/lib/world/water.glsl"
 
-        #ifdef PARALLAX_ENABLED
+        #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
             #include "/lib/water_parallax.glsl"
         #endif
     #endif

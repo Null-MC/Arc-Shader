@@ -282,6 +282,7 @@ value.DEBUG_VIEW.12=RSM
 value.DEBUG_VIEW.13=Bloom
 value.DEBUG_VIEW.14=Previous Color
 value.DEBUG_VIEW.15=Previous Luminance
+value.DEBUG_VIEW.16=Water Waves
 
 option.DEBUG_EXPOSURE_METERS=Exposure Meters
 option.DEBUG_EXPOSURE_METERS.comment=When enabled, two bars will be shown on the left screen edge. - The average luminance is the first bar in red. - The EV value is the second bar in green.
