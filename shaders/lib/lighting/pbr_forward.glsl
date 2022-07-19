@@ -21,8 +21,13 @@
     }
 
     vec4 PbrLighting() {
-        PbrMaterial material;
+        mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
+        vec2 atlasCoord = texcoord;
+        vec3 traceCoordDepth = vec3(1.0);
+        float texDepth = 1.0;
         float waterDepth = 0.0;
+        PbrMaterial material;
+
 
         #ifdef RENDER_WATER
             if (materialId == 1) {
@@ -54,20 +59,16 @@
                         waterLocalPos.x > -0.5 && waterLocalPos.x < 0.5 &&
                         waterLocalPos.y > -0.5 && waterLocalPos.y < 0.5
                     ) {
+                        float viewDist = length(viewPos);
+                        vec3 tanViewDir = normalize(tanViewPos);
                         vec2 waterTex = waterLocalPos + 0.5;
 
-                            mat2 dFdXY = mat2(dFdx(waterLocalPos), dFdy(waterLocalPos));
+                        if (viewDist < WATER_RADIUS) {
+                            mat2 water_dFdXY = mat2(dFdx(waterLocalPos), dFdy(waterLocalPos));
+                            waterTex = GetWaterParallaxCoord(waterTex, water_dFdXY, tanViewDir, viewDist, waterDepth);
 
-                            float texDepth = 1.0;
-                            vec3 traceCoordDepth = vec3(1.0);
-                            vec3 tanViewDir = normalize(tanViewPos);
-
-                            float viewDist = length(viewPos);
-                            if (viewDist < WATER_RADIUS) {
-                                waterTex = GetWaterParallaxCoord(waterTex, dFdXY, tanViewDir, viewDist, waterDepth);
-
-                                // TODO: depth-write
-                            }
+                            // TODO: depth-write
+                        }
 
                         depth = texture(BUFFER_WATER_WAVES, waterTex).r;
                         depthX = textureOffset(BUFFER_WATER_WAVES, waterTex, ivec2(1, 0)).r;
@@ -105,12 +106,7 @@
             else {
         #endif
 
-            vec2 atlasCoord = texcoord;
-            mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
-
             #ifdef PARALLAX_ENABLED
-                float texDepth = 1.0;
-                vec3 traceCoordDepth = vec3(1.0);
                 vec3 tanViewDir = normalize(tanViewPos);
 
                 float viewDist = length(viewPos);
@@ -198,8 +194,16 @@
             shadow *= step(EPSILON, NoL);
 
             #ifdef PARALLAX_SHADOWS_ENABLED
-                if (shadow > EPSILON && traceCoordDepth.z + EPSILON < 1.0)
-                    shadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
+                #if defined RENDER_WATER && defined WATER_FANCY
+                    if (materialId != 1) {
+                #endif
+
+                    if (shadow > EPSILON && traceCoordDepth.z + EPSILON < 1.0)
+                        shadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
+
+                #if defined RENDER_WATER && defined WATER_FANCY
+                    }
+                #endif
             #endif
         #endif
 
