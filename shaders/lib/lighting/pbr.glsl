@@ -309,7 +309,7 @@
                 //return vec4(iblSpec, 1.0);
 
                 float iblFmax = max(max(iblF.x, iblF.y), iblF.z);
-                final.a = min(final.a + iblFmax, 1.0);
+                final.a += iblFmax * max(1.0 - final.a, 0.0);
 
                 specFmax = max(specFmax, iblF);
             #endif
