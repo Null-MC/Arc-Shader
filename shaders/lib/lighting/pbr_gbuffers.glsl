@@ -16,7 +16,7 @@
             if (viewDist < PARALLAX_DISTANCE)
                 atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, viewDist, texDepth, traceCoordDepth);
         #endif
-            
+        
         #ifdef AF_ENABLED
             colorMap = textureAnisotropic(gtexture, atlasCoord, dFdXY);
         #else

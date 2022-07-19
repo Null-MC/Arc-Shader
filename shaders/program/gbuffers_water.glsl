@@ -9,6 +9,7 @@
     out vec2 texcoord;
     out vec4 glcolor;
     out vec3 viewPos;
+    out vec3 localPos;
     out vec3 viewNormal;
     out float geoNoL;
     out mat3 matTBN;
@@ -110,10 +111,11 @@
         #endif
     #endif
 
-    #ifdef WATER_WAVES_ENABLED
+    #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
         uniform float frameTimeCounter;
 
-        #include "/lib/world/gerstner_waves.glsl"
+        #include "/lib/world/wind.glsl"
+        #include "/lib/world/water.glsl"
     #endif
 
     #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
@@ -139,6 +141,8 @@
         BasicVertex(matViewTBN);
         PbrVertex(matViewTBN);
 
+        localPos = gl_Vertex.xyz;
+
         vec2 skyLightLevels = GetSkyLightLevels();
         vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
         sunColor = GetSunLightLux(skyLightTemps.x, skyLightLevels.x);
@@ -156,6 +160,7 @@
     in vec2 texcoord;
     in vec4 glcolor;
     in vec3 viewPos;
+    in vec3 localPos;
     in vec3 viewNormal;
     in float geoNoL;
     in mat3 matTBN;
@@ -205,14 +210,18 @@
     uniform sampler2D normals;
     uniform sampler2D specular;
     uniform sampler2D lightmap;
+    uniform sampler2D depthtex1;
     uniform sampler2D colortex10;
 
     uniform mat4 shadowProjection;
+    uniform float viewWidth;
+    uniform float viewHeight;
+    uniform float near;
+
     uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
     uniform float rainStrength;
     uniform int moonPhase;
-    uniform float near;
 
     uniform vec3 skyColor;
     uniform vec3 fogColor;
@@ -220,10 +229,6 @@
     uniform float fogEnd;
     uniform int fogMode;
     uniform int fogShape;
-
-    #ifdef AF_ENABLED
-        uniform float viewHeight;
-    #endif
 
     #ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;
@@ -267,14 +272,29 @@
         #endif
     #endif
 
+    #include "/lib/depth.glsl"
+    #include "/lib/sampling/linear.glsl"
     #include "/lib/world/scattering.glsl"
     #include "/lib/lighting/blackbody.glsl"
 
-    #ifdef WATER_WAVES_ENABLED
+    #ifdef PARALLAX_ENABLED
+        uniform ivec2 atlasSize;
+
+        #include "/lib/parallax.glsl"
+    #endif
+
+    #ifdef WATER_FANCY
+        uniform sampler2D BUFFER_WATER_WAVES;
+
         uniform vec3 cameraPosition;
         uniform float frameTimeCounter;
 
-        #include "/lib/world/gerstner_waves.glsl"
+        #include "/lib/world/wind.glsl"
+        #include "/lib/world/water.glsl"
+
+        #ifdef PARALLAX_ENABLED
+            #include "/lib/water_parallax.glsl"
+        #endif
     #endif
 
     #ifdef VL_ENABLED
@@ -283,16 +303,6 @@
         //uniform mat4 shadowProjection;
 
         #include "/lib/lighting/volumetric.glsl"
-    #endif
-
-    #ifdef PARALLAX_ENABLED
-        uniform ivec2 atlasSize;
-
-        #ifdef PARALLAX_SMOOTH
-            #include "/lib/sampling/linear.glsl"
-        #endif
-
-        #include "/lib/parallax.glsl"
     #endif
 
     #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0

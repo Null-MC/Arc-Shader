@@ -27,6 +27,10 @@ const bool colortex8Clear = false;
 const int colortex9Format = R16F;
 const bool colortex9MipmapEnabled = false;
 const bool colortex9Clear = false;
+
+const int colortex11Format = R16F;
+const bool colortex11MipmapEnabled = false;
+const bool colortex11Clear = false;
 */
 
 
@@ -34,16 +38,30 @@ const bool colortex9Clear = false;
 #define ENABLE_WAVING
 #define HANDLIGHT_ENABLED
 #define VL_ENABLED
-#define WATER_TYPE 0 // [0 1]
-//#define WATER_WAVES_ENABLED
 #define BLOCKLIGHT_TEMP 3500 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 80 // [0 10 20 30 40 50 60 70 80 90 100]
 #define SHADOW_BRIGHTNESS 0.10 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define RAIN_DARKNESS 0.2
 //#define ANIM_USE_WORLDTIME
 
-#define WATER_TYPE_FAST 0
-#define WATER_TYPE_FANCY 1
+
+// Water Options
+#define WATER_FANCY
+#define WATER_REFRACTION
+#define WATER_WAVE_TYPE 0 // [0 1 2]
+#define WATER_SCALE 16.0
+#define WATER_RADIUS 32
+#define WATER_OCTAVES_NEAR 32
+#define WATER_OCTAVES_FAR 16
+#define WATER_OCTAVES_VERTEX 4
+#define WATER_PARALLAX_DEPTH 0.02
+#define WATER_PARALLAX_SAMPLES 32
+#define WATER_WAVE_DEPTH 1.0
+#define WATER_RESOLUTION 2048
+
+#define WATER_WAVE_NONE 0
+#define WATER_WAVE_VERTEX 1
+#define WATER_WAVE_PARALLAX 2
 
 
 // Atmosphere Options
@@ -149,7 +167,7 @@ const bool colortex9Clear = false;
 
 
 // Debug Options
-#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
 //#define DEBUG_EXPOSURE_METERS
 #define IS_OPTIFINE
 //#define IRIS_FEATURE_SEPARATE_HW_SAMPLERS
@@ -170,6 +188,7 @@ const bool colortex9Clear = false;
 #define DEBUG_VIEW_BLOOM 13
 #define DEBUG_VIEW_PREV_COLOR 14
 #define DEBUG_VIEW_PREV_LUMINANCE 15
+#define DEBUG_VIEW_WATER_WAVES 16
 
 
 // INTERNAL
@@ -179,11 +198,6 @@ const bool colortex9Clear = false;
 #define TAU 6.2831853076
 #define EPSILON 1e-7
 #define GAMMA 2.2
-
-// #define BUFFER_COLOR colortex0
-// #define BUFFER_NORMAL colortex1
-// #define BUFFER_SPECULAR colortex2
-// #define BUFFER_LIGHTING colortex3
 
 #define BUFFER_DEFERRED colortex2
 #define BUFFER_HDR colortex4
@@ -301,7 +315,7 @@ const float invPI = 1.0 / PI;
 #define pow4(x) (x*x*x*x)
 #define pow5(x) (x*x*x*x*x)
 #define saturate(x) clamp(x, 0.0, 1.0)
-#define rcp(x) (1.0 / x)
+#define rcp(x) (1.0 / (x))
 
 float RGBToLinear(const in float color) {
     return pow(color, GAMMA);

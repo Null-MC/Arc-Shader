@@ -15,17 +15,18 @@
 
     uniform vec3 cameraPosition;
     uniform float frameTimeCounter;
-    uniform float frameTime;
+    uniform float rainStrength;
 
-    #include "/lib/world/gerstner_waves.glsl"
+    #include "/lib/world/wind.glsl"
+    #include "/lib/world/water.glsl"
 
     /* RENDERTARGETS: 11 */
-    out vec3 outColor0;
-
+    out float outColor0;
 
     void main() {
-        // TODO
+        vec2 pos = WATER_SCALE * ((texcoord - 0.5) + rcp(2.0*WATER_RADIUS) * cameraPosition.xz);
+        float windSpeed = GetWindSpeed();
 
-        outColor0 = vec3(0.0);
+        outColor0 = GetWaves(pos, windSpeed, WATER_OCTAVES_NEAR);
     }
 #endif

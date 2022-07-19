@@ -1,6 +1,6 @@
-const vec4 Wave_1 = vec4(1.0, 0.0, 0.24, 0.4);
-const vec4 Wave_2 = vec4(0.0, 1.0, 0.12, 0.6);
-const vec4 Wave_3 = vec4(1.0, 1.0, 0.18, 0.5);
+const vec4 Wave_1 = vec4(1.0, 0.0, 0.24, 2.0);
+const vec4 Wave_2 = vec4(0.0, 1.0, 0.12, 2.0);
+const vec4 Wave_3 = vec4(1.0, 1.0, 0.18, 2.0);
 // const vec4 Wave_1 = vec4(1.0, 2.0, 0.120,  4.0);
 // const vec4 Wave_2 = vec4(0.7, 1.0, 0.080, 8.0);
 // const vec4 Wave_3 = vec4(1.0, 0.5, 0.050,  4.0);

@@ -37,6 +37,17 @@ option.HANDLIGHT_ENABLED=Hand Light
 option.HANDLIGHT_ENABLED.comment=Hand-held items will use the shader for lighting instead of the vanilla block-light level.
 
 
+screen.WATER_OPTIONS=Water
+
+option.WATER_FANCY=Fancy
+option.WATER_FANCY.comment=When disabled, the vanilla water texture will be used. When enabled, a realistic generated surface will be used.
+
+option.WATER_WAVE_TYPE=Waves
+value.WATER_WAVE_TYPE.0=None
+value.WATER_WAVE_TYPE.1=Vertex
+value.WATER_WAVE_TYPE.2=Parallax
+
+
 screen.MATERIAL_OPTIONS=Materials
 screen.MATERIAL_OPTIONS.comment=Options for PBR materials.
 

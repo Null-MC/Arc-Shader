@@ -4,6 +4,37 @@
 
         viewNormal = normalize(gl_NormalMatrix * gl_Normal);
 
+        #if defined RENDER_TERRAIN && defined ENABLE_WAVING
+            if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0)
+                pos += GetWavingOffset();
+        #endif
+
+        #if defined RENDER_WATER && WATER_WAVE_TYPE == WATER_WAVE_VERTEX
+            if (mc_Entity.x == 100.0) {
+                float windSpeed = GetWindSpeed();
+                
+                float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
+                vec2 waterWorldPos = waterWorldScale * (pos.xz + cameraPosition.xz);
+                float depth = GetWaves(waterWorldPos, windSpeed, WATER_OCTAVES_VERTEX);
+                pos.y -= (1.0 - depth) * WATER_WAVE_DEPTH;
+
+                #ifndef WATER_FANCY
+                    vec2 waterWorldPosX = waterWorldPos + vec2(waterWorldScale, 0.0);
+                    vec2 waterWorldPosY = waterWorldPos + vec2(0.0, waterWorldScale);
+
+                    //depth = texture(BUFFER_WATER_WAVES, waterTex).r;
+                    float depthX = GetWaves(waterWorldPosX, windSpeed, WATER_OCTAVES_VERTEX);
+                    float depthY = GetWaves(waterWorldPosY, windSpeed, WATER_OCTAVES_VERTEX);
+
+                    vec3 pX = vec3(1.0, 0.0, (depthX - depth) * WATER_WAVE_DEPTH);
+                    vec3 pY = vec3(0.0, 1.0, (depthY - depth) * WATER_WAVE_DEPTH);
+                    
+                    vec3 waterNormal = normalize(cross(pX, pY));
+                    viewNormal = normalize(gl_NormalMatrix * waterNormal.xzy);
+                #endif
+            }
+        #endif
+
         #if defined RENDER_TEXTURED || defined RENDER_WEATHER || defined RENDER_BEACONBEAM
             // TODO: extract billboard direction from view matrix?
 
@@ -27,21 +58,6 @@
             #else
                 geoNoL = 1.0;
             #endif
-        #endif
-
-        #if defined RENDER_TERRAIN && defined ENABLE_WAVING
-            if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0)
-                pos += GetWavingOffset();
-        #endif
-
-        #if defined RENDER_WATER && defined WATER_WAVES_ENABLED
-            if (mc_Entity.x == 100.0) {
-                vec3 normal;
-                ApplyGerstnerWaves(pos, normal);
-                //viewNormal = normal * viewTBN;
-                //vec2 waterTex = vec2(0.0);
-                //float offset = texture(BUFFER_WATER_WAVES, waterTex);
-            }
         #endif
 
         viewPos = (gl_ModelViewMatrix * vec4(pos, 1.0)).xyz;

@@ -107,6 +107,6 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
 void ApplyFog(inout vec4 color, const in vec3 viewPos, const in float skyLightLevel, const in float alphaTestRef) {
     float fogFactor = ApplyFog(color.rgb, viewPos, skyLightLevel);
 
-    if (color.a > alphaTestRef)
-        color.a = mix(color.a, 1.0, fogFactor);
+    //if (color.a > alphaTestRef)
+    //    color.a = mix(color.a, 1.0, fogFactor);
 }

@@ -3,18 +3,103 @@
 #endif
 
 #ifdef RENDER_FRAG
+    void ApplyVanillaProperties(inout PbrMaterial material, const in vec4 colorMap) {
+        material.albedo.rgb = RGBToLinear(colorMap.rgb);
+        material.albedo.a = colorMap.a;
+
+        material.normal = vec3(0.0, 0.0, 1.0);
+        material.occlusion = 1.0;
+
+        #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined RENDER_WATER
+            material.smoothness = matSmooth;
+            material.f0 = matMetal;
+            material.scattering = matSSS;
+        #else
+            material.smoothness = 0.08;
+            material.f0 = 0.04;
+        #endif
+    }
+
     vec4 PbrLighting() {
         PbrMaterial material;
-        #if defined RENDER_WATER && WATER_TYPE == WATER_TYPE_FANCY
+        float waterDepth = 0.0;
+
+        #ifdef RENDER_WATER
             if (materialId == 1) {
-                material.albedo = vec4(0.38, 0.68, 0.75, 0.06);
+                vec2 screenUV = gl_FragCoord.xy / vec2(viewWidth, viewHeight);
+                float solidViewDepth = textureLod(depthtex1, screenUV, 0).r;
+                float solidViewDepthLinear = linearizeDepthFast(solidViewDepth, near, far);
+                float waterViewDepthLinear = linearizeDepthFast(gl_FragCoord.z, near, far);
+                waterDepth = max(solidViewDepthLinear - waterViewDepthLinear, 0.0);
+            }
+        #endif
+
+        #if defined RENDER_WATER && defined WATER_FANCY
+            if (materialId == 1) {
+                material.albedo = vec4(vec3(0.038, 0.068, 0.075), 0.2);
                 material.normal = vec3(0.0, 0.0, 1.0);
                 material.occlusion = 1.0;
-                material.smoothness = 0.96;
+                material.smoothness = 0.98;
                 material.f0 = 0.02;
 
-                vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
-                ApplyGerstnerWaves(localPos, material.normal);
+                const float waterPixelSize = rcp(WATER_RESOLUTION);
+                float zScale = 20.0;
+
+                vec2 waterLocalPos = rcp(2.0*WATER_RADIUS) * localPos.xz;
+                float depth, depthX, depthY;
+
+                #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
+                    if (
+                        waterLocalPos.x > -0.5 && waterLocalPos.x < 0.5 &&
+                        waterLocalPos.y > -0.5 && waterLocalPos.y < 0.5
+                    ) {
+                        vec2 waterTex = waterLocalPos + 0.5;
+
+                            mat2 dFdXY = mat2(dFdx(waterLocalPos), dFdy(waterLocalPos));
+
+                            float texDepth = 1.0;
+                            vec3 traceCoordDepth = vec3(1.0);
+                            vec3 tanViewDir = normalize(tanViewPos);
+
+                            float viewDist = length(viewPos);
+                            if (viewDist < WATER_RADIUS) {
+                                waterTex = GetWaterParallaxCoord(waterTex, dFdXY, tanViewDir, viewDist, waterDepth);
+
+                                // TODO: depth-write
+                            }
+
+                        depth = texture(BUFFER_WATER_WAVES, waterTex).r;
+                        depthX = textureOffset(BUFFER_WATER_WAVES, waterTex, ivec2(1, 0)).r;
+                        depthY = textureOffset(BUFFER_WATER_WAVES, waterTex, ivec2(0, 1)).r;
+                    }
+                    else {
+                #endif
+
+                    vec2 waterWorldPos = WATER_SCALE * rcp(2.0*WATER_RADIUS) * (localPos.xz + cameraPosition.xz);
+
+                    vec2 waterWorldPosX = waterWorldPos + vec2(waterPixelSize, 0.0);
+                    vec2 waterWorldPosY = waterWorldPos + vec2(0.0, waterPixelSize);
+
+                    int octaves = WATER_OCTAVES_FAR;
+                    #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
+                        float viewDist = length(viewPos) - near;
+                        octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, saturate(viewDist / 200.0)));
+                    #endif
+
+                    float windSpeed = GetWindSpeed();
+                    depth = GetWaves(waterWorldPos, windSpeed, octaves);
+                    depthX = GetWaves(waterWorldPosX, windSpeed, octaves);
+                    depthY = GetWaves(waterWorldPosY, windSpeed, octaves);
+                    zScale *= WATER_SCALE;
+
+                #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
+                    }
+                #endif
+                
+                vec3 pX = vec3(1.0, 0.0, (depthX - depth) * zScale);
+                vec3 pY = vec3(0.0, 1.0, (depthY - depth) * zScale);
+                
+                material.normal = normalize(cross(pX, pY));
             }
             else {
         #endif
@@ -28,9 +113,8 @@
                 vec3 tanViewDir = normalize(tanViewPos);
 
                 float viewDist = length(viewPos);
-                if (viewDist < PARALLAX_DISTANCE) {
+                if (viewDist < PARALLAX_DISTANCE)
                     atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, viewDist, texDepth, traceCoordDepth);
-                }
             #endif
 
             vec4 colorMap = textureGrad(gtexture, atlasCoord, dFdXY[0], dFdXY[1]) * glcolor;
@@ -97,23 +181,10 @@
                     }
                 #endif
             #else
-                material.albedo.rgb = RGBToLinear(colorMap.rgb);
-                material.albedo.a = colorMap.a;
-
-                material.normal = vec3(0.0, 0.0, 1.0);
-                material.occlusion = 1.0;
-
-                #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined RENDER_WATER
-                    material.smoothness = matSmooth;
-                    material.f0 = matMetal;
-                    material.scattering = matSSS;
-                #else
-                    material.smoothness = 0.08;
-                    material.f0 = 0.04;
-                #endif
+                ApplyVanillaProperties(material, colorMap);
             #endif
 
-        #if defined RENDER_WATER && WATER_TYPE == WATER_TYPE_FANCY
+        #if defined RENDER_WATER && defined WATER_FANCY
             }
         #endif
         
@@ -166,6 +237,6 @@
 
         //lm = vec2(0.0);
 
-        return PbrLighting2(material, lm, shadow, shadowSSS, viewPos.xyz);
+        return PbrLighting2(material, lm, shadow, shadowSSS, viewPos.xyz, waterDepth);
     }
 #endif

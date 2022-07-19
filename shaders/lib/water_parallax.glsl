@@ -1,0 +1,31 @@
+vec2 GetWaterParallaxCoord(const in vec2 texcoord, const in mat2 dFdXY, const in vec3 tanViewDir, const in float viewDist, const in float waterDepth) {
+    float viewDistF = 1.0 - clamp(viewDist / WATER_RADIUS, 0.0, 1.0);
+    int maxSampleCount = int(min(viewDistF, 0.2*waterDepth) * WATER_PARALLAX_SAMPLES);
+    float maxDepth = viewDistF * WATER_PARALLAX_DEPTH;
+
+    vec2 stepCoord = tanViewDir.xy * maxDepth / (1.0 + tanViewDir.z * WATER_PARALLAX_SAMPLES);
+    float stepDepth = 1.0 / WATER_PARALLAX_SAMPLES;
+
+    float prevTexDepth;
+
+    int i;
+    float texDepth = 1.0;
+    float depthDist = 1.0;
+    for (i = 0; i < maxSampleCount && depthDist > EPSILON; i++) {
+        prevTexDepth = texDepth;
+        vec2 traceCoord = texcoord - i * stepCoord;
+        texDepth = textureGrad(BUFFER_WATER_WAVES, traceCoord, dFdXY[0], dFdXY[1]).r;
+        depthDist = 1.0 - i * stepDepth - texDepth;
+    }
+
+    i = max(i - 1, 0);
+    int pI = max(i - 1, 0);
+
+    vec2 currentTraceOffset = texcoord - i * stepCoord;
+    float currentTraceDepth = 1.0 - i * stepDepth;
+    vec2 prevTraceOffset = texcoord - pI * stepCoord;
+    float prevTraceDepth = 1.0 - pI * stepDepth;
+
+    float t = (prevTraceDepth - prevTexDepth) / max(texDepth - prevTexDepth + prevTraceDepth - currentTraceDepth, EPSILON);
+    return fract(mix(prevTraceOffset, currentTraceOffset, saturate(t)));
+}

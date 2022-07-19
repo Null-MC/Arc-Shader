@@ -187,9 +187,11 @@
         }
     #endif
 
-    vec4 PbrLighting2(const in PbrMaterial material, const in vec2 lmValue, const in float shadow, const in float shadowSSS, const in vec3 viewPos) {
+    vec4 PbrLighting2(const in PbrMaterial material, const in vec2 lmValue, const in float shadow, const in float shadowSSS, const in vec3 viewPos, const in float waterDepth) {
         vec3 viewNormal = normalize(material.normal);
         vec3 viewDir = -normalize(viewPos.xyz);
+
+        //return vec4((material.normal * 0.5 + 0.5) * 500.0, 1.0);
 
         #ifdef SHADOW_ENABLED
             vec3 viewLightDir = normalize(shadowLightPosition);
@@ -299,13 +301,15 @@
                 vec2 envBRDF = texture(BUFFER_BRDF_LUT, vec2(NoVm, material.smoothness)).rg;
                 envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
 
+                //return vec4(iblF * 500.0, 1.0);
+
                 vec3 iblSpec = skyLight * reflectColor * specularTint * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
-                //specular += max(iblSpec, vec3(0.0));
+                specular += max(iblSpec, vec3(0.0));
 
                 //return vec4(iblSpec, 1.0);
 
-                float iblFavg = saturate((iblF.x + iblF.y + iblF.z) / 3.0);
-                final.a = min(final.a + iblFavg, 1.0);
+                float iblFmax = max(max(iblF.x, iblF.y), iblF.z);
+                final.a = min(final.a + iblFmax, 1.0);
 
                 specFmax = max(specFmax, iblF);
             #endif
@@ -332,8 +336,45 @@
             #endif
 
             vec3 sunDiffuse = GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * diffuseLight;
-            diffuse += (1.0 - specFmax) * sunDiffuse;
+            diffuse += max(1.0 - specFmax, 0.0) * sunDiffuse;
             //diffuse += sunDiffuse;
+        #endif
+
+        #ifdef RENDER_WATER
+            if (materialId == 1) {
+                // vec2 screenUV = gl_FragCoord.xy / vec2(viewWidth, viewHeight);
+                // float solidViewDepth = textureLod(depthtex1, screenUV, 0).r;
+                // float solidViewDepthLinear = linearizeDepthFast(solidViewDepth, near, far);
+                // float waterViewDepthLinear = linearizeDepthFast(gl_FragCoord.z, near, far);
+                // float waterDepth = max(solidViewDepthLinear - waterViewDepthLinear, 0.0);
+
+                //refractedCol *= exp(-vec3(1.0, 0.2, 0.1) * length(rp - p) * 0.2);
+                vec3 absorptionColor = exp((1.0 - material.albedo.rgb) * -waterDepth);
+                
+                diffuse *= absorptionColor;
+                final.a = min(final.a + 0.25*waterDepth, 1.0);
+
+                //return vec4(diffuse * absorptionColor, 1.0);
+                //return vec4(vec3(waterDepth * 100.0), 1.0);
+
+                // if (gl_FragCoord.x < 0.5 * viewWidth) {
+                //     return vec4(vec3(solidViewDepthLinear * 100.0), 1.0);
+                // }
+                // else {
+                //     return vec4(vec3(waterViewDepthLinear * 100.0), 1.0);
+                // }
+
+
+                // waterInt.m_dist -= (0.04 * (1.0 - vWaterNormalAndHeight.w) / vRayDir.y);
+
+                // // TODO: fog and absorption
+                // vec3 vExtinction = GetWaterExtinction( refractInt.m_dist + abs( refractInt.m_pos.y ) );
+
+                // vec3 vInscatter = vSurfaceDiffuse * (1.0 - exp( -refractInt.m_dist * 0.1 )) * (1.0 + fSunDotV);
+                // vTransmitLight = vRefractLight.rgb;
+                // vTransmitLight += vInscatter;
+                // vTransmitLight *= vExtinction;
+            }
         #endif
 
         #ifdef HANDLIGHT_ENABLED

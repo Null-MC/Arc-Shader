@@ -128,6 +128,9 @@
     #elif DEBUG_VIEW == DEBUG_VIEW_PREV_LUMINANCE
         // Previous Luminance
         uniform sampler2D BUFFER_HDR_PREVIOUS;
+    #elif DEBUG_VIEW == DEBUG_VIEW_WATER_WAVES
+        // Water Waves
+        uniform sampler2D BUFFER_WATER_WAVES;
     #else
         uniform sampler2D BUFFER_HDR;
 
@@ -289,6 +292,9 @@
             #if defined DEBUG_EXPOSURE_METERS && CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
                 RenderLuminanceMeters(color, averageLuminance, EV100);
             #endif
+        #elif DEBUG_VIEW == DEBUG_VIEW_WATER_WAVES
+            // Water Waves
+            color = textureLod(BUFFER_WATER_WAVES, texcoord, 0).rrr;
         #else
             // None
             color = GetFinalColor();
