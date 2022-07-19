@@ -36,10 +36,11 @@
 
         #if defined RENDER_WATER && defined WATER_FANCY
             if (materialId == 1) {
-                material.albedo = vec4(vec3(0.038, 0.068, 0.075), 0.2);
+                material.albedo = vec4(vec3(0.178, 0.566, 0.554)*0.2, 0.2);
                 material.normal = vec3(0.0, 0.0, 1.0);
                 material.occlusion = 1.0;
-                material.smoothness = 0.98;
+                material.smoothness = 0.96;
+                material.scattering = 0.8;
                 material.f0 = 0.02;
 
                 const float waterPixelSize = rcp(WATER_RESOLUTION);
@@ -75,16 +76,16 @@
                     else {
                 #endif
 
-                    vec2 waterWorldPos = WATER_SCALE * rcp(2.0*WATER_RADIUS) * (localPos.xz + cameraPosition.xz);
-
-                    vec2 waterWorldPosX = waterWorldPos + vec2(waterPixelSize, 0.0);
-                    vec2 waterWorldPosY = waterWorldPos + vec2(0.0, waterPixelSize);
-
                     int octaves = WATER_OCTAVES_FAR;
                     #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
                         float viewDist = length(viewPos) - near;
                         octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, saturate(viewDist / 200.0)));
                     #endif
+
+                    float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
+                    vec2 waterWorldPos = waterScale * (localPos.xz + cameraPosition.xz);
+                    vec2 waterWorldPosX = waterWorldPos + vec2(1.0, 0.0)*waterPixelSize;
+                    vec2 waterWorldPosY = waterWorldPos + vec2(0.0, 1.0)*waterPixelSize;
 
                     float windSpeed = GetWindSpeed();
                     depth = GetWaves(waterWorldPos, windSpeed, octaves);

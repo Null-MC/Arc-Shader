@@ -214,6 +214,7 @@
     uniform sampler2D colortex10;
 
     uniform mat4 shadowProjection;
+    uniform vec3 upDirection;
     uniform float viewWidth;
     uniform float viewHeight;
     uniform float near;

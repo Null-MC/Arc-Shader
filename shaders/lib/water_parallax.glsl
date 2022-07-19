@@ -3,8 +3,9 @@ vec2 GetWaterParallaxCoord(const in vec2 texcoord, const in mat2 dFdXY, const in
     int maxSampleCount = int(min(viewDistF, 0.2*waterDepth) * WATER_PARALLAX_SAMPLES);
     float maxDepth = viewDistF * WATER_PARALLAX_DEPTH;
 
-    vec2 stepCoord = tanViewDir.xy * maxDepth / (1.0 + tanViewDir.z * WATER_PARALLAX_SAMPLES);
-    float stepDepth = 1.0 / WATER_PARALLAX_SAMPLES;
+    vec2 stepCoord = tanViewDir.xy * maxDepth / (1.0 + tanViewDir.z * maxSampleCount);
+    stepCoord = clamp(stepCoord, vec2(-0.1), vec2(0.1));
+    float stepDepth = 1.0 / maxSampleCount;
 
     float prevTexDepth;
 

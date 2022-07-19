@@ -342,28 +342,38 @@
 
         #ifdef RENDER_WATER
             if (materialId == 1) {
-                // vec2 screenUV = gl_FragCoord.xy / vec2(viewWidth, viewHeight);
-                // float solidViewDepth = textureLod(depthtex1, screenUV, 0).r;
-                // float solidViewDepthLinear = linearizeDepthFast(solidViewDepth, near, far);
-                // float waterViewDepthLinear = linearizeDepthFast(gl_FragCoord.z, near, far);
-                // float waterDepth = max(solidViewDepthLinear - waterViewDepthLinear, 0.0);
-
-                //refractedCol *= exp(-vec3(1.0, 0.2, 0.1) * length(rp - p) * 0.2);
                 vec3 absorptionColor = exp((1.0 - material.albedo.rgb) * -waterDepth);
-                
-                diffuse *= absorptionColor;
                 final.a = min(final.a + 0.25*waterDepth, 1.0);
+                diffuse *= absorptionColor;
 
-                //return vec4(diffuse * absorptionColor, 1.0);
-                //return vec4(vec3(waterDepth * 100.0), 1.0);
 
-                // if (gl_FragCoord.x < 0.5 * viewWidth) {
-                //     return vec4(vec3(solidViewDepthLinear * 100.0), 1.0);
-                // }
-                // else {
-                //     return vec4(vec3(waterViewDepthLinear * 100.0), 1.0);
-                // }
+                #ifdef IGNORE
+                const float ScatteringCoeff = 0.11;
+                const vec3 Extinction = vec3(0.46, 0.09, 0.06);
+                const vec3 ScatterColor = vec3(0.05, 0.05, 0.10);
 
+                vec3 upDir = normalize(upDirection);
+                float verticalDepth = waterDepth * dot(viewLightDir, upDir);
+                float inverseScatterAmount = exp(-ScatteringCoeff * waterDepth);
+                vec3 refractionAmountAtSurface = refractionValue * exp(-Extinction * (verticalDepth + waterDepth));
+                diffuse = ScatterColor * skyLightColor * shadowFinal;
+
+                final.a = mix(1.0, refractionAmountAtSurface, inverseScatterAmount);
+
+
+
+                const float _SunFade;
+                const float _ScatterAmount = 3.5;
+                const float _WorldSpaceLightPos0;
+                const vec3 _ScatterColor = vec3(0.0, 1.0, 0.95);
+                const float _SunTransmittance = max(1.0 - absorptionColor, 0.0);
+
+                vec3 lightReflectDir = reflect(-viewLightDir, viewNormal);
+                float s = max(dot(lightReflectDir, viewDir) * 2.0 - 1.2, 0);
+                float lightScatter = saturate((saturate(dot(-viewLightDir, material.normal) * 0.7 + 0.3) * s) * _ScatterAmount) * _SunFade * saturate(1.0 - exp(-_WorldSpaceLightPos0.y));
+                vec3 scatterColor = mix(_ScatterColor * vec3(1.0, 0.4, 0.0), _ScatterColor, _SunTransmittance);
+
+                diffuse = scatterColor;
 
                 // waterInt.m_dist -= (0.04 * (1.0 - vWaterNormalAndHeight.w) / vRayDir.y);
 
@@ -374,6 +384,7 @@
                 // vTransmitLight = vRefractLight.rgb;
                 // vTransmitLight += vInscatter;
                 // vTransmitLight *= vExtinction;
+                #endif
             }
         #endif
 
@@ -392,14 +403,6 @@
 
                 diffuse *= HCM_AMBIENT;
                 ambient *= HCM_AMBIENT;
-
-                // #if REFLECTION_MODE == REFLECTION_MODE_NONE
-                //     diffuse *= HCM_AMBIENT;
-                //     ambient *= 0.02;
-                // #else
-                //     diffuse = vec3(0.0);
-                //     ambient *= 0.02;
-                // #endif
             }
         #else
             float metalDarkF = 1.0 - material.f0 * (1.0 - HCM_AMBIENT);
@@ -455,7 +458,6 @@
             final.rgb += volLight;
         #endif
 
-        //final.a = 0.9;
         return final;
     }
 #endif

@@ -13,7 +13,7 @@ float GetWaves(inout vec2 position, const in float windSpeed, const in int itera
     float maxWeight = max(2.0 - windSpeed / 12.0, 0.0);
 
     float iter = 0.0;
-    float speed = 4.0;
+    float speed = 6.0;
     float phase = PI;
     float accumWeight = maxWeight;
 
