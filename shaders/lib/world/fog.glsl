@@ -11,7 +11,7 @@ float GetCaveFogFactor(const in float viewDist) {
 float GetCustomFogFactor(const in float viewDist, const in float sunLightLevel) {
     const float dayFogDensity = 1.5;
     const float nightFogDensity = 1.0;
-    const float rainFogDensity = 0.75;
+    const float rainFogDensity = 0.4;
 
     const float dayFogStrength = 0.3;
     const float nightFogStrength = 0.5;
@@ -107,6 +107,6 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
 void ApplyFog(inout vec4 color, const in vec3 viewPos, const in float skyLightLevel, const in float alphaTestRef) {
     float fogFactor = ApplyFog(color.rgb, viewPos, skyLightLevel);
 
-    //if (color.a > alphaTestRef)
-    //    color.a = mix(color.a, 1.0, fogFactor);
+    if (color.a > alphaTestRef)
+        color.a = mix(color.a, 1.0, fogFactor);
 }

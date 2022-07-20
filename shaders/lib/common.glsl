@@ -220,13 +220,14 @@ const float StarLumen = 2000.0;
 const float EmissionLumens = 100000.0;
 
 const float SunLux = 64000.0;
-const float SunOvercastLux = 24000;
+const float SunOvercastLux = 400;
 const float MoonLux = 30.0;
 const float MoonOvercastLux = 2.0;
 const float BlockLightLux = 9000;
 const float MinWorldLux = 2.0;
 
-const float DaySkyLumen = 6000.0;
+const float DaySkyLumen = 14000.0;
+const float DaySkyOvercastLumen = 5000;
 const float NightSkyLumen = 1200.0;
 
 const vec3 minLight = vec3(0.01);

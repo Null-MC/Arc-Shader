@@ -50,9 +50,10 @@
         #ifdef SKY_ENABLED
             vec2 skyLightLevels = GetSkyLightLevels();
             vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
-            sunColor = GetSunLightLux(skyLightTemps.x, skyLightLevels.x);
-            moonColor = GetMoonLightLux(skyLightTemps.y, skyLightLevels.y);
-            skyLightColor = GetSkyLightLuminance(skyLightLevels);
+            sunColor = GetSunLightLuxColor(skyLightTemps.x, skyLightLevels.x);
+            moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
+            //skyLightColor = GetSkyLightLuminance(skyLightLevels);
+            skyLightColor = sunColor + moonColor; // TODO: get rid of this variable
         #endif
 
         blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;

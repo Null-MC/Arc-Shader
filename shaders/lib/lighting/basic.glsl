@@ -86,14 +86,14 @@
 
         vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
 
-        vec3 sunLightLum = GetSunLightColor(skyLightTemp.x, skyLightLevels.x) * SunLux;
-        sunLightLum *= dot(normal, sunLightDir) * 0.5 + 0.5;
+        vec3 sunLightLux = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
+        sunLightLux *= dot(normal, sunLightDir) * 0.5 + 0.5;
 
-        vec3 moonLightLum = GetMoonLightColor(skyLightTemp.y, skyLightLevels.y) * MoonLux;
-        moonLightLum *= dot(normal, moonLightDir) * 0.5 + 0.5;
+        vec3 moonLightLux = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);
+        moonLightLux *= dot(normal, moonLightDir) * 0.5 + 0.5;
 
-        vec3 skyLightLum = RGBToLinear(skyColor);
+        vec3 skyLightLux = RGBToLinear(skyColor); // TODO: multiply by sky lux?
 
-        return 0.1 * (skyLightLum + sunLightLum + moonLightLum);
+        return 0.1 * (skyLightLux + sunLightLux + moonLightLux);
     }
 #endif
