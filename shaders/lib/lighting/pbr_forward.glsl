@@ -39,7 +39,7 @@
 
         #if defined RENDER_WATER && defined WATER_FANCY
             if (materialId == 1) {
-                material.albedo = vec4(vec3(0.178, 0.566, 0.754)*0.2, 0.06);
+                material.albedo = vec4(vec3(0.178, 0.566, 0.754)*0.1, 0.1);
                 material.normal = vec3(0.0, 0.0, 1.0);
                 material.occlusion = 1.0;
                 material.smoothness = 0.96;
@@ -48,7 +48,7 @@
                 material.hcm = -1;
 
                 const float waterPixelSize = rcp(WATER_RESOLUTION);
-                float zScale = 100.0;
+                float zScale = 80.0;
 
                 vec2 waterLocalPos = rcp(2.0*WATER_RADIUS) * localPos.xz;
                 float depth, depthX, depthY;

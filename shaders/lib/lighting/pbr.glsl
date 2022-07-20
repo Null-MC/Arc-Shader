@@ -266,13 +266,16 @@
                     float NoRm = max(dot(reflectDir, -viewNormal), 0.0);
                     reflectF *= 1.0 - pow(NoRm, 0.5);
 
-                    reflectColor = GetVanillaSkyLux(reflectDir) * reflectF;
-                    reflectColor += GetVanillaSkyScattering(reflectDir, sunColor, moonColor) * reflectF;
+                    //reflectColor = GetVanillaSkyLux(reflectDir) * reflectF;
+                    //reflectColor += GetVanillaSkyScattering(reflectDir, sunColor, moonColor) * reflectF;
+
+                    reflectColor = GetVanillaSkyLuminance(reflectDir);
+                    reflectColor += GetVanillaSkyScattering(reflectDir, sunColor, moonColor);
                 #endif
             }
         #endif
 
-        //return vec4(reflectColor, 0.9);
+        //return vec4(reflectColor, 1.0);
 
         #if defined RSM_ENABLED && defined RENDER_DEFERRED
             #if RSM_SCALE == 0 || defined RSM_UPSCALE
