@@ -284,8 +284,11 @@
         #include "/lib/parallax.glsl"
     #endif
 
-    #ifdef WATER_FANCY
+    #if defined WATER_FANCY || defined WATER_REFRACTION
         uniform sampler2D BUFFER_REFRACT;
+    #endif
+
+    #ifdef WATER_FANCY
         uniform sampler2D BUFFER_WATER_WAVES;
 
         uniform vec3 cameraPosition;

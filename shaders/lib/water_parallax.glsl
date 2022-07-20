@@ -15,8 +15,8 @@ vec2 GetWaterParallaxCoord(const in vec2 texcoord, const in mat2 dFdXY, const in
     for (i = 1; i <= maxSampleCount && depthDist > EPSILON; i++) {
         prevTexDepth = texDepth;
         vec2 traceCoord = texcoord - i * stepCoord;
-        //texDepth = textureGrad(BUFFER_WATER_WAVES, traceCoord, dFdXY[0], dFdXY[1]).r;
-        texDepth = textureLod(BUFFER_WATER_WAVES, traceCoord, 0).r;
+        texDepth = textureGrad(BUFFER_WATER_WAVES, traceCoord, dFdXY[0], dFdXY[1]).r;
+        //texDepth = textureLod(BUFFER_WATER_WAVES, traceCoord, 0).r;
         depthDist = 1.0 - i * stepDepth - texDepth;
     }
 

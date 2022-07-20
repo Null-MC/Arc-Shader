@@ -60,17 +60,21 @@
                     ) {
                         float viewDist = length(viewPos);
                         vec2 waterTex = waterLocalPos + 0.5;
+                        mat2 water_dFdXY = mat2(dFdx(waterLocalPos), dFdy(waterLocalPos));
 
                         if (viewDist < WATER_RADIUS) {
-                            mat2 water_dFdXY = mat2(dFdx(waterLocalPos), dFdy(waterLocalPos));
                             waterTex = GetWaterParallaxCoord(waterTex, water_dFdXY, tanViewDir, viewDist, waterDepth);
 
                             // TODO: depth-write
                         }
 
-                        depth = texture(BUFFER_WATER_WAVES, waterTex).r;
-                        depthX = textureOffset(BUFFER_WATER_WAVES, waterTex, ivec2(1, 0)).r;
-                        depthY = textureOffset(BUFFER_WATER_WAVES, waterTex, ivec2(0, 1)).r;
+                        //vec4 depthSamples = textureGather(BUFFER_WATER_WAVES, waterTex, 0);
+                        //vec2 f = GetLinearCoords(texcoord, texSize, uv);
+                        //depth = LinearBlend4(depthSamples, f);
+
+                        depth = textureGrad(BUFFER_WATER_WAVES, waterTex, water_dFdXY[0], water_dFdXY[1]).r;
+                        depthX = textureGradOffset(BUFFER_WATER_WAVES, waterTex, water_dFdXY[0], water_dFdXY[1], ivec2(1, 0)).r;
+                        depthY = textureGradOffset(BUFFER_WATER_WAVES, waterTex, water_dFdXY[0], water_dFdXY[1], ivec2(0, 1)).r;
                     }
                     else {
                 #endif

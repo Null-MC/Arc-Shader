@@ -1,5 +1,3 @@
-#define VL_SAMPLE_COUNT 100
-
 float GetVolumtricFactor(const in vec3 shadowViewStart, const in vec3 shadowViewEnd) {
     vec3 rayVector = shadowViewEnd - shadowViewStart;
     float rayLength = length(rayVector);

@@ -362,7 +362,7 @@
                     vec3 refractDir = refract(vec3(0.0, 0.0, -1.0), viewNormal, IOR_AIR / IOR_WATER);
 
                     vec2 screenUV = gl_FragCoord.xy / viewSize;
-                    vec2 refractUV = screenUV + refractDir.xy * 0.1*saturate(waterDepth);// / (1.0 + viewDist);
+                    vec2 refractUV = screenUV + refractDir.xy * min(0.2*waterDepth, 0.1);// / (1.0 + viewDist);
 
                     // TODO: update water depth
                     float waterDepth2 = GetWaterDepth(refractUV);

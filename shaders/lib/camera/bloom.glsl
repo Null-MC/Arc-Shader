@@ -1,7 +1,7 @@
 #ifdef RENDER_VERTEX
     int GetBloomTileCount() {
         int lodCount = textureQueryLevels(BUFFER_HDR);
-        return max(lodCount - 1, 1);
+        return max(lodCount - 2, 1);
     }
 #endif
 

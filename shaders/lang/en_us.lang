@@ -42,6 +42,9 @@ screen.WATER_OPTIONS=Water
 option.WATER_FANCY=Fancy
 option.WATER_FANCY.comment=When disabled, the vanilla water texture will be used. When enabled, a realistic generated surface will be used.
 
+option.WATER_REFRACTION=Refraction
+option.WATER_REFRACTION.comment=Enables refraction of light entering water, causing it to bend and visibly displace.
+
 option.WATER_WAVE_TYPE=Waves
 value.WATER_WAVE_TYPE.0=None
 value.WATER_WAVE_TYPE.1=Vertex
@@ -224,9 +227,6 @@ value.TONEMAP.12=Tech
 
 screen.EFFECT_OPTIONS=Effects
 
-option.VL_ENABLED=Volumetric Light
-option.VL_ENABLED.comment=Makes light rays more visible by simulating atmospheric scattering in lit volumes.
-
 
 screen.EFFECT_BLOOM_OPTIONS=Bloom
 
@@ -260,6 +260,14 @@ option.RSM_SAMPLE_COUNT.comment=The number of samples-per-pixel to process.
 
 option.RSM_UPSCALE=Upscale
 option.RSM_UPSCALE.comment=When downscaled RSM is enabled with this option, the edges of objects will be processed in full-resolution when upscaling to prevent blurred edges.
+
+
+screen.EFFECT_VL_OPTIONS=Volumetric Light
+screen.VL_ENABLED.comment=Makes light rays more visible by simulating atmospheric scattering in lit volumes.
+
+option.VL_ENABLED=Enabled
+
+option.VL_SAMPLE_COUNT=Samples
 
 
 screen.DEBUG_OPTIONS=Debug
