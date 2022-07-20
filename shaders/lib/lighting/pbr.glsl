@@ -357,8 +357,10 @@
             if (materialId == 1) {
                 const float ScatteringCoeff = 0.11;
 
+                vec3 extinction = vec3(0.46, 0.09, 0.06);
+                //vec3 extinction = 1.0 - material.albedo.rgb;
+
                 #ifdef WATER_REFRACTION
-                    float inverseScatterAmount = 1.0 - exp(ScatteringCoeff * -waterDepth);
                     vec3 refractDir = refract(vec3(0.0, 0.0, -1.0), viewNormal, IOR_AIR / IOR_WATER);
 
                     vec2 screenUV = gl_FragCoord.xy / viewSize;
@@ -380,21 +382,20 @@
 
                     vec3 scatterColor = material.albedo.rgb * skyLightColor;// * shadowFinal;
 
-                    vec3 extinction = 1.0 - material.albedo.rgb;
+                    //vec3 extinction = 1.0 - material.albedo.rgb;
                     float verticalDepth = waterDepth * max(dot(viewLightDir, upDir), 0.0);
                     vec3 absorption = exp(extinction * -(verticalDepth + waterDepth2));
+                    float inverseScatterAmount = 1.0 - exp(0.11 * -waterDepth2);
 
                     diffuse += max(1.0 - specFmax, 0.0) * (refractColor + scatterColor * inverseScatterAmount) * absorption;
                     final.a = 1.0;
                 #else
-                    vec3 Extinction = 4.0*vec3(0.46, 0.09, 0.06);
-
-                    float inverseScatterAmount = exp(ScatteringCoeff * -waterDepth);
                     float verticalDepth = waterDepth * max(dot(viewLightDir, upDir), 0.0);
-                    vec3 absorption = exp(Extinction * -(verticalDepth + waterDepth));
+                    vec3 absorption = exp(extinction * -(waterDepth + verticalDepth));
+                    float inverseScatterAmount = 1.0 - exp(0.6 * -waterDepth);
 
-                    diffuse = material.albedo.rgb * skyLightColor * shadowFinal * absorption;
-                    final.a = min(final.a + max(1.0 - inverseScatterAmount, 0.0), 1.0);
+                    diffuse += max(1.0 - specFmax, 0.0) * material.albedo.rgb * skyLightColor * shadowFinal * absorption;
+                    final.a = min(final.a + max(inverseScatterAmount, 0.0), 1.0);
                 #endif
             }
         #endif

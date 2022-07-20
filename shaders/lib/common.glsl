@@ -38,10 +38,10 @@ const bool colortex11Clear = false;
 #define ENABLE_WAVING
 #define HANDLIGHT_ENABLED
 #define VL_ENABLED
-#define VL_SAMPLE_COUNT 30 // [15 30 90]
+#define VL_SAMPLE_COUNT 30 // [15 30 60 90]
 #define BLOCKLIGHT_TEMP 3500 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 80 // [0 10 20 30 40 50 60 70 80 90 100]
-#define SHADOW_BRIGHTNESS 0.10 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
+#define SHADOW_BRIGHTNESS 0.60 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define RAIN_DARKNESS 0.2
 //#define ANIM_USE_WORLDTIME
 
@@ -49,7 +49,7 @@ const bool colortex11Clear = false;
 // Water Options
 #define WATER_FANCY
 #define WATER_REFRACTION
-#define WATER_WAVE_TYPE 0 // [0 1 2]
+#define WATER_WAVE_TYPE 1 // [0 1 2]
 #define WATER_SCALE 16.0
 #define WATER_RADIUS 32
 #define WATER_OCTAVES_NEAR 32
@@ -70,7 +70,7 @@ const bool colortex11Clear = false;
 #define ATMOSFOG_ENABLED
 #define CAVEFOG_ENABLED
 #define HCM_AMBIENT 0.16
-#define WEATHER_OPACITY 0.4
+#define WEATHER_OPACITY 0.5
 #define G_SCATTERING_CLEAR 0.9
 #define G_SCATTERING_RAIN 0.6
 

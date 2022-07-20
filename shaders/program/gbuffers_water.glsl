@@ -218,6 +218,7 @@
     uniform float viewWidth;
     uniform float viewHeight;
     uniform float near;
+    uniform float far;
 
     uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
@@ -238,7 +239,6 @@
             uniform usampler2D shadowcolor0;
             uniform sampler2D shadowtex0;
         
-            uniform float far;
 
             #if SHADOW_TYPE == 3
                 uniform isampler2D shadowcolor1;

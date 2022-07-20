@@ -39,7 +39,7 @@
 
         #if defined RENDER_WATER && defined WATER_FANCY
             if (materialId == 1) {
-                material.albedo = vec4(vec3(0.178, 0.566, 0.754)*0.1, 0.1);
+                material.albedo = vec4(vec3(0.178, 0.566, 0.754)*0.1, 0.06);
                 material.normal = vec3(0.0, 0.0, 1.0);
                 material.occlusion = 1.0;
                 material.smoothness = 0.96;
