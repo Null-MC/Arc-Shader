@@ -285,6 +285,7 @@
     #endif
 
     #ifdef WATER_FANCY
+        uniform sampler2D BUFFER_REFRACT;
         uniform sampler2D BUFFER_WATER_WAVES;
 
         uniform vec3 cameraPosition;

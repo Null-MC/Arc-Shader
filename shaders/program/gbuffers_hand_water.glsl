@@ -188,6 +188,8 @@
     uniform mat4 shadowProjection;
     uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
+    uniform float viewWidth;
+    uniform float viewHeight;
     uniform float rainStrength;
     uniform int moonPhase;
     uniform float near;
@@ -198,10 +200,6 @@
     uniform float fogEnd;
     uniform int fogMode;
     uniform int fogShape;
-
-    #ifdef AF_ENABLED
-        uniform float viewHeight;
-    #endif
 
     #ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;

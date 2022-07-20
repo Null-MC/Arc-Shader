@@ -16,6 +16,7 @@ const float shadowDistanceRenderMul = 1.0;
     out vec2 lmcoord;
     out vec2 texcoord;
     out vec4 glcolor;
+    out vec3 localPos;
 
     #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
         flat out float matSmooth;
@@ -44,11 +45,11 @@ const float shadowDistanceRenderMul = 1.0;
     uniform mat4 shadowModelView;
     uniform mat4 shadowModelViewInverse;
     uniform vec3 cameraPosition;
+
+    uniform float frameTimeCounter;
     
     #ifdef ANIM_USE_WORLDTIME
         uniform int worldTime;
-    #else
-        uniform float frameTimeCounter;
     #endif
 
     #if MC_VERSION >= 11700 && (defined IS_OPTIFINE || defined IRIS_FEATURE_CHUNK_OFFSET)
@@ -76,6 +77,13 @@ const float shadowDistanceRenderMul = 1.0;
         #include "/lib/shadows/csm.glsl"
     #elif SHADOW_TYPE != 0
         #include "/lib/shadows/basic.glsl"
+    #endif
+
+    #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
+        uniform float rainStrength;
+
+        #include "/lib/world/wind.glsl"
+        #include "/lib/world/water.glsl"
     #endif
 
     #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
@@ -114,10 +122,34 @@ const float shadowDistanceRenderMul = 1.0;
         #endif
 
         vec4 pos = gl_Vertex;
+        vec3 normal = gl_Normal;
 
         #ifdef ENABLE_WAVING
             if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0)
                 pos.xyz += GetWavingOffset();
+        #endif
+
+        #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
+            if (mc_Entity.x == 100.0) {
+                float windSpeed = GetWindSpeed();
+                
+                float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
+                vec2 waterWorldPos = waterWorldScale * (pos.xz + cameraPosition.xz);
+                float depth = GetWaves(waterWorldPos, windSpeed, WATER_OCTAVES_VERTEX);
+                pos.y -= (1.0 - depth) * WATER_WAVE_DEPTH;
+
+                #ifndef WATER_FANCY
+                    vec2 waterWorldPosX = waterWorldPos + vec2(waterWorldScale, 0.0);
+                    float depthX = GetWaves(waterWorldPosX, windSpeed, WATER_OCTAVES_VERTEX);
+                    vec3 pX = vec3(1.0, 0.0, (depthX - depth) * WATER_WAVE_DEPTH);
+
+                    vec2 waterWorldPosY = waterWorldPos + vec2(0.0, waterWorldScale);
+                    float depthY = GetWaves(waterWorldPosY, windSpeed, WATER_OCTAVES_VERTEX);
+                    vec3 pY = vec3(0.0, 1.0, (depthY - depth) * WATER_WAVE_DEPTH);
+
+                    normal = normalize(cross(pX, pY)).xzy;
+                #endif
+            }
         #endif
 
         vec4 viewPos = gl_ModelViewMatrix * pos;
@@ -154,7 +186,7 @@ const float shadowDistanceRenderMul = 1.0;
         // #endif
 
         #if defined SSS_ENABLED || defined RSM_ENABLED
-            vec3 viewNormal = normalize(gl_NormalMatrix * gl_Normal);
+            vec3 viewNormal = normalize(gl_NormalMatrix * normal);
             vec3 viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
             vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
 

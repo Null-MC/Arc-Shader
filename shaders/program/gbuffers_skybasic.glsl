@@ -75,14 +75,14 @@
     uniform vec3 skyColor;
     uniform int moonPhase;
 
+    #include "/lib/world/scattering.glsl"
+
     #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FANCY
         uniform mat4 gbufferModelViewInverse;
         uniform float eyeAltitude;
         uniform float near;
 
         #include "/lib/world/atmosphere.glsl"
-    #else
-        #include "/lib/world/scattering.glsl"
     #endif
 
     #include "/lib/lighting/blackbody.glsl"

@@ -193,7 +193,8 @@ const bool colortex11Clear = false;
 
 // INTERNAL
 #define TITLE
-#define IOR_AIR 1.0
+#define IOR_AIR 1.000293
+#define IOR_WATER 1.333
 #define PI 3.1415926538
 #define TAU 6.2831853076
 #define EPSILON 1e-7
@@ -208,6 +209,8 @@ const bool colortex11Clear = false;
 #define BUFFER_RSM_DEPTH colortex9
 #define BUFFER_BRDF_LUT colortex10
 #define BUFFER_WATER_WAVES colortex11
+
+#define BUFFER_REFRACT colortex7
 
 const float sunLumen = 240000.0;//16000000;
 const float moonLumen = 2500.0;

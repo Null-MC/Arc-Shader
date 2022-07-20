@@ -1,8 +1,7 @@
 #ifdef RENDER_VERTEX
     void BasicVertex(out mat3 viewTBN) {
         vec3 pos = gl_Vertex.xyz;
-
-        viewNormal = normalize(gl_NormalMatrix * gl_Normal);
+        vec3 normal = gl_Normal;
 
         #if defined RENDER_TERRAIN && defined ENABLE_WAVING
             if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0)
@@ -20,20 +19,21 @@
 
                 #ifndef WATER_FANCY
                     vec2 waterWorldPosX = waterWorldPos + vec2(waterWorldScale, 0.0);
-                    vec2 waterWorldPosY = waterWorldPos + vec2(0.0, waterWorldScale);
-
-                    //depth = texture(BUFFER_WATER_WAVES, waterTex).r;
                     float depthX = GetWaves(waterWorldPosX, windSpeed, WATER_OCTAVES_VERTEX);
-                    float depthY = GetWaves(waterWorldPosY, windSpeed, WATER_OCTAVES_VERTEX);
-
                     vec3 pX = vec3(1.0, 0.0, (depthX - depth) * WATER_WAVE_DEPTH);
+
+                    vec2 waterWorldPosY = waterWorldPos + vec2(0.0, waterWorldScale);
+                    float depthY = GetWaves(waterWorldPosY, windSpeed, WATER_OCTAVES_VERTEX);
                     vec3 pY = vec3(0.0, 1.0, (depthY - depth) * WATER_WAVE_DEPTH);
-                    
-                    vec3 waterNormal = normalize(cross(pX, pY));
-                    viewNormal = normalize(gl_NormalMatrix * waterNormal.xzy);
+
+                    normal = normalize(cross(pX, pY)).xzy;
                 #endif
             }
         #endif
+
+        viewPos = (gl_ModelViewMatrix * vec4(pos, 1.0)).xyz;
+        viewNormal = normalize(gl_NormalMatrix * normal);
+        gl_Position = gl_ProjectionMatrix * vec4(viewPos, 1.0);
 
         #if defined RENDER_TEXTURED || defined RENDER_WEATHER || defined RENDER_BEACONBEAM
             // TODO: extract billboard direction from view matrix?
@@ -60,12 +60,9 @@
             #endif
         #endif
 
-        viewPos = (gl_ModelViewMatrix * vec4(pos, 1.0)).xyz;
-
-        gl_Position = gl_ProjectionMatrix * vec4(viewPos, 1.0);
-
         #if defined SHADOW_ENABLED && SHADOW_TYPE != 0 && !defined RENDER_SHADOW
-            ApplyShadows(viewPos);
+            vec3 viewDir = -normalize(viewPos);
+            ApplyShadows(pos, viewDir);
         #endif
 
         #ifdef AF_ENABLED

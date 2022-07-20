@@ -1,7 +1,7 @@
 #extension GL_ARB_texture_gather : enable
 
 #ifdef RENDER_VERTEX
-	void ApplyShadows(const in vec3 viewPos) {
+	void ApplyShadows(const in vec3 localPos, const in vec3 viewDir) {
         #ifndef SSS_ENABLED
             if (geoNoL > 0.0) {
         #endif
@@ -11,11 +11,11 @@
                 mat4 matShadowModelView = shadowModelView;
             #endif
 
-			vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+			//vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
             vec3 shadowViewPos = (matShadowModelView * vec4(localPos, 1.0)).xyz;
 
             #if defined PARALLAX_ENABLED && !defined RENDER_SHADOW && defined PARALLAX_SHADOW_FIX
-                vec3 viewDir = -normalize(viewPos);
+                //vec3 viewDir = -normalize(viewPos);
                 float geoNoV = dot(vNormal, viewDir);
 
                 vec3 localViewDir = normalize(cameraPosition);

@@ -21,38 +21,34 @@
     }
 
     vec4 PbrLighting() {
-        mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
         vec2 atlasCoord = texcoord;
         vec3 traceCoordDepth = vec3(1.0);
         float texDepth = 1.0;
         float waterDepth = 0.0;
         PbrMaterial material;
 
-        //#if defined PARALLAX_ENABLED || defined WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
-            vec3 tanViewDir = normalize(tanViewPos);
-        //#endif
+        mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
+        vec3 tanViewDir = normalize(tanViewPos);
 
         #ifdef RENDER_WATER
             if (materialId == 1) {
                 vec2 screenUV = gl_FragCoord.xy / vec2(viewWidth, viewHeight);
-                float solidViewDepth = textureLod(depthtex1, screenUV, 0).r;
-                float solidViewDepthLinear = linearizeDepthFast(solidViewDepth, near, far);
-                float waterViewDepthLinear = linearizeDepthFast(gl_FragCoord.z, near, far);
-                waterDepth = max(solidViewDepthLinear - waterViewDepthLinear, 0.0);
+                waterDepth = GetWaterDepth(screenUV);
             }
         #endif
 
         #if defined RENDER_WATER && defined WATER_FANCY
             if (materialId == 1) {
-                material.albedo = vec4(vec3(0.178, 0.566, 0.554)*0.2, 0.2);
+                material.albedo = vec4(vec3(0.178, 0.566, 0.754)*0.2, 0.06);
                 material.normal = vec3(0.0, 0.0, 1.0);
                 material.occlusion = 1.0;
                 material.smoothness = 0.96;
                 material.scattering = 0.8;
                 material.f0 = 0.02;
+                material.hcm = -1;
 
                 const float waterPixelSize = rcp(WATER_RESOLUTION);
-                float zScale = 20.0;
+                float zScale = 100.0;
 
                 vec2 waterLocalPos = rcp(2.0*WATER_RADIUS) * localPos.xz;
                 float depth, depthX, depthY;
@@ -63,7 +59,6 @@
                         waterLocalPos.y > -0.5 && waterLocalPos.y < 0.5
                     ) {
                         float viewDist = length(viewPos);
-                        //vec3 tanViewDir = normalize(tanViewPos);
                         vec2 waterTex = waterLocalPos + 0.5;
 
                         if (viewDist < WATER_RADIUS) {
@@ -119,7 +114,7 @@
 
             #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
                 vec4 specularMap = textureGrad(specular, atlasCoord, dFdXY[0], dFdXY[1]);
-                vec3 normalMap;// = textureGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]);
+                vec3 normalMap;
 
                 #ifdef PARALLAX_SMOOTH_NORMALS
                     ////normalMap.rgb = TexelFetchLinearRGB(normals, atlasCoord * atlasSize);
@@ -240,8 +235,6 @@
         #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
             ApplyDirectionalLightmap(lm.x, material.normal);
         #endif
-
-        //lm = vec2(0.0);
 
         return PbrLighting2(material, lm, shadow, shadowSSS, viewPos.xyz, waterDepth);
     }

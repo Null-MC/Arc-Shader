@@ -1,9 +1,9 @@
 #ifdef RENDER_VERTEX
-	void ApplyShadows(const in vec3 viewPos) {
+	void ApplyShadows(const in vec3 localPos, const in vec3 viewDir) {
         #ifndef SSS_ENABLED
     		if (geoNoL > 0.0) {
         #endif
-			vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
+			vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
 
 			shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
 
