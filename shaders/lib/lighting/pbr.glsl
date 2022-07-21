@@ -189,18 +189,30 @@
 
     #ifdef RENDER_WATER
         float GetWaterDepth(const in vec2 screenUV) {
-            //vec2 screenUV = gl_FragCoord.xy / vec2(viewWidth, viewHeight);
+            float waterViewDepthLinear = linearizeDepthFast(gl_FragCoord.z, near, far);
+            if (isEyeInWater == 1) return waterViewDepthLinear;
+
+            float solidViewDepth = textureLod(depthtex1, screenUV, 0).r;
+            float solidViewDepthLinear = linearizeDepthFast(solidViewDepth, near, far);
+            return max(solidViewDepthLinear - waterViewDepthLinear, 0.0);
+        }
+
+        // returns: x=water-depth, y=solid-depth
+        vec2 GetWaterSolidDepth(const in vec2 screenUV) {
             float solidViewDepth = textureLod(depthtex1, screenUV, 0).r;
             float solidViewDepthLinear = linearizeDepthFast(solidViewDepth, near, far);
             float waterViewDepthLinear = linearizeDepthFast(gl_FragCoord.z, near, far);
-            return max(solidViewDepthLinear - waterViewDepthLinear, 0.0);
+
+            return vec2(waterViewDepthLinear, solidViewDepthLinear);
         }
     #endif
 
-    vec4 PbrLighting2(const in PbrMaterial material, const in vec2 lmValue, const in float shadow, const in float shadowSSS, const in vec3 viewPos, const in float waterDepth) {
+    vec4 PbrLighting2(const in PbrMaterial material, const in vec2 lmValue, const in float shadow, const in float shadowSSS, const in vec3 viewPos, const in vec2 waterSolidDepth) {
         vec2 viewSize = vec2(viewWidth, viewHeight);
         vec3 viewNormal = normalize(material.normal);
         vec3 viewDir = -normalize(viewPos.xyz);
+
+        vec2 screenUV = gl_FragCoord.xy / viewSize;
 
         //return vec4((material.normal * 0.5 + 0.5) * 500.0, 1.0);
 
@@ -226,7 +238,7 @@
 
         #ifdef SHADOW_ENABLED
             // Increase skylight when in direct sunlight
-            skyLight = max(skyLight, shadow);
+            //skyLight = max(skyLight, shadow);
         #endif
 
         // Make areas without skylight fully shadowed (light leak fix)
@@ -279,8 +291,8 @@
 
         #if defined RSM_ENABLED && defined RENDER_DEFERRED
             #if RSM_SCALE == 0 || defined RSM_UPSCALE
-                ivec2 iuv = ivec2(texcoord * viewSize);
-                vec3 rsmColor = texelFetch(BUFFER_RSM_COLOR, iuv, 0).rgb;
+                //ivec2 iuv = ivec2(texcoord * viewSize);
+                vec3 rsmColor = texelFetch(BUFFER_RSM_COLOR, gl_FragCoord.xy, 0).rgb;
             #else
                 const float rsm_scale = 1.0 / exp2(RSM_SCALE);
                 vec3 rsmColor = textureLod(BUFFER_RSM_COLOR, texcoord * rsm_scale, 0).rgb;
@@ -341,7 +353,7 @@
             vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * shadowBrightness;
             ambient += skyAmbient;
 
-            vec3 diffuseLight = skyLightColor * shadowFinal;
+            vec3 diffuseLight = skyLightColor * shadowFinal * skyLight3;
 
             #if defined RSM_ENABLED && defined RENDER_DEFERRED
                 diffuseLight += 20.0 * rsmColor * skyLightColor * material.scattering;
@@ -357,41 +369,56 @@
             if (materialId == 1) {
                 const float ScatteringCoeff = 0.11;
 
-                vec3 extinction = vec3(0.46, 0.09, 0.06);
+                //vec3 extinction = vec3(0.54, 0.91, 0.93);
+                vec3 extinctionInv = 1.0 - WaterAbsorbtionExtinction;
                 //vec3 extinction = 1.0 - material.albedo.rgb;
 
                 #ifdef WATER_REFRACTION
-                    vec3 refractDir = refract(vec3(0.0, 0.0, -1.0), viewNormal, IOR_AIR / IOR_WATER);
+                    float waterRefractEta = isEyeInWater == 1
+                        ? IOR_WATER / IOR_AIR
+                        : IOR_AIR / IOR_WATER;
+                    
+                    float refractDist = max(waterSolidDepth.y - waterSolidDepth.x, 0.0);
 
-                    vec2 screenUV = gl_FragCoord.xy / viewSize;
-                    vec2 refractUV = screenUV + refractDir.xy * min(0.2*waterDepth, 0.1);// / (1.0 + viewDist);
+                    vec2 waterSolidDepthFinal;
+                    vec3 refractColor = vec3(0.0);
+                    vec3 refractDir = refract(viewDir, viewNormal, waterRefractEta); // TODO: subtract geoViewNormal from texViewNormal
+                    if (dot(refractDir, refractDir) > EPSILON) {
+                        vec2 refractUV = screenUV + (refractDir.xy - viewDir.xy) * min(0.02*refractDist, 0.06);// / (1.0 + viewDist);
 
-                    // TODO: update water depth
-                    float waterDepth2 = GetWaterDepth(refractUV);
+                        // update water depth
+                        waterSolidDepthFinal = GetWaterSolidDepth(refractUV);
 
-                    if (waterDepth2 > EPSILON) {
-                        screenUV = refractUV;
+                        if (waterSolidDepthFinal.x > waterSolidDepthFinal.y) {
+                            waterSolidDepthFinal = waterSolidDepth;
+                            refractUV = screenUV;
+                        }
+
+                        refractColor = textureLod(BUFFER_REFRACT, refractUV, 0).rgb / exposure;
                     }
                     else {
-                        waterDepth2 = waterDepth;
+                        // TIR
+                        waterSolidDepthFinal.x = 65000;
+                        waterSolidDepthFinal.y = 65000;
                     }
 
-                    //int waterLod = clamp(int(inverseScatterAmount * 8.0), 0, 8);
-                    vec3 refractColor = textureLod(BUFFER_REFRACT, screenUV, 0).rgb / exposure;
-                    //return vec4(refractColor, 1.0);
+                    float waterDepthFinal = isEyeInWater == 1 ? waterSolidDepthFinal.x
+                        : max(waterSolidDepthFinal.y - waterSolidDepthFinal.x, 0.0);
 
                     vec3 scatterColor = material.albedo.rgb * skyLightColor;// * shadowFinal;
 
-                    //vec3 extinction = 1.0 - material.albedo.rgb;
-                    float verticalDepth = waterDepth * max(dot(viewLightDir, upDir), 0.0);
-                    vec3 absorption = exp(extinction * -(verticalDepth + waterDepth2));
-                    float inverseScatterAmount = 1.0 - exp(0.11 * -waterDepth2);
+                    float verticalDepth = waterDepthFinal * max(dot(viewLightDir, upDir), 0.0);
+                    vec3 absorption = exp(extinctionInv * -(verticalDepth + waterDepthFinal));
+                    float inverseScatterAmount = 1.0 - exp(0.11 * -waterDepthFinal);
 
                     diffuse += max(1.0 - specFmax, 0.0) * (refractColor + scatterColor * inverseScatterAmount) * absorption;
                     final.a = 1.0;
                 #else
+                    float waterDepth = isEyeInWater == 1 ? waterSolidDepth.x
+                        : max(waterSolidDepth.y - waterSolidDepth.x, 0.0);
+
                     float verticalDepth = waterDepth * max(dot(viewLightDir, upDir), 0.0);
-                    vec3 absorption = exp(extinction * -(waterDepth + verticalDepth));
+                    vec3 absorption = exp(extinctionInv * -(waterDepth + verticalDepth));
                     float inverseScatterAmount = 1.0 - exp(0.6 * -waterDepth);
 
                     diffuse += max(1.0 - specFmax, 0.0) * material.albedo.rgb * skyLightColor * shadowFinal * absorption;
@@ -443,15 +470,59 @@
             final.rgb += material.albedo.rgb * invPI * (ambient_sss + sss);
         #endif
 
-        #if defined RENDER_DEFERRED
-            ApplyFog(final.rgb, viewPos.xyz, skyLight);
-        #elif defined RENDER_GBUFFER
-            #ifdef RENDER_WATER
-                ApplyFog(final, viewPos.xyz, skyLight, EPSILON);
-            #else
-                ApplyFog(final, viewPos.xyz, skyLight, alphaTestRef);
-            #endif
+        #ifdef RENDER_DEFERRED
+            if (isEyeInWater == 1) {
+                // TODO: apply scattering and absorption
+
+                //float viewDepthLinear = linearizeDepthFast(gl_FragCoord.z, near, far);
+                float viewDepth = textureLod(depthtex1, screenUV, 0).r;
+                float viewDepthLinear = linearizeDepthFast(viewDepth, near, far);
+
+                //float waterDepthFinal = isEyeInWater == 1 ? waterSolidDepthFinal.x
+                //    : max(waterSolidDepthFinal.y - waterSolidDepthFinal.x, 0.0);
+
+                //vec3 scatterColor = material.albedo.rgb * skyLightColor;// * shadowFinal;
+                //float skyLight5 = pow5(skyLight);
+                vec3 scatterColor = vec3(0.0178, 0.0566, 0.0754) * skyLight;// * shadowFinal;
+                vec3 extinctionInv = 1.0 - WaterAbsorbtionExtinction;
+
+                //float verticalDepth = waterDepthFinal * max(dot(viewLightDir, upDir), 0.0);
+                //vec3 absorption = exp(extinctionInv * -(verticalDepth + waterDepthFinal));
+                vec3 absorption = exp(extinctionInv * -viewDepthLinear);
+                float inverseScatterAmount = 1.0 - exp(0.11 * -viewDepthLinear);
+
+                final.rgb = (final.rgb + scatterColor * inverseScatterAmount) * absorption;
+
+                //float vanillaWaterFogF = GetFogFactor(viewDist, near, waterFogEnd, 1.0);
+                //final.rgb = mix(final.rgb, RGBToLinear(fogColor), vanillaWaterFogF);
+            }
         #endif
+
+        if (isEyeInWater == 1) {
+            // TODO: Get this outa here (vertex shader)
+            vec2 skyLightLevels = GetSkyLightLevels();
+            float sunSkyLumen = GetSunLightLevel(skyLightLevels.x) * mix(DaySkyLumen, DaySkyOvercastLumen, rainStrength);
+            float moonSkyLumen = GetMoonLightLevel(skyLightLevels.y) * NightSkyLumen;
+            float skyLumen = sunSkyLumen + moonSkyLumen;
+
+            // TODO: apply water fog
+            float viewDist = length(viewPos.xyz);
+            float waterFogEnd = min(40.0, fogEnd);
+            float waterFogF = GetFogFactor(viewDist, near, waterFogEnd, 0.5);
+            vec3 waterFogColor = vec3(0.0178, 0.0566, 0.0754) * skyLumen;
+            final.rgb = mix(final.rgb, waterFogColor, waterFogF);
+        }
+        else {
+            #ifdef RENDER_DEFERRED
+                ApplyFog(final.rgb, viewPos.xyz, skyLight);
+            #elif defined RENDER_GBUFFER
+                #ifdef RENDER_WATER
+                    ApplyFog(final, viewPos.xyz, skyLight, EPSILON);
+                #else
+                    ApplyFog(final, viewPos.xyz, skyLight, alphaTestRef);
+                #endif
+            #endif
+        }
 
         #ifdef VL_ENABLED
             mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;

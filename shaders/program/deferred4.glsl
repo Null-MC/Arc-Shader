@@ -81,6 +81,7 @@
     uniform sampler2D colortex10;
     uniform sampler2D lightmap;
     uniform sampler2D depthtex0;
+    uniform sampler2D depthtex1;
 
     #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
         uniform sampler2D BUFFER_LUMINANCE;
@@ -102,7 +103,9 @@
     uniform float viewWidth;
     uniform float viewHeight;
     uniform float near;
+    uniform float far;
     
+    uniform int isEyeInWater;
     uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
 
@@ -121,6 +124,7 @@
         uniform vec3 shadowLightPosition;
     #endif
 
+    #include "/lib/depth.glsl"
     #include "/lib/sampling/linear.glsl"
     #include "/lib/world/scattering.glsl"
     #include "/lib/lighting/blackbody.glsl"
@@ -208,7 +212,7 @@
             PbrMaterial material;
             PopulateMaterial(material, colorMap.rgb, normalMap, specularMap);
 
-            vec3 color = PbrLighting2(material, lightingMap.xy, lightingMap.b, lightingMap.a, viewPos.xyz, 0.0).rgb;
+            vec3 color = PbrLighting2(material, lightingMap.xy, lightingMap.b, lightingMap.a, viewPos.xyz, vec2(0.0)).rgb;
 
             #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
                 outColor1 = log2(luminance(color) + EPSILON);

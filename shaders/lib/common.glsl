@@ -230,6 +230,8 @@ const float DaySkyLumen = 14000.0;
 const float DaySkyOvercastLumen = 5000;
 const float NightSkyLumen = 1200.0;
 
+const vec3 WaterAbsorbtionExtinction = vec3(0.32, 0.68, 0.76);
+
 const vec3 minLight = vec3(0.01);
 const float tile_dist_bias_factor = 0.012288;
 const vec3 handOffset = vec3(0.2, -0.3, -0.2);

@@ -24,7 +24,7 @@
         vec2 atlasCoord = texcoord;
         vec3 traceCoordDepth = vec3(1.0);
         float texDepth = 1.0;
-        float waterDepth = 0.0;
+        vec2 waterSolidDepth = vec2(0.0);
         PbrMaterial material;
 
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
@@ -33,17 +33,17 @@
         #ifdef RENDER_WATER
             if (materialId == 1) {
                 vec2 screenUV = gl_FragCoord.xy / vec2(viewWidth, viewHeight);
-                waterDepth = GetWaterDepth(screenUV);
+                waterSolidDepth = GetWaterSolidDepth(screenUV);
             }
         #endif
 
         #if defined RENDER_WATER && defined WATER_FANCY
             if (materialId == 1) {
-                material.albedo = vec4(vec3(0.178, 0.566, 0.754)*0.1, 0.06);
+                material.albedo = vec4(vec3(0.0178, 0.0566, 0.0754), 0.06);
                 material.normal = vec3(0.0, 0.0, 1.0);
                 material.occlusion = 1.0;
                 material.smoothness = 0.96;
-                material.scattering = 0.8;
+                material.scattering = 0.0;
                 material.f0 = 0.02;
                 material.hcm = -1;
 
@@ -63,6 +63,7 @@
                         mat2 water_dFdXY = mat2(dFdx(waterLocalPos), dFdy(waterLocalPos));
 
                         if (viewDist < WATER_RADIUS) {
+                            float waterDepth = max(waterSolidDepth.y - waterSolidDepth.x, 0.0);
                             waterTex = GetWaterParallaxCoord(waterTex, water_dFdXY, tanViewDir, viewDist, waterDepth);
 
                             // TODO: depth-write
@@ -240,6 +241,6 @@
             ApplyDirectionalLightmap(lm.x, material.normal);
         #endif
 
-        return PbrLighting2(material, lm, shadow, shadowSSS, viewPos.xyz, waterDepth);
+        return PbrLighting2(material, lm, shadow, shadowSSS, viewPos.xyz, waterSolidDepth);
     }
 #endif

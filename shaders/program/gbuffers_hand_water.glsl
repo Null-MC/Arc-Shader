@@ -190,6 +190,8 @@
     uniform int heldBlockLightValue;
     uniform float viewWidth;
     uniform float viewHeight;
+    
+    uniform int isEyeInWater;
     uniform float rainStrength;
     uniform int moonPhase;
     uniform float near;

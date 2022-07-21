@@ -223,6 +223,7 @@
     uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
     uniform float rainStrength;
+    uniform int isEyeInWater;
     uniform int moonPhase;
 
     uniform vec3 skyColor;

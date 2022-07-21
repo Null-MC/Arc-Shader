@@ -88,7 +88,7 @@ vec3 GetSkyLightLuminance(const in vec2 skyLightLevels) {
 }
 
 #ifdef RENDER_FRAG
-    float GetVanillaSkyFog(float x, float w) {
+    float GetVanillaSkyFog(const in float x, const in float w) {
         return w / (x * x + w);
     }
 
@@ -100,6 +100,13 @@ vec3 GetSkyLightLuminance(const in vec2 skyLightLevels) {
 
         vec3 skyColorLinear = RGBToLinear(skyColor) * skyLumen;
         vec3 fogColorLinear = RGBToLinear(fogColor) * skyLumen;
+
+        #ifdef RENDER_SKYBASIC
+            if (isEyeInWater == 1) {
+                // TODO: change fogColor to water
+                fogColorLinear = vec3(0.0178, 0.0566, 0.0754) * skyLumen;
+            }
+        #endif
 
         vec3 upDir = normalize(upPosition);
         float VoUm = max(dot(viewDir, upDir), 0.0);

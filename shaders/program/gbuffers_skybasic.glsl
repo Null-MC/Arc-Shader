@@ -67,6 +67,7 @@
     uniform float viewWidth;
     uniform float viewHeight;
     
+    uniform int isEyeInWater;
     uniform float rainStrength;
     uniform vec3 upPosition;
     uniform vec3 sunPosition;
