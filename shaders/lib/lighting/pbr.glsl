@@ -342,7 +342,7 @@
             float VoHm = max(dot(viewDir, halfDir), EPSILON);
 
             vec3 F = GetFresnel(material, VoHm, roughL);
-            vec3 sunSpec = GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * specularTint * skyLightColor * shadowFinal;
+            vec3 sunSpec = GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * specularTint * skyLightColor * skyLight3 * shadowFinal;
             specular += sunSpec;
 
             final.a = min(final.a + luminance(sunSpec) * exposure, 1.0);
