@@ -43,7 +43,7 @@
                 material.normal = vec3(0.0, 0.0, 1.0);
                 material.occlusion = 1.0;
                 material.smoothness = 0.96;
-                material.scattering = 0.0;
+                material.scattering = 0.8;
                 material.f0 = 0.02;
                 material.hcm = -1;
 

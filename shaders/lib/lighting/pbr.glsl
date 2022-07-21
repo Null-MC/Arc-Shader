@@ -405,13 +405,13 @@
                     float waterDepthFinal = isEyeInWater == 1 ? waterSolidDepthFinal.x
                         : max(waterSolidDepthFinal.y - waterSolidDepthFinal.x, 0.0);
 
-                    vec3 scatterColor = material.albedo.rgb * skyLightColor;// * shadowFinal;
+                    vec3 scatterColor = material.albedo.rgb * skyLightColor * skyLight3;// * shadowFinal;
 
                     float verticalDepth = waterDepthFinal * max(dot(viewLightDir, upDir), 0.0);
                     vec3 absorption = exp(extinctionInv * -(verticalDepth + waterDepthFinal));
                     float inverseScatterAmount = 1.0 - exp(0.11 * -waterDepthFinal);
 
-                    diffuse += max(1.0 - specFmax, 0.0) * (refractColor + scatterColor * inverseScatterAmount) * absorption;
+                    diffuse = (refractColor + scatterColor * inverseScatterAmount) * absorption;
                     final.a = 1.0;
                 #else
                     float waterDepth = isEyeInWater == 1 ? waterSolidDepth.x
