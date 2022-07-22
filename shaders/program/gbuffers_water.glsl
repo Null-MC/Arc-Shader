@@ -214,6 +214,7 @@
     uniform sampler2D colortex10;
 
     uniform mat4 shadowProjection;
+    uniform vec3 cameraPosition;
     uniform vec3 upDirection;
     uniform float viewWidth;
     uniform float viewHeight;
@@ -274,6 +275,21 @@
         #endif
     #endif
 
+    #if REFLECTION_MODE == REFLECTION_MODE_SCREEN || defined VL_ENABLED
+        uniform mat4 gbufferModelViewInverse;
+    #endif
+
+    #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
+        uniform sampler2D BUFFER_HDR_PREVIOUS;
+        //uniform sampler2D depthtex1;
+
+        uniform mat4 gbufferPreviousModelView;
+        uniform mat4 gbufferPreviousProjection;
+        uniform mat4 gbufferProjectionInverse;
+        uniform mat4 gbufferProjection;
+        uniform vec3 previousCameraPosition;
+    #endif
+
     #include "/lib/depth.glsl"
     #include "/lib/sampling/linear.glsl"
     #include "/lib/world/scattering.glsl"
@@ -285,14 +301,13 @@
         #include "/lib/parallax.glsl"
     #endif
 
-    #if defined WATER_FANCY || defined WATER_REFRACTION
+    #if defined WATER_FANCY || WATER_REFRACTION != WATER_REFRACTION_NONE
         uniform sampler2D BUFFER_REFRACT;
     #endif
 
     #ifdef WATER_FANCY
         uniform sampler2D BUFFER_WATER_WAVES;
 
-        uniform vec3 cameraPosition;
         uniform float frameTimeCounter;
 
         #include "/lib/world/wind.glsl"
@@ -304,7 +319,7 @@
     #endif
 
     #ifdef VL_ENABLED
-        uniform mat4 gbufferModelViewInverse;
+        //uniform mat4 gbufferModelViewInverse;
         uniform mat4 shadowModelView;
         //uniform mat4 shadowProjection;
 
@@ -320,6 +335,11 @@
     #include "/lib/material/hcm.glsl"
     #include "/lib/material/material.glsl"
     #include "/lib/material/material_reader.glsl"
+
+    #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
+        #include "/lib/bsl_ssr.glsl"
+    #endif
+
     #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/pbr.glsl"
     #include "/lib/lighting/pbr_forward.glsl"

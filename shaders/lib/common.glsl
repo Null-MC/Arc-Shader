@@ -48,7 +48,7 @@ const bool colortex11Clear = false;
 
 // Water Options
 #define WATER_FANCY
-#define WATER_REFRACTION
+#define WATER_REFRACTION 0 // [0 1 2]
 #define WATER_WAVE_TYPE 1 // [0 1 2]
 #define WATER_SCALE 16.0
 #define WATER_RADIUS 32
@@ -59,6 +59,10 @@ const bool colortex11Clear = false;
 #define WATER_PARALLAX_SAMPLES 32
 #define WATER_WAVE_DEPTH 1.0
 #define WATER_RESOLUTION 2048
+
+#define WATER_REFRACTION_NONE 0
+#define WATER_REFRACTION_FAST 1
+#define WATER_REFRACTION_FANCY 2
 
 #define WATER_WAVE_NONE 0
 #define WATER_WAVE_VERTEX 1
@@ -71,7 +75,7 @@ const bool colortex11Clear = false;
 #define CAVEFOG_ENABLED
 #define HCM_AMBIENT 0.16
 #define WEATHER_OPACITY 0.5
-#define G_SCATTERING_CLEAR 0.9
+#define G_SCATTERING_CLEAR 0.94
 #define G_SCATTERING_RAIN 0.6
 
 #define ATMOSPHERE_TYPE_FAST 0
@@ -107,8 +111,7 @@ const bool colortex11Clear = false;
 #define SSS_FILTER 0 // [0 1 2]
 #define SSS_PCF_SIZE 0.015 // [0.005 0.010 0.015 0.020 0.025 0.030 0.035 0.040 0.045 0.050 0.055 0.060 0.065 0.070 0.075 0.080 0.085 0.090 0.095 0.100]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
-#define SKYREFLECT_ENABLED
-#define REFLECTION_MODE 1 // [0 1]
+#define REFLECTION_MODE 1 // [0 1 2]
 
 #define MATERIAL_FORMAT_DEFAULT 0
 #define MATERIAL_FORMAT_LABPBR 1

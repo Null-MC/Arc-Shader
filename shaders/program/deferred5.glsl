@@ -15,7 +15,7 @@
 
 
     void main() {
-        vec3 color = texelFetch(BUFFER_HDR, ivec2(gl_FragCoord.xy), 1).rgb;
+        vec3 color = texelFetch(BUFFER_HDR, ivec2(gl_FragCoord.xy), 0).rgb;
         outColor0 = vec4(color, 1.0);
     }
 #endif

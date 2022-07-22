@@ -87,9 +87,17 @@
         uniform sampler2D BUFFER_LUMINANCE;
     #endif
 
+    #if REFLECTION_MODE == REFLECTION_MODE_SCREEN || defined VL_ENABLED
+        uniform mat4 gbufferModelViewInverse;
+    #endif
+
     #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
+        uniform mat4 gbufferPreviousModelView;
+        uniform mat4 gbufferPreviousProjection;
+        //uniform mat4 gbufferModelViewInverse;
         uniform mat4 gbufferProjection;
-        uniform float far;
+        uniform vec3 cameraPosition;
+        uniform vec3 previousCameraPosition;
 
         uniform sampler2D BUFFER_HDR_PREVIOUS;
     #endif
@@ -139,7 +147,7 @@
             uniform sampler2D shadowtex1;
         #endif
 
-        uniform mat4 gbufferModelViewInverse;
+        //uniform mat4 gbufferModelViewInverse;
         uniform mat4 shadowModelView;
         uniform mat4 shadowProjection;
 
@@ -161,12 +169,13 @@
     #include "/lib/material/hcm.glsl"
     #include "/lib/material/material.glsl"
     #include "/lib/material/material_reader.glsl"
-    #include "/lib/lighting/basic.glsl"
-    #include "/lib/lighting/pbr.glsl"
 
     #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-        #include "/lib/ssr.glsl"
+        #include "/lib/bsl_ssr.glsl"
     #endif
+
+    #include "/lib/lighting/basic.glsl"
+    #include "/lib/lighting/pbr.glsl"
 
     /* RENDERTARGETS: 4,6 */
     out vec3 outColor0;

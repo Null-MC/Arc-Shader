@@ -55,7 +55,8 @@
     float GGX(const in float NoH, const in float roughL) {
         float a = NoH * roughL;
         float k = roughL / (1.0 - pow2(NoH) + pow2(a));
-        return pow2(k) * invPI;
+        //return pow2(k) * invPI;
+        return min(pow2(k) * invPI, 65504.0);
     }
 
     float GGX_Fast(const in float NoH, const in vec3 NxH, const in float roughL) {
@@ -101,10 +102,10 @@
                 vec3 iorN = vec3(f0ToIOR(material.albedo.rgb));
                 vec3 iorK = material.albedo.rgb;
 
-                conductor_F = F_conductor(VoH, IOR_AIR, iorN, iorK);
+                conductor_F = min(F_conductor(VoH, IOR_AIR, iorN, iorK), 1000.0);
             }
 
-            float metalF = clamp((material.f0 - 0.04) * (1.0/0.96), 0.0, 1.0);
+            float metalF = saturate((material.f0 - 0.04) * (1.0/0.96));
             return mix(vec3(dielectric_F), conductor_F, metalF);
         #endif
     }
@@ -118,7 +119,7 @@
         float D = GGX(NoH, roughL);
 
         // Geometric Visibility
-        float G = SmithGGXCorrelated(NoV, NoL, roughL);
+        float G = SmithGGXCorrelated_Fast(NoV, NoL, roughL);
 
         //return clamp(D * F * G, 0.0, 100000.0);
         return D * F * G;
@@ -137,7 +138,7 @@
         float sssF_In = F_schlick(NoV, 1.0, sssF90);
         float sssF_Out = F_schlick(NoL, 1.0, sssF90);
 
-        return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (1.0 / (NoV + NoL) - 0.5) + 0.5) * NoL;
+        return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (rcp(max(NoV + NoL, EPSILON)) - 0.5) + 0.5) * NoL;
     }
 
     vec3 GetDiffuseBSDF(const in PbrMaterial material, const in float NoV, const in float NoL, const in float LoH, const in float roughL) {
@@ -201,16 +202,31 @@
         vec2 GetWaterSolidDepth(const in vec2 screenUV) {
             float solidViewDepth = textureLod(depthtex1, screenUV, 0).r;
             float solidViewDepthLinear = linearizeDepthFast(solidViewDepth, near, far);
-            float waterViewDepthLinear = linearizeDepthFast(gl_FragCoord.z, near, far);
+            float waterViewDepthLinear = length(viewPos.xyz);//linearizeDepthFast(gl_FragCoord.z, near, far);
 
             return vec2(waterViewDepthLinear, solidViewDepthLinear);
         }
     #endif
 
+    vec3 GetSkyReflectionColor(const in vec3 reflectDir, const in vec3 viewNormal, out float reflectF) {
+        // darken lower horizon
+        vec3 downDir = normalize(-upPosition);
+        float RoDm = max(dot(reflectDir, downDir), 0.0);
+        reflectF = 1.0 - pow(RoDm, 0.5);
+
+        // occlude inward reflections
+        float NoRm = max(dot(reflectDir, -viewNormal), 0.0);
+        reflectF *= 1.0 - pow(NoRm, 0.5);
+
+        return GetVanillaSkyLuminance(reflectDir)
+             + GetVanillaSkyScattering(reflectDir, sunColor, moonColor);
+    }
+
     vec4 PbrLighting2(const in PbrMaterial material, const in vec2 lmValue, const in float shadow, const in float shadowSSS, const in vec3 viewPos, const in vec2 waterSolidDepth) {
         vec2 viewSize = vec2(viewWidth, viewHeight);
         vec3 viewNormal = normalize(material.normal);
         vec3 viewDir = -normalize(viewPos.xyz);
+        float viewDist = length(viewPos.xyz);
 
         vec2 screenUV = gl_FragCoord.xy / viewSize;
 
@@ -221,14 +237,14 @@
             float NoL = dot(viewNormal, viewLightDir);
 
             vec3 halfDir = normalize(viewLightDir + viewDir);
-            float LoHm = max(dot(viewLightDir, halfDir), EPSILON);
+            float LoHm = max(dot(viewLightDir, halfDir), 0.0);
         #else
             float NoL = 1.0;
             float LoHm = 1.0;
         #endif
 
-        float NoLm = max(NoL, EPSILON);
-        float NoVm = max(dot(viewNormal, viewDir), EPSILON);
+        float NoLm = max(NoL, 0.0);
+        float NoVm = max(dot(viewNormal, viewDir), 0.0);
 
         float rough = 1.0 - material.smoothness;
         float roughL = max(rough * rough, 0.005);
@@ -254,35 +270,31 @@
                 vec3 reflectDir = reflect(-viewDir, viewNormal);
 
                 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-                    //vec2 reflectCoord = GetReflectCoord(reflectDir);
+                    // vec2 reflectionUV;
+                    // float atten = GetReflectColor(texcoord, depth, viewPos, reflectDir, reflectionUV);
 
-                    vec2 reflectionUV;
-                    float atten = GetReflectColor(texcoord, depth, viewPos, reflectDir, reflectionUV);
+                    // if (atten > EPSILON) {
+                    //     ivec2 iReflectUV = ivec2(reflectionUV * 0.5 * vec2(viewWidth, viewHeight));
+                    //     reflectColor = texelFetch(BUFFER_HDR_PREVIOUS, iReflectUV, 0) / max(exposure, EPSILON);
+                    // }
 
-                    if (atten > EPSILON) {
-                        ivec2 iReflectUV = ivec2(reflectionUV * 0.5 * vec2(viewWidth, viewHeight));
-                        reflectColor = texelFetch(BUFFER_HDR_PREVIOUS, iReflectUV, 0) / max(exposure, EPSILON);
+                    // if (atten + EPSILON < 1.0) {
+                    //     vec3 skyColor = GetVanillaSkyLux(reflectDir);
+                    //     reflectColor = mix(skyColor, reflectColor, atten);
+                    // }
+
+                    vec4 roughReflectColor = RoughReflection(depthtex1, viewPos, reflectDir, rough, 0.0);
+                    reflectColor = roughReflectColor.rgb * roughReflectColor.a;
+
+                    if (roughReflectColor.a < 1.0 - EPSILON) {
+                        vec3 skyReflectColor = GetSkyReflectionColor(reflectDir, viewNormal, reflectF) * skyLight;
+                        reflectColor += skyReflectColor * (1.0 - roughReflectColor.a);
                     }
 
-                    if (atten + EPSILON < 1.0) {
-                        vec3 skyColor = GetVanillaSkyLux(reflectDir);
-                        reflectColor = mix(skyColor, reflectColor, atten);
-                    }
+                    //return vec4(reflectColor, 1.0);
+
                 #elif REFLECTION_MODE == REFLECTION_MODE_SKY
-                    // darken lower horizon
-                    vec3 downDir = normalize(-upPosition);
-                    float RoDm = max(dot(reflectDir, downDir), 0.0);
-                    reflectF = 1.0 - pow(RoDm, 0.5);
-
-                    // occlude inward reflections
-                    float NoRm = max(dot(reflectDir, -viewNormal), 0.0);
-                    reflectF *= 1.0 - pow(NoRm, 0.5);
-
-                    //reflectColor = GetVanillaSkyLux(reflectDir) * reflectF;
-                    //reflectColor += GetVanillaSkyScattering(reflectDir, sunColor, moonColor) * reflectF;
-
-                    reflectColor = GetVanillaSkyLuminance(reflectDir);
-                    reflectColor += GetVanillaSkyScattering(reflectDir, sunColor, moonColor);
+                    reflectColor = GetSkyReflectionColor(reflectDir, viewNormal, reflectF) * skyLight;
                 #endif
             }
         #endif
@@ -316,38 +328,35 @@
         vec3 specular = vec3(0.0);
         vec4 final = material.albedo;
 
-        vec3 specFmax = vec3(0.0);
+        vec3 F = GetFresnel(material, NoVm, roughL);
+
+        float Fmax = max(max(F.x, F.y), F.z);
+        final.a += Fmax * max(1.0 - final.a, 0.0);
+
+        //vec3 specFmax = vec3(0.0);
         #ifdef SHADOW_ENABLED
-            //float iblFavg = 0.0;
+            //vec3 iblF = vec3(0.0);
+            vec3 iblSpec = vec3(0.0);
             #if REFLECTION_MODE != REFLECTION_MODE_NONE
-                // IBL
-                vec3 iblF = GetFresnel(material, NoVm, roughL);
-                vec2 envBRDF = texture(BUFFER_BRDF_LUT, vec2(NoVm, material.smoothness)).rg;
+                vec2 envBRDF = textureLod(BUFFER_BRDF_LUT, vec2(NoVm, material.smoothness), 0).rg;
                 envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
 
-                //return vec4(iblF * 500.0, 1.0);
-
-                vec3 iblSpec = skyLight * reflectColor * specularTint * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
-                specular += max(iblSpec, vec3(0.0));
-
-                //return vec4(iblSpec, 1.0);
-
-                float iblFmax = max(max(iblF.x, iblF.y), iblF.z);
-                final.a += iblFmax * max(1.0 - final.a, 0.0);
-
-                specFmax = max(specFmax, iblF);
+                iblSpec = reflectColor * specularTint * (F * envBRDF.x + envBRDF.y) * material.occlusion;
             #endif
 
-            float NoHm = max(dot(viewNormal, halfDir), EPSILON);
-            float VoHm = max(dot(viewDir, halfDir), EPSILON);
+            float NoHm = max(dot(viewNormal, halfDir), 0.0);
+            float VoHm = max(dot(viewDir, halfDir), 0.0);
 
-            vec3 F = GetFresnel(material, VoHm, roughL);
-            vec3 sunSpec = GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * specularTint * skyLightColor * skyLight3 * shadowFinal;
-            specular += sunSpec;
+            vec3 sunSpec = vec3(0.0);
+            if (NoLm > EPSILON) {
+                //vec3 sunF = GetFresnel(material, VoHm, roughL);
+                sunSpec = GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * specularTint * skyLightColor * skyLight3 * shadowFinal;
+                specular += sunSpec;
 
-            final.a = min(final.a + luminance(sunSpec) * exposure, 1.0);
+                final.a = min(final.a + luminance(sunSpec) * exposure, 1.0);
+            }
 
-            specFmax = max(specFmax, F);
+            //specFmax = max(specFmax, sunF);
 
             float shadowBrightness = mix(0.5 * skyLight3, 0.95 * skyLight, rainStrength); // SHADOW_BRIGHTNESS
             vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * shadowBrightness;
@@ -359,10 +368,11 @@
                 diffuseLight += 20.0 * rsmColor * skyLightColor * material.scattering;
             #endif
 
-            vec3 sunDiffuse = GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * diffuseLight;
-            diffuse += max(1.0 - specFmax, 0.0) * sunDiffuse;
-            //diffuse += sunDiffuse;
+            vec3 sunDiffuse = GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * diffuseLight * material.albedo.a;
+            diffuse += sunDiffuse;
         #endif
+
+        //return vec4(diffuse, 1.0);
 
         #ifdef RENDER_WATER
             vec3 upDir = normalize(upDirection);
@@ -373,7 +383,7 @@
                 vec3 extinctionInv = 1.0 - WaterAbsorbtionExtinction;
                 //vec3 extinction = 1.0 - material.albedo.rgb;
 
-                #ifdef WATER_REFRACTION
+                #if WATER_REFRACTION != WATER_REFRACTION_NONE
                     float waterRefractEta = isEyeInWater == 1
                         ? IOR_WATER / IOR_AIR
                         : IOR_AIR / IOR_WATER;
@@ -382,17 +392,61 @@
 
                     vec2 waterSolidDepthFinal;
                     vec3 refractColor = vec3(0.0);
-                    vec3 refractDir = refract(viewDir, viewNormal, waterRefractEta); // TODO: subtract geoViewNormal from texViewNormal
+                    vec3 refractDir = refract(vec3(0.0, 0.0, -1.0), viewNormal, waterRefractEta); // TODO: subtract geoViewNormal from texViewNormal
                     if (dot(refractDir, refractDir) > EPSILON) {
-                        vec2 refractUV = screenUV + (refractDir.xy - viewDir.xy) * min(0.02*refractDist, 0.06);// / (1.0 + viewDist);
+                        vec2 refractOffset = refractDir.xy;
+
+                        // scale down contact point to avoid tearing
+                        refractOffset *= min(0.1*refractDist, 0.06);
+
+                        // scale down with distance
+                        refractOffset *= pow2(1.0 - saturate((viewDist - near) / (far - near)));
+                        
+                        vec2 refractUV = screenUV + refractOffset;
 
                         // update water depth
                         waterSolidDepthFinal = GetWaterSolidDepth(refractUV);
 
-                        if (waterSolidDepthFinal.x > waterSolidDepthFinal.y) {
-                            waterSolidDepthFinal = waterSolidDepth;
-                            refractUV = screenUV;
-                        }
+                        #if WATER_REFRACTION == WATER_REFRACTION_FANCY
+                            // TODO: dda trace screen-space path until rejected
+                            // calculate dx , dy
+                            //dx = X1 - X0;
+                            //dy = Y1 - Y0;
+                            vec2 startUV = refractUV;
+                            vec2 d = screenUV - startUV;
+                            vec2 dp = d * viewSize;
+
+                            // Depending upon absolute value of dx & dy
+                            // choose number of steps to put pixel as
+                            // steps = abs(dx) > abs(dy) ? abs(dx) : abs(dy)
+                            float stepCount = abs(dp.x) > abs(dp.y) ? abs(dp.x) : abs(dp.y);
+
+                            if (stepCount > 1.0) {
+                                // calculate increment in x & y for each steps
+                                //Xinc = d.x / steps;
+                                //Yinc = d.y / steps;
+                                vec2 step = d / stepCount;
+
+                                // Put pixel for each step
+
+                                //refractUV = screenUV;
+                                float solidViewDepth = 0.0;
+                                for (int i = 0; i <= stepCount && solidViewDepth < viewDist; i++) {
+                                    refractUV = startUV + i * step;
+                                    solidViewDepth = textureLod(depthtex1, refractUV, 0).r;
+                                    solidViewDepth = linearizeDepthFast(solidViewDepth, near, far);
+                                }
+
+                                waterSolidDepthFinal.y = solidViewDepth;//linearizeDepthFast(solidViewDepth, near, far);
+                            }
+                        #else
+                            if (waterSolidDepthFinal.y < waterSolidDepthFinal.x) {
+                                // refracted vector returned an invalid hit
+                                waterSolidDepthFinal = waterSolidDepth;
+                                refractUV = screenUV;
+
+                            }
+                        #endif
 
                         refractColor = textureLod(BUFFER_REFRACT, refractUV, 0).rgb / exposure;
                     }
@@ -421,7 +475,7 @@
                     vec3 absorption = exp(extinctionInv * -(waterDepth + verticalDepth));
                     float inverseScatterAmount = 1.0 - exp(0.6 * -waterDepth);
 
-                    diffuse += max(1.0 - specFmax, 0.0) * material.albedo.rgb * skyLightColor * shadowFinal * absorption;
+                    diffuse += material.albedo.rgb * skyLightColor * shadowFinal * absorption;
                     final.a = min(final.a + max(inverseScatterAmount, 0.0), 1.0);
                 #endif
             }
@@ -459,7 +513,9 @@
         //     specular = vec3(0.0);
         // #endif
 
-        final.rgb = final.rgb * (ambient * material.occlusion + emissive) + diffuse + specular;
+        //return vec4(iblSpec, 1.0);
+
+        final.rgb = final.rgb * (ambient * material.occlusion + emissive) + diffuse * max(1.0 - F, 0.0) + specular + iblSpec;
 
         #ifdef SSS_ENABLED
             //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
@@ -472,7 +528,7 @@
 
         #ifdef RENDER_DEFERRED
             if (isEyeInWater == 1) {
-                // TODO: apply scattering and absorption
+                // apply scattering and absorption
 
                 //float viewDepthLinear = linearizeDepthFast(gl_FragCoord.z, near, far);
                 float viewDepth = textureLod(depthtex1, screenUV, 0).r;
@@ -505,8 +561,7 @@
             float moonSkyLumen = GetMoonLightLevel(skyLightLevels.y) * NightSkyLumen;
             float skyLumen = sunSkyLumen + moonSkyLumen;
 
-            // TODO: apply water fog
-            float viewDist = length(viewPos.xyz);
+            // apply water fog
             float waterFogEnd = min(40.0, fogEnd);
             float waterFogF = GetFogFactor(viewDist, near, waterFogEnd, 0.5);
             vec3 waterFogColor = vec3(0.0178, 0.0566, 0.0754) * skyLumen;

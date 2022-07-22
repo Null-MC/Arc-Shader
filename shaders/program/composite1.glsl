@@ -53,7 +53,7 @@
 
         vec3 final = vec3(0.0);
         if (tile >= 0) {
-            vec2 viewSize = 0.5 * vec2(viewWidth, viewHeight);
+            vec2 viewSize = vec2(viewWidth, viewHeight);
             vec2 pixelSize = 1.0 / viewSize;
 
             vec2 tileMin, tileMax;

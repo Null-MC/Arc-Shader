@@ -277,6 +277,11 @@
     #include "/lib/material/hcm.glsl"
     #include "/lib/material/material.glsl"
     #include "/lib/material/material_reader.glsl"
+
+    #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
+        #include "/lib/bsl_ssr.glsl"
+    #endif
+    
     #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/pbr.glsl"
     #include "/lib/lighting/pbr_forward.glsl"

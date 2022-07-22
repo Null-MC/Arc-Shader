@@ -35,7 +35,6 @@ float GetVolumtricLighting(const in vec3 shadowViewStart, const in vec3 shadowVi
     const vec3 sunDirection = vec3(0.0, 0.0, 1.0);
 
     float VoL = dot(rayDirection, sunDirection);
-    //if (VoL < 0.0) return 0.0;
 
     float scattering = ComputeVolumetricScattering(VoL, G_scattering);
 

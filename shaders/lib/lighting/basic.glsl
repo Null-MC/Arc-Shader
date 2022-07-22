@@ -8,25 +8,44 @@
                 pos += GetWavingOffset();
         #endif
 
-        #if defined RENDER_WATER && WATER_WAVE_TYPE == WATER_WAVE_VERTEX
+        #ifdef RENDER_WATER
             if (mc_Entity.x == 100.0) {
-                float windSpeed = GetWindSpeed();
-                
-                float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
-                vec2 waterWorldPos = waterWorldScale * (pos.xz + cameraPosition.xz);
-                float depth = GetWaves(waterWorldPos, windSpeed, WATER_OCTAVES_VERTEX);
-                pos.y -= (1.0 - depth) * WATER_WAVE_DEPTH;
+                if (gl_Normal.y > 0.01) {
+                    //the bottom face doesn't have a backface.
+                }
+                else if (gl_Normal.y < -0.01) {
+                    //sneaky back face of top needs weird checks.
+                    //if (at_midBlock.y < 30.75) {
+                    //    gl_Position = vec4(10.0);
+                    //    return;
+                    //}
+                }
+                else {
+                    if (dot(gl_Normal, at_midBlock) > 0.0) {
+                        gl_Position = vec4(10.0);
+                        return;
+                    }
+                }
 
-                #ifndef WATER_FANCY
-                    vec2 waterWorldPosX = waterWorldPos + vec2(waterWorldScale, 0.0);
-                    float depthX = GetWaves(waterWorldPosX, windSpeed, WATER_OCTAVES_VERTEX);
-                    vec3 pX = vec3(1.0, 0.0, (depthX - depth) * WATER_WAVE_DEPTH);
+                #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
+                    float windSpeed = GetWindSpeed();
+                    
+                    float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
+                    vec2 waterWorldPos = waterWorldScale * (pos.xz + cameraPosition.xz);
+                    float depth = GetWaves(waterWorldPos, windSpeed, WATER_OCTAVES_VERTEX);
+                    pos.y -= (1.0 - depth) * WATER_WAVE_DEPTH;
 
-                    vec2 waterWorldPosY = waterWorldPos + vec2(0.0, waterWorldScale);
-                    float depthY = GetWaves(waterWorldPosY, windSpeed, WATER_OCTAVES_VERTEX);
-                    vec3 pY = vec3(0.0, 1.0, (depthY - depth) * WATER_WAVE_DEPTH);
+                    #ifndef WATER_FANCY
+                        vec2 waterWorldPosX = waterWorldPos + vec2(waterWorldScale, 0.0);
+                        float depthX = GetWaves(waterWorldPosX, windSpeed, WATER_OCTAVES_VERTEX);
+                        vec3 pX = vec3(1.0, 0.0, (depthX - depth) * WATER_WAVE_DEPTH);
 
-                    normal = normalize(cross(pX, pY)).xzy;
+                        vec2 waterWorldPosY = waterWorldPos + vec2(0.0, waterWorldScale);
+                        float depthY = GetWaves(waterWorldPosY, windSpeed, WATER_OCTAVES_VERTEX);
+                        vec3 pY = vec3(0.0, 1.0, (depthY - depth) * WATER_WAVE_DEPTH);
+
+                        normal = normalize(cross(pX, pY)).xzy;
+                    #endif
                 #endif
             }
         #endif

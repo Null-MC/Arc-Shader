@@ -48,7 +48,7 @@
                 material.hcm = -1;
 
                 const float waterPixelSize = rcp(WATER_RESOLUTION);
-                float zScale = 80.0;
+                float zScale = 32.0;
 
                 vec2 waterLocalPos = rcp(2.0*WATER_RADIUS) * localPos.xz;
                 float depth, depthX, depthY;

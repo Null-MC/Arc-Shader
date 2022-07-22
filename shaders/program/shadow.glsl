@@ -152,7 +152,7 @@ const float shadowDistanceRenderMul = 1.0;
             }
         #endif
 
-        vec4 viewPos = gl_ModelViewMatrix * pos;
+        vec4 viewPos = shadowModelView * pos;
 
         #if SHADOW_TYPE == 3
             cascadeSizes[0] = GetCascadeDistance(0);
