@@ -12,10 +12,10 @@
 				shadowPos.xyz = distort(shadowPos.xyz, distortFactor);
 				//shadowPos.z -= SHADOW_DISTORTED_BIAS * SHADOW_BIAS_SCALE * (distortFactor * distortFactor) / abs(geoNoL);
 
-                float df2 = distortFactor*distortFactor;
-                float biasZ = SHADOW_DISTORTED_BIAS * df2;
-                float biasXY = shadowPixelSize / distortFactor;
-                shadowPos.z -= mix(biasXY, biasZ, geoNoL) * SHADOW_BIAS_SCALE;
+                // float df2 = distortFactor*distortFactor;
+                // float biasZ = SHADOW_DISTORTED_BIAS * df2;
+                // float biasXY = shadowPixelSize / distortFactor;
+                // shadowPos.z -= mix(biasXY, biasZ, geoNoL) * SHADOW_BIAS_SCALE;
 			#elif SHADOW_TYPE == 1
 				float range = min(shadowDistance, far * SHADOW_CSM_FIT_FARSCALE);
 				float shadowResScale = range / shadowMapSize;
@@ -62,6 +62,22 @@
     }
 
     #ifndef RENDER_DEFERRED
+        vec2 GetShadowPixelRadius(const in float blockRadius) {
+            vec2 shadowProjectionSize = 2.0 / vec2(shadowProjection[0].x, shadowProjection[1].y);
+
+            #if SHADOW_TYPE == 2
+                float distortFactor = getDistortFactor(shadowPos.xy * 2.0 - 1.0);
+                float maxRes = shadowMapSize / SHADOW_DISTORT_FACTOR;
+                //float maxResPixel = 1.0 / maxRes;
+
+                vec2 pixelPerBlockScale = maxRes / shadowProjectionSize;
+                return blockRadius * pixelPerBlockScale * shadowPixelSize * (1.0 - distortFactor);
+            #else
+                vec2 pixelPerBlockScale = shadowMapSize / shadowProjectionSize;
+                return blockRadius * pixelPerBlockScale * shadowPixelSize;
+            #endif
+        }
+
         #if SHADOW_FILTER != 0
             // PCF
             float GetShadowing_PCF(const in vec4 shadowPos, const in vec2 pixelRadius, const in int sampleCount) {
@@ -72,22 +88,6 @@
                 }
 
                 return shadow / sampleCount;
-            }
-
-            vec2 GetShadowPixelRadius(const in float blockRadius) {
-                vec2 shadowProjectionSize = 2.0 / vec2(shadowProjection[0].x, shadowProjection[1].y);
-
-                #if SHADOW_TYPE == 2
-                    float distortFactor = getDistortFactor(shadowPos.xy * 2.0 - 1.0);
-                    float maxRes = shadowMapSize / SHADOW_DISTORT_FACTOR;
-                    //float maxResPixel = 1.0 / maxRes;
-
-                    vec2 pixelPerBlockScale = maxRes / shadowProjectionSize;
-                    return blockRadius * pixelPerBlockScale * shadowPixelSize * (1.0 - distortFactor);
-                #else
-                    vec2 pixelPerBlockScale = shadowMapSize / shadowProjectionSize;
-                    return blockRadius * pixelPerBlockScale * shadowPixelSize;
-                #endif
             }
         #endif
 
@@ -166,10 +166,14 @@
                     for (int i = 0; i < sampleCount; i++) {
                         vec2 pixelOffset = poissonDisk[i] * pixelRadius;
                         float texDepth = SampleDepth(shadowPos, pixelOffset);
+                        light += step(shadowPos.z, texDepth);
 
-                        float shadow_sss = SampleShadowColorSSS(shadowPos.xy + pixelOffset).a;
-                        float dist = max(shadowPos.z - texDepth, 0.0) * 4.0 * far;
-                        light += max(shadow_sss - dist / SSS_MAXDIST, 0.0);
+                        if (texDepth < shadowPos.z) {
+                            float shadow_sss = SampleShadowColorSSS(shadowPos.xy + pixelOffset).a;
+
+                            float dist = max(shadowPos.z - texDepth, 0.0) * 4.0 * far;
+                            light += max(shadow_sss - dist / SSS_MAXDIST, 0.0);
+                        }
                     }
 
                     return light / sampleCount;
@@ -180,9 +184,12 @@
                 // PCF + PCSS
                 float GetShadowSSS(const in vec4 shadowPos) {
                     // TODO: Add penumbra?
+                    float texDepth = SampleDepth(shadowPos, vec2(0.0));
+                    float dist = max(shadowPos.z - texDepth, 0.0) * 4.0 * far;
+                    float distF = 1.0 + 2.0*saturate(dist / SSS_MAXDIST);
 
                     int sampleCount = SSS_PCF_SAMPLES;
-                    vec2 pixelRadius = GetShadowPixelRadius(SSS_PCF_SIZE);
+                    vec2 pixelRadius = GetShadowPixelRadius(SSS_PCF_SIZE) * distF;
                     if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
                     return GetShadowing_PCF_SSS(shadowPos, pixelRadius, sampleCount);

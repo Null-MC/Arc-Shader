@@ -38,7 +38,7 @@ const bool colortex11Clear = false;
 #define ENABLE_WAVING
 #define HANDLIGHT_ENABLED
 #define VL_ENABLED
-#define VL_SAMPLE_COUNT 30 // [15 30 60 90]
+#define VL_SAMPLE_COUNT 60 // [15 30 60 90]
 #define BLOCKLIGHT_TEMP 3500 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 80 // [0 10 20 30 40 50 60 70 80 90 100]
 #define SHADOW_BRIGHTNESS 0.60 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
@@ -108,8 +108,8 @@ const bool colortex11Clear = false;
 #define MATERIAL_FORMAT 1 // [0 1 2 3]
 #define SSS_ENABLED
 #define SSS_MAXDIST 2.8
-#define SSS_FILTER 0 // [0 1 2]
-#define SSS_PCF_SIZE 0.015 // [0.005 0.010 0.015 0.020 0.025 0.030 0.035 0.040 0.045 0.050 0.055 0.060 0.065 0.070 0.075 0.080 0.085 0.090 0.095 0.100]
+#define SSS_FILTER 2 // [0 1 2]
+#define SSS_PCF_SIZE 0.200
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
 #define REFLECTION_MODE 1 // [0 1 2]
 
@@ -154,7 +154,7 @@ const bool colortex11Clear = false;
 
 
 // Effect Options
-#define RSM_ENABLED
+//#define RSM_ENABLED
 #define RSM_INTENSITY 2 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
 #define RSM_FILTER_SIZE 0.8 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.4 2.6 2.8 3.0]
 #define RSM_SAMPLE_COUNT 100 // [100 200 400]
