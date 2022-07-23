@@ -11,9 +11,8 @@
 
                 //shadowPos.z -= SHADOW_DISTORTED_BIAS * SHADOW_BIAS_SCALE * (distortFactor * distortFactor) / abs(geoNoL);
                 float df2 = distortFactor*distortFactor;
-                float biasZ = SHADOW_DISTORTED_BIAS * df2;
-                float biasXY = shadowPixelSize * distortFactor;
-                //shadowPos.z -= mix(biasXY, biasZ, geoNoL) * SHADOW_BIAS_SCALE;
+                float biasZ = 1e-4;//SHADOW_DISTORTED_BIAS * df2;
+                float biasXY = shadowPixelSize * df2 * 8.0;
                 shadowBias = mix(biasXY, biasZ, geoNoL) * SHADOW_BIAS_SCALE;
             #elif SHADOW_TYPE == SHADOW_TYPE_BASIC
                 float range = min(shadowDistance, far * SHADOW_CSM_FIT_FARSCALE);
@@ -183,13 +182,12 @@
             #if SSS_FILTER == 2
                 // PCF + PCSS
                 float GetShadowSSS(const in vec4 shadowPos) {
-                    // TODO: Add penumbra?
                     float texDepth = SampleDepth(shadowPos, vec2(0.0));
                     float dist = max(shadowPos.z - texDepth, 0.0) * 4.0 * far;
                     float distF = 1.0 + 2.0*saturate(dist / SSS_MAXDIST);
 
                     int sampleCount = SSS_PCF_SAMPLES;
-                    vec2 pixelRadius = GetShadowPixelRadius(SSS_PCF_SIZE) * distF;
+                    vec2 pixelRadius = GetShadowPixelRadius(SSS_PCF_SIZE * distF);
                     if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
                     return GetShadowing_PCF_SSS(shadowPos, pixelRadius, sampleCount);

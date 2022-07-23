@@ -11,16 +11,17 @@ float GetCaveFogFactor(const in float viewDist) {
 float GetCustomFogFactor(const in float viewDist, const in float sunLightLevel) {
     const float dayFogDensity = 1.5;
     const float nightFogDensity = 1.0;
-    const float rainFogDensity = 0.4;
+    const float rainFogDensity = 1.2;
 
     const float dayFogStrength = 0.3;
     const float nightFogStrength = 0.5;
-    const float rainFogStrength = 1.0;
+    const float rainFogStrength = 0.3;
 
     float density = mix(nightFogDensity, dayFogDensity, sunLightLevel);
     density = mix(density, rainFogDensity, rainStrength);
 
-    float strength = mix(0.4, 1.0, rainStrength);
+    float strength = mix(nightFogStrength, dayFogStrength, sunLightLevel);
+    strength = mix(strength, rainFogStrength, rainStrength);
 
     return GetFogFactor(viewDist, 0.0, fogEnd, density) * strength;
 }

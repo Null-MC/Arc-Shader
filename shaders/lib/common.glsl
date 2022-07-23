@@ -66,9 +66,9 @@ const bool colortex11Clear = false;
 #define ATMOSFOG_ENABLED
 #define CAVEFOG_ENABLED
 #define HCM_AMBIENT 0.16
-#define WEATHER_OPACITY 0.5
+#define WEATHER_OPACITY 0.4
 #define G_SCATTERING_CLEAR 0.94
-#define G_SCATTERING_RAIN 0.6
+#define G_SCATTERING_RAIN 0.1
 
 
 // Shadow Options
@@ -98,7 +98,7 @@ const bool colortex11Clear = false;
 #define SSS_ENABLED
 #define SSS_MAXDIST 2.8
 #define SSS_FILTER 2 // [0 2]
-#define SSS_PCF_SIZE 0.2 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+#define SSS_PCF_SIZE 0.4 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
 #define REFLECTION_MODE 1 // [0 1 2]
 
@@ -169,15 +169,16 @@ const float StarLumen = 2000.0;
 const float EmissionLumens = 100000.0;
 
 const float SunLux = 64000.0;
-const float SunOvercastLux = 400;
+const float SunOvercastLux = 2400.0;
 const float MoonLux = 30.0;
 const float MoonOvercastLux = 2.0;
-const float BlockLightLux = 9000;
+const float BlockLightLux = 9000.0;
 const float MinWorldLux = 2.0;
 
 const float DaySkyLumen = 14000.0;
-const float DaySkyOvercastLumen = 5000;
+const float DaySkyOvercastLumen = 4600.0;
 const float NightSkyLumen = 1200.0;
+const float NightSkyOvercastLumen = 400.0;
 
 const vec3 WaterAbsorbtionExtinction = vec3(0.72, 0.91, 0.93); //0.54, 0.91, 0.93
 

@@ -26,21 +26,21 @@ float GetSunLightLevel(const in float skyLightLevel) {
 }
 
 float GetMoonLightLevel(const in float skyLightLevel) {
-    float rainLevel = 1.0 - 0.9 * rainStrength;
+    //float rainLevel = 1.0 - 0.9 * rainStrength;
     float moonPhaseLevel = moonPhaseLevels[abs(moonPhase-4)];
 
     //float angularDiameter = mix(0.49, 0.55, max(skyLightLevel, 0.0));
     //return GetSolidAngle(angularDiameter) * moonPhaseLevel;
 
     // TODO: This angle is wrong and sucks
-    return pow(max(skyLightLevel, 0.0), 0.4) * rainLevel * moonPhaseLevel;
+    return pow(max(skyLightLevel, 0.0), 0.4) * moonPhaseLevel;
 }
 
 // returns: x:sun y:moon temp in kelvin
 vec2 GetSkyLightTemp(const in vec2 skyLightLevels) {
     const float temp_sunrise = 2200; // 2000
     const float temp_day = 5000; // 5000
-    const float temp_rain = 7000; // 8000
+    const float temp_rain = 7800; // 8000
     const float temp_moon = 4100; // 5500
 
     float sunTemp = mix(temp_sunrise, temp_day, max(skyLightLevels.x, 0.0));
@@ -81,8 +81,8 @@ vec3 GetSkyLightLuminance(const in vec2 skyLightLevels) {
     //vec2 skyLightLevels = GetSkyLightLevels();
     vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
 
-    vec3 sunLum = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x); //GetSunLightColor(skyLightTemp.x, skyLightLevels.x) * SunLux;
-    vec3 moonLum = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y); //GetMoonLightColor(skyLightTemp.y, skyLightLevels.y) * MoonLux;
+    vec3 sunLum = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
+    vec3 moonLum = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);
 
     return sunLum + moonLum;
 }
@@ -95,7 +95,7 @@ vec3 GetSkyLightLuminance(const in vec2 skyLightLevels) {
     vec3 GetVanillaSkyLuminance(const in vec3 viewDir) {
         vec2 skyLightLevels = GetSkyLightLevels();
         float sunSkyLumen = GetSunLightLevel(skyLightLevels.x) * mix(DaySkyLumen, DaySkyOvercastLumen, rainStrength);
-        float moonSkyLumen = GetMoonLightLevel(skyLightLevels.y) * NightSkyLumen;
+        float moonSkyLumen = GetMoonLightLevel(skyLightLevels.y) * mix(NightSkyLumen, NightSkyOvercastLumen, rainStrength);
         float skyLumen = sunSkyLumen + moonSkyLumen;
 
         vec3 skyColorLinear = RGBToLinear(skyColor) * skyLumen;
@@ -107,6 +107,8 @@ vec3 GetSkyLightLuminance(const in vec2 skyLightLevels) {
                 fogColorLinear = vec3(0.0178, 0.0566, 0.0754) * skyLumen;
             }
         #endif
+
+        fogColorLinear = mix(fogColorLinear, vec3(0.839, 0.843, 0.824) * skyLumen, rainStrength);
 
         vec3 upDir = normalize(upPosition);
         float VoUm = max(dot(viewDir, upDir), 0.0);
