@@ -364,6 +364,7 @@
             float shadowBrightness = mix(0.5 * skyLight3, 0.95 * skyLight, rainStrength); // SHADOW_BRIGHTNESS
             vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * shadowBrightness;
             ambient += skyAmbient;
+            //return vec4(ambient, 1.0);
 
             float diffuseLightF = shadowFinal;
 
@@ -535,8 +536,6 @@
         //     diffuse = vec3(0.0);
         //     specular = vec3(0.0);
         // #endif
-
-        //return vec4(iblSpec, 1.0);
 
         final.rgb = final.rgb * (ambient * material.occlusion + emissive) + diffuse * material.albedo.a * max(1.0 - F, 0.0) + specular + iblSpec;
 

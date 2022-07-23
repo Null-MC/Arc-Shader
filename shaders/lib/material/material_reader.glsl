@@ -32,6 +32,7 @@ float GetLabPbr_Emission(const in float specularA) {
             material.hcm = GetLabPbr_HCM(specularMap.g);
             material.occlusion = normalMap.z;
         #else
+            material.occlusion = 1.0;
             material.f0 = specularMap.g;
             material.hcm = -1;
         #endif
