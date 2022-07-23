@@ -8,18 +8,9 @@
             #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                 float distortFactor = getDistortFactor(shadowPos.xy);
                 shadowPos.xyz = distort(shadowPos.xyz, distortFactor);
-
-                //shadowPos.z -= SHADOW_DISTORTED_BIAS * SHADOW_BIAS_SCALE * (distortFactor * distortFactor) / abs(geoNoL);
-                float df2 = distortFactor*distortFactor;
-                float biasZ = 1e-4;//SHADOW_DISTORTED_BIAS * df2;
-                float biasXY = shadowPixelSize * df2 * 8.0;
-                shadowBias = mix(biasXY, biasZ, geoNoL) * SHADOW_BIAS_SCALE;
+                shadowBias = GetShadowBias(geoNoL, distortFactor);
             #elif SHADOW_TYPE == SHADOW_TYPE_BASIC
-                float range = min(shadowDistance, far * SHADOW_CSM_FIT_FARSCALE);
-                float shadowResScale = range / shadowMapSize;
-                float bias = SHADOW_BASIC_BIAS * shadowResScale * SHADOW_BIAS_SCALE;
-                //shadowPos.z -= min(bias / abs(geoNoL), 0.1);
-                shadowBias = min(bias / abs(geoNoL), 0.1);
+                shadowBias = GetShadowBias(geoNoL);
             #endif
 
             shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;

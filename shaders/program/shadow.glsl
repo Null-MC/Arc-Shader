@@ -16,7 +16,7 @@ const float shadowDistanceRenderMul = 1.0;
     out vec2 lmcoord;
     out vec2 texcoord;
     out vec4 glcolor;
-    out vec3 localPos;
+    //out vec3 localPos;
 
     #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
         flat out float matSmooth;

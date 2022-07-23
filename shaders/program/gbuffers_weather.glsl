@@ -213,7 +213,7 @@
 
     void main() {
         vec4 color = BasicLighting();
-        color.a *= WEATHER_OPACITY;
+        color.a *= WEATHER_OPACITY * 0.01;
 
         #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
             vec4 outLuminance = vec4(0.0);

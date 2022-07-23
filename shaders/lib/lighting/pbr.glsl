@@ -256,12 +256,15 @@
 
         #ifdef SHADOW_ENABLED
             // Increase skylight when in direct sunlight
-            //skyLight = max(skyLight, shadow);
+            skyLight = max(skyLight, shadow);
         #endif
 
-        // Make areas without skylight fully shadowed (light leak fix)
-        float lightLeakFix = step(1.0 / 32.0, skyLight);
-        float shadowFinal = shadow * lightLeakFix;
+        float shadowFinal = shadow;
+        #ifdef LIGHTLEAK_FIX
+            // Make areas without skylight fully shadowed (light leak fix)
+            float lightLeakFix = step(1.0 / 32.0, skyLight);
+            shadowFinal *= lightLeakFix;
+        #endif
 
         float skyLight3 = pow3(skyLight);
 
@@ -537,6 +540,8 @@
         //     specular = vec3(0.0);
         // #endif
 
+        //return vec4(diffuse, 1.0);
+
         final.rgb = final.rgb * (ambient * material.occlusion + emissive) + diffuse * material.albedo.a * max(1.0 - F, 0.0) + specular + iblSpec;
 
         // #ifdef SSS_ENABLED
@@ -610,7 +615,7 @@
             vec4 shadowViewEnd = matViewToShadowView * vec4(viewPos, 1.0);
             shadowViewEnd.xyz /= shadowViewEnd.w;
 
-            float shadowBias = 0.0; // TODO: fuck
+            float shadowBias = EPSILON; // TODO: fuck
 
             float G_scattering = mix(G_SCATTERING_CLEAR, G_SCATTERING_RAIN, rainStrength);
             float volScatter = GetVolumetricLighting(shadowViewStart.xyz, shadowViewEnd.xyz, shadowBias, G_scattering);

@@ -89,8 +89,13 @@
             #endif
         #endif
 
-        const float minSkylightThreshold = 1.0 / 32.0 + EPSILON;
-        float shadow = step(minSkylightThreshold, lmcoord.y);
+        #ifdef LIGHTLEAK_FIX
+            const float minSkylightThreshold = 1.0 / 16.0 + EPSILON;
+            float shadow = step(minSkylightThreshold, lmcoord.y);
+        #else
+            float shadow = 1.0;
+        #endif
+
         float lightSSS = 0.0;
 
         #if defined SHADOW_ENABLED

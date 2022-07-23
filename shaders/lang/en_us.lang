@@ -36,6 +36,9 @@ suffix.DIRECTIONAL_LIGHTMAP_STRENGTH=%
 option.HANDLIGHT_ENABLED=Hand Light
 option.HANDLIGHT_ENABLED.comment=Hand-held items will use the shader for lighting instead of the vanilla block-light level.
 
+option.LIGHTLEAK_FIX=Light-Leak Fix
+option.LIGHTLEAK_FIX.comment=Helps prevent sunlight from leaking into caves and other dark areas; but may also causes over-shadowing in some scenes.
+
 
 screen.WATER_OPTIONS=Water
 
@@ -128,6 +131,11 @@ suffix.sunPathRotation=°
 option.ATMOSFOG_ENABLED=Haze Fog
 
 option.CAVEFOG_ENABLED=Cave Fog
+
+option.WEATHER_OPACITY=Weather Opacity
+option.WEATHER_OPACITY.comment=Controls the opacity of weather particles (rain, snow). Lower values will be less visible.
+suffix.WEATHER_OPACITY=%
+
 
 screen.SHADOW_OPTIONS=Shadows
 

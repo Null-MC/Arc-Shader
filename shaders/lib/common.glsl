@@ -63,10 +63,11 @@ const bool colortex11Clear = false;
 
 // Atmosphere Options
 #define ATMOSPHERE_TYPE 0 // [0 1]
+//#define LIGHTLEAK_FIX
 #define ATMOSFOG_ENABLED
-#define CAVEFOG_ENABLED
+//#define CAVEFOG_ENABLED
 #define HCM_AMBIENT 0.16
-#define WEATHER_OPACITY 0.4
+#define WEATHER_OPACITY 40 // [10 20 30 40 50 60 70 80 90 100]
 #define G_SCATTERING_CLEAR 0.94
 #define G_SCATTERING_RAIN 0.1
 
@@ -176,9 +177,9 @@ const float BlockLightLux = 9000.0;
 const float MinWorldLux = 2.0;
 
 const float DaySkyLumen = 14000.0;
-const float DaySkyOvercastLumen = 4600.0;
+const float DaySkyOvercastLumen = 4200.0;
 const float NightSkyLumen = 1200.0;
-const float NightSkyOvercastLumen = 400.0;
+const float NightSkyOvercastLumen = 60.0;
 
 const vec3 WaterAbsorbtionExtinction = vec3(0.72, 0.91, 0.93); //0.54, 0.91, 0.93
 

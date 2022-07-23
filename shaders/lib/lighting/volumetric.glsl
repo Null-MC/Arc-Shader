@@ -6,7 +6,7 @@ float GetVolumetricFactor(const in vec3 shadowViewStart, const in vec3 shadowVie
     float stepLength = rayLength / VL_SAMPLE_COUNT;
     float accumF = 0.0;
 
-    for (int i = 1; i <= VL_SAMPLE_COUNT; i++) {
+    for (int i = 1; i < VL_SAMPLE_COUNT; i++) {
         vec3 currentShadowViewPos = shadowViewStart + i * rayDirection * stepLength;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
