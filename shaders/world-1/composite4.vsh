@@ -4,6 +4,6 @@
 #define WORLD_NETHER
 
 #include "nether.glsl"
-#include "lib/constants.glsl"
+#include "/lib/constants.glsl"
 #include "/lib/common.glsl"
 #include "/program/composite4.glsl"

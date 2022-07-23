@@ -593,7 +593,7 @@
             #ifdef RENDER_DEFERRED
                 ApplyFog(final.rgb, viewPos.xyz, skyLight);
             #elif defined RENDER_GBUFFER
-                #ifdef RENDER_WATER
+                #if defined RENDER_WATER || defined RENDER_HAND_WATER
                     ApplyFog(final, viewPos.xyz, skyLight, EPSILON);
                 #else
                     ApplyFog(final, viewPos.xyz, skyLight, alphaTestRef);

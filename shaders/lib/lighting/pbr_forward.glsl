@@ -145,7 +145,7 @@
 
                 PopulateMaterial(material, colorMap, normalMap, specularMap);
 
-                #ifndef RENDER_WATER
+                #if !defined RENDER_WATER && !defined RENDER_HAND_WATER
                     if (material.albedo.a < alphaTestRef) discard;
                 #endif
 
