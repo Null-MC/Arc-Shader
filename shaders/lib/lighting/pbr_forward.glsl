@@ -3,16 +3,18 @@
 #endif
 
 #ifdef RENDER_FRAG
-    void ApplyVanillaProperties(inout PbrMaterial material, const in vec4 colorMap) {
-        material.albedo.rgb = RGBToLinear(colorMap.rgb);
-        material.albedo.a = colorMap.a;
-        material.occlusion = 1.0;
-        material.normal = vec3(0.0, 0.0, 1.0);
-        material.smoothness = matSmooth;
-        material.scattering = matSSS;
-        material.f0 = GetLabPbr_F0(matF0);
-        material.hcm = GetLabPbr_HCM(matF0);
-    }
+    #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+        void ApplyVanillaProperties(inout PbrMaterial material, const in vec4 colorMap) {
+            material.albedo.rgb = RGBToLinear(colorMap.rgb);
+            material.albedo.a = colorMap.a;
+            material.occlusion = 1.0;
+            material.normal = vec3(0.0, 0.0, 1.0);
+            material.smoothness = matSmooth;
+            material.scattering = matSSS;
+            material.f0 = GetLabPbr_F0(matF0);
+            material.hcm = GetLabPbr_HCM(matF0);
+        }
+    #endif
 
     vec4 PbrLighting() {
         vec2 atlasCoord = texcoord;

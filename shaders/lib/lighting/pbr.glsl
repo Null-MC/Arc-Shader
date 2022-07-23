@@ -137,7 +137,7 @@
         float sssF_In = F_schlick(NoV, 1.0, sssF90);
         float sssF_Out = F_schlick(NoL, 1.0, sssF90);
 
-        return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (rcp(max(NoV + NoL, 0.1)) - 0.5) + 0.5);// * NoL;
+        return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (rcp(1.0 + (NoV + NoL)) - 0.5) + 0.5);// * NoL;
     }
 
     vec3 GetDiffuseBSDF(const in PbrMaterial material, const in float NoV, const in float NoL, const in float LoH, const in float roughL) {
