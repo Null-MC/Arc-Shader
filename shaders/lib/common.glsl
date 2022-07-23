@@ -69,7 +69,7 @@ const bool colortex11Clear = false;
 #define HCM_AMBIENT 0.16
 #define WEATHER_OPACITY 40 // [10 20 30 40 50 60 70 80 90 100]
 #define G_SCATTERING_CLEAR 0.94
-#define G_SCATTERING_RAIN 0.1
+#define G_SCATTERING_RAIN 0.25
 
 
 // Shadow Options
@@ -170,7 +170,7 @@ const float StarLumen = 2000.0;
 const float EmissionLumens = 100000.0;
 
 const float SunLux = 64000.0;
-const float SunOvercastLux = 2400.0;
+const float SunOvercastLux = 1200.0;
 const float MoonLux = 30.0;
 const float MoonOvercastLux = 2.0;
 const float BlockLightLux = 9000.0;

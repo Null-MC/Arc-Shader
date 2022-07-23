@@ -15,7 +15,7 @@ float GetCustomFogFactor(const in float viewDist, const in float sunLightLevel) 
 
     const float dayFogStrength = 0.2;
     const float nightFogStrength = 0.3;
-    const float rainFogStrength = 0.4;
+    const float rainFogStrength = 0.6;
 
     float density = mix(nightFogDensity, dayFogDensity, sunLightLevel);
     density = mix(density, rainFogDensity, rainStrength);
@@ -88,7 +88,7 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
             caveFogFactor *= 1.0 - caveLightFactor;
             //caveFogFactor *= 1.0 - cameraLightFactor * vanillaFogFactor;
         #endif
-        
+
         maxFactor = max(maxFactor, caveFogFactor);
     #endif
 

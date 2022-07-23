@@ -75,9 +75,8 @@
         colorMap.rgb = RGBToLinear(colorMap.rgb);
 
         vec2 skyLightLevels = GetSkyLightLevels();
-        float sunLightLux = GetSunLightLevel(skyLightLevels.x) * DaySkyLumen;
-        float moonLightLux = GetMoonLightLevel(skyLightLevels.y) * NightSkyLumen;
-        colorMap.rgb *= sunLightLux + moonLightLux;
+        float darkness = 1.0 - 0.65 * rainStrength;
+        colorMap.rgb *= GetSkyLightLuminance(skyLightLevels) * darkness;
 
         #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
             outColor1 = log2(luminance(colorMap.rgb) + EPSILON);

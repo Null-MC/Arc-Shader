@@ -147,7 +147,7 @@
         vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
         sunColor = GetSunLightLuxColor(skyLightTemps.x, skyLightLevels.x);
         moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
-        skyLightColor = GetSkyLightLuminance(skyLightLevels);
+        skyLightColor = GetSkyLightLuxColor(skyLightLevels);
 
         blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
 

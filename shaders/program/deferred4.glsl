@@ -52,7 +52,7 @@
             vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
             sunColor = GetSunLightLuxColor(skyLightTemps.x, skyLightLevels.x);
             moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
-            //skyLightColor = GetSkyLightLuminance(skyLightLevels);
+            //skyLightColor = GetSkyLightLuxColor(skyLightLevels);
             skyLightColor = sunColor + moonColor; // TODO: get rid of this variable
         #endif
 

@@ -102,7 +102,7 @@
         vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
         sunColor = GetSunLightColor(skyLightTemps.x, skyLightLevels.x) * sunLumen;
         moonColor = GetMoonLightColor(skyLightTemps.y, skyLightLevels.y) * moonLumen;
-        skyLightColor = GetSkyLightLuminance(skyLightLevels);
+        skyLightColor = GetSkyLightLuxColor(skyLightLevels);
 
         exposure = GetExposure();
     }

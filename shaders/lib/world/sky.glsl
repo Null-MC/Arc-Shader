@@ -77,12 +77,30 @@ vec3 GetMoonLightLuxColor(const in float temp, const in float skyLightLevel) {
     return GetSunLightColor(temp, skyLightLevel) * lux;
 }
 
-vec3 GetSkyLightLuminance(const in vec2 skyLightLevels) {
-    //vec2 skyLightLevels = GetSkyLightLevels();
+vec3 GetSkyLightLuxColor(const in vec2 skyLightLevels) {
     vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
 
-    vec3 sunLum = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
-    vec3 moonLum = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);
+    vec3 sunLuxColor = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
+    vec3 moonLuxColor = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);
+
+    return sunLuxColor + moonLuxColor;
+}
+
+float GetSunLightLuminance(const in float skyLightLevel) {
+    float luminance = mix(DaySkyLumen, DaySkyOvercastLumen, rainStrength);
+    return GetSunLightLevel(skyLightLevel) * luminance;
+}
+
+float GetMoonLightLuminance(const in float skyLightLevel) {
+    float luminance = mix(NightSkyLumen, NightSkyOvercastLumen, rainStrength);
+    return GetMoonLightLevel(skyLightLevel) * luminance;
+}
+
+float GetSkyLightLuminance(const in vec2 skyLightLevels) {
+    vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
+
+    float sunLum = GetSunLightLuminance(skyLightLevels.x);
+    float moonLum = GetMoonLightLuminance(skyLightLevels.y);
 
     return sunLum + moonLum;
 }
@@ -94,8 +112,8 @@ vec3 GetSkyLightLuminance(const in vec2 skyLightLevels) {
 
     vec3 GetVanillaSkyLuminance(const in vec3 viewDir) {
         vec2 skyLightLevels = GetSkyLightLevels();
-        float sunSkyLumen = GetSunLightLevel(skyLightLevels.x) * mix(DaySkyLumen, DaySkyOvercastLumen, rainStrength);
-        float moonSkyLumen = GetMoonLightLevel(skyLightLevels.y) * mix(NightSkyLumen, NightSkyOvercastLumen, rainStrength);
+        float sunSkyLumen = GetSunLightLuminance(skyLightLevels.x);
+        float moonSkyLumen = GetMoonLightLuminance(skyLightLevels.y);
         float skyLumen = sunSkyLumen + moonSkyLumen;
 
         vec3 skyColorLinear = RGBToLinear(skyColor);
