@@ -151,12 +151,12 @@
         uniform mat4 shadowModelView;
         uniform mat4 shadowProjection;
 
-        #if SHADOW_TYPE == 1
+        #if SHADOW_TYPE == SHADOW_TYPE_BASIC
             #include "/lib/shadows/basic_render.glsl"
-        #elif SHADOW_TYPE == 2
+        #elif SHADOW_TYPE == SHADOW_TYPE_DISTORTED
             #include "/lib/shadows/basic.glsl"
             #include "/lib/shadows/basic_render.glsl"
-        #elif SHADOW_TYPE == 3
+        #elif SHADOW_TYPE == SHADOW_TYPE_CASCADED
             #include "/lib/shadows/csm.glsl"
             #include "/lib/shadows/csm_render.glsl"
         #endif

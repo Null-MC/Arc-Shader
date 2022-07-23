@@ -6,12 +6,10 @@
 #if defined RENDER_VERTEX && defined RSM_ENABLED
     out vec2 texcoord;
 
-    #if SHADOW_TYPE == 3
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         flat out float cascadeSizes[4];
         flat out mat4 matShadowProjections[4];
-    #endif
 
-    #if SHADOW_TYPE == 3
         uniform mat4 shadowModelView;
         uniform float near;
         uniform float far;
@@ -39,7 +37,7 @@
 		gl_Position = ftransform();
 		texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
-        #if SHADOW_TYPE == 3
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             cascadeSizes[0] = GetCascadeDistance(0);
             cascadeSizes[1] = GetCascadeDistance(1);
             cascadeSizes[2] = GetCascadeDistance(2);
@@ -56,7 +54,7 @@
 #if defined RENDER_FRAG && defined RSM_ENABLED
     in vec2 texcoord;
 
-    #if SHADOW_TYPE == 3
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         flat in float cascadeSizes[4];
         flat in mat4 matShadowProjections[4];
     #endif
@@ -73,7 +71,7 @@
         uniform sampler2D shadowtex1;
     #endif
 
-    // #if SHADOW_TYPE == 3
+    // #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     //     uniform isampler2D shadowcolor1;
     // #else
     //     uniform sampler2D shadowcolor1;
@@ -90,9 +88,9 @@
     uniform float near;
     uniform float far;
 
-    #if SHADOW_TYPE == 3
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         #include "/lib/shadows/csm.glsl"
-    #elif SHADOW_TYPE == 2
+    #elif SHADOW_TYPE == SHADOW_TYPE_DISTORTED
         #include "/lib/shadows/basic.glsl"
     #endif
 

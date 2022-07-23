@@ -32,7 +32,7 @@ const float shadowDistanceRenderMul = 1.0;
         flat out mat3 matViewTBN;
     #endif
 
-    #if SHADOW_TYPE == 3
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         flat out float cascadeSizes[4];
         flat out vec2 shadowCascadePos;
     #endif
@@ -60,7 +60,7 @@ const float shadowDistanceRenderMul = 1.0;
 
     #include "/lib/world/waving.glsl"
 
-    #if SHADOW_TYPE == 3
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         uniform int entityId;
         uniform float near;
         uniform float far;
@@ -75,7 +75,7 @@ const float shadowDistanceRenderMul = 1.0;
         #endif
 
         #include "/lib/shadows/csm.glsl"
-    #elif SHADOW_TYPE != 0
+    #elif SHADOW_TYPE != SHADOW_TYPE_NONE
         #include "/lib/shadows/basic.glsl"
     #endif
 
@@ -100,7 +100,7 @@ const float shadowDistanceRenderMul = 1.0;
             if (mc_Entity.x == 0.0) {
                 gl_Position = vec4(10.0);
 
-                #if SHADOW_TYPE == 3
+                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                     shadowCascadePos = vec2(10.0);
                 #endif
 
@@ -112,7 +112,7 @@ const float shadowDistanceRenderMul = 1.0;
             if (mc_Entity.x >= 10000.0 && mc_Entity.x <= 10004.0) {
                 gl_Position = vec4(10.0);
 
-                #if SHADOW_TYPE == 3
+                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                     shadowCascadePos = vec2(10.0);
                 #endif
 
@@ -155,7 +155,7 @@ const float shadowDistanceRenderMul = 1.0;
         //vec4 viewPos = shadowModelView * pos;
         vec4 viewPos = gl_ModelViewMatrix * pos;
 
-        #if SHADOW_TYPE == 3
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             cascadeSizes[0] = GetCascadeDistance(0);
             cascadeSizes[1] = GetCascadeDistance(1);
             cascadeSizes[2] = GetCascadeDistance(2);
@@ -177,7 +177,7 @@ const float shadowDistanceRenderMul = 1.0;
         #else
             gl_Position = gl_ProjectionMatrix * viewPos;
 
-            #if SHADOW_TYPE == 2
+            #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                 gl_Position.xyz = distort(gl_Position.xyz);
             #endif
         #endif
@@ -230,7 +230,7 @@ const float shadowDistanceRenderMul = 1.0;
         flat in mat3 matViewTBN;
     #endif
 
-    #if SHADOW_TYPE == 3
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         flat in float cascadeSizes[4];
         flat in vec2 shadowCascadePos;
     #endif
@@ -262,7 +262,7 @@ const float shadowDistanceRenderMul = 1.0;
 
 
     void main() {
-        #if SHADOW_TYPE == 3
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             vec2 screenCascadePos = gl_FragCoord.xy / shadowMapSize - shadowCascadePos;
             if (screenCascadePos.x < 0 || screenCascadePos.x >= 0.5
              || screenCascadePos.y < 0 || screenCascadePos.y >= 0.5) discard;

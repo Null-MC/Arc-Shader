@@ -100,8 +100,8 @@
             shadow *= step(EPSILON, geoNoL);
             shadow *= step(EPSILON, NoL);
             
-            #if SHADOW_TYPE != 0
-                #if SHADOW_TYPE == 3
+            #if SHADOW_TYPE != SHADOW_TYPE_NONE
+                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                     vec3 _shadowPos[4] = shadowPos;
                 #else
                     vec4 _shadowPos = shadowPos;
@@ -111,7 +111,7 @@
                     float depth = 1.0 - traceCoordDepth.z;
                     float eyeDepth = 0.0; //depth / max(geoNoV, EPSILON);
 
-                    #if SHADOW_TYPE == 3
+                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                         _shadowPos[0] = mix(shadowPos[0], shadowParallaxPos[0], depth) - eyeDepth;
                         _shadowPos[1] = mix(shadowPos[1], shadowParallaxPos[1], depth) - eyeDepth;
                         _shadowPos[2] = mix(shadowPos[2], shadowParallaxPos[2], depth) - eyeDepth;
@@ -121,9 +121,12 @@
                     #endif
                 #endif
 
-
                 if (shadow > EPSILON) {
-                    shadow *= GetShadowing(_shadowPos, shadowBias);
+                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                        shadow *= GetShadowing(_shadowPos);
+                    #else
+                        shadow *= GetShadowing(_shadowPos, shadowBias);
+                    #endif
 
                     // #if SHADOW_COLORS == 1
                     //     vec3 shadowColor = GetShadowColor();

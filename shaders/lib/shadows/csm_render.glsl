@@ -322,7 +322,8 @@
             #if SSS_FILTER == 2
                 // PCF + PCSS
                 float GetShadowSSS(const in vec3 shadowPos[4]) {
-                    TODO;
+                    // TODO
+                    return 0.0;
                 }
             #elif SSS_FILTER == 1
                 // PCF

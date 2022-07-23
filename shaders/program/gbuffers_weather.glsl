@@ -26,13 +26,13 @@
         uniform vec3 moonPosition;
         uniform vec3 upPosition;
 
-        #if SHADOW_TYPE == 3
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             out vec3 shadowPos[4];
             out vec3 shadowParallaxPos[4];
             out vec2 shadowProjectionSizes[4];
             out float cascadeSizes[4];
             flat out int shadowCascade;
-        #elif SHADOW_TYPE != 0
+        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
             out vec4 shadowPos;
             out vec4 shadowParallaxPos;
         #endif
@@ -64,7 +64,7 @@
         uniform float rainStrength;
         uniform float far;
 
-        #if SHADOW_TYPE == 3
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             attribute vec3 at_midBlock;
 
             #ifdef IS_OPTIFINE
@@ -77,7 +77,7 @@
 
             #include "/lib/shadows/csm.glsl"
             #include "/lib/shadows/csm_render.glsl"
-        #elif SHADOW_TYPE != 0
+        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
             #include "/lib/shadows/basic.glsl"
             #include "/lib/shadows/basic_render.glsl"
         #endif
@@ -127,13 +127,13 @@
         uniform vec3 moonPosition;
         uniform vec3 upPosition;
 
-        #if SHADOW_TYPE == 3
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             in vec3 shadowPos[4];
             in vec3 shadowParallaxPos[4];
             in vec2 shadowProjectionSizes[4];
             in float cascadeSizes[4];
             flat in int shadowCascade;
-        #elif SHADOW_TYPE != 0
+        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
             in vec4 shadowPos;
             in vec4 shadowParallaxPos;
         #endif
@@ -159,7 +159,7 @@
     #ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;
 
-        #if SHADOW_TYPE != 0
+        #if SHADOW_TYPE != SHADOW_TYPE_NONE
             uniform usampler2D shadowcolor0;
             uniform sampler2D shadowtex0;
 
@@ -184,7 +184,7 @@
                 #include "/lib/sampling/poisson_36.glsl"
             #endif
 
-            #if SHADOW_TYPE == 3
+            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 #include "/lib/shadows/csm.glsl"
                 #include "/lib/shadows/csm_render.glsl"
             #else

@@ -9,14 +9,14 @@ float GetVolumetricFactor(const in vec3 shadowViewStart, const in vec3 shadowVie
     for (int i = 1; i <= VL_SAMPLE_COUNT; i++) {
         vec3 currentShadowViewPos = shadowViewStart + i * rayDirection * stepLength;
 
-        #if SHADOW_TYPE == 3
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             // TODO: create 4 CSM projection matrices
 
             accumF += CompareNearestDepth(shadowPos);
         #else
             vec4 shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
 
-            #if SHADOW_TYPE == 2
+            #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                 float distortFactor = getDistortFactor(shadowPos.xy);
                 shadowPos.xyz = distort(shadowPos.xyz, distortFactor);
             #endif

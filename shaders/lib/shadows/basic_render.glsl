@@ -5,7 +5,7 @@
         #endif
 			shadowPos = shadowProjection * (shadowModelView * vec4(localPos, 1.0));
 
-			#if SHADOW_TYPE == 2
+			#if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
 				float distortFactor = getDistortFactor(shadowPos.xy);
 				shadowPos.xyz = distort(shadowPos.xyz, distortFactor);
 
@@ -15,7 +15,7 @@
                 float biasXY = shadowPixelSize * distortFactor;
                 //shadowPos.z -= mix(biasXY, biasZ, geoNoL) * SHADOW_BIAS_SCALE;
                 shadowBias = mix(biasXY, biasZ, geoNoL) * SHADOW_BIAS_SCALE;
-			#elif SHADOW_TYPE == 1
+			#elif SHADOW_TYPE == SHADOW_TYPE_BASIC
 				float range = min(shadowDistance, far * SHADOW_CSM_FIT_FARSCALE);
 				float shadowResScale = range / shadowMapSize;
 				float bias = SHADOW_BASIC_BIAS * shadowResScale * SHADOW_BIAS_SCALE;
@@ -65,7 +65,7 @@
         vec2 GetShadowPixelRadius(const in float blockRadius) {
             vec2 shadowProjectionSize = 2.0 / vec2(shadowProjection[0].x, shadowProjection[1].y);
 
-            #if SHADOW_TYPE == 2
+            #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                 float distortFactor = getDistortFactor(shadowPos.xy * 2.0 - 1.0);
                 float maxRes = shadowMapSize / SHADOW_DISTORT_FACTOR;
                 //float maxResPixel = 1.0 / maxRes;

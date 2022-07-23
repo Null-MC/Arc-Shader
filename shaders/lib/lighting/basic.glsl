@@ -79,7 +79,7 @@
             #endif
         #endif
 
-        #if defined SHADOW_ENABLED && SHADOW_TYPE != 0 && !defined RENDER_SHADOW
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && !defined RENDER_SHADOW
             vec3 viewDir = -normalize(viewPos);
             ApplyShadows(pos, viewDir);
         #endif

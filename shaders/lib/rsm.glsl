@@ -8,7 +8,7 @@ float SampleDepth(const in ivec2 itex) {
     #endif
 }
 
-#if SHADOW_TYPE == 3
+#if SHADOW_TYPE == SHADOW_TYPE_CASCADED
 	vec3 GetNearestDepth(const in vec3 shadowViewPos, out ivec2 uv_out, out int cascade) {
 		float depth = 1.0;
 		vec2 pos_out = vec2(0.0);
@@ -46,7 +46,7 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 localPos
 	// Sum contributions of sampling locations.
 	vec3 shading = vec3(0.0);
 
-	#if SHADOW_TYPE != 3
+	#if SHADOW_TYPE != SHADOW_TYPE_CASCADED
 		mat4 matShadowClipToLocal = shadowModelViewInverse * shadowProjectionInverse;
 	#endif
 
@@ -56,7 +56,7 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 localPos
 		vec2 uv;
 		ivec2 iuv;
 		vec3 x_p;
-		#if SHADOW_TYPE == 1
+		#if SHADOW_TYPE == SHADOW_TYPE_BASIC
 			vec4 clipPos = shadowProjection * vec4(offsetShadowViewPos, 1.0);
 			//clipPos.xy /= clipPos.w;
 			//clipPos.w = 1.0;
@@ -67,7 +67,7 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 localPos
 			clipPos.z = SampleDepth(iuv) * 2.0 - 1.0;
 			vec4 _localPos = matShadowClipToLocal * clipPos;
 			x_p = _localPos.xyz;// / _localPos.w;
-		#elif SHADOW_TYPE == 2
+		#elif SHADOW_TYPE == SHADOW_TYPE_DISTORTED
 			vec4 clipPos = shadowProjection * vec4(offsetShadowViewPos, 1.0);
 			//clipPos.w = 1.0;
 
@@ -83,7 +83,7 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 localPos
 
 			vec4 _localPos = matShadowClipToLocal * clipPos;
 			x_p = _localPos.xyz;// / _localPos.w;
-		#elif SHADOW_TYPE == 3
+		#elif SHADOW_TYPE == SHADOW_TYPE_CASCADED
 	        int cascade;
 	        vec3 clipPos = GetNearestDepth(offsetShadowViewPos, iuv, cascade);
 

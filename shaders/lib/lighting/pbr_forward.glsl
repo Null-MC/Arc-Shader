@@ -204,9 +204,13 @@
             #endif
         #endif
 
-        #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             if (shadow > EPSILON) {
-                shadow *= GetShadowing(shadowPos, shadowBias);
+                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                    shadow *= GetShadowing(shadowPos);
+                #else
+                    shadow *= GetShadowing(shadowPos, shadowBias);
+                #endif
 
                 // #if SHADOW_COLORS == 1
                 //     vec3 shadowColor = GetShadowColor();

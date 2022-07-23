@@ -19,7 +19,7 @@
         uniform ivec2 eyeBrightness;
     #endif
 
-    #if SHADOW_TYPE == 3
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         flat out float cascadeSizes[4];
         flat out mat4 matShadowProjections[4];
 
@@ -27,7 +27,7 @@
         //flat varying vec2 matShadowProjectionOffsets[4];
     #endif
 
-    #if SHADOW_TYPE == 3
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         uniform mat4 shadowModelView;
         uniform float near;
         uniform float far;
@@ -72,7 +72,7 @@
 
         exposure = GetExposure();
 
-        #if SHADOW_TYPE == 3
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             cascadeSizes[0] = GetCascadeDistance(0);
             cascadeSizes[1] = GetCascadeDistance(1);
             cascadeSizes[2] = GetCascadeDistance(2);
@@ -96,7 +96,7 @@
     in vec2 texcoord;
     flat in float exposure;
 
-    #if SHADOW_TYPE == 3
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         flat in float cascadeSizes[4];
         flat in mat4 matShadowProjections[4];
 
@@ -114,7 +114,7 @@
         uniform sampler2D shadowtex1;
     #endif
 
-    // #if SHADOW_TYPE == 3
+    // #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     //     uniform isampler2D shadowcolor1;
     // #else
     //     uniform sampler2D shadowcolor1;
@@ -129,11 +129,11 @@
     uniform float viewWidth;
     uniform float viewHeight;
 
-    #if SHADOW_TYPE == 3
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         uniform float far;
 
         #include "/lib/shadows/csm.glsl"
-    #elif SHADOW_TYPE == 2
+    #elif SHADOW_TYPE == SHADOW_TYPE_DISTORTED
         #include "/lib/shadows/basic.glsl"
     #endif
 
