@@ -19,6 +19,12 @@
     flat out vec3 moonColor;
     flat out vec3 blockLightColor;
 
+    #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+        flat out float matSmooth;
+        flat out float matF0;
+        flat out float matSSS;
+    #endif
+
     #ifdef PARALLAX_ENABLED
         out mat2 atlasBounds;
         out vec2 localCoord;
@@ -29,6 +35,7 @@
         uniform vec3 moonPosition;
         uniform vec3 upPosition;
 
+        out float shadowBias;
         out vec3 tanLightPos;
         flat out vec3 skyLightColor;
 
@@ -150,18 +157,25 @@
     flat in vec3 moonColor;
     flat in vec3 blockLightColor;
 
+    #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+        flat in float matSmooth;
+        flat in float matF0;
+        flat in float matSSS;
+    #endif
+
     #ifdef PARALLAX_ENABLED
         in mat2 atlasBounds;
         in vec2 localCoord;
     #endif
 
     #if defined SHADOW_ENABLED
+        in float shadowBias;
+        in vec3 tanLightPos;
+        flat in vec3 skyLightColor;
+
         uniform vec3 sunPosition;
         uniform vec3 moonPosition;
         uniform vec3 upPosition;
-
-        in vec3 tanLightPos;
-        flat in vec3 skyLightColor;
 
         #if SHADOW_TYPE == 3
             in vec3 shadowPos[4];

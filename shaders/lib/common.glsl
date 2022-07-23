@@ -60,14 +60,6 @@ const bool colortex11Clear = false;
 #define WATER_WAVE_DEPTH 1.0
 #define WATER_RESOLUTION 2048
 
-#define WATER_REFRACTION_NONE 0
-#define WATER_REFRACTION_FAST 1
-#define WATER_REFRACTION_FANCY 2
-
-#define WATER_WAVE_NONE 0
-#define WATER_WAVE_VERTEX 1
-#define WATER_WAVE_PARALLAX 2
-
 
 // Atmosphere Options
 #define ATMOSPHERE_TYPE 0 // [0 1]
@@ -77,9 +69,6 @@ const bool colortex11Clear = false;
 #define WEATHER_OPACITY 0.5
 #define G_SCATTERING_CLEAR 0.94
 #define G_SCATTERING_RAIN 0.6
-
-#define ATMOSPHERE_TYPE_FAST 0
-#define ATMOSPHERE_TYPE_FANCY 1
 
 
 // Shadow Options
@@ -108,19 +97,10 @@ const bool colortex11Clear = false;
 #define MATERIAL_FORMAT 1 // [0 1 2 3]
 #define SSS_ENABLED
 #define SSS_MAXDIST 2.8
-#define SSS_FILTER 2 // [0 1 2]
-#define SSS_PCF_SIZE 0.200
+#define SSS_FILTER 2 // [0 2]
+#define SSS_PCF_SIZE 0.2 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
 #define REFLECTION_MODE 1 // [0 1 2]
-
-#define MATERIAL_FORMAT_DEFAULT 0
-#define MATERIAL_FORMAT_LABPBR 1
-#define MATERIAL_FORMAT_OLDPBR 2
-#define MATERIAL_FORMAT_PATRIX 3
-
-#define REFLECTION_MODE_NONE 0
-#define REFLECTION_MODE_SKY 1
-#define REFLECTION_MODE_SCREEN 2
 
 
 // Material Parallax Options
@@ -147,11 +127,6 @@ const bool colortex11Clear = false;
 #define EXPOSURE_SPEED_UP 0.04
 #define EXPOSURE_SPEED_DOWN 0.04
 
-#define EXPOSURE_MODE_MANUAL 0
-#define EXPOSURE_MODE_EYEBRIGHTNESS 1
-#define EXPOSURE_MODE_MIPMAP 2
-#define EXPOSURE_MODE_HISTOGRAM 3
-
 
 // Effect Options
 //#define RSM_ENABLED
@@ -177,23 +152,6 @@ const bool colortex11Clear = false;
 //#define IRIS_FEATURE_SEPARATE_HW_SAMPLERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
 
-#define DEBUG_VIEW_GBUFFER_COLOR 1
-#define DEBUG_VIEW_GBUFFER_NORMAL 2
-#define DEBUG_VIEW_GBUFFER_SPECULAR 3
-#define DEBUG_VIEW_GBUFFER_LIGHTING 4
-#define DEBUG_VIEW_SHADOW_ALBEDO 5
-#define DEBUG_VIEW_SHADOW_NORMAL 6
-#define DEBUG_VIEW_SHADOW_SSS 7
-#define DEBUG_VIEW_SHADOW_DEPTH0 8
-#define DEBUG_VIEW_SHADOW_DEPTH1 9
-#define DEBUG_VIEW_HDR 10
-#define DEBUG_VIEW_LUMINANCE 11
-#define DEBUG_VIEW_RSM 12
-#define DEBUG_VIEW_BLOOM 13
-#define DEBUG_VIEW_PREV_COLOR 14
-#define DEBUG_VIEW_PREV_LUMINANCE 15
-#define DEBUG_VIEW_WATER_WAVES 16
-
 
 // INTERNAL
 #define TITLE
@@ -203,18 +161,6 @@ const bool colortex11Clear = false;
 #define TAU 6.2831853076
 #define EPSILON 1e-7
 #define GAMMA 2.2
-
-#define BUFFER_DEFERRED colortex2
-#define BUFFER_HDR colortex4
-#define BUFFER_HDR_PREVIOUS colortex5
-#define BUFFER_LUMINANCE colortex6
-#define BUFFER_BLOOM colortex7
-#define BUFFER_RSM_COLOR colortex8
-#define BUFFER_RSM_DEPTH colortex9
-#define BUFFER_BRDF_LUT colortex10
-#define BUFFER_WATER_WAVES colortex11
-
-#define BUFFER_REFRACT colortex7
 
 const float sunLumen = 240000.0;//16000000;
 const float moonLumen = 2500.0;

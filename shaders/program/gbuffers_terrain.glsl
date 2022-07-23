@@ -15,7 +15,7 @@
 
     #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
         flat out float matSmooth;
-        flat out float matMetal;
+        flat out float matF0;
         flat out float matSSS;
     #endif
 
@@ -25,6 +25,7 @@
     #endif
 
     #ifdef SHADOW_ENABLED
+        out float shadowBias;
         out vec3 tanLightPos;
 
         #if SHADOW_TYPE == 3
@@ -122,7 +123,7 @@
 
     #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
         flat in float matSmooth;
-        flat in float matMetal;
+        flat in float matF0;
         flat in float matSSS;
     #endif
 
@@ -132,6 +133,7 @@
     #endif
 
     #ifdef SHADOW_ENABLED
+        in float shadowBias;
         in vec3 tanLightPos;
 
         #if SHADOW_TYPE == 3

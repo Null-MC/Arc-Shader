@@ -64,13 +64,29 @@ value.MATERIAL_FORMAT.1=Lab PBR
 value.MATERIAL_FORMAT.2=Old PBR
 value.MATERIAL_FORMAT.3=Patrix PBR
 
-option.SSS_ENABLED=Subsurface Scattering
-option.SSS_ENABLED.comment=When enabled, surfaces with SSS will allow light to scatter through.
-
 option.REFLECTION_MODE=Reflections
 value.REFLECTION_MODE.0=None
 value.REFLECTION_MODE.1=Sky Only
 value.REFLECTION_MODE.2=Screen-Space
+
+
+screen.MATERIAL_SSS_OPTIONS=Subsurface Scattering
+screen.MATERIAL_SSS_OPTIONS.comment=Allows light to scatter thorugh surfaces.
+
+option.SSS_ENABLED=Enabled
+option.SSS_ENABLED.comment=When enabled, surfaces with SSS will allow light to scatter through.
+
+option.SSS_FILTER=Filtering
+option.SSS_FILTER=Filtering
+value.SSS_FILTER.0=None
+value.SSS_FILTER.2=PCF+PCSS
+
+option.SSS_PCF_SIZE=PCF Size
+option.SSS_PCF_SIZE.comment=The maximum radius of the PCF blur filter, in blocks.
+
+option.SSS_PCF_SAMPLES=Sample Count
+option.SSS_PCF_SAMPLES.comment=The number of depth samples to use when applying PCF blur.
+
 
 screen.MATERIAL_PARALLAX_OPTIONS=Parallax
 screen.MATERIAL_PARALLAX_OPTIONS.comment=Options for Parallax Occlusion Mapping (POM).

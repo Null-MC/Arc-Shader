@@ -29,7 +29,7 @@
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
             if (shadow > EPSILON) {
-                shadow = GetShadowing(shadowPos);
+                shadow = GetShadowing(shadowPos, shadowBias);
 
                 // #if SHADOW_COLORS == 1
                 //     vec3 shadowColor = GetShadowColor();

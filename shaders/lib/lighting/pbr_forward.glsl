@@ -6,18 +6,12 @@
     void ApplyVanillaProperties(inout PbrMaterial material, const in vec4 colorMap) {
         material.albedo.rgb = RGBToLinear(colorMap.rgb);
         material.albedo.a = colorMap.a;
-
-        material.normal = vec3(0.0, 0.0, 1.0);
         material.occlusion = 1.0;
-
-        #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined RENDER_WATER
-            material.smoothness = matSmooth;
-            material.f0 = matMetal;
-            material.scattering = matSSS;
-        #else
-            material.smoothness = 0.08;
-            material.f0 = 0.04;
-        #endif
+        material.normal = vec3(0.0, 0.0, 1.0);
+        material.smoothness = matSmooth;
+        material.scattering = matSSS;
+        material.f0 = GetLabPbr_F0(matF0);
+        material.hcm = GetLabPbr_HCM(matF0);
     }
 
     vec4 PbrLighting() {
@@ -210,7 +204,7 @@
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != 0
             if (shadow > EPSILON) {
-                shadow *= GetShadowing(shadowPos);
+                shadow *= GetShadowing(shadowPos, shadowBias);
 
                 // #if SHADOW_COLORS == 1
                 //     vec3 shadowColor = GetShadowColor();

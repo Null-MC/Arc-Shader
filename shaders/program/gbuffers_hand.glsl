@@ -19,6 +19,7 @@
     #endif
 
     #if defined SHADOW_ENABLED
+        out float shadowBias;
         out vec3 tanLightPos;
 
         #if SHADOW_TYPE == 3
@@ -104,6 +105,7 @@
     #endif
 
     #if defined SHADOW_ENABLED
+        in float shadowBias;
         in vec3 tanLightPos;
 
         #if SHADOW_TYPE == 3

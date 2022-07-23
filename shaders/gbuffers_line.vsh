@@ -6,4 +6,4 @@
 #include "overworld.glsl"
 #include "lib/constants.glsl"
 #include "lib/common.glsl"
-#include "program/gbuffers_skybasic.glsl"
+#include "program/gbuffers_line.glsl"

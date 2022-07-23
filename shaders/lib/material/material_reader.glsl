@@ -27,16 +27,16 @@ float GetLabPbr_Emission(const in float specularA) {
         material.albedo.rgb = RGBToLinear(colorMap);
         material.albedo.a = 1.0;
 
-        #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
+        #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
             material.f0 = GetLabPbr_F0(specularMap.g);
             material.hcm = GetLabPbr_HCM(specularMap.g);
+            material.occlusion = normalMap.z;
         #else
             material.f0 = specularMap.g;
             material.hcm = -1;
         #endif
 
         material.normal = RestoreNormalZ(normalMap.xy);
-        material.occlusion = normalMap.z;
         material.smoothness = specularMap.r;
         material.porosity = GetLabPbr_Porosity(specularMap.b);
         material.scattering = GetLabPbr_SSS(specularMap.b);
@@ -90,7 +90,7 @@ float GetLabPbr_Emission(const in float specularA) {
             material.occlusion = 1.0;
             //material.f0 = 0.04;
             material.hcm = -1;
-        #else
+        #elif MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
             material.normal = vec3(0.0, 0.0, 1.0);
             material.smoothness = 0.08;
             material.occlusion = 1.0;

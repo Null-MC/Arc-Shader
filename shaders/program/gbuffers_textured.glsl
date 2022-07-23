@@ -17,6 +17,7 @@
     flat out float exposure;
 
     #ifdef SHADOW_ENABLED
+        out float shadowBias;
         flat out vec3 sunColor;
         flat out vec3 moonColor;
         flat out vec3 skyLightColor;
@@ -115,6 +116,7 @@
     flat in float exposure;
 
     #ifdef SHADOW_ENABLED
+        in float shadowBias;
         flat in vec3 sunColor;
         flat in vec3 moonColor;
         flat in vec3 skyLightColor;

@@ -3,24 +3,24 @@
         #ifndef SSS_ENABLED
     		if (geoNoL > 0.0) {
         #endif
-			vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
-
-			shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
+			shadowPos = shadowProjection * (shadowModelView * vec4(localPos, 1.0));
 
 			#if SHADOW_TYPE == 2
 				float distortFactor = getDistortFactor(shadowPos.xy);
 				shadowPos.xyz = distort(shadowPos.xyz, distortFactor);
-				//shadowPos.z -= SHADOW_DISTORTED_BIAS * SHADOW_BIAS_SCALE * (distortFactor * distortFactor) / abs(geoNoL);
 
-                // float df2 = distortFactor*distortFactor;
-                // float biasZ = SHADOW_DISTORTED_BIAS * df2;
-                // float biasXY = shadowPixelSize / distortFactor;
-                // shadowPos.z -= mix(biasXY, biasZ, geoNoL) * SHADOW_BIAS_SCALE;
+                //shadowPos.z -= SHADOW_DISTORTED_BIAS * SHADOW_BIAS_SCALE * (distortFactor * distortFactor) / abs(geoNoL);
+                float df2 = distortFactor*distortFactor;
+                float biasZ = SHADOW_DISTORTED_BIAS * df2;
+                float biasXY = shadowPixelSize * distortFactor;
+                //shadowPos.z -= mix(biasXY, biasZ, geoNoL) * SHADOW_BIAS_SCALE;
+                shadowBias = mix(biasXY, biasZ, geoNoL) * SHADOW_BIAS_SCALE;
 			#elif SHADOW_TYPE == 1
 				float range = min(shadowDistance, far * SHADOW_CSM_FIT_FARSCALE);
 				float shadowResScale = range / shadowMapSize;
 				float bias = SHADOW_BASIC_BIAS * shadowResScale * SHADOW_BIAS_SCALE;
-				shadowPos.z -= min(bias / abs(geoNoL), 0.1);
+				//shadowPos.z -= min(bias / abs(geoNoL), 0.1);
+                shadowBias = min(bias / abs(geoNoL), 0.1);
 			#endif
 
 			shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
@@ -48,16 +48,16 @@
 	}
 
     // returns: [0] when depth occluded, [1] otherwise
-    float CompareDepth(const in vec4 shadowPos, const in vec2 offset) {
+    float CompareDepth(const in vec4 shadowPos, const in vec2 offset, const in float shadowBias) {
         #ifdef SHADOW_ENABLE_HWCOMP
             #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
-                return textureLod(shadowtex1HW, shadowPos.xyz + vec3(offset * shadowPos.w, 0.0), 0);
+                return textureLod(shadowtex1HW, shadowPos.xyz + vec3(offset * shadowPos.w, -shadowBias), 0);
             #else
-                return textureLod(shadowtex1, shadowPos.xyz + vec3(offset * shadowPos.w, 0.0), 0);
+                return textureLod(shadowtex1, shadowPos.xyz + vec3(offset * shadowPos.w, -shadowBias), 0);
             #endif
         #else
             float shadowDepth = textureLod(shadowtex1, shadowPos.xy + offset * shadowPos.w, 0).r;
-            return step(shadowPos.z + EPSILON, shadowDepth);
+            return step(shadowPos.z + EPSILON, shadowDepth + shadowBias);
         #endif
     }
 
@@ -80,11 +80,11 @@
 
         #if SHADOW_FILTER != 0
             // PCF
-            float GetShadowing_PCF(const in vec4 shadowPos, const in vec2 pixelRadius, const in int sampleCount) {
+            float GetShadowing_PCF(const in vec4 shadowPos, const in float shadowBias, const in vec2 pixelRadius, const in int sampleCount) {
                 float shadow = 0.0;
                 for (int i = 0; i < sampleCount; i++) {
                     vec2 pixelOffset = poissonDisk[i] * pixelRadius;
-                    shadow += 1.0 - CompareDepth(shadowPos, pixelOffset);
+                    shadow += 1.0 - CompareDepth(shadowPos, pixelOffset, shadowBias);
                 }
 
                 return shadow / sampleCount;
@@ -113,7 +113,7 @@
     			return blockers > 0 ? avgBlockerDistance / blockers : -1.0;
     		}
 
-    		float GetShadowing(const in vec4 shadowPos) {
+    		float GetShadowing(const in vec4 shadowPos, const in float shadowBias) {
     			vec2 pixelRadius = GetShadowPixelRadius(SHADOW_PCF_SIZE);
 
     			// blocker search
@@ -131,25 +131,25 @@
 
     			int pcfSampleCount = POISSON_SAMPLES;
     			if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) pcfSampleCount = 1;
-    			return 1.0 - GetShadowing_PCF(shadowPos, pixelRadius, pcfSampleCount);
+    			return 1.0 - GetShadowing_PCF(shadowPos, shadowBias, pixelRadius, pcfSampleCount);
     		}
     	#elif SHADOW_FILTER == 1
     		// PCF
-    		float GetShadowing(const in vec4 shadowPos) {
+    		float GetShadowing(const in vec4 shadowPos, const in float shadowBias) {
                 int sampleCount = POISSON_SAMPLES;
                 vec2 pixelRadius = GetShadowPixelRadius(SHADOW_PCF_SIZE);
                 if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
-    			return 1.0 - GetShadowing_PCF(shadowPos, pixelRadius, sampleCount);
+    			return 1.0 - GetShadowing_PCF(shadowPos, shadowBias, pixelRadius, sampleCount);
     		}
     	#elif SHADOW_FILTER == 0
             // Unfiltered
-    		float GetShadowing(const in vec4 shadowPos) {
+    		float GetShadowing(const in vec4 shadowPos, const in float shadowBias) {
                 #ifdef SHADOW_ENABLE_HWCOMP
-                    return CompareDepth(shadowPos, vec2(0.0));
+                    return CompareDepth(shadowPos, vec2(0.0), shadowBias);
                 #else
                     float texDepth = SampleDepth(shadowPos, vec2(0.0));
-                    return step(shadowPos.z - EPSILON, texDepth);
+                    return step(shadowPos.z - EPSILON, texDepth + shadowBias);
                 #endif
     		}
     	#endif

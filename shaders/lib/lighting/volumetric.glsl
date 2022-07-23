@@ -1,4 +1,4 @@
-float GetVolumtricFactor(const in vec3 shadowViewStart, const in vec3 shadowViewEnd) {
+float GetVolumetricFactor(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float shadowBias) {
     vec3 rayVector = shadowViewEnd - shadowViewStart;
     float rayLength = length(rayVector);
 
@@ -22,7 +22,7 @@ float GetVolumtricFactor(const in vec3 shadowViewStart, const in vec3 shadowView
             #endif
 
             shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
-            accumF += CompareDepth(shadowPos, vec2(0.0));
+            accumF += CompareDepth(shadowPos, vec2(0.0), shadowBias);
         #endif
     }
 
@@ -30,7 +30,7 @@ float GetVolumtricFactor(const in vec3 shadowViewStart, const in vec3 shadowView
     return smoothstep(0.0, 1.0, accumF / VL_SAMPLE_COUNT);
 }
 
-float GetVolumtricLighting(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float G_scattering) {
+float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float shadowBias, const in float G_scattering) {
     vec3 rayDirection = normalize(shadowViewEnd - shadowViewStart);
     const vec3 sunDirection = vec3(0.0, 0.0, 1.0);
 
@@ -38,5 +38,5 @@ float GetVolumtricLighting(const in vec3 shadowViewStart, const in vec3 shadowVi
 
     float scattering = ComputeVolumetricScattering(VoL, G_scattering);
 
-    return GetVolumtricFactor(shadowViewStart, shadowViewEnd) * scattering;
+    return GetVolumetricFactor(shadowViewStart, shadowViewEnd, shadowBias) * scattering;
 }

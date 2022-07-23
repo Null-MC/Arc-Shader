@@ -22,7 +22,7 @@
 
     #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
         flat out float matSmooth;
-        flat out float matMetal;
+        flat out float matF0;
         flat out float matSSS;
     #endif
 
@@ -36,6 +36,7 @@
         uniform vec3 moonPosition;
         uniform vec3 upPosition;
 
+        out float shadowBias;
         out vec3 tanLightPos;
         flat out vec3 skyLightColor;
 
@@ -132,6 +133,7 @@
     void main() {
         texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
         lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
+        localPos = gl_Vertex.xyz;
         glcolor = gl_Color;
 
         if (mc_Entity.x == 100.0) materialId = 1;
@@ -140,8 +142,6 @@
         mat3 matViewTBN;
         BasicVertex(matViewTBN);
         PbrVertex(matViewTBN);
-
-        localPos = gl_Vertex.xyz;
 
         vec2 skyLightLevels = GetSkyLightLevels();
         vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
@@ -173,7 +173,7 @@
 
     #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
         flat in float matSmooth;
-        flat in float matMetal;
+        flat in float matF0;
         flat in float matSSS;
     #endif
 
@@ -183,12 +183,13 @@
     #endif
 
     #ifdef SHADOW_ENABLED
+        in float shadowBias;
+        in vec3 tanLightPos;
+        flat in vec3 skyLightColor;
+
         uniform vec3 sunPosition;
         uniform vec3 moonPosition;
         uniform vec3 upPosition;
-
-        in vec3 tanLightPos;
-        flat in vec3 skyLightColor;
 
         #if SHADOW_TYPE == 3
             in vec3 shadowPos[4];

@@ -17,13 +17,14 @@
     flat out float exposure;
 
     #ifdef SHADOW_ENABLED
-        uniform vec3 sunPosition;
-        uniform vec3 moonPosition;
-        uniform vec3 upPosition;
-
+        out float shadowBias;
         flat out vec3 sunColor;
         flat out vec3 moonColor;
         flat out vec3 skyLightColor;
+
+        uniform vec3 sunPosition;
+        uniform vec3 moonPosition;
+        uniform vec3 upPosition;
 
         #if SHADOW_TYPE == 3
             out vec3 shadowPos[4];
@@ -117,13 +118,14 @@
     flat in float exposure;
 
     #ifdef SHADOW_ENABLED
-        uniform vec3 sunPosition;
-        uniform vec3 moonPosition;
-        uniform vec3 upPosition;
-
+        in float shadowBias;
         flat in vec3 sunColor;
         flat in vec3 moonColor;
         flat in vec3 skyLightColor;
+
+        uniform vec3 sunPosition;
+        uniform vec3 moonPosition;
+        uniform vec3 upPosition;
 
         #if SHADOW_TYPE == 3
             in vec3 shadowPos[4];

@@ -20,8 +20,8 @@ const float shadowDistanceRenderMul = 1.0;
 
     #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
         flat out float matSmooth;
-        flat out float matMetal;
         flat out float matSSS;
+        flat out float matF0;
     #endif
 
     #ifdef SSS_ENABLED
@@ -218,8 +218,8 @@ const float shadowDistanceRenderMul = 1.0;
 
     #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
         flat in float matSmooth;
-        flat in float matMetal;
         flat in float matSSS;
+        flat in float matF0;
     #endif
 
     #ifdef SSS_ENABLED

@@ -83,7 +83,7 @@
 
             #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined RENDER_TERRAIN
                 float sss = (0.25 + 0.75 * matSSS) * step(EPSILON, matSSS);
-                specularMap = vec4(matSmooth, matMetal, sss, 0.0);
+                specularMap = vec4(matSmooth, matF0, sss, 0.0);
             #else
                 specularMap = vec4(0.08, 0.04, 0.0, 0.0);
             #endif
@@ -123,7 +123,7 @@
 
 
                 if (shadow > EPSILON) {
-                    shadow *= GetShadowing(_shadowPos);
+                    shadow *= GetShadowing(_shadowPos, shadowBias);
 
                     // #if SHADOW_COLORS == 1
                     //     vec3 shadowColor = GetShadowColor();
