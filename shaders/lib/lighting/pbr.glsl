@@ -122,8 +122,7 @@
         #endif
     }
 
-    vec3 GetSpecularBRDF(const in vec3 F, const in float NoV, const in float NoL, const in float NoH, const in float roughL)
-    {
+    vec3 GetSpecularBRDF(const in vec3 F, const in float NoV, const in float NoL, const in float NoH, const in float roughL) {
         // Fresnel
         //vec3 F = GetFresnel(material, VoH, roughL);
 
@@ -133,7 +132,6 @@
         // Geometric Visibility
         float G = SmithGGXCorrelated_Fast(NoV, NoL, roughL);
 
-        //return clamp(D * F * G, 0.0, 100000.0);
         return D * F * G;
     }
 
@@ -149,11 +147,13 @@
         float sssF_In = F_schlick(NoV, 1.0, sssF90);
         float sssF_Out = F_schlick(NoL, 1.0, sssF90);
 
+        // TODO: modified this to prevent NaN's!
+        //return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (rcp(NoV + NoL) - 0.5) + 0.5);// * NoL;
         return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (rcp(1.0 + (NoV + NoL)) - 0.5) + 0.5);// * NoL;
     }
 
-    vec3 GetDiffuseBSDF(const in PbrMaterial material, const in float NoV, const in float NoL, const in float LoH, const in float roughL) {
-        vec3 diffuse = GetDiffuse_Burley(material.albedo.rgb, NoV, NoL, LoH, roughL);
+    vec3 GetDiffuseBSDF(const in PbrMaterial material, const in vec3 diffuse, const in float NoV, const in float NoL, const in float LoH, const in float roughL) {
+        //vec3 diffuse = GetDiffuse_Burley(material.albedo.rgb, NoV, NoL, LoH, roughL);
 
         #ifdef SSS_ENABLED
             if (material.scattering < EPSILON) return diffuse;
@@ -179,26 +179,24 @@
             vec3 lightDir = normalize(lightPos);
 
             float NoLm = max(dot(viewNormal, lightDir), 0.0);
-            if (NoLm < EPSILON) return;
 
             float lightDist = length(lightPos);
             float attenuation = GetHandLightAttenuation(heldBlockLightValue, lightDist);
             if (attenuation < EPSILON) return;
 
             vec3 halfDir = normalize(lightDir + viewDir);
-            float LoHm = max(dot(lightDir, halfDir), EPSILON);
-            float NoHm = max(dot(viewNormal, halfDir), EPSILON);
-            //float VoHm = max(dot(viewDir, halfDir), EPSILON);
+            float LoHm = max(dot(lightDir, halfDir), 0.0);
 
             vec3 handLightColor = blockLightColor * attenuation;
 
-            //vec3 F = GetFresnel(material, VoHm, roughL);
             vec3 F = GetFresnel(material, LoHm, roughL);
+            vec3 handDiffuse = GetDiffuse_Burley(material.albedo.rgb, NoVm, NoLm, LoHm, roughL) * max(1.0 - F, 0.0);
+            diffuse += GetDiffuseBSDF(material, handDiffuse, NoVm, NoLm, LoHm, roughL) * handLightColor;
 
-            diffuse += GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * handLightColor;
+            if (NoLm < EPSILON) return;
+            
+            float NoHm = max(dot(viewNormal, halfDir), 0.0);
             specular += GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * handLightColor;
-
-            //sunSpec = GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * skyLightColor * skyLight3 * shadowFinal;
         }
     #endif
 
@@ -350,13 +348,6 @@
         vec3 specular = vec3(0.0);
         vec4 final = material.albedo;
 
-        vec3 F = GetFresnel(material, NoVm, roughL);
-        //return vec4(F * 500.0, 1.0);
-
-        float Fmax = max(max(F.x, F.y), F.z);
-        final.a += Fmax * max(1.0 - final.a, 0.0);
-
-        //vec3 specFmax = vec3(0.0);
         vec3 iblSpec = vec3(0.0);
         #ifdef SHADOW_ENABLED
             //vec3 iblF = vec3(0.0);
@@ -365,22 +356,13 @@
                     vec2 envBRDF = textureLod(BUFFER_BRDF_LUT, vec2(NoVm, material.smoothness), 0).rg;
                     envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
 
-                    iblSpec = reflectColor * (F * envBRDF.x + envBRDF.y) * material.occlusion;
+                    vec3 iblF = GetFresnel(material, NoVm, roughL);
+                    iblSpec = reflectColor * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
+
+                    float Fmax = max(max(iblF.x, iblF.y), iblF.z);
+                    final.a += Fmax * max(1.0 - final.a, 0.0);
                 }
             #endif
-
-            float NoHm = max(dot(viewNormal, halfDir), 0.0);
-            float VoHm = max(dot(viewDir, halfDir), 0.0);
-
-            vec3 sunSpec = vec3(0.0);
-            if (NoLm > EPSILON) {
-                //vec3 sunF = GetFresnel(material, VoHm, roughL);
-                vec3 sunF = GetFresnel(material, LoHm, roughL);
-                sunSpec = GetSpecularBRDF(sunF, NoVm, NoLm, NoHm, roughL) * skyLightColor * skyLight3 * shadowFinal;
-                specular += sunSpec;
-
-                final.a = min(final.a + luminance(sunSpec) * exposure, 1.0);
-            }
 
             //specFmax = max(specFmax, sunF);
 
@@ -402,12 +384,24 @@
 
             vec3 diffuseLight = diffuseLightF * skyLightColor * skyLight3;
 
-            #if defined RSM_ENABLED && defined RENDER_DEFERRED
-                diffuseLight += 20.0 * rsmColor * skyLightColor * material.scattering;
-            #endif
+            //#if defined RSM_ENABLED && defined RENDER_DEFERRED
+            //    diffuseLight += 20.0 * rsmColor * skyLightColor * material.scattering;
+            //#endif
 
-            vec3 sunDiffuse = GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * diffuseLight * material.albedo.a;
-            diffuse += sunDiffuse;
+            vec3 sunF = GetFresnel(material, LoHm, roughL);
+            vec3 sunDiffuse = GetDiffuse_Burley(material.albedo.rgb, NoVm, NoLm, LoHm, roughL) * max(1.0 - sunF, 0.0);
+            sunDiffuse = GetDiffuseBSDF(material, sunDiffuse, NoVm, NoLm, LoHm, roughL) * diffuseLight;
+            diffuse += sunDiffuse * material.albedo.a;
+
+            if (NoLm > EPSILON) {
+                float NoHm = max(dot(viewNormal, halfDir), 0.0);
+
+                vec3 sunSpec = GetSpecularBRDF(sunF, NoVm, NoLm, NoHm, roughL) * skyLightColor * skyLight3 * shadowFinal;
+                
+                specular += sunSpec * material.albedo.a;
+
+                final.a = min(final.a + luminance(sunSpec) * exposure, 1.0);
+            }
         #endif
 
         //return vec4(iblSpec, 1.0);
@@ -550,7 +544,7 @@
         //return vec4(diffuse, 1.0);
 
         final.rgb = final.rgb * (ambient * material.occlusion + emissive)
-            + diffuse * material.albedo.a * max(1.0 - F, 0.0)
+            + diffuse * material.albedo.a
             + (specular + iblSpec) * specularTint;
 
         // #ifdef SSS_ENABLED

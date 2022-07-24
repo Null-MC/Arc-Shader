@@ -15,7 +15,7 @@ float GetCustomFogFactor(const in float viewDist, const in float sunLightLevel) 
 
     const float dayFogStrength = 0.2;
     const float nightFogStrength = 0.3;
-    const float rainFogStrength = 0.6;
+    const float rainFogStrength = 0.8;
 
     float density = mix(nightFogDensity, dayFogDensity, sunLightLevel);
     density = mix(density, rainFogDensity, rainStrength);
