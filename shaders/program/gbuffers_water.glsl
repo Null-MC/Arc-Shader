@@ -215,7 +215,6 @@
 
     uniform mat4 shadowProjection;
     uniform vec3 cameraPosition;
-    uniform vec3 upDirection;
     uniform float viewWidth;
     uniform float viewHeight;
     uniform float near;

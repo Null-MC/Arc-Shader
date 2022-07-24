@@ -405,7 +405,7 @@
         //return vec4(iblSpec, 1.0);
 
         #ifdef RENDER_WATER
-            vec3 upDir = normalize(upDirection);
+            vec3 upDir = normalize(upPosition);
             if (materialId == 1) {
                 const float ScatteringCoeff = 0.11;
 

@@ -178,7 +178,7 @@
     #include "/lib/lighting/pbr.glsl"
 
     /* RENDERTARGETS: 4,6 */
-    out vec3 outColor0;
+    out vec4 outColor0;
 
     #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
         out float outColor1;
@@ -188,23 +188,24 @@
     void main() {
         ivec2 iTex = ivec2(gl_FragCoord.xy);
         float screenDepth = texelFetch(depthtex0, iTex, 0).r;
+        vec3 color;
 
         // SKY
         if (screenDepth == 1.0) {
             #ifdef SKY_ENABLED
-                outColor0 = texelFetch(BUFFER_HDR, iTex, 0).rgb;
+                color = texelFetch(BUFFER_HDR, iTex, 0).rgb;
 
                 #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
                     outColor1 = texelFetch(BUFFER_LUMINANCE, iTex, 0).r;
                 #endif
             #else
-                vec3 color = RGBToLinear(fogColor) * 100.0;
+                color = RGBToLinear(fogColor) * 100.0;
 
                 #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
                     outColor1 = log2(luminance(color) + EPSILON);
                 #endif
 
-                outColor0 = clamp(color * exposure, 0.0, 65000.0);
+                color = clamp(color * exposure, 0.0, 65000.0);
             #endif
         }
         else {
@@ -221,13 +222,15 @@
             PbrMaterial material;
             PopulateMaterial(material, colorMap.rgb, normalMap, specularMap);
 
-            vec3 color = PbrLighting2(material, lightingMap.xy, lightingMap.b, lightingMap.a, viewPos.xyz, vec2(0.0)).rgb;
+            color = PbrLighting2(material, lightingMap.xy, lightingMap.b, lightingMap.a, viewPos.xyz, vec2(0.0)).rgb;
 
             #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
                 outColor1 = log2(luminance(color) + EPSILON);
             #endif
 
-            outColor0 = clamp(color * exposure, vec3(0.0), vec3(1000.0));
+            color = clamp(color * exposure, vec3(0.0), vec3(1000.0));
         }
+
+        outColor0 = vec4(color, 1.0);
     }
 #endif
