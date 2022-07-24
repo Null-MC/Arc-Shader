@@ -73,7 +73,7 @@
         #if defined SHADOW_ENABLED && !defined RENDER_SHADOW && SHADOW_TYPE != SHADOW_TYPE_NONE
             vec3 localPos = pos;
 
-            #ifdef RENDER_ENTITIES
+            #if defined RENDER_ENTITIES || defined RENDER_BLOCK
                 localPos = (gbufferModelViewInverse * vec4(localPos, 1.0)).xyz;
             #endif
 

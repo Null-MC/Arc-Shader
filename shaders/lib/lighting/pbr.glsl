@@ -614,7 +614,7 @@
             vec4 shadowViewEnd = matViewToShadowView * vec4(viewPos, 1.0);
             shadowViewEnd.xyz /= shadowViewEnd.w;
 
-            float shadowBias = EPSILON; // TODO: fuck
+            float shadowBias = 0.0;//-1e-2; // TODO: fuck
 
             float G_scattering = mix(G_SCATTERING_CLEAR, G_SCATTERING_RAIN, rainStrength);
             float volScatter = GetVolumetricLighting(shadowViewStart.xyz, shadowViewEnd.xyz, shadowBias, G_scattering);
