@@ -1,5 +1,5 @@
 #ifdef RENDER_VERTEX
-    void BasicVertex(out mat3 viewTBN) {
+    void BasicVertex(out vec3 viewPos) {
         vec3 pos = gl_Vertex.xyz;
         vec3 normal = gl_Normal;
 
@@ -62,19 +62,7 @@
 
             geoNoL = 1.0;
         #else
-            vec3 viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
-            vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
-
-            viewTBN = mat3(
-                viewTangent.x, viewBinormal.x, viewNormal.x,
-                viewTangent.y, viewBinormal.y, viewNormal.y,
-                viewTangent.z, viewBinormal.z, viewNormal.z);
-
-            matTBN = viewTBN;
-
-            #if defined SHADOW_ENABLED
-                tanLightPos = viewTBN * shadowLightPosition;
-
+            #ifdef SHADOW_ENABLED
                 vec3 lightDir = normalize(shadowLightPosition);
                 geoNoL = dot(lightDir, viewNormal);
             #else
@@ -82,9 +70,15 @@
             #endif
         #endif
 
-        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && !defined RENDER_SHADOW
+        #if defined SHADOW_ENABLED && !defined RENDER_SHADOW && SHADOW_TYPE != SHADOW_TYPE_NONE
+            vec3 localPos = pos;
+
+            #ifdef RENDER_ENTITIES
+                localPos = (gbufferModelViewInverse * vec4(localPos, 1.0)).xyz;
+            #endif
+
             vec3 viewDir = -normalize(viewPos);
-            ApplyShadows(pos, viewDir);
+            ApplyShadows(localPos, viewDir);
         #endif
 
         #ifdef AF_ENABLED

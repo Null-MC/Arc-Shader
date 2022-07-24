@@ -107,9 +107,8 @@
         lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
         glcolor = gl_Color;
 
-        mat3 matViewTBN;
-        BasicVertex(matViewTBN);
-        PbrVertex(matViewTBN);
+        BasicVertex(viewPos);
+        PbrVertex(viewPos);
     }
 #endif
 

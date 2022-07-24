@@ -30,8 +30,7 @@ varying vec3 tanViewPos;
 		texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 		glcolor = gl_Color;
 
-        mat3 matViewTBN;
-        BasicVertex(matViewTBN);
+        BasicVertex(viewPos);
 	}
 #endif
 

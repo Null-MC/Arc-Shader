@@ -126,9 +126,8 @@
         if (mc_Entity.x == 100.0) materialId = 1;
         else materialId = 0;
 
-        mat3 matViewTBN;
-        BasicVertex(matViewTBN);
-        PbrVertex(matViewTBN);
+        BasicVertex(viewPos);
+        PbrVertex(viewPos);
 
         vec2 skyLightLevels = GetSkyLightLevels();
         vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);

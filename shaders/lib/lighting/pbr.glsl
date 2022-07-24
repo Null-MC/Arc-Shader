@@ -1,6 +1,18 @@
 #ifdef RENDER_VERTEX
-    void PbrVertex(const in mat3 matViewTBN) {//, const in vec3 viewPos) {
-        tanViewPos = matViewTBN * viewPos;
+    void PbrVertex(const in vec3 viewPos) {
+        vec3 viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
+        vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
+
+        matTBN = mat3(
+            viewTangent.x, viewBinormal.x, viewNormal.x,
+            viewTangent.y, viewBinormal.y, viewNormal.y,
+            viewTangent.z, viewBinormal.z, viewNormal.z);
+
+        #if defined SHADOW_ENABLED
+            tanLightPos = matTBN * shadowLightPosition;
+        #endif
+
+        tanViewPos = matTBN * viewPos;
 
         #ifdef PARALLAX_ENABLED
             vec2 coordMid = (gl_TextureMatrix[0] * mc_midTexCoord).xy;
@@ -426,30 +438,17 @@
                         waterSolidDepthFinal = GetWaterSolidDepth(refractUV);
 
                         #if WATER_REFRACTION == WATER_REFRACTION_FANCY
-                            // TODO: dda trace screen-space path until rejected
-                            // calculate dx , dy
-                            //dx = X1 - X0;
-                            //dy = Y1 - Y0;
                             vec2 startUV = refractUV;
                             vec2 d = screenUV - startUV;
                             vec2 dp = d * viewSize;
 
-                            // Depending upon absolute value of dx & dy
-                            // choose number of steps to put pixel as
-                            // steps = abs(dx) > abs(dy) ? abs(dx) : abs(dy)
                             float stepCount = abs(dp.x) > abs(dp.y) ? abs(dp.x) : abs(dp.y);
 
                             if (stepCount > 1.0) {
-                                // calculate increment in x & y for each steps
-                                //Xinc = d.x / steps;
-                                //Yinc = d.y / steps;
                                 vec2 step = d / stepCount;
 
-                                // Put pixel for each step
-
-                                //refractUV = screenUV;
                                 float solidViewDepth = 0.0;
-                                for (int i = 0; i <= stepCount && solidViewDepth < viewDist; i++) {
+                                for (int i = 0; i <= stepCount && solidViewDepth < waterSolidDepthFinal.x; i++) {
                                     refractUV = startUV + i * step;
                                     solidViewDepth = textureLod(depthtex1, refractUV, 0).r;
                                     solidViewDepth = linearizeDepthFast(solidViewDepth, near, far);

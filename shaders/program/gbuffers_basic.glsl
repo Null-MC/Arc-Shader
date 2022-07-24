@@ -105,9 +105,8 @@
 		lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
 		glcolor = gl_Color;
 
-        mat3 matViewTBN;
-        BasicVertex(matViewTBN);
-        PbrVertex(matViewTBN);
+        BasicVertex(viewPos);
+        PbrVertex(viewPos);
 	}
 #endif
 
@@ -235,12 +234,17 @@
 
     void main() {
         vec4 colorMap, normalMap, specularMap, lightingMap;
-        //PbrLighting(colorMap, normalMap, specularMap, lightingMap);
+        PbrLighting(colorMap, normalMap, specularMap, lightingMap);
         colorMap = vec4(1.0);
+        normalMap = vec4(0.0);
+        specularMap = vec4(0.0);
+        lightingMap = vec4(0.0);
 
-        outColor0.r = packUnorm4x8(colorMap);
-        outColor0.g = packUnorm4x8(normalMap);
-        outColor0.b = packUnorm4x8(specularMap);
-        outColor0.a = packUnorm4x8(lightingMap);
+        uvec4 data;
+        data.r = packUnorm4x8(colorMap);
+        data.g = packUnorm4x8(normalMap);
+        data.b = packUnorm4x8(specularMap);
+        data.a = packUnorm4x8(lightingMap);
+        outColor0 = data;
     }
 #endif

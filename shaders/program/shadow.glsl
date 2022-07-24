@@ -48,6 +48,7 @@ const float shadowDistanceRenderMul = 1.0;
 
     uniform float rainStrength;
     uniform float frameTimeCounter;
+    uniform float far;
     
     #ifdef ANIM_USE_WORLDTIME
         uniform int worldTime;
@@ -65,7 +66,6 @@ const float shadowDistanceRenderMul = 1.0;
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         uniform int entityId;
         uniform float near;
-        uniform float far;
 
         #ifdef IS_OPTIFINE
             // NOTE: We are using the previous gbuffer matrices cause the current ones don't work in shadow pass
