@@ -123,9 +123,12 @@ const float shadowDistanceRenderMul = 1.0;
         vec4 pos = gl_Vertex;
         vec3 normal = gl_Normal;
 
+        #if defined ENABLE_WAVING || WATER_WAVE_TYPE == WATER_WAVE_VERTEX
+            float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
+        #endif
+
         #ifdef ENABLE_WAVING
             if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0) {
-                float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
                 float wavingRange = GetWavingRange(skyLight);
                 pos.xyz += GetWavingOffset(wavingRange);
             }
@@ -134,19 +137,20 @@ const float shadowDistanceRenderMul = 1.0;
         #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
             if (mc_Entity.x == 100.0) {
                 float windSpeed = GetWindSpeed();
+                float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
                 
                 float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
                 vec2 waterWorldPos = waterWorldScale * (pos.xz + cameraPosition.xz);
-                float depth = GetWaves(waterWorldPos, windSpeed, WATER_OCTAVES_VERTEX);
+                float depth = GetWaves(waterWorldPos, waveSpeed, WATER_OCTAVES_VERTEX);
                 pos.y -= (1.0 - depth) * WATER_WAVE_DEPTH;
 
                 #ifndef WATER_FANCY
                     vec2 waterWorldPosX = waterWorldPos + vec2(waterWorldScale, 0.0);
-                    float depthX = GetWaves(waterWorldPosX, windSpeed, WATER_OCTAVES_VERTEX);
+                    float depthX = GetWaves(waterWorldPosX, waveSpeed, WATER_OCTAVES_VERTEX);
                     vec3 pX = vec3(1.0, 0.0, (depthX - depth) * WATER_WAVE_DEPTH);
 
                     vec2 waterWorldPosY = waterWorldPos + vec2(0.0, waterWorldScale);
-                    float depthY = GetWaves(waterWorldPosY, windSpeed, WATER_OCTAVES_VERTEX);
+                    float depthY = GetWaves(waterWorldPosY, waveSpeed, WATER_OCTAVES_VERTEX);
                     vec3 pY = vec3(0.0, 1.0, (depthY - depth) * WATER_WAVE_DEPTH);
 
                     normal = normalize(cross(pX, pY)).xzy;

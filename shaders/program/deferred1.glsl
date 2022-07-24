@@ -25,8 +25,10 @@
 
     void main() {
         vec2 pos = WATER_SCALE * ((texcoord - 0.5) + rcp(2.0*WATER_RADIUS) * cameraPosition.xz);
-        float windSpeed = GetWindSpeed();
 
-        outColor0 = GetWaves(pos, windSpeed, WATER_OCTAVES_NEAR);
+        float windSpeed = GetWindSpeed();
+        float waveSpeed = GetWaveSpeed(windSpeed, 1.0); // TODO: skylight not available!
+
+        outColor0 = GetWaves(pos, waveSpeed, WATER_OCTAVES_NEAR);
     }
 #endif

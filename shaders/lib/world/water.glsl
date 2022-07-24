@@ -8,9 +8,13 @@ vec2 GetWaveDX(const in vec2 position, const in vec2 direction, const in float s
     return vec2(wave, -dx);
 }
 
-float GetWaves(inout vec2 position, const in float windSpeed, const in int iterations) {
-    float weight = max(windSpeed / 25.0, 0.4);
-    float maxWeight = max(2.0 - windSpeed / 12.0, 0.0);
+float GetWaveSpeed(const in float windSpeed, const in float skyLight) {
+    return windSpeed * skyLight * 0.04;
+}
+
+float GetWaves(inout vec2 position, const in float waveSpeed, const in int iterations) {
+    float weight = max(waveSpeed, 0.4);
+    float maxWeight = max(2.0 - 0.5*waveSpeed, 0.0);
 
     float iter = 0.0;
     float speed = 6.0;

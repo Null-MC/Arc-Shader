@@ -17,10 +17,11 @@
     #endif
 
     vec4 PbrLighting() {
-        vec2 atlasCoord = texcoord;
         vec3 traceCoordDepth = vec3(1.0);
-        float texDepth = 1.0;
         vec2 waterSolidDepth = vec2(0.0);
+        vec2 atlasCoord = texcoord;
+        float texDepth = 1.0;
+        vec2 lm = lmcoord;
         PbrMaterial material;
 
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
@@ -87,10 +88,14 @@
                     vec2 waterWorldPosX = waterWorldPos + vec2(1.0, 0.0)*waterPixelSize;
                     vec2 waterWorldPosY = waterWorldPos + vec2(0.0, 1.0)*waterPixelSize;
 
+                    float skyLight = saturate((lm.y - (0.5/16.0)) / (15.0/16.0));
+
                     float windSpeed = GetWindSpeed();
-                    depth = GetWaves(waterWorldPos, windSpeed, octaves);
-                    depthX = GetWaves(waterWorldPosX, windSpeed, octaves);
-                    depthY = GetWaves(waterWorldPosY, windSpeed, octaves);
+                    float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
+
+                    depth = GetWaves(waterWorldPos, waveSpeed, octaves);
+                    depthX = GetWaves(waterWorldPosX, waveSpeed, octaves);
+                    depthY = GetWaves(waterWorldPosY, waveSpeed, octaves);
                     zScale *= WATER_SCALE;
 
                 #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
@@ -236,7 +241,6 @@
 
         material.normal = material.normal * matTBN;
 
-        vec2 lm = lmcoord;
         #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
             ApplyDirectionalLightmap(lm.x, material.normal);
         #endif

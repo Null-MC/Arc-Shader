@@ -188,14 +188,17 @@
             vec3 halfDir = normalize(lightDir + viewDir);
             float LoHm = max(dot(lightDir, halfDir), EPSILON);
             float NoHm = max(dot(viewNormal, halfDir), EPSILON);
-            float VoHm = max(dot(viewDir, halfDir), EPSILON);
+            //float VoHm = max(dot(viewDir, halfDir), EPSILON);
 
             vec3 handLightColor = blockLightColor * attenuation;
 
-            vec3 F = GetFresnel(material, VoHm, roughL);
+            //vec3 F = GetFresnel(material, VoHm, roughL);
+            vec3 F = GetFresnel(material, LoHm, roughL);
 
             diffuse += GetDiffuseBSDF(material, NoVm, NoLm, LoHm, roughL) * handLightColor;
             specular += GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * handLightColor;
+
+            //sunSpec = GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * skyLightColor * skyLight3 * shadowFinal;
         }
     #endif
 
@@ -219,22 +222,24 @@
         }
     #endif
 
-    vec3 GetSkyReflectionColor(const in vec3 reflectDir, const in vec3 viewNormal) {
-        // darken lower horizon
-        vec3 downDir = normalize(-upPosition);
-        float RoDm = max(dot(reflectDir, downDir), 0.0);
-        float reflectF = 1.0 - RoDm;
+    #ifdef SKY_ENABLED
+        vec3 GetSkyReflectionColor(const in vec3 reflectDir, const in vec3 viewNormal) {
+            // darken lower horizon
+            vec3 downDir = normalize(-upPosition);
+            float RoDm = max(dot(reflectDir, downDir), 0.0);
+            float reflectF = 1.0 - RoDm;
 
-        // occlude inward reflections
-        //float NoRm = max(dot(reflectDir, -viewNormal), 0.0);
-        //reflectF *= 1.0 - pow(NoRm, 0.5);
+            // occlude inward reflections
+            //float NoRm = max(dot(reflectDir, -viewNormal), 0.0);
+            //reflectF *= 1.0 - pow(NoRm, 0.5);
 
-        vec3 skyLumen = GetVanillaSkyLuminance(reflectDir);
-        vec3 skyScatter = GetVanillaSkyScattering(reflectDir, sunColor, moonColor);
+            vec3 skyLumen = GetVanillaSkyLuminance(reflectDir);
+            vec3 skyScatter = GetVanillaSkyScattering(reflectDir, sunColor, moonColor);
 
-        //return (skyLumen + skyScatter) * reflectF;
-        return skyLumen * reflectF;
-    }
+            //return (skyLumen + skyScatter) * reflectF;
+            return skyLumen * reflectF;
+        }
+    #endif
 
     vec4 PbrLighting2(const in PbrMaterial material, const in vec2 lmValue, const in float shadow, const in float shadowSSS, const in vec3 viewPos, const in vec2 waterSolidDepth) {
         vec2 viewSize = vec2(viewWidth, viewHeight);
@@ -310,7 +315,7 @@
 
                     //return vec4(reflectColor, 1.0);
 
-                #elif REFLECTION_MODE == REFLECTION_MODE_SKY
+                #elif REFLECTION_MODE == REFLECTION_MODE_SKY && defined SKY_ENABLED
                     reflectColor = GetSkyReflectionColor(reflectDir, viewNormal) * skyLight;
                 #endif
             }
@@ -352,14 +357,16 @@
         final.a += Fmax * max(1.0 - final.a, 0.0);
 
         //vec3 specFmax = vec3(0.0);
+        vec3 iblSpec = vec3(0.0);
         #ifdef SHADOW_ENABLED
             //vec3 iblF = vec3(0.0);
-            vec3 iblSpec = vec3(0.0);
             #if REFLECTION_MODE != REFLECTION_MODE_NONE
-                vec2 envBRDF = textureLod(BUFFER_BRDF_LUT, vec2(NoVm, material.smoothness), 0).rg;
-                envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
+                if (all(greaterThan(reflectColor, vec3(EPSILON)))) {
+                    vec2 envBRDF = textureLod(BUFFER_BRDF_LUT, vec2(NoVm, material.smoothness), 0).rg;
+                    envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
 
-                iblSpec = reflectColor * specularTint * (F * envBRDF.x + envBRDF.y) * material.occlusion;
+                    iblSpec = reflectColor * (F * envBRDF.x + envBRDF.y) * material.occlusion;
+                }
             #endif
 
             float NoHm = max(dot(viewNormal, halfDir), 0.0);
@@ -368,7 +375,8 @@
             vec3 sunSpec = vec3(0.0);
             if (NoLm > EPSILON) {
                 //vec3 sunF = GetFresnel(material, VoHm, roughL);
-                sunSpec = GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * specularTint * skyLightColor * skyLight3 * shadowFinal;
+                vec3 sunF = GetFresnel(material, LoHm, roughL);
+                sunSpec = GetSpecularBRDF(sunF, NoVm, NoLm, NoHm, roughL) * skyLightColor * skyLight3 * shadowFinal;
                 specular += sunSpec;
 
                 final.a = min(final.a + luminance(sunSpec) * exposure, 1.0);
@@ -512,7 +520,7 @@
                 ApplyHandLighting(diffuse, specular, material, viewNormal, viewPos.xyz, viewDir, NoVm, roughL);
         #endif
 
-        #if defined RSM_ENABLED && defined RENDER_DEFERRED
+        #if defined SKY_ENABLED && defined RSM_ENABLED && defined RENDER_DEFERRED
             ambient += rsmColor * skyLightColor;
         #endif
 
@@ -541,7 +549,9 @@
 
         //return vec4(diffuse, 1.0);
 
-        final.rgb = final.rgb * (ambient * material.occlusion + emissive) + diffuse * material.albedo.a * max(1.0 - F, 0.0) + specular + iblSpec;
+        final.rgb = final.rgb * (ambient * material.occlusion + emissive)
+            + diffuse * material.albedo.a * max(1.0 - F, 0.0)
+            + (specular + iblSpec) * specularTint;
 
         // #ifdef SSS_ENABLED
         //     //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
@@ -605,7 +615,7 @@
             #endif
         }
 
-        #ifdef VL_ENABLED
+        #if defined SKY_ENABLED && defined VL_ENABLED
             mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
 
             vec4 shadowViewStart = matViewToShadowView * vec4(vec3(0.0), 1.0);
