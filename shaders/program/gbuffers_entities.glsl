@@ -47,6 +47,7 @@
     uniform mat4 gbufferModelView;
     uniform mat4 gbufferModelViewInverse;
     uniform vec3 cameraPosition;
+    uniform int entityId;
 
     #ifdef SHADOW_ENABLED
         uniform mat4 shadowModelView;
@@ -63,7 +64,7 @@
             #endif
 
             uniform mat4 gbufferProjection;
-            uniform int entityId;
+            //uniform int entityId;
             uniform float near;
 
             #include "/lib/shadows/csm.glsl"
@@ -84,7 +85,10 @@
         glcolor = gl_Color;
 
         BasicVertex(viewPos);
-        PbrVertex(viewPos);
+
+        // No PBR for lightning
+        if (entityId != 100.0)
+            PbrVertex(viewPos);
     }
 #endif
 
@@ -129,6 +133,7 @@
     uniform sampler2D lightmap;
 
     uniform vec4 entityColor;
+    uniform int entityId;
 
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
         uniform float alphaTestRef;
@@ -206,7 +211,15 @@
 
     void main() {
         vec4 colorMap, normalMap, specularMap, lightingMap;
-        PbrLighting(colorMap, normalMap, specularMap, lightingMap);
+
+        if (entityId != 100.0)
+            PbrLighting(colorMap, normalMap, specularMap, lightingMap);
+        else {
+            colorMap = vec4(1.0);
+            normalMap = vec4(0.0);
+            specularMap = vec4(0.0, 0.0, 0.0, 254.0/255.0);
+            lightingMap = vec4(1.0, 1.0, 1.0, 0.0);
+        }
 
         uvec4 data;
         data.r = packUnorm4x8(colorMap);

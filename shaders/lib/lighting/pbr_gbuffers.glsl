@@ -33,6 +33,8 @@
         #ifdef RENDER_ENTITIES
             //colorMap.rgb *= (1.0 - entityColor.a) + entityColor.rgb * entityColor.a;
             colorMap.rgb = mix(colorMap.rgb, entityColor.rgb, entityColor.a);
+
+            // TODO: fix lightning
         #endif
 
         #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
