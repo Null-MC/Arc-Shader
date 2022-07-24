@@ -234,7 +234,7 @@
 
     void main() {
         vec4 colorMap, normalMap, specularMap, lightingMap;
-        PbrLighting(colorMap, normalMap, specularMap, lightingMap);
+        //PbrLighting(colorMap, normalMap, specularMap, lightingMap);
         colorMap = vec4(1.0);
         normalMap = vec4(0.0);
         specularMap = vec4(0.0);

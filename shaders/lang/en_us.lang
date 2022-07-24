@@ -299,6 +299,12 @@ option.VL_SAMPLE_COUNT=Samples
 
 screen.DEBUG_OPTIONS=Debug
 
+option.BLOCK_OUTLINE=Block Outline
+value.BLOCK_OUTLINE.0=None
+value.BLOCK_OUTLINE.1=Black
+value.BLOCK_OUTLINE.2=White
+value.BLOCK_OUTLINE.3=Fancy
+
 option.DEBUG_VIEW=Display
 option.DEBUG_VIEW.comment=Configures which buffer to draw to the screen.
 value.DEBUG_VIEW.0=None

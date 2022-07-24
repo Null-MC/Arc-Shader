@@ -152,6 +152,7 @@ const bool colortex11Clear = false;
 #define IS_OPTIFINE
 //#define IRIS_FEATURE_SEPARATE_HW_SAMPLERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
+#define BLOCK_OUTLINE 1 // [0 1 2 3]
 
 
 // INTERNAL
