@@ -4,8 +4,11 @@
         vec3 normal = gl_Normal;
 
         #if defined RENDER_TERRAIN && defined ENABLE_WAVING
-            if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0)
-                pos += GetWavingOffset();
+            if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0) {
+                float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
+                float wavingRange = GetWavingRange(skyLight);
+                pos += GetWavingOffset(wavingRange);
+            }
         #endif
 
         #ifdef RENDER_WATER

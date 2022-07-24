@@ -46,6 +46,7 @@ const float shadowDistanceRenderMul = 1.0;
     uniform mat4 shadowModelViewInverse;
     uniform vec3 cameraPosition;
 
+    uniform float rainStrength;
     uniform float frameTimeCounter;
     
     #ifdef ANIM_USE_WORLDTIME
@@ -58,6 +59,7 @@ const float shadowDistanceRenderMul = 1.0;
         uniform mat4 gbufferModelViewInverse;
     #endif
 
+    #include "/lib/world/wind.glsl"
     #include "/lib/world/waving.glsl"
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -80,9 +82,6 @@ const float shadowDistanceRenderMul = 1.0;
     #endif
 
     #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
-        uniform float rainStrength;
-
-        #include "/lib/world/wind.glsl"
         #include "/lib/world/water.glsl"
     #endif
 
@@ -125,8 +124,11 @@ const float shadowDistanceRenderMul = 1.0;
         vec3 normal = gl_Normal;
 
         #ifdef ENABLE_WAVING
-            if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0)
-                pos.xyz += GetWavingOffset();
+            if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0) {
+                float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
+                float wavingRange = GetWavingRange(skyLight);
+                pos.xyz += GetWavingOffset(wavingRange);
+            }
         #endif
 
         #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX

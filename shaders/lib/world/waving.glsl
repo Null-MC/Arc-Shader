@@ -43,7 +43,7 @@ vec3 fbm(vec3 pos) {
     float weight = 0.5;
     float totalWeight = 0.0;
     float frequency = 1000.0;
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 12; i++) {
         val += noise(pos * frequency) * weight;
         totalWeight += weight;
         weight /= 2.0;
@@ -53,9 +53,13 @@ vec3 fbm(vec3 pos) {
     return val / totalWeight;
 }
 
-vec3 GetWavingOffset() {
-    float range = (mc_Entity.x == 10002.0 || mc_Entity.x == 10004.0) ? 0.01 : 0.06;
+float GetWavingRange(const in float skyLight) {
+    float blockTypeRange = (mc_Entity.x == 10002.0 || mc_Entity.x == 10004.0) ? 0.002 : 0.008;
+    float windSpeed = GetWindSpeed();
+    return blockTypeRange * windSpeed * skyLight;
+}
 
+vec3 GetWavingOffset(const in float range) {
     #if MC_VERSION >= 11700 && (defined IS_OPTIFINE || defined IRIS_FEATURE_CHUNK_OFFSET)
         vec3 worldPos = floor(vaPosition.xyz + chunkOffset + cameraPosition + 0.5);
     #else
@@ -76,7 +80,7 @@ vec3 GetWavingOffset() {
         float time = frameTimeCounter;
     #endif
 
-	vec3 hash = mod(fbm(worldPos) * 2.0 * PI + time, 2.0 * PI);
+	vec3 hash = mod(fbm(worldPos) * TAU + 2.0*time, TAU);
 	vec3 offset = sin(hash) * range;
 
     // Prevent waving for blocks with the base attached to ground.

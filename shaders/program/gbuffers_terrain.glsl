@@ -56,6 +56,7 @@
     uniform mat4 gbufferModelView;
     uniform mat4 gbufferModelViewInverse;
     uniform vec3 cameraPosition;
+    uniform float rainStrength;
 
     #ifdef ANIM_USE_WORLDTIME
         uniform int worldTime;
@@ -67,6 +68,7 @@
         uniform vec3 chunkOffset;
     #endif
 
+    #include "/lib/world/wind.glsl"
     #include "/lib/world/waving.glsl"
 
     #ifdef SHADOW_ENABLED
