@@ -38,6 +38,10 @@
     uniform vec3 upPosition;
     uniform int moonPhase;
 
+    #if MC_VERSION >= 11900
+        uniform float darknessFactor;
+    #endif
+
     #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/camera/exposure.glsl"
@@ -130,6 +134,10 @@
 
     #ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;
+    #endif
+
+    #if MC_VERSION >= 11900
+        uniform float darknessFactor;
     #endif
 
     #include "/lib/depth.glsl"

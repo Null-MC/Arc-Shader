@@ -31,6 +31,10 @@
     uniform vec3 upPosition;
     uniform int moonPhase;
 
+    #if MC_VERSION >= 11900
+        uniform float darknessFactor;
+    #endif
+
     #ifdef BLOOM_ENABLED
         flat out int bloomTileCount;
 

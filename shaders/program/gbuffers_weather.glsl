@@ -53,7 +53,11 @@
         uniform ivec2 eyeBrightness;
         uniform int heldBlockLightValue;
     #endif
-    
+  
+    #if MC_VERSION >= 11900
+        uniform float darknessFactor;
+    #endif
+  
     #ifdef SHADOW_ENABLED
         uniform mat4 gbufferModelView;
         uniform mat4 gbufferModelViewInverse;
@@ -154,6 +158,10 @@
     uniform float fogEnd;
     uniform int fogShape;
     uniform int fogMode;
+
+    #if MC_VERSION >= 11900
+        uniform float darknessFactor;
+    #endif
 
     #ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;

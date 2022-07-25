@@ -91,6 +91,10 @@
         uniform vec3 chunkOffset;
     #endif
 
+    #if MC_VERSION >= 11900
+        uniform float darknessFactor;
+    #endif
+
     #ifdef SHADOW_ENABLED
         uniform mat4 shadowModelView;
         uniform mat4 shadowProjection;
@@ -243,6 +247,10 @@
     uniform float fogEnd;
     uniform int fogMode;
     uniform int fogShape;
+
+    #if MC_VERSION >= 11900
+        uniform float darknessFactor;
+    #endif
 
     #ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;

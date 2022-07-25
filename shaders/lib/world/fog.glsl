@@ -56,6 +56,10 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
         vec3 atmosphereColor = RGBToLinear(fogColor) * 100.0;
     #endif
 
+    #if MC_VERSION >= 11900
+        atmosphereColor *= 1.0 - darknessFactor;
+    #endif
+
     float viewDist = length(viewPos);// - near;
     float maxFactor = 0.0;
 

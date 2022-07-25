@@ -59,6 +59,10 @@
     uniform mat4 gbufferModelViewInverse;
     uniform float screenBrightness;
 
+    #if MC_VERSION >= 11900
+        uniform float darknessFactor;
+    #endif
+
     #ifdef SHADOW_ENABLED
         uniform mat4 shadowModelView;
         uniform mat4 shadowProjection;
@@ -165,6 +169,10 @@
 
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
         uniform float alphaTestRef;
+    #endif
+
+    #if MC_VERSION >= 11900
+        uniform float darknessFactor;
     #endif
     
     #ifdef SHADOW_ENABLED

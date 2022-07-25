@@ -32,8 +32,14 @@ float GetEV100(const in float averageLuminance) {
 
 float GetExposure(const in float EV100) {
     //return 1.0 / exp2(EV100 - 3.0);
-    float maxLum = (2.0 - screenBrightness) * exp2(EV100);
-    return 1.0 / maxLum;
+
+    float brightnessF = 2.0 - screenBrightness;
+
+    #if MC_VERSION >= 11900
+        brightnessF *= 1.0 - 0.9*darknessFactor;
+    #endif
+
+    return rcp(brightnessF * exp2(EV100));
 }
 
 

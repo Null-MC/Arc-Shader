@@ -17,6 +17,10 @@
         uniform float viewHeight;
     #endif
 
+    #if MC_VERSION >= 11900
+        uniform float darknessFactor;
+    #endif
+
     #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
         uniform ivec2 eyeBrightness;
         uniform int heldBlockLightValue;
