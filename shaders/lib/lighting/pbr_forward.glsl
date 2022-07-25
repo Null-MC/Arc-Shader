@@ -34,7 +34,7 @@
             }
         #endif
 
-        #if defined RENDER_WATER && defined WATER_FANCY
+        #if defined RENDER_WATER && defined WATER_FANCY && !defined WORLD_NETHER
             if (materialId == 1) {
                 material.albedo = vec4(vec3(0.0178, 0.0566, 0.0754), 0.06);
                 material.normal = vec3(0.0, 0.0, 1.0);
@@ -183,7 +183,7 @@
                 ApplyVanillaProperties(material, colorMap);
             #endif
 
-        #if defined RENDER_WATER && defined WATER_FANCY
+        #if defined RENDER_WATER && defined WATER_FANCY && !defined WORLD_NETHER
             }
         #endif
         

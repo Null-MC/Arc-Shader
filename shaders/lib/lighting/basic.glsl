@@ -33,7 +33,7 @@
                     }
                 }
 
-                #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
+                #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX && !defined WORLD_NETHER
                     float windSpeed = GetWindSpeed();
                     float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
                     
