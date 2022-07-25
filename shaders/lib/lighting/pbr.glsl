@@ -174,7 +174,7 @@
             return pow5(diffuseAtt);
         }
 
-        void ApplyHandLighting(inout vec3 diffuse, inout vec3 specular, const in PbrMaterial material, const in vec3 viewNormal, const in vec3 viewPos, const in vec3 viewDir, const in float NoVm, const in float roughL) {
+        void ApplyHandLighting(out vec3 diffuse, out vec3 specular, const in PbrMaterial material, const in vec3 viewNormal, const in vec3 viewPos, const in vec3 viewDir, const in float NoVm, const in float roughL) {
             vec3 lightPos = handOffset - viewPos.xyz;
             vec3 lightDir = normalize(lightPos);
 
@@ -182,7 +182,11 @@
 
             float lightDist = length(lightPos);
             float attenuation = GetHandLightAttenuation(heldBlockLightValue, lightDist);
-            if (attenuation < EPSILON) return;
+            if (attenuation < EPSILON) {
+                diffuse = vec3(0.0);
+                specular = vec3(0.0);
+                return;
+            }
 
             vec3 halfDir = normalize(lightDir + viewDir);
             float LoHm = max(dot(lightDir, halfDir), 0.0);
@@ -191,12 +195,15 @@
 
             vec3 F = GetFresnel(material, LoHm, roughL);
             vec3 handDiffuse = GetDiffuse_Burley(material.albedo.rgb, NoVm, NoLm, LoHm, roughL) * max(1.0 - F, 0.0);
-            diffuse += GetDiffuseBSDF(material, handDiffuse, NoVm, NoLm, LoHm, roughL) * handLightColor;
+            diffuse = GetDiffuseBSDF(material, handDiffuse, NoVm, NoLm, LoHm, roughL) * handLightColor;
 
-            if (NoLm < EPSILON) return;
+            if (NoLm < EPSILON) {
+                specular = vec3(0.0);
+                return;
+            }
             
             float NoHm = max(dot(viewNormal, halfDir), 0.0);
-            specular += GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * handLightColor;
+            specular = GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * handLightColor;
         }
     #endif
 
@@ -509,9 +516,16 @@
             }
         #endif
 
-        #ifdef HANDLIGHT_ENABLED
-            if (heldBlockLightValue > EPSILON)
-                ApplyHandLighting(diffuse, specular, material, viewNormal, viewPos.xyz, viewDir, NoVm, roughL);
+        #if defined HANDLIGHT_ENABLED && !defined RENDER_HAND && !defined RENDER_HAND_WATER
+            if (heldBlockLightValue > EPSILON) {
+                vec3 handDiffuse, handSpecular;
+                ApplyHandLighting(handDiffuse, handSpecular, material, viewNormal, viewPos.xyz, viewDir, NoVm, roughL);
+
+                diffuse += handDiffuse;
+                specular += handSpecular;
+                
+                final.a = min(final.a + luminance(handSpecular) * exposure, 1.0);
+            }
         #endif
 
         #if defined SKY_ENABLED && defined RSM_ENABLED && defined RENDER_DEFERRED
