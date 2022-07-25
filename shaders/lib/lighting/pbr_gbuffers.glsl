@@ -138,7 +138,13 @@
                 }
 
                 #ifdef SHADOW_COLOR
-                    shadowColorMap = CompareColor(shadowPos.xyz, shadowBias);
+                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                        shadowColorMap = GetShadowColor(shadowPos);
+                    #else
+                        shadowColorMap = GetShadowColor(shadowPos.xyz, shadowBias);
+                    #endif
+                    
+                    shadowColorMap = RGBToLinear(shadowColorMap);
                 #endif
 
                 #ifdef SSS_ENABLED

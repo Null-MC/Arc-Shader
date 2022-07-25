@@ -6,7 +6,7 @@ const int shadowcolor0Format = RGBA8;
 const int shadowcolor1Format = RG32UI;
 */
 
-const bool shadowcolor0Nearest = false;
+const bool shadowcolor0Nearest = true;
 const vec4 shadowcolor0ClearColor = vec4(1.0);
 const bool shadowcolor0Clear = true;
 
@@ -298,6 +298,7 @@ const bool shadowHardwareFiltering1 = true;
                 color.rgb = vec3(1.0);
             }
 
+            color.rgb = mix(vec3(1.0), color.rgb, color.a);
             outColor0 = color;
         #else
             color.a = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]).a * glcolor.a;

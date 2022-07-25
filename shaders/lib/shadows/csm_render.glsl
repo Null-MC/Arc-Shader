@@ -188,7 +188,7 @@
         #endif
 
     	#ifdef SHADOW_COLOR
-    		vec3 GetShadowColor() {
+    		vec3 GetShadowColor(const in vec3 shadowPos[4]) {
     			int cascade = -1;
     			float depthLast = 1.0;
     			for (int i = 0; i < 4; i++) {
@@ -196,11 +196,13 @@
     				if (shadowPos[i].x < shadowTilePos.x || shadowPos[i].x > shadowTilePos.x + 0.5) continue;
     				if (shadowPos[i].y < shadowTilePos.y || shadowPos[i].y > shadowTilePos.y + 0.5) continue;
 
-    				//when colored shadows are enabled and there's nothing OPAQUE between us and the sun,
-    				//perform a 2nd check to see if there's anything translucent between us and the sun.
-    				float depth = texture(shadowtex0, shadowPos[i].xy).r;
-    				if (depth + EPSILON < 1.0 && depth < shadowPos[i].z && depth < depthLast) {
-    					depthLast = depth;
+                    float shadowBias = 0.0; // TODO
+
+    				float waterDepth = textureLod(shadowtex0, shadowPos[i].xy, 0).r;
+                    //float waterShadow = step(waterDepth, shadowPos[i].z - shadowBias);
+
+    				if (shadowPos[i].z - shadowBias > waterDepth && waterDepth < depthLast) {
+    					depthLast = waterDepth;
     					cascade = i;
     				}
     			}
@@ -209,12 +211,11 @@
 
     			//surface has translucent object between it and the sun. modify its color.
     			//if the block light is high, modify the color less.
-    			uint data = texture(shadowcolor0, shadowPos[cascade].xy).r;
-                vec3 color = unpackUnorm4x8(data).rgb;
-    			color = RGBToLinear(color);
+    			vec3 color = textureLod(shadowcolor0, shadowPos[cascade].xy, 0).rgb;
+    			return RGBToLinear(color);
 
     			//make colors more intense when the shadow light color is more opaque.
-    			return mix(vec3(1.0), color, shadowLightColor.a);
+    			//return mix(vec3(1.0), color, shadowLightColor.a);
     		}
     	#endif
 
@@ -293,9 +294,9 @@
     	#endif
 
         #ifdef SSS_ENABLED
-            vec4 SampleShadowColorSSS(const in vec2 shadowPos) {
-                uint data = texture(shadowcolor0, shadowPos).r;
-                return unpackUnorm4x8(data);
+            float SampleShadowSSS(const in vec2 shadowPos) {
+                uint data = textureLod(shadowcolor1, shadowPos, 0).g;
+                return unpackUnorm4x8(data).b;
             }
 
             #if SSS_FILTER != 0
@@ -310,7 +311,7 @@
                         vec2 pixelOffset = blockOffset * pixelPerBlockScale;
 
                         float bias = GetCascadeBias(cascade);
-                        float shadow_sss = SampleShadowColorSSS(shadowPos[cascade].xy + pixelOffset).a;
+                        float shadow_sss = SampleShadowSSS(shadowPos[cascade].xy + pixelOffset);
                         float dist = max(shadowPos[cascade].z - bias - texDepth, 0.0) * far * 3.0;
                         light += max(shadow_sss - dist / SSS_MAXDIST, 0.0);
                     }
@@ -350,7 +351,7 @@
                     float texDepth = GetNearestDepth(shadowPos, vec2(0.0), cascade);
                     float bias = GetCascadeBias(cascade);
                     float dist = max(shadowPos[cascade].z - bias - texDepth, 0.0) * far * 3.0;
-                    float shadow_sss = SampleShadowColorSSS(shadowPos[cascade].xy).a;
+                    float shadow_sss = SampleShadowSSS(shadowPos[cascade].xy);
                     return max(shadow_sss - dist / SSS_MAXDIST, 0.0);
                 }
             #endif

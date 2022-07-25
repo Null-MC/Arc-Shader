@@ -220,15 +220,13 @@
             }
 
             #ifdef SHADOW_COLOR
-                float waterDepth = textureLod(shadowtex0, shadowPos.xy, 0).r;
-
-                if (shadowPos.z > waterDepth) {
-                    shadowColorMap = textureLod(shadowcolor0, shadowPos.xy, 0).rgb;
-                    //shadowColorMap = mix(vec3(1.0), shadowColor, shadow);
-
-                    //also make colors less intense when the block light level is high.
-                    //shadowColor = mix(shadowColor, vec3(1.0), blockLight);
-                }
+                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                    shadowColorMap = GetShadowColor(shadowPos);
+                #else
+                    shadowColorMap = GetShadowColor(shadowPos.xyz, shadowBias);
+                #endif
+                
+                shadowColorMap = RGBToLinear(shadowColorMap);
             #endif
         #endif
 

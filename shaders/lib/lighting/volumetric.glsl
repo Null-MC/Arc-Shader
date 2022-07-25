@@ -12,7 +12,7 @@ float GetVolumetricFactor(const in vec3 shadowViewStart, const in vec3 shadowVie
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             // TODO: create 4 CSM projection matrices
 
-            accumF += CompareNearestDepth(shadowPos);
+            accumF += CompareNearestDepth(shadowPos, vec2(0.0));
         #else
             vec4 shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
 
@@ -54,7 +54,7 @@ float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowV
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 // TODO: create 4 CSM projection matrices
 
-                float depthSample = CompareNearestDepth(shadowPos);
+                float depthSample = CompareNearestDepth(shadowPos, vec2(0.0));
 
                 if (depthSample > EPSILON)
                     accumCol += CompareNearestColor(shadowPos.xyz) * depthSample;
@@ -69,8 +69,10 @@ float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowV
                 shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
                 float depthSample = CompareDepth(shadowPos, vec2(0.0), shadowBias);
 
-                if (depthSample > EPSILON)
-                    accumCol += CompareColor(shadowPos.xyz, shadowBias) * depthSample;
+                if (depthSample > EPSILON) {
+                    vec3 shadowColor = GetShadowColor(shadowPos.xyz, shadowBias);
+                    accumCol += RGBToLinear(shadowColor) * depthSample;
+                }
             #endif
         }
 

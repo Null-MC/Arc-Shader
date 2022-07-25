@@ -52,12 +52,13 @@
     }
 
     #ifdef SHADOW_COLOR
-        vec3 CompareColor(const in vec3 shadowPos, const in float shadowBias) {
+        vec3 GetShadowColor(const in vec3 shadowPos, const in float shadowBias) {
+            // TODO: enable HW-comp on Iris
             //#ifdef SHADOW_ENABLE_HWCOMP
             //    float waterShadow = 1.0 - textureLod(shadowtex0, shadowPos.xyz + vec3(offset * shadowPos.w, -shadowBias), 0);
             //#else
             float waterDepth = textureLod(shadowtex0, shadowPos.xy, 0).r;
-            float waterShadow = step(waterDepth, shadowPos.z - shadowBias); // TODO: bias might be backwards? idk
+            float waterShadow = step(waterDepth, shadowPos.z - shadowBias);
             //#endif
 
             if (waterShadow < EPSILON) return vec3(1.0);
