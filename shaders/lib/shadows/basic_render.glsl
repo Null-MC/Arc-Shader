@@ -176,7 +176,8 @@
                 vec2 pixelRadius = GetShadowPixelRadius(SHADOW_PCF_SIZE);
                 if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
-                return 1.0 - GetShadowing_PCF(shadowPos, shadowBias, pixelRadius, sampleCount);
+                float biasMax = shadowBias * (max(pixelRadius.x, pixelRadius.y) / shadowPixelSize);
+                return 1.0 - GetShadowing_PCF(shadowPos, biasMax, pixelRadius, sampleCount);
             }
         #elif SHADOW_FILTER == 0
             // Unfiltered

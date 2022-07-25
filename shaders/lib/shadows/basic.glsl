@@ -42,8 +42,8 @@ vec3 undistort(const in vec3 v) {
     float GetShadowBias(const in float geoNoL, const in float distortFactor) {
         //shadowPos.z -= SHADOW_DISTORTED_BIAS * SHADOW_BIAS_SCALE * (distortFactor * distortFactor) / abs(geoNoL);
         float df2 = distortFactor*distortFactor;
-        float biasZ = 1e-4;//SHADOW_DISTORTED_BIAS * df2;
-        float biasXY = shadowPixelSize * df2 * 8.0;
+        float biasZ = 1e-8;//SHADOW_DISTORTED_BIAS * df2;
+        float biasXY = shadowPixelSize * df2 * 32.0;
         return mix(biasXY, biasZ, geoNoL) * SHADOW_BIAS_SCALE;
     }
 #endif
