@@ -71,12 +71,6 @@
         uniform sampler2D shadowtex1;
     #endif
 
-    // #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-    //     uniform isampler2D shadowcolor1;
-    // #else
-    //     uniform sampler2D shadowcolor1;
-    // #endif
-
     uniform mat4 shadowProjectionInverse;
     uniform mat4 shadowModelViewInverse;
     uniform mat4 gbufferProjectionInverse;

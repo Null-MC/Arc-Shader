@@ -3,7 +3,7 @@
 #endif
 
 #ifdef RENDER_FRAG
-    void PbrLighting(out vec4 colorMap, out vec4 normalMap, out vec4 specularMap, out vec4 lightingMap) {
+    void PbrLighting(out vec4 colorMap, out vec4 normalMap, out vec4 specularMap, out vec4 lightingMap, out vec3 shadowColorMap) {
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
         vec2 atlasCoord = texcoord;
 
@@ -100,6 +100,7 @@
 
         float lightSSS = 0.0;
 
+        shadowColorMap = vec3(1.0);
         #if defined SHADOW_ENABLED
             vec3 tanLightDir = normalize(tanLightPos);
             float NoL = dot(normal, tanLightDir);
@@ -134,18 +135,11 @@
                     #else
                         shadow *= GetShadowing(_shadowPos, shadowBias);
                     #endif
-
-                    // #if SHADOW_COLORS == 1
-                    //     vec3 shadowColor = GetShadowColor();
-
-                    //     shadowColor = mix(vec3(1.0), shadowColor, shadow);
-
-                    //     //also make colors less intense when the block light level is high.
-                    //     shadowColor = mix(shadowColor, vec3(1.0), blockLight);
-
-                    //     lightColor *= shadowColor;
-                    // #endif
                 }
+
+                #ifdef SHADOW_COLOR
+                    shadowColorMap = CompareColor(shadowPos.xyz, shadowBias);
+                #endif
 
                 #ifdef SSS_ENABLED
                     float materialSSS = GetLabPbr_SSS(specularMap.b);

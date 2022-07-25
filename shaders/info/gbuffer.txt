@@ -1,0 +1,32 @@
+red
+	color-red
+	color-green
+	color-blue
+	<empty>
+
+green
+	normal-x
+	normal-y
+	occlusion
+	<empty>
+
+blue
+	specular-smooth
+	specular-f0/hcm
+	specular-porosity/sss
+	specular-emissive
+
+alpha
+	lightmap-block
+	lightmap-sky
+	shadow
+	light-sss
+
+
+
+
+shadow2
+	shadow-red
+	shadow-green
+	shadow-blue
+	<empty>

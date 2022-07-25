@@ -87,6 +87,11 @@
     uniform sampler2D depthtex0;
     uniform sampler2D depthtex1;
 
+    #ifdef SHADOW_COLOR
+        uniform sampler2D BUFFER_DEFERRED2;
+        uniform sampler2D shadowcolor0;
+    #endif
+
     #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
         uniform sampler2D BUFFER_LUMINANCE;
     #endif
@@ -222,6 +227,11 @@
             vec4 normalMap = unpackUnorm4x8(deferredData.g);
             vec4 specularMap = unpackUnorm4x8(deferredData.b);
             vec4 lightingMap = unpackUnorm4x8(deferredData.a);
+            
+            vec3 shadowColorMap = vec3(1.0);
+            #ifdef SHADOW_COLOR
+                shadowColorMap = texelFetch(BUFFER_DEFERRED2, iTex, 0).rgb;
+            #endif
 
             vec3 clipPos = vec3(texcoord, screenDepth) * 2.0 - 1.0;
             vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
@@ -230,7 +240,7 @@
             PbrMaterial material;
             PopulateMaterial(material, colorMap.rgb, normalMap, specularMap);
 
-            color = PbrLighting2(material, lightingMap.xy, lightingMap.b, lightingMap.a, viewPos.xyz, vec2(0.0)).rgb;
+            color = PbrLighting2(material, shadowColorMap, lightingMap.xy, lightingMap.b, lightingMap.a, viewPos.xyz, vec2(0.0)).rgb;
 
             #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
                 outColor1 = log2(luminance(color) + EPSILON);

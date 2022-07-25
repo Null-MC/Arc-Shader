@@ -188,6 +188,7 @@
         #endif
         
         float shadow = step(EPSILON, geoNoL);// * step(1.0 / 32.0, skyLight);
+        vec3 shadowColorMap = vec3(1.0);
         float NoL = 1.0;
 
         #ifdef SHADOW_ENABLED
@@ -216,20 +217,19 @@
                 #else
                     shadow *= GetShadowing(shadowPos, shadowBias);
                 #endif
-
-                // #if SHADOW_COLORS == 1
-                //     vec3 shadowColor = GetShadowColor();
-
-                //     shadowColor = mix(vec3(1.0), shadowColor, shadow);
-
-                //     // make colors less intense when the block light level is high.
-                //     shadowColor = mix(shadowColor, vec3(1.0), blockLight);
-
-                //     lightColor *= shadowColor;
-                // #endif
-
-                //skyLight = max(skyLight, shadow);
             }
+
+            #ifdef SHADOW_COLOR
+                float waterDepth = textureLod(shadowtex0, shadowPos.xy, 0).r;
+
+                if (shadowPos.z > waterDepth) {
+                    shadowColorMap = textureLod(shadowcolor0, shadowPos.xy, 0).rgb;
+                    //shadowColorMap = mix(vec3(1.0), shadowColor, shadow);
+
+                    //also make colors less intense when the block light level is high.
+                    //shadowColor = mix(shadowColor, vec3(1.0), blockLight);
+                }
+            #endif
         #endif
 
         float shadowSSS = 0.0;
@@ -245,6 +245,6 @@
             ApplyDirectionalLightmap(lm.x, material.normal);
         #endif
 
-        return PbrLighting2(material, lm, shadow, shadowSSS, viewPos.xyz, waterSolidDepth);
+        return PbrLighting2(material, shadowColorMap, lm, shadow, shadowSSS, viewPos.xyz, waterSolidDepth);
     }
 #endif

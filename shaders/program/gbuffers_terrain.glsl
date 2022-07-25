@@ -169,11 +169,14 @@
     #endif
 
     #ifdef SHADOW_ENABLED
-        uniform usampler2D shadowcolor0;
         uniform sampler2D shadowtex0;
 
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            uniform isampler2D shadowcolor1;
+        #ifdef SHADOW_COLOR
+            uniform sampler2D shadowcolor0;
+        #endif
+
+        #ifdef SSS_ENABLED
+            uniform usampler2D shadowcolor1;
         #endif
 
         #ifdef SHADOW_ENABLE_HWCOMP
@@ -230,17 +233,27 @@
     #include "/lib/lighting/basic_gbuffers.glsl"
     #include "/lib/lighting/pbr_gbuffers.glsl"
 
-    /* RENDERTARGETS: 2 */
+    /* RENDERTARGETS: 2,3 */
     out uvec4 outColor0;
+    #ifdef SHADOW_COLOR
+        out vec3 outColor1;
+    #endif
 
 
     void main() {
+        vec3 shadowColorMap;
         vec4 colorMap, normalMap, specularMap, lightingMap;
-        PbrLighting(colorMap, normalMap, specularMap, lightingMap);
+        PbrLighting(colorMap, normalMap, specularMap, lightingMap, shadowColorMap);
 
-        outColor0.r = packUnorm4x8(colorMap);
-        outColor0.g = packUnorm4x8(normalMap);
-        outColor0.b = packUnorm4x8(specularMap);
-        outColor0.a = packUnorm4x8(lightingMap);
+        uvec4 data;
+        data.r = packUnorm4x8(colorMap);
+        data.g = packUnorm4x8(normalMap);
+        data.b = packUnorm4x8(specularMap);
+        data.a = packUnorm4x8(lightingMap);
+        outColor0 = data;
+
+        #ifdef SHADOW_COLOR
+            outColor1 = shadowColorMap;
+        #endif
     }
 #endif

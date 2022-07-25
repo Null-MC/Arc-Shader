@@ -256,12 +256,14 @@
         uniform vec3 shadowLightPosition;
 
         #if SHADOW_TYPE != SHADOW_TYPE_NONE
-            uniform usampler2D shadowcolor0;
             uniform sampler2D shadowtex0;
-        
 
-            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                uniform isampler2D shadowcolor1;
+            #ifdef SHADOW_COLOR
+                uniform sampler2D shadowcolor0;
+            #endif
+
+            #ifdef SSS_ENABLED
+                uniform usampler2D shadowcolor1;
             #endif
 
             #ifdef SHADOW_ENABLE_HWCOMP

@@ -99,15 +99,18 @@
     #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_LIGHTING
         // Deferred Lighting
         uniform usampler2D BUFFER_DEFERRED;
+    #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SHADOW
+        // Deferred Shadow
+        uniform sampler2D BUFFER_DEFERRED2;
     #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_ALBEDO
-        // Shadow Albedo
-        uniform usampler2D shadowcolor0;
+        // Shadow Color
+        uniform sampler2D shadowcolor0;
     #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_NORMAL
         // Shadow Normal
-        uniform usampler2D shadowcolor0;
+        uniform usampler2D shadowcolor1;
     #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_SSS
         // Shadow SSS
-        uniform usampler2D shadowcolor0;
+        uniform usampler2D shadowcolor1;
     #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_DEPTH0
         // Shadow Depth [0]
         uniform sampler2D shadowtex0;
@@ -239,18 +242,21 @@
             // Deferred Lighting
             uint deferredDataA = texelFetch(BUFFER_DEFERRED, iuv, 0).a;
             color = unpackUnorm4x8(deferredDataA).rgb;
+        #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SHADOW
+            // Deferred Shadow
+            color = texelFetch(BUFFER_DEFERRED2, iuv, 0).rgb;
         #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_ALBEDO
-            // Shadow Albedo
-            uint data = texture(shadowcolor0, texcoord).r;
-            color = unpackUnorm4x8(data).rgb;
+            // Shadow Color
+            color = textureLod(shadowcolor0, texcoord, 0).rgb;
         #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_NORMAL
             // Shadow Normal
-            uint data = texture(shadowcolor0, texcoord).g;
-            color = RestoreNormalZ(unpackUnorm2x16(data)) * 0.5 + 0.5;
+            uint data = textureLod(shadowcolor1, texcoord, 0).g;
+            vec2 normalXY = unpackUnorm4x8(data).rg;
+            color = RestoreNormalZ(normalXY) * 0.5 + 0.5;
         #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_SSS
             // Shadow SSS
-            uint data = texture(shadowcolor0, texcoord).r;
-            color = unpackUnorm4x8(data).aaa;
+            uint data = textureLod(shadowcolor1, texcoord, 0).g;
+            color = unpackUnorm4x8(data).bbb;
         #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_DEPTH0
             // Shadow Depth [0]
             color = texture(shadowtex0, texcoord).rrr;

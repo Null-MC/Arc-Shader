@@ -51,6 +51,52 @@
         #endif
     }
 
+    #ifdef SHADOW_COLOR
+        vec3 CompareColor(const in vec3 shadowPos, const in float shadowBias) {
+            //#ifdef SHADOW_ENABLE_HWCOMP
+            //    float waterShadow = 1.0 - textureLod(shadowtex0, shadowPos.xyz + vec3(offset * shadowPos.w, -shadowBias), 0);
+            //#else
+            float waterDepth = textureLod(shadowtex0, shadowPos.xy, 0).r;
+            float waterShadow = step(waterDepth, shadowPos.z - shadowBias); // TODO: bias might be backwards? idk
+            //#endif
+
+            if (waterShadow < EPSILON) return vec3(1.0);
+            return textureLod(shadowcolor0, shadowPos.xy, 0).rgb;
+        }
+    #endif
+
+    // // returns: XYZ:color; W=[0] when depth occluded, W=[1] otherwise
+    // vec4 CompareDepthColor(const in vec4 shadowPos, const in vec2 offset, const in float shadowBias) {
+    //     vec4 result = vec4(1.0);
+
+    //     #ifdef SHADOW_ENABLE_HWCOMP
+    //         #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+    //             result.w = textureLod(shadowtex1HW, shadowPos.xyz + vec3(offset * shadowPos.w, -shadowBias), 0);
+    //         #else
+    //             result.w = textureLod(shadowtex1, shadowPos.xyz + vec3(offset * shadowPos.w, -shadowBias), 0);
+    //         #endif
+    //     #else
+    //         float shadowDepth = textureLod(shadowtex1, shadowPos.xy + offset * shadowPos.w, 0).r;
+    //         result.w = step(shadowPos.z + EPSILON, shadowDepth + shadowBias);
+    //     #endif
+
+    //     #ifdef SHADOW_COLOR
+    //         if (result.w > EPSILON) {
+    //             #ifdef SHADOW_ENABLE_HWCOMP
+    //                 float waterShadow = 1.0 - textureLod(shadowtex0, shadowPos.xyz + vec3(offset * shadowPos.w, -shadowBias), 0);
+    //             #else
+    //                 float waterDepth = textureLod(shadowtex0, shadowPos.xyz + vec3(offset * shadowPos.w, -shadowBias), 0).r;
+    //                 float waterShadow = 1.0 - step(waterDepth, shadowPos.z);
+    //             #endif
+
+    //             if (waterShadow > EPSILON)
+    //                 result.rgb = textureLod(shadowcolor0, _shadowPos.xy, 0).rgb;
+    //         }
+    //     #endif
+
+    //     return result;
+    // }
+
     #ifndef RENDER_DEFERRED
         vec2 GetShadowPixelRadius(const in float blockRadius) {
             vec2 shadowProjectionSize = 2.0 / vec2(shadowProjection[0].x, shadowProjection[1].y);
@@ -144,10 +190,17 @@
             }
         #endif
 
+        // #ifdef SHADOW_COLOR
+        //     vec4 SampleShadowColor(const in vec2 shadowPos) {
+        //         uint data = texture(shadowcolor0, shadowPos).r;
+        //         return unpackUnorm4x8(data);
+        //     }
+        // #endif
+
         #if defined SSS_ENABLED
-            vec4 SampleShadowColorSSS(const in vec2 shadowPos) {
-                uint data = texture(shadowcolor0, shadowPos).r;
-                return unpackUnorm4x8(data);
+            float SampleShadowSSS(const in vec2 shadowPos) {
+                uint data = textureLod(shadowcolor1, shadowPos, 0).g;
+                return unpackUnorm4x8(data).b;
             }
 
             #if SSS_FILTER != 0
@@ -159,7 +212,7 @@
                         light += step(shadowPos.z, texDepth);
 
                         if (texDepth < shadowPos.z) {
-                            float shadow_sss = SampleShadowColorSSS(shadowPos.xy + pixelOffset).a;
+                            float shadow_sss = SampleShadowSSS(shadowPos.xy + pixelOffset);
 
                             float dist = max(shadowPos.z - texDepth, 0.0) * 4.0 * far;
                             light += max(shadow_sss - dist / SSS_MAXDIST, 0.0);
@@ -198,7 +251,7 @@
                     float texDepth = SampleDepth(shadowPos, vec2(0.0));
                     float dist = max(shadowPos.z - texDepth, 0.0) * 4.0 * far;
 
-                    float shadow_sss = SampleShadowColorSSS(shadowPos.xy).a;
+                    float shadow_sss = SampleShadowSSS(shadowPos.xy);
                     return max(shadow_sss - dist / SSS_MAXDIST, 0.0);
                 }
             #endif

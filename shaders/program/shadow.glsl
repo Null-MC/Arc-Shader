@@ -2,14 +2,25 @@
 #define RENDER_SHADOW
 
 /*
-const int shadowtex0Format = R32F;
-const bool shadowtex0Nearest = false;
-
-const int shadowcolor0Format = RG32UI;
-const bool shadowcolor0Nearest = true;
+const int shadowcolor0Format = RGBA8;
+const int shadowcolor1Format = RG32UI;
 */
 
-const float shadowDistanceRenderMul = 1.0;
+const bool shadowcolor0Nearest = false;
+const vec4 shadowcolor0ClearColor = vec4(1.0);
+const bool shadowcolor0Clear = true;
+
+const bool shadowcolor1Nearest = true;
+const bool shadowcolor1Clear = false;
+
+const bool generateShadowMipmap = true;
+const bool shadowtex0Mipmap = false;
+const bool shadowtex0Nearest = true;
+const bool shadowHardwareFiltering0 = false;
+
+const bool shadowtex1Mipmap = false;
+const bool shadowtex1Nearest = false;
+const bool shadowHardwareFiltering1 = true;
 
 
 #ifdef RENDER_VERTEX
@@ -244,6 +255,7 @@ const float shadowDistanceRenderMul = 1.0;
     uniform sampler2D gtexture;
 
     uniform mat4 shadowModelViewInverse;
+    uniform int renderStage;
 
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
        uniform float alphaTestRef;
@@ -261,43 +273,40 @@ const float shadowDistanceRenderMul = 1.0;
     #include "/lib/material/material.glsl"
     #include "/lib/material/material_reader.glsl"
 
-    /* RENDERTARGETS: 0 */
-    #if defined SSS_ENABLED || defined RSM_ENABLED
-        out uvec2 outColor0;
+    /* RENDERTARGETS: 0,1 */
+    #if defined RSM_ENABLED || defined SHADOW_COLOR
+        out vec4 outColor0;
+    #endif
+    #if defined RSM_ENABLED || defined SSS_ENABLED
+        out uvec2 outColor1;
     #endif
 
 
     void main() {
+        mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
+
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             vec2 screenCascadePos = gl_FragCoord.xy / shadowMapSize - shadowCascadePos;
             if (screenCascadePos.x < 0 || screenCascadePos.x >= 0.5
              || screenCascadePos.y < 0 || screenCascadePos.y >= 0.5) discard;
         #endif
 
-        mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
+        vec4 color = vec4(0.0);
+        #if defined RSM_ENABLED || defined SHADOW_COLOR
+            color = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]) * glcolor;
+            if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
+                color.rgb = vec3(1.0);
+            }
 
-        #ifdef RSM_ENABLED
-            const float alphaDiscard = 0.5;
+            outColor0 = color;
         #else
-            float alphaDiscard = alphaTestRef;
+            color.a = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]).a * glcolor.a;
         #endif
 
-        #ifdef RSM_ENABLED
-            vec4 colorMap = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]) * glcolor;
-            if (colorMap.a < alphaDiscard) discard;
-        #else
-            vec3 colorMap = vec3(0.0);
-            float alpha = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]).a * glcolor.a;
-            if (alpha < alphaDiscard) discard;
-        #endif
-
-        // #ifdef RSM_ENABLED
-        //     float specularMapR = texture(specular, texcoord).r;
-
-        //     colorMap.rgb = RGBToLinear(colorMap.rgb);
-        //     colorMap.rgb *= 0.25 + 0.75 * specularMapR*specularMapR;
-        //     colorMap.rgb = LinearToRGB(colorMap.rgb);
-        // #endif
+        if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
+            if (color.a < alphaTestRef) discard;
+            color.a = 1.0;
+        }
 
         vec3 viewNormal = vec3(0.0);
         #if defined RSM_ENABLED
@@ -315,31 +324,15 @@ const float shadowDistanceRenderMul = 1.0;
             #else
                 sss = GetLabPbr_SSS(specularMapB) * abs(viewDirT.z);
             #endif
-
-            //if (sss > EPSILON) {
-            //    vec3 viewDirT = -normalize(viewPosTan);
-
-                //float f0 = GetLabPbr_F0(specularMap.g);
-                //if (f0 < EPSILON) f0 = 0.04;
-
-                //float ior = f0ToIOR(f0);
-                //vec3 refractDir = refract(viewDirT, texNormalT, IOR_AIR / ior);
-
-                //float NoVm = abs(dot(texNormalT, viewDirT));
-
-                //float roughL = specularMap.r*specularMap.r;
-
-                //float F = SchlickRoughness(f0, NoVm, roughL);
-                //final.r = sss;// * max(-refractDir.z, 0.0);// * (1.0 - F);
-                //final.rgb = -refractDir.zzz;
-
-            //    sss *= abs(viewDirT.z);
-            //}
         #endif
 
-        #if defined SSS_ENABLED || defined RSM_ENABLED
-            outColor0.r = packUnorm4x8(vec4(colorMap.rgb, sss));
-            outColor0.g = packUnorm2x16(viewNormal.xy * 0.5 + 0.5);
+        #if defined RSM_ENABLED || defined SSS_ENABLED
+            vec3 rsmColor = mix(vec3(0.0), color.rgb, color.a);
+
+            uvec2 data;
+            data.r = packUnorm4x8(vec4(rsmColor, 1.0));
+            data.g = packUnorm4x8(vec4(viewNormal.xy * 0.5 + 0.5, sss, 1.0));
+            outColor1 = data;
         #endif
     }
 #endif

@@ -246,7 +246,7 @@
         }
     #endif
 
-    vec4 PbrLighting2(const in PbrMaterial material, const in vec2 lmValue, const in float shadow, const in float shadowSSS, const in vec3 viewPos, const in vec2 waterSolidDepth) {
+    vec4 PbrLighting2(const in PbrMaterial material, const in vec3 shadowColorMap, const in vec2 lmValue, const in float shadow, const in float shadowSSS, const in vec3 viewPos, const in vec2 waterSolidDepth) {
         vec2 viewSize = vec2(viewWidth, viewHeight);
         vec3 viewNormal = normalize(material.normal);
         vec3 viewDir = -normalize(viewPos.xyz);
@@ -378,6 +378,7 @@
             ambient += skyAmbient;
             //return vec4(ambient, 1.0);
 
+            vec3 skyLightColorFinal = skyLightColor * shadowColorMap;
             float diffuseLightF = shadowFinal;
 
             #ifdef SSS_ENABLED
@@ -385,14 +386,14 @@
                 //vec3 ambient_sss = skyAmbient * material.scattering * material.occlusion;
 
                 // Transmission
-                //vec3 sss = shadowSSS * material.scattering * skyLightColor;// * max(-NoL, 0.0);
+                //vec3 sss = shadowSSS * material.scattering * skyLightColorFinal;// * max(-NoL, 0.0);
                 diffuseLightF = mix(diffuseLightF, shadowSSS, material.scattering);
             #endif
 
-            vec3 diffuseLight = diffuseLightF * skyLightColor * skyLight3;
+            vec3 diffuseLight = diffuseLightF * skyLightColorFinal * skyLight3;
 
             //#if defined RSM_ENABLED && defined RENDER_DEFERRED
-            //    diffuseLight += 20.0 * rsmColor * skyLightColor * material.scattering;
+            //    diffuseLight += 20.0 * rsmColor * skyLightColorFinal * material.scattering;
             //#endif
 
             vec3 sunF = GetFresnel(material, LoHm, roughL);
@@ -403,7 +404,7 @@
             if (NoLm > EPSILON) {
                 float NoHm = max(dot(viewNormal, halfDir), 0.0);
 
-                vec3 sunSpec = GetSpecularBRDF(sunF, NoVm, NoLm, NoHm, roughL) * skyLightColor * skyLight3 * shadowFinal;
+                vec3 sunSpec = GetSpecularBRDF(sunF, NoVm, NoLm, NoHm, roughL) * skyLightColorFinal * skyLight3 * shadowFinal;
                 
                 specular += sunSpec * material.albedo.a;
 
@@ -485,7 +486,7 @@
                     float waterDepthFinal = isEyeInWater == 1 ? waterSolidDepthFinal.x
                         : max(waterSolidDepthFinal.y - waterSolidDepthFinal.x, 0.0);
 
-                    vec3 scatterColor = material.albedo.rgb * skyLightColor * skyLight3;// * shadowFinal;
+                    vec3 scatterColor = material.albedo.rgb * skyLightColorFinal * skyLight3;// * shadowFinal;
 
                     float verticalDepth = waterDepthFinal * max(dot(viewLightDir, upDir), 0.0);
                     vec3 absorption = exp(extinctionInv * -(verticalDepth + waterDepthFinal));
@@ -500,7 +501,7 @@
                     float waterDepth = isEyeInWater == 1 ? waterSolidDepth.x
                         : max(waterSolidDepth.y - waterSolidDepth.x, 0.0);
 
-                    vec3 scatterColor = material.albedo.rgb * skyLightColor * skyLight3;// * shadowFinal;
+                    vec3 scatterColor = material.albedo.rgb * skyLightColorFinal * skyLight3;// * shadowFinal;
 
                     float verticalDepth = waterDepth * max(dot(viewLightDir, upDir), 0.0);
                     vec3 absorption = exp(extinctionInv * -(waterDepth + verticalDepth));
@@ -523,13 +524,13 @@
 
                 diffuse += handDiffuse;
                 specular += handSpecular;
-                
+
                 final.a = min(final.a + luminance(handSpecular) * exposure, 1.0);
             }
         #endif
 
         #if defined SKY_ENABLED && defined RSM_ENABLED && defined RENDER_DEFERRED
-            ambient += rsmColor * skyLightColor;
+            ambient += rsmColor * skyLightColorFinal;
         #endif
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
@@ -566,7 +567,7 @@
         //     vec3 ambient_sss = skyAmbient * material.scattering * material.occlusion;
 
         //     // Transmission
-        //     vec3 sss = (1.0 - shadowFinal) * shadowSSS * material.scattering * skyLightColor;// * max(-NoL, 0.0);
+        //     vec3 sss = (1.0 - shadowFinal) * shadowSSS * material.scattering * skyLightColorFinal;// * max(-NoL, 0.0);
         //     final.rgb += material.albedo.rgb * invPI * (ambient_sss + sss);
         // #endif
 
@@ -581,7 +582,7 @@
                 //float waterDepthFinal = isEyeInWater == 1 ? waterSolidDepthFinal.x
                 //    : max(waterSolidDepthFinal.y - waterSolidDepthFinal.x, 0.0);
 
-                //vec3 scatterColor = material.albedo.rgb * skyLightColor;// * shadowFinal;
+                //vec3 scatterColor = material.albedo.rgb * skyLightColorFinal;// * shadowFinal;
                 //float skyLight5 = pow5(skyLight);
                 vec3 scatterColor = vec3(0.0178, 0.0566, 0.0754) * skyLight;// * shadowFinal;
                 vec3 extinctionInv = 1.0 - WaterAbsorbtionExtinction;
@@ -637,7 +638,13 @@
             float shadowBias = 0.0;//-1e-2; // TODO: fuck
 
             float G_scattering = mix(G_SCATTERING_CLEAR, G_SCATTERING_RAIN, rainStrength);
-            float volScatter = GetVolumetricLighting(shadowViewStart.xyz, shadowViewEnd.xyz, shadowBias, G_scattering);
+
+            #ifdef SHADOW_COLOR
+                vec3 volScatter = GetVolumetricLightingColor(shadowViewStart.xyz, shadowViewEnd.xyz, shadowBias, G_scattering);
+            #else
+                float volScatter = GetVolumetricLighting(shadowViewStart.xyz, shadowViewEnd.xyz, shadowBias, G_scattering);
+            #endif
+
             vec3 volLight = volScatter * (sunColor + moonColor);
 
             //final.a = min(final.a + luminance(volLight) * exposure, 1.0);

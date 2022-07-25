@@ -187,7 +187,7 @@
             }
         #endif
 
-    	#if SHADOW_COLORS == 1
+    	#ifdef SHADOW_COLOR
     		vec3 GetShadowColor() {
     			int cascade = -1;
     			float depthLast = 1.0;

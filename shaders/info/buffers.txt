@@ -1,0 +1,15 @@
+shadowcolor0	RGBA8		light-color
+shadowcolor1	RG32UI		R: rsm-color; G: normal-XY, sss
+
+colortex2		RGBA32		R: color; G: normal; B: specular; A: lighting
+colortex3		RGB8		shadow-color
+colortex4		RGB16F		pre-exposed HDR scene
+colortex5		RGBA16F		HDR previous frame = RGB: pre-exposed HDR, A: Log Luminance
+colortex6		R16F		Log Luminance
+
+colortex7		RGB16F		HDR transparent / bloom tiles
+colortex8		RGB16F		RSM color
+colortex9		R16F		RSM depth
+colortex11		RG16F		Water Waves
+
+colortex10		n/a			BRDF LUT
