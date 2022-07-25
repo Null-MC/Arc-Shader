@@ -16,11 +16,20 @@
     out float geoNoL;
     flat out float exposure;
 
-    #ifdef SHADOW_ENABLED
-        out float shadowBias;
+    #ifdef SKY_ENABLED
         flat out vec3 sunColor;
         flat out vec3 moonColor;
         flat out vec3 skyLightColor;
+
+        uniform vec3 sunPosition;
+        uniform vec3 moonPosition;
+        uniform vec3 upPosition;
+        uniform float rainStrength;
+        uniform int moonPhase;
+    #endif
+
+    #ifdef SHADOW_ENABLED
+        out float shadowBias;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             out vec3 shadowPos[4];
@@ -50,12 +59,6 @@
     uniform mat4 gbufferModelViewInverse;
     uniform float screenBrightness;
 
-    uniform vec3 sunPosition;
-    uniform vec3 moonPosition;
-    uniform vec3 upPosition;
-    uniform float rainStrength;
-    uniform int moonPhase;
-
     #ifdef SHADOW_ENABLED
         uniform mat4 shadowModelView;
         uniform mat4 shadowProjection;
@@ -83,7 +86,11 @@
     #endif
 
     #include "/lib/lighting/blackbody.glsl"
-    #include "/lib/world/sky.glsl"
+
+    #ifdef SKY_ENABLED
+        #include "/lib/world/sky.glsl"
+    #endif
+
     #include "/lib/lighting/basic.glsl"
     #include "/lib/camera/exposure.glsl"
 
@@ -95,11 +102,13 @@
 
         BasicVertex(viewPos);
 
-        vec2 skyLightLevels = GetSkyLightLevels();
-        vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
-        sunColor = GetSunLightColor(skyLightTemps.x, skyLightLevels.x) * sunLumen;
-        moonColor = GetMoonLightColor(skyLightTemps.y, skyLightLevels.y) * moonLumen;
-        skyLightColor = GetSkyLightLuxColor(skyLightLevels);
+        #ifdef SKY_ENABLED
+            vec2 skyLightLevels = GetSkyLightLevels();
+            vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
+            sunColor = GetSunLightColor(skyLightTemps.x, skyLightLevels.x) * sunLumen;
+            moonColor = GetMoonLightColor(skyLightTemps.y, skyLightLevels.y) * moonLumen;
+            skyLightColor = GetSkyLightLuxColor(skyLightLevels);
+        #endif
 
         exposure = GetExposure();
     }
@@ -114,11 +123,21 @@
     in float geoNoL;
     flat in float exposure;
 
-    #ifdef SHADOW_ENABLED
-        in float shadowBias;
+    #ifdef SKY_ENABLED
         flat in vec3 sunColor;
         flat in vec3 moonColor;
         flat in vec3 skyLightColor;
+
+        uniform vec3 upPosition;
+        uniform vec3 sunPosition;
+        uniform vec3 moonPosition;
+        uniform float rainStrength;
+        uniform vec3 skyColor;
+        uniform int moonPhase;
+    #endif
+
+    #ifdef SHADOW_ENABLED
+        in float shadowBias;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             in vec3 shadowPos[4];
@@ -136,14 +155,8 @@
     uniform sampler2D lightmap;
 
     uniform ivec2 eyeBrightnessSmooth;
-    uniform vec3 sunPosition;
-    uniform vec3 moonPosition;
-    uniform vec3 upPosition;
-    uniform float rainStrength;
-    uniform int moonPhase;
     uniform float near;
 
-    uniform vec3 skyColor;
     uniform vec3 fogColor;
     uniform float fogStart;
     uniform float fogEnd;
@@ -196,9 +209,13 @@
 
     #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/scattering.glsl"
-    #include "/lib/world/sky.glsl"
+
+    #ifdef SKY_ENABLED
+        #include "/lib/world/sky.glsl"
+        #include "/lib/lighting/basic.glsl"
+    #endif
+
     #include "/lib/world/fog.glsl"
-    #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/basic_forward.glsl"
 
     /* RENDERTARGETS: 4,6 */

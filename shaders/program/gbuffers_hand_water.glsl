@@ -15,8 +15,6 @@
     out vec3 tanViewPos;
     flat out float exposure;
     flat out int materialId;
-    flat out vec3 sunColor;
-    flat out vec3 moonColor;
     flat out vec3 blockLightColor;
 
     #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
@@ -30,14 +28,21 @@
         out vec2 localCoord;
     #endif
 
-    #if defined SHADOW_ENABLED
+    #ifdef SKY_ENABLED
+        flat out vec3 sunColor;
+        flat out vec3 moonColor;
+        flat out vec3 skyLightColor;
+
+        uniform vec3 upPosition;
         uniform vec3 sunPosition;
         uniform vec3 moonPosition;
-        uniform vec3 upPosition;
+        uniform float rainStrength;
+        uniform int moonPhase;
+    #endif
 
+    #if defined SHADOW_ENABLED
         out float shadowBias;
         out vec3 tanLightPos;
-        flat out vec3 skyLightColor;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             out vec3 shadowPos[4];
@@ -81,9 +86,6 @@
     uniform float screenBrightness;
     uniform vec3 cameraPosition;
 
-    uniform float rainStrength;
-    uniform int moonPhase;
-
     #if MC_VERSION >= 11700 && (defined IS_OPTIFINE || defined IRIS_FEATURE_CHUNK_OFFSET)
         uniform vec3 chunkOffset;
     #endif
@@ -112,7 +114,11 @@
     #endif
     
     #include "/lib/lighting/blackbody.glsl"
-    #include "/lib/world/sky.glsl"
+
+    #ifdef SKY_ENABLED
+        #include "/lib/world/sky.glsl"
+    #endif
+
     #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/pbr.glsl"
     #include "/lib/camera/exposure.glsl"
@@ -129,11 +135,13 @@
         BasicVertex(viewPos);
         PbrVertex(viewPos);
 
-        vec2 skyLightLevels = GetSkyLightLevels();
-        vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
-        sunColor = GetSunLightLuxColor(skyLightTemps.x, skyLightLevels.x);
-        moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
-        skyLightColor = GetSkyLightLuxColor(skyLightLevels);
+        #ifdef SKY_ENABLED
+            vec2 skyLightLevels = GetSkyLightLevels();
+            vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
+            sunColor = GetSunLightLuxColor(skyLightTemps.x, skyLightLevels.x);
+            moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
+            skyLightColor = GetSkyLightLuxColor(skyLightLevels);
+        #endif
 
         blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
 
@@ -152,8 +160,6 @@
     in vec3 tanViewPos;
     flat in float exposure;
     flat in int materialId;
-    flat in vec3 sunColor;
-    flat in vec3 moonColor;
     flat in vec3 blockLightColor;
 
     #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
@@ -167,14 +173,19 @@
         in vec2 localCoord;
     #endif
 
+    #ifdef SKY_ENABLED
+        flat in vec3 sunColor;
+        flat in vec3 moonColor;
+
+        uniform vec3 upPosition;
+        uniform vec3 sunPosition;
+        uniform vec3 moonPosition;
+    #endif
+
     #if defined SHADOW_ENABLED
         in float shadowBias;
         in vec3 tanLightPos;
         flat in vec3 skyLightColor;
-
-        uniform vec3 sunPosition;
-        uniform vec3 moonPosition;
-        uniform vec3 upPosition;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             in vec3 shadowPos[4];
@@ -285,7 +296,11 @@
         #include "/lib/lighting/directional.glsl"
     #endif
 
-    #include "/lib/world/sky.glsl"
+    #ifdef SKY_ENABLED
+        #include "/lib/world/sky.glsl"
+        #include "/lib/lighting/basic.glsl"
+    #endif
+
     #include "/lib/world/fog.glsl"
     #include "/lib/material/hcm.glsl"
     #include "/lib/material/material.glsl"
@@ -295,7 +310,6 @@
         #include "/lib/bsl_ssr.glsl"
     #endif
     
-    #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/pbr.glsl"
     #include "/lib/lighting/pbr_forward.glsl"
 

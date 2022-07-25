@@ -585,16 +585,18 @@
         #endif
 
         if (isEyeInWater == 1) {
-            // TODO: Get this outa here (vertex shader)
-            vec2 skyLightLevels = GetSkyLightLevels();
-            float sunSkyLumen = GetSunLightLevel(skyLightLevels.x) * mix(DaySkyLumen, DaySkyOvercastLumen, rainStrength);
-            float moonSkyLumen = GetMoonLightLevel(skyLightLevels.y) * NightSkyLumen;
-            float skyLumen = sunSkyLumen + moonSkyLumen;
+            #ifdef SKY_ENABLED
+                // TODO: Get this outa here (vertex shader)
+                vec2 skyLightLevels = GetSkyLightLevels();
+                vec3 skyLightLuxColor = GetSkyLightLuxColor(skyLightLevels);
+            #else
+                vec3 skyLightLuxColor = vec3(100.0);
+            #endif
 
             // apply water fog
             float waterFogEnd = min(40.0, fogEnd);
             float waterFogF = GetFogFactor(viewDist, near, waterFogEnd, 0.5);
-            vec3 waterFogColor = vec3(0.0178, 0.0566, 0.0754) * skyLumen;
+            vec3 waterFogColor = vec3(0.0178, 0.0566, 0.0754) * skyLightLuxColor;
             final.rgb = mix(final.rgb, waterFogColor, waterFogF);
         }
         else {

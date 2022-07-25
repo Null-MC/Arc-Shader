@@ -22,9 +22,12 @@
         float shadow = step(EPSILON, geoNoL) * step(1.0 / 32.0, skyLight);
         //vec3 lightColor = skyLightColor;
 
-        vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * pow(skyLight, 5.0);
-        float blockAmbient = pow(blockLight, 5.0) * BlockLightLux;
+        vec3 skyAmbient = vec3(pow(skyLight, 5.0));
+        #ifdef SKY_ENABLED
+            skyAmbient *= GetSkyAmbientLight(viewNormal);
+        #endif
 
+        float blockAmbient = pow(blockLight, 5.0) * BlockLightLux;
         vec3 ambient = 0.1 + blockAmbient + skyAmbient;
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -54,7 +57,11 @@
         //vec3 lmColor = RGBToLinear(texture(lightmap, lmCoord).rgb);
 
         vec4 final = albedo;
-        final.rgb *= (ambient + skyLightColor * shadow);
+        final.rgb *= ambient;
+
+        #ifdef SKY_ENABLED
+            final.rgb += albedo.rgb * skyLightColor * shadow;
+        #endif
 
         ApplyFog(final, viewPos, skyLight, EPSILON);
 

@@ -8,23 +8,25 @@ float GetCaveFogFactor(const in float viewDist) {
     return GetFogFactor(viewDist, 0.0, end, 1.0);
 }
 
-float GetCustomFogFactor(const in float viewDist, const in float sunLightLevel) {
-    const float dayFogDensity = 1.5;
-    const float nightFogDensity = 1.2;
-    const float rainFogDensity = 1.0;
+#ifdef SKY_ENABLED
+    float GetCustomFogFactor(const in float viewDist, const in float sunLightLevel) {
+        const float dayFogDensity = 1.5;
+        const float nightFogDensity = 1.2;
+        const float rainFogDensity = 1.0;
 
-    const float dayFogStrength = 0.2;
-    const float nightFogStrength = 0.3;
-    const float rainFogStrength = 0.8;
+        const float dayFogStrength = 0.2;
+        const float nightFogStrength = 0.3;
+        const float rainFogStrength = 0.8;
 
-    float density = mix(nightFogDensity, dayFogDensity, sunLightLevel);
-    density = mix(density, rainFogDensity, rainStrength);
+        float density = mix(nightFogDensity, dayFogDensity, sunLightLevel);
+        density = mix(density, rainFogDensity, rainStrength);
 
-    float strength = mix(nightFogStrength, dayFogStrength, sunLightLevel);
-    strength = mix(strength, rainFogStrength, rainStrength);
+        float strength = mix(nightFogStrength, dayFogStrength, sunLightLevel);
+        strength = mix(strength, rainFogStrength, rainStrength);
 
-    return GetFogFactor(viewDist, 0.0, fogEnd, density) * strength;
-}
+        return GetFogFactor(viewDist, 0.0, fogEnd, density) * strength;
+    }
+#endif
 
 float GetVanillaFogFactor(const in float viewDist) {
     //vec3 fogPos = viewPos;
@@ -71,7 +73,7 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
     //     caveFogColor *= exposure;
     // #endif
 
-    #ifdef ATMOSFOG_ENABLED
+    #if defined SKY_ENABLED && defined ATMOSFOG_ENABLED
         vec2 skyLightLevels = GetSkyLightLevels();
         float sunLightLevel = GetSunLightLevel(skyLightLevels.x);
 
@@ -92,7 +94,7 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
         maxFactor = max(maxFactor, caveFogFactor);
     #endif
 
-    #ifdef ATMOSFOG_ENABLED
+    #if defined SKY_ENABLED && defined ATMOSFOG_ENABLED
         #ifdef LIGHTLEAK_FIX
             // TODO: reduce cave-fog-factor with distance
             customFogFactor *= caveLightFactor;

@@ -247,7 +247,19 @@ const float invPI = 1.0 / PI;
 
 #ifdef TITLE
 #endif
+#ifdef REFLECTION_MODE
+#endif
+#ifdef WATER_WAVE_TYPE
+#endif
+#ifdef WATER_REFRACTION
+#endif
+#ifdef ATMOSPHERE_TYPE
+#endif
 #ifdef CAVEFOG_ENABLED
+#endif
+#ifdef ATMOSFOG_ENABLED
+#endif
+#ifdef SHADOW_TYPE
 #endif
 #ifdef SHADOW_EXCLUDE_ENTITIES
 #endif
