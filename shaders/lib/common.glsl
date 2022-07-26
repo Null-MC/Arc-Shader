@@ -15,7 +15,7 @@ const int colortex11Format = R16F;
 const bool colortex2MipmapEnabled = false;
 
 const bool colortex3MipmapEnabled = false;
-const vec4 colortex3ClearColor = vec4(1.0);
+const vec4 colortex3ClearColor = vec4(1.0, 1.0, 1.0, 1.0);
 const bool colortex3Clear = true;
 
 const bool colortex4MipmapEnabled = true;
@@ -153,7 +153,7 @@ const bool colortex11Clear = false;
 
 
 // Debug Options
-#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18]
 //#define DEBUG_EXPOSURE_METERS
 #define IS_OPTIFINE
 //#define IRIS_FEATURE_SEPARATE_HW_SAMPLERS

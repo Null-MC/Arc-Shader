@@ -328,7 +328,7 @@
 
         //return vec4(reflectColor, 1.0);
 
-        #if defined RSM_ENABLED && defined RENDER_DEFERRED
+        #if defined SKY_ENABLED && defined RSM_ENABLED && defined RENDER_DEFERRED
             #if RSM_SCALE == 0 || defined RSM_UPSCALE
                 //ivec2 iuv = ivec2(texcoord * viewSize);
                 vec3 rsmColor = texelFetch(BUFFER_RSM_COLOR, gl_FragCoord.xy, 0).rgb;

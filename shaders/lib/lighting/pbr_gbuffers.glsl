@@ -91,7 +91,7 @@
             #endif
         #endif
 
-        #ifdef LIGHTLEAK_FIX
+        #if defined SKY_ENABLED && defined LIGHTLEAK_FIX
             const float minSkylightThreshold = 1.0 / 16.0 + EPSILON;
             float shadow = step(minSkylightThreshold, lmcoord.y);
         #else
@@ -101,7 +101,7 @@
         float lightSSS = 0.0;
 
         shadowColorMap = vec3(1.0);
-        #if defined SHADOW_ENABLED
+        #ifdef SHADOW_ENABLED
             vec3 tanLightDir = normalize(tanLightPos);
             float NoL = dot(normal, tanLightDir);
 

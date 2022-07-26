@@ -19,6 +19,10 @@
         uniform ivec2 eyeBrightness;
     #endif
 
+    #if MC_VERSION >= 11900
+        uniform float darknessFactor;
+    #endif
+
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         flat out float cascadeSizes[4];
         flat out mat4 matShadowProjections[4];
@@ -105,7 +109,7 @@
     #endif
 
     uniform usampler2D BUFFER_DEFERRED;
-    uniform usampler2D shadowcolor0;
+    uniform usampler2D shadowcolor1;
     uniform sampler2D depthtex0;
 
     #if defined SHADOW_ENABLE_HWCOMP && !defined IRIS_FEATURE_SEPARATE_HW_SAMPLERS

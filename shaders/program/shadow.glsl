@@ -7,7 +7,7 @@ const int shadowcolor1Format = RG32UI;
 */
 
 const bool shadowcolor0Nearest = true;
-const vec4 shadowcolor0ClearColor = vec4(1.0);
+const vec4 shadowcolor0ClearColor = vec4(1.0, 1.0, 1.0, 1.0);
 const bool shadowcolor0Clear = true;
 
 const bool shadowcolor1Nearest = true;
@@ -291,22 +291,27 @@ const bool shadowHardwareFiltering1 = true;
              || screenCascadePos.y < 0 || screenCascadePos.y >= 0.5) discard;
         #endif
 
-        vec4 color = vec4(0.0);
+        vec4 sampleColor = vec4(0.0);
+
         #if defined RSM_ENABLED || defined SHADOW_COLOR
-            color = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]) * glcolor;
+            sampleColor = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]) * glcolor;
+
+            vec4 lightColor = sampleColor;
             if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
-                color.rgb = vec3(1.0);
+                lightColor.rgb = vec3(1.0);
+            }
+            else {
+                lightColor.rgb = mix(vec3(1.0), lightColor.rgb, lightColor.a);
             }
 
-            color.rgb = mix(vec3(1.0), color.rgb, color.a);
-            outColor0 = color;
+            outColor0 = lightColor;
         #else
-            color.a = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]).a * glcolor.a;
+            sampleColor.a = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]).a * glcolor.a;
         #endif
 
         if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
-            if (color.a < alphaTestRef) discard;
-            color.a = 1.0;
+            if (sampleColor.a < alphaTestRef) discard;
+            sampleColor.a = 1.0;
         }
 
         vec3 viewNormal = vec3(0.0);
@@ -328,7 +333,7 @@ const bool shadowHardwareFiltering1 = true;
         #endif
 
         #if defined RSM_ENABLED || defined SSS_ENABLED
-            vec3 rsmColor = mix(vec3(0.0), color.rgb, color.a);
+            vec3 rsmColor = mix(vec3(0.0), sampleColor.rgb, sampleColor.a);
 
             uvec2 data;
             data.r = packUnorm4x8(vec4(rsmColor, 1.0));

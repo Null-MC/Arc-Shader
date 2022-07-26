@@ -93,13 +93,14 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 localPos
 			x_p = (shadowModelViewInverse * vec4(shadowViewPos2, 1.0)).xyz;
 		#endif
 
-        uvec2 data = texelFetch(shadowcolor0, iuv, 0).rg;
+        uvec2 data = texelFetch(shadowcolor1, iuv, 0).rg;
 
 		// Irradiance at current fragment w.r.t. pixel light at uv.
 		vec3 r = localPos - x_p; // Difference vector.
 		float d2 = dot(r, r); // Square distance.
 
-		vec3 n_p = RestoreNormalZ(unpackUnorm2x16(data.g));
+		vec3 normal_sss = unpackUnorm4x8(data.g).rgb;
+		vec3 n_p = RestoreNormalZ(normal_sss.xy);
 		n_p = mat3(shadowModelViewInverse) * n_p;
 
         vec3 flux = unpackUnorm4x8(data.r).rgb;

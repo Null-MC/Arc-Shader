@@ -205,7 +205,7 @@
 
     /* RENDERTARGETS: 2,3 */
     out uvec4 outColor0;
-    #ifdef SHADOW_COLOR
+    #if defined SHADOW_ENABLED && defined SHADOW_COLOR
         out vec3 outColor1;
     #endif
 
@@ -222,7 +222,7 @@
         data.a = packUnorm4x8(lightingMap);
         outColor0 = data;
 
-        #ifdef SHADOW_COLOR
+        #if defined SHADOW_ENABLED && defined SHADOW_COLOR
             outColor1 = shadowColorMap;
         #endif
     }

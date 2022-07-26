@@ -87,7 +87,7 @@
     uniform sampler2D depthtex0;
     uniform sampler2D depthtex1;
 
-    #ifdef SHADOW_COLOR
+    #if defined SHADOW_ENABLED && defined SHADOW_COLOR
         uniform sampler2D BUFFER_DEFERRED2;
         uniform sampler2D shadowcolor0;
     #endif
@@ -150,7 +150,7 @@
     #include "/lib/world/scattering.glsl"
     #include "/lib/lighting/blackbody.glsl"
 
-    #ifdef VL_ENABLED
+    #if defined SKY_ENABLED && defined VL_ENABLED
         #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
             uniform sampler2DShadow shadowtex1HW;
         #elif defined SHADOW_ENABLE_HWCOMP
@@ -229,7 +229,7 @@
             vec4 lightingMap = unpackUnorm4x8(deferredData.a);
             
             vec3 shadowColorMap = vec3(1.0);
-            #ifdef SHADOW_COLOR
+            #if defined SHADOW_ENABLED && defined SHADOW_COLOR
                 shadowColorMap = texelFetch(BUFFER_DEFERRED2, iTex, 0).rgb;
             #endif
 

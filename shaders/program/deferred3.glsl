@@ -62,7 +62,7 @@
     uniform usampler2D BUFFER_DEFERRED;
     uniform sampler2D BUFFER_RSM_COLOR;
     uniform sampler2D BUFFER_RSM_DEPTH;
-    uniform usampler2D shadowcolor0;
+    uniform usampler2D shadowcolor1;
     uniform sampler2D depthtex0;
 
     #if defined SHADOW_ENABLE_HWCOMP && !defined IRIS_FEATURE_SEPARATE_HW_SAMPLERS
@@ -160,7 +160,7 @@
 
                     final = GetIndirectLighting_RSM(shadowViewPos, localPos.xyz, localNormal);
 
-                    #if DEBUG_VIEW == DEBUG_VIEW_RSM
+                    #if DEBUG_VIEW == DEBUG_VIEW_RSM_FINAL
                         final = mix(final, vec3(1.0, 0.0, 0.0), 0.25);
                     #endif
                 }

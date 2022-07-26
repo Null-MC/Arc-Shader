@@ -210,6 +210,7 @@
             #endif
         #endif
 
+        float shadowSSS = 0.0;
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             if (shadow > EPSILON) {
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -228,13 +229,12 @@
                 
                 shadowColorMap = RGBToLinear(shadowColorMap);
             #endif
-        #endif
 
-        float shadowSSS = 0.0;
-        #ifdef SSS_ENABLED
-            if (material.scattering > EPSILON) {
-                shadowSSS = GetShadowSSS(shadowPos);
-            }
+            #ifdef SSS_ENABLED
+                if (material.scattering > EPSILON) {
+                    shadowSSS = GetShadowSSS(shadowPos);
+                }
+            #endif
         #endif
 
         material.normal = material.normal * matTBN;

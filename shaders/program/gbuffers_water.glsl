@@ -338,7 +338,7 @@
         #endif
     #endif
 
-    #if defined VL_ENABLED && defined SKY_ENABLED
+    #if defined SKY_ENABLED && defined VL_ENABLED
         //uniform mat4 gbufferModelViewInverse;
         uniform mat4 shadowModelView;
         //uniform mat4 shadowProjection;

@@ -285,7 +285,7 @@
     #include "/lib/world/scattering.glsl"
     #include "/lib/lighting/blackbody.glsl"
 
-    #ifdef VL_ENABLED
+    #if defined SKY_ENABLED && defined VL_ENABLED
         uniform mat4 gbufferModelViewInverse;
         uniform mat4 shadowModelView;
         //uniform mat4 shadowProjection;
