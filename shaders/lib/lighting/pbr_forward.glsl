@@ -47,7 +47,7 @@
                 const float waterPixelSize = rcp(WATER_RESOLUTION);
 
                 float windSpeed = GetWindSpeed();
-                float zScale = 2.0 * windSpeed;
+                float zScale = 8.0 + windSpeed; // 32
 
                 vec2 waterLocalPos = rcp(2.0*WATER_RADIUS) * localPos.xz;
                 float depth, depthX, depthY;
