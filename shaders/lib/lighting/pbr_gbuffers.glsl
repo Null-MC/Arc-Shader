@@ -149,8 +149,13 @@
 
                 #ifdef SSS_ENABLED
                     float materialSSS = GetLabPbr_SSS(specularMap.b);
-                    if (materialSSS > EPSILON)
-                        lightSSS = GetShadowSSS(_shadowPos);
+                    if (materialSSS > EPSILON) {
+                        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                            lightSSS = GetShadowSSS(_shadowPos);
+                        #else
+                            lightSSS = GetShadowSSS(_shadowPos, shadowBias);
+                        #endif
+                    }
                 #endif
 
                 #ifdef PARALLAX_SHADOWS_ENABLED

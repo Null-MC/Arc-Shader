@@ -30,27 +30,40 @@
         float blockAmbient = pow(blockLight, 5.0) * BlockLightLux;
         vec3 ambient = 0.1 + blockAmbient + skyAmbient;
 
+        vec3 shadowColorMap = vec3(1.0);
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-            if (shadow > EPSILON) {
-                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    shadow *= GetShadowing(shadowPos);
-                #else
-                    shadow *= GetShadowing(shadowPos, shadowBias);
+            #if defined SHADOW_PARTICLES || (!defined RENDER_TEXTURED && !defined RENDER_WEATHER)
+                if (shadow > EPSILON) {
+                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                        shadow *= GetShadowing(shadowPos);
+                    #else
+                        shadow *= GetShadowing(shadowPos, shadowBias);
+                    #endif
+
+                    // #if SHADOW_COLORS == 1
+                    //     vec3 shadowColor = GetShadowColor();
+
+                    //     shadowColor = mix(vec3(1.0), shadowColor, shadow);
+
+                    //     //also make colors less intense when the block light level is high.
+                    //     shadowColor = mix(shadowColor, vec3(1.0), blockLight);
+
+                    //     lightColor *= shadowColor;
+                    // #endif
+
+                    skyLight = max(skyLight, shadow);
+                }
+
+                #ifdef SHADOW_COLOR
+                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                        shadowColorMap = GetShadowColor(shadowPos);
+                    #else
+                        shadowColorMap = GetShadowColor(shadowPos.xyz, shadowBias);
+                    #endif
+                    
+                    shadowColorMap = RGBToLinear(shadowColorMap);
                 #endif
-
-                // #if SHADOW_COLORS == 1
-                //     vec3 shadowColor = GetShadowColor();
-
-                //     shadowColor = mix(vec3(1.0), shadowColor, shadow);
-
-                //     //also make colors less intense when the block light level is high.
-                //     shadowColor = mix(shadowColor, vec3(1.0), blockLight);
-
-                //     lightColor *= shadowColor;
-                // #endif
-
-                skyLight = max(skyLight, shadow);
-            }
+            #endif
         #endif
         
         //vec2 lmCoord = vec2(blockLight, skyLight) * (15.0/16.0) + (0.5/16.0);
@@ -60,7 +73,7 @@
         final.rgb *= ambient;
 
         #ifdef SKY_ENABLED
-            final.rgb += albedo.rgb * skyLightColor * shadow;
+            final.rgb += albedo.rgb * skyLightColor * shadowColorMap * shadow;
         #endif
 
         ApplyFog(final, viewPos, skyLight, EPSILON);

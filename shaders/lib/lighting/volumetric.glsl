@@ -70,7 +70,7 @@ float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowV
                 float depthSample = CompareDepth(shadowPos, vec2(0.0), shadowBias);
 
                 if (depthSample > EPSILON) {
-                    vec3 shadowColor = GetShadowColor(shadowPos.xyz, shadowBias);
+                    vec3 shadowColor = GetShadowColor(shadowPos.xyz, -shadowBias);
                     accumCol += RGBToLinear(shadowColor) * depthSample;
                 }
             #endif

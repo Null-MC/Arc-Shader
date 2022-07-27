@@ -6,7 +6,7 @@ const int shadowcolor0Format = RGBA8;
 const int shadowcolor1Format = RG32UI;
 */
 
-const bool shadowcolor0Nearest = true;
+const bool shadowcolor0Nearest = false;
 const vec4 shadowcolor0ClearColor = vec4(1.0, 1.0, 1.0, 1.0);
 const bool shadowcolor0Clear = true;
 
@@ -301,7 +301,8 @@ const bool shadowHardwareFiltering1 = true;
                 lightColor.rgb = vec3(1.0);
             }
             else {
-                lightColor.rgb = mix(vec3(1.0), lightColor.rgb, lightColor.a);
+                //lightColor.rgb = mix(vec3(1.0), lightColor.rgb, lightColor.a);
+                lightColor.rgb = mix(lightColor.rgb, vec3(0.0), lightColor.a);
             }
 
             outColor0 = lightColor;

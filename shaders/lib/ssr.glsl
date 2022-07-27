@@ -1,117 +1,56 @@
-//#define MARCH_WORLD_SPACE
-#define MARCH_SCREEN_SPACE
+// returns: rgb=color  a=attenuation
+vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const in vec3 reflectDir, const in float roughness) {
+    vec4 clipPos = gbufferProjection * vec4(viewPos, 1.0);
+    clipPos.xyz = (clipPos.xyz / clipPos.w) * 0.5 + 0.5;
 
-const float _MaxDistance = 15.0;
-const float _Thickness = 0.0006;
-const float _Step = 0.05;
+    vec2 screenReflectDir = reflectDir.xy;
+    screenReflectDir.x *= viewWidth / viewHeight;
 
-// vec2 projectOnScreen(vec3 eye, vec3 point) {
-//     vec3 toPoint = (point - eye);
-//     point = (point - toPoint * (1.0 - near / dot(toPoint, CAMERA.Z)));
-//     point -= eye + near * CAMERA.Z;
-//     return point.xy;
-// }
+    vec2 traceStep;
+    if (abs(screenReflectDir.y) > abs(screenReflectDir.x)) {
+        traceStep = vec2(screenReflectDir.x / abs(screenReflectDir.y), sign(screenReflectDir.y));
+    }
+    else {
+        traceStep = vec2(sign(screenReflectDir.x), screenReflectDir.y / abs(screenReflectDir.x));
+    }
 
-float map(float value, float min1, float max1, float min2, float max2) {
-    return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
-}
+    traceStep /= -vec2(viewWidth, viewHeight);
 
-float GetReflectColor(const in vec2 uv, const in float depth, const in vec3 viewPos, const in vec3 reflectDir, out vec2 reflectionUV) {
-    //vec2 uv = fragCoord.xy / iResolution.xy;
-    //ivec2 iuv = ivec2(uv * vec2(viewWidth, viewHeight));
-    //float specularMapR = texelFetch(BUFFER_SPECULAR, iuv, 0).r;
-    
-    // We sample the Depth (Buffer A), the normal (Buffer B)
-    // And gather the view ray intersection
-    
-    float aspect = viewWidth / viewHeight;
-    
-    // ===== VIEW RAY =====
-    // no idea what these are...
-    vec3 CAMERA; // viewDir
-    vec3 EYE_POS; // viewPos
+    //vec3 traceViewPosLast = viewPos;
+    //return vec4(10000.0, 0.0, 0.0, 1.0);
 
-    vec2 fragCoord;
-    float iTime;
+    int i = 1;
+    float alpha = 0.0;
+    float texDepth = 0.0;
+    vec2 traceUV = clipPos.xy;
+    for (; i <= 6 && alpha < 0.5; i++) {
+        //float traceViewDepth = viewPos.z ;
+        //float traceDepth = delinearizeDepthFast(traceViewDepth, near, far);
 
-    vec3 eye = EYE_POS + vec3(3.0 * cos(iTime), 1.0 * sin(iTime), 0.0);
-    // Pixel coordinates mapped to [-aspectRatio, aspectRatio] x [-1, 1]
-    vec2 r_uv = 2.0 * fragCoord / viewHeight - vec2(aspect, 1.0);
-    vec3 r_dir = vec3(r_uv.x * CAMERA.x + r_uv.y * CAMERA.y + near * CAMERA.z);
-    // ====================
-    
-    //float depth = texture(iChannel0, uv).x;
-    //vec3 normal = texture(iChannel1, uv).xyz;
-    
-    
-    vec3 view = normalize(r_dir) * length(r_dir) * depth * far / near;
-    vec3 position = eye + view;
-    //vec3 reflected = reflect(normalize(view), normal);
-    
-    reflectionUV = uv;
-    float atten = 0.0f;
-    
-    #ifdef MARCH_SCREEN_SPACE
-        // ===== Project onto screen space =====
-        // The camera projection-view matrix here (_ProjectionView * position)
-        vec4 projEndPos = gbufferProjection * vec4(viewPos + reflectDir, 1.0);
+        traceUV = clipPos.xy + i * traceStep;
+        texDepth = textureLod(depthtex, traceUV, 0).r;
 
-        vec2 screenStart = uv;//projectOnScreen(eye, position);
-        vec2 screenEnd = projEndPos.xy / projEndPos.w; //projectOnScreen(eye, position + reflectDir);
-        vec2 screenDir = (screenEnd - screenStart).xy;
-    
-        // ===== Ray march in screen space =====
-        float reflectedDepth = dot(reflectDir, CAMERA.z) / far;
-        float depthStep = reflectedDepth;
+        vec3 texClipPos = vec3(traceUV, texDepth) * 2.0 - 1.0;
+        vec4 texViewPos = gbufferProjectionInverse * vec4(texClipPos, 1.0);
+        texViewPos.xyz /= texViewPos.w;
 
-        float currentDepth = depth;
-        vec2 march = screenStart;
+        vec2 xyDiff = texViewPos.xy - viewPos.xy;
+        float traceViewZ = viewPos.z - reflectDir.z * length(xyDiff);
 
-        for (float i = 0.0; i < _MaxDistance; i += _Step) {
-            march += screenDir * _Step;
-            vec2 marchUV;
-            marchUV.x = map(march.x, -aspect, aspect, 0.0, 1.0); 
-            marchUV.y = map(march.y, -1.0, 1.0, 0.0, 1.0); 
-            float targetDepth = textureLod(depthtex0, marchUV, 0).x;
-            float depthDiff = currentDepth - targetDepth;
-
-            if (depthDiff > 0.0 && depthDiff < depthStep) {
-                reflectionUV = marchUV;
-                atten = 1.0 - i / _MaxDistance;
-                break;
-            }
-
-            currentDepth += depthStep * _Step;
+        //alpha = step(texViewPos.z, traceViewZ);
+        if (traceViewZ > texViewPos.z + 0.01) {
+            //return vec4(0.0, 1.0, 0.0, 1.0);
+            alpha = 1.0;
+            break;
         }
-    #endif
+    }
 
-    #ifdef MARCH_WORLD_SPACE
-        vec3 marchReflection;
-        float currentDepth = depth;
-        for (float i = _Step; i < _MaxDistance; i += _Step) {
-            marchReflection = i * reflectDir;
-            float targetDepth = dot(view + marchReflection, CAMERA.Z) / far;
-            vec2 target = projectOnScreen(eye, position + marchReflection);
-            target.x = map(target.x, -aspect, aspect, 0.0, 1.0); 
-            target.y = map(target.y, -1.0, 1.0, 0.0, 1.0); 
-            float sampledDepth = textureLod(depthtex0, target, 0).x;
-            float depthDiff = sampledDepth - currentDepth;
+    vec3 color = vec3(0.0);
+    if (alpha > 0.5) {
+        int prevI = max(i - 1, 0);
+        traceUV = clipPos.xy + prevI * traceStep;
+        color = textureLod(BUFFER_HDR_PREVIOUS, traceUV, 0).rgb;
+    }
 
-            if (depthDiff > 0.0 && depthDiff < targetDepth - currentDepth + _Thickness) {
-                reflectionUV = target;
-                atten = 1.0 - i / _MaxDistance;
-                break;
-            }
-
-            currentDepth = targetDepth;
-
-            if (currentDepth > 1.0) {
-                atten = 1.0;
-                break;
-            }
-        }
-    #endif
-
-    //return texture(iChannel2, reflectionUV).rgb * atten + col.rgb;
-    return atten;
+    return vec4(color, alpha);
 }

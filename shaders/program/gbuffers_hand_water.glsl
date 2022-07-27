@@ -318,7 +318,13 @@
     #include "/lib/material/material_reader.glsl"
 
     #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-        #include "/lib/bsl_ssr.glsl"
+        uniform sampler2D BUFFER_HDR_PREVIOUS;
+        uniform sampler2D depthtex1;
+
+        uniform mat4 gbufferProjection;
+        uniform mat4 gbufferProjectionInverse;
+
+        #include "/lib/ssr.glsl"
     #endif
     
     #include "/lib/lighting/pbr.glsl"

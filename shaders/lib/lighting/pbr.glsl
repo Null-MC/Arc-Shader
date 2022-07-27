@@ -142,14 +142,16 @@
         return (albedo * invPI) * light_scatter * view_scatter * NoL;
     }
 
-    vec3 GetSubsurface(const in vec3 albedo, const in float NoV, const in float NoL, const in float LoH, const in float roughL) {
-        float sssF90 = roughL * pow2(LoH);
-        float sssF_In = F_schlick(NoV, 1.0, sssF90);
-        float sssF_Out = F_schlick(NoL, 1.0, sssF90);
+    vec3 GetSubsurface(const in vec3 albedo, const in float NoVm, const in float NoL, const in float LoHm, const in float roughL) {
+        float NoLm = max(NoL, 0.0);
+
+        float sssF90 = roughL * pow2(LoHm);
+        float sssF_In = F_schlick(NoVm, 1.0, sssF90);
+        float sssF_Out = F_schlick(NoLm, 1.0, sssF90);
 
         // TODO: modified this to prevent NaN's!
-        //return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (rcp(NoV + NoL) - 0.5) + 0.5);// * NoL;
-        return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (rcp(1.0 + (NoV + NoL)) - 0.5) + 0.5);// * NoL;
+        return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (min(1.0 / max(NoVm + NoLm, 0.0001), 1.0) - 0.5) + 0.5) * abs(NoL);
+        //return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (rcp(1.0 + (NoV + NoL)) - 0.5) + 0.5);
     }
 
     vec3 GetDiffuseBSDF(const in PbrMaterial material, const in vec3 diffuse, const in float NoV, const in float NoL, const in float LoH, const in float roughL) {
@@ -159,7 +161,7 @@
             if (material.scattering < EPSILON) return diffuse;
 
             vec3 subsurface = GetSubsurface(material.albedo.rgb, NoV, NoL, LoH, roughL);
-            return (1.0 - material.scattering) * diffuse + material.scattering * subsurface;
+            return mix(diffuse, subsurface, material.scattering);
         #else
             return diffuse;
         #endif
@@ -178,7 +180,8 @@
             vec3 lightPos = handOffset - viewPos.xyz;
             vec3 lightDir = normalize(lightPos);
 
-            float NoLm = max(dot(viewNormal, lightDir), 0.0);
+            float NoL = dot(viewNormal, lightDir);
+            float NoLm = max(NoL, 0.0);
 
             float lightDist = length(lightPos);
             float attenuation = GetHandLightAttenuation(heldBlockLightValue, lightDist);
@@ -195,7 +198,7 @@
 
             vec3 F = GetFresnel(material, LoHm, roughL);
             vec3 handDiffuse = GetDiffuse_Burley(material.albedo.rgb, NoVm, NoLm, LoHm, roughL) * max(1.0 - F, 0.0);
-            diffuse = GetDiffuseBSDF(material, handDiffuse, NoVm, NoLm, LoHm, roughL) * handLightColor;
+            diffuse = GetDiffuseBSDF(material, handDiffuse, NoVm, NoL, LoHm, roughL) * handLightColor;
 
             if (NoLm < EPSILON) {
                 specular = vec3(0.0);
@@ -297,28 +300,15 @@
                 vec3 reflectDir = reflect(-viewDir, viewNormal);
 
                 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-                    // vec2 reflectionUV;
-                    // float atten = GetReflectColor(texcoord, depth, viewPos, reflectDir, reflectionUV);
+                    vec4 roughReflectColor = GetReflectColor(depthtex1, viewPos, reflectDir, rough);
+                    reflectColor = roughReflectColor.rgb * roughReflectColor.a / exposure;
 
-                    // if (atten > EPSILON) {
-                    //     ivec2 iReflectUV = ivec2(reflectionUV * 0.5 * vec2(viewWidth, viewHeight));
-                    //     reflectColor = texelFetch(BUFFER_HDR_PREVIOUS, iReflectUV, 0) / max(exposure, EPSILON);
-                    // }
-
-                    // if (atten + EPSILON < 1.0) {
-                    //     vec3 skyColor = GetVanillaSkyLux(reflectDir);
-                    //     reflectColor = mix(skyColor, reflectColor, atten);
-                    // }
-
-                    vec4 roughReflectColor = RoughReflection(depthtex1, viewPos, reflectDir, rough, 0.0);
-                    reflectColor = roughReflectColor.rgb * roughReflectColor.a;
-
-                    if (roughReflectColor.a < 1.0 - EPSILON) {
-                        vec3 skyReflectColor = GetSkyReflectionColor(reflectDir, viewNormal) * skyLight;
-                        reflectColor += skyReflectColor * (1.0 - roughReflectColor.a);
-                    }
-
-                    //return vec4(reflectColor, 1.0);
+                    #ifdef SKY_ENABLED
+                        if (roughReflectColor.a + EPSILON < 1.0) {
+                            vec3 skyReflectColor = GetSkyReflectionColor(reflectDir, viewNormal) * skyLight;
+                            reflectColor += skyReflectColor * (1.0 - roughReflectColor.a);
+                        }
+                    #endif
 
                 #elif REFLECTION_MODE == REFLECTION_MODE_SKY && defined SKY_ENABLED
                     reflectColor = GetSkyReflectionColor(reflectDir, viewNormal) * skyLight;
@@ -359,7 +349,7 @@
         #ifdef SHADOW_ENABLED
             //vec3 iblF = vec3(0.0);
             #if REFLECTION_MODE != REFLECTION_MODE_NONE
-                if (all(greaterThan(reflectColor, vec3(EPSILON)))) {
+                if (any(greaterThan(reflectColor, vec3(EPSILON)))) {
                     vec2 envBRDF = textureLod(BUFFER_BRDF_LUT, vec2(NoVm, material.smoothness), 0).rg;
                     envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
 
@@ -387,7 +377,8 @@
 
                 // Transmission
                 //vec3 sss = shadowSSS * material.scattering * skyLightColorFinal;// * max(-NoL, 0.0);
-                diffuseLightF = mix(diffuseLightF, shadowSSS, material.scattering);
+                //diffuseLightF = mix(diffuseLightF, shadowSSS*2.0, material.scattering);
+                diffuseLightF = max(diffuseLightF, min(2.0 * shadowSSS * material.scattering, 1.0));
             #endif
 
             vec3 diffuseLight = diffuseLightF * skyLightColorFinal * skyLight3;
@@ -398,7 +389,7 @@
 
             vec3 sunF = GetFresnel(material, LoHm, roughL);
             vec3 sunDiffuse = GetDiffuse_Burley(material.albedo.rgb, NoVm, NoLm, LoHm, roughL) * max(1.0 - sunF, 0.0);
-            sunDiffuse = GetDiffuseBSDF(material, sunDiffuse, NoVm, NoLm, LoHm, roughL) * diffuseLight;
+            sunDiffuse = GetDiffuseBSDF(material, sunDiffuse, NoVm, NoL, LoHm, roughL) * diffuseLight;
             diffuse += sunDiffuse * material.albedo.a;
 
             if (NoLm > EPSILON) {

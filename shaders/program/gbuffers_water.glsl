@@ -361,7 +361,7 @@
     #include "/lib/material/material_reader.glsl"
 
     #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-        #include "/lib/bsl_ssr.glsl"
+        #include "/lib/ssr.glsl"
     #endif
 
     #include "/lib/lighting/pbr.glsl"

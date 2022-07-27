@@ -230,7 +230,7 @@
         vec3 color = vec3(0.0);
         #if DEBUG_VIEW == DEBUG_VIEW_GBUFFER_COLOR
             // Deferred Color
-            uint deferredDataR = texture(BUFFER_DEFERRED, texcoord).r;
+            uint deferredDataR = texelFetch(BUFFER_DEFERRED, iuv, 0).r;
             color = unpackUnorm4x8(deferredDataR).rgb;
         #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_NORMAL
             // Deferred Normal
@@ -257,13 +257,13 @@
             color = unpackUnorm4x8(data).bbb;
         #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_DEPTH0
             // Shadow Depth [0]
-            color = texture(shadowtex0, texcoord).rrr;
+            color = textureLod(shadowtex0, texcoord, 0).rrr;
         #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_DEPTH1
             // Shadow Depth [1]
-            color = texture(shadowtex1, texcoord).rrr;
+            color = textureLod(shadowtex1, texcoord, 0).rrr;
         #elif DEBUG_VIEW == DEBUG_VIEW_HDR
             // HDR
-            color = texture(BUFFER_HDR, texcoord).rgb;
+            color = textureLod(BUFFER_HDR, texcoord, 0).rgb;
         #elif DEBUG_VIEW == DEBUG_VIEW_LUMINANCE
             // Luminance
             float logLum = textureLod(BUFFER_LUMINANCE, texcoord, 0).r;
@@ -291,7 +291,7 @@
             #endif
         #elif DEBUG_VIEW == DEBUG_VIEW_BLOOM
             // Bloom Tiles
-            color = texture(BUFFER_BLOOM, texcoord).rgb;
+            color = textureLod(BUFFER_BLOOM, texcoord, 0).rgb;
         #elif DEBUG_VIEW == DEBUG_VIEW_PREV_COLOR
             // Previous HDR Color
             color = textureLod(BUFFER_HDR_PREVIOUS, texcoord, 0).rgb;

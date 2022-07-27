@@ -74,9 +74,9 @@
 
 	float SampleDepth(const in vec2 shadowPos, const in vec2 offset) {
         #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
-            return texture(shadowtex1, shadowPos + offset).r;
+            return textureLod(shadowtex1, shadowPos + offset, 0).r;
         #elif defined SHADOW_ENABLE_HWCOMP
-            return texture(shadowtex0, shadowPos + offset).r;
+            return textureLod(shadowtex0, shadowPos + offset, 0).r;
         #else
             ivec2 itex = ivec2((shadowPos + offset) * shadowMapSize);
             return texelFetch(shadowtex1, itex, 0).r;

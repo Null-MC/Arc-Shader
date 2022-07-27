@@ -146,23 +146,41 @@ value.SHADOW_TYPE.1=Basic
 value.SHADOW_TYPE.2=Distorted
 value.SHADOW_TYPE.3=Cascaded
 
-option.shadowMapResolution=Resolution
-option.shadowMapResolution.comment=Resolution of the shadow map. Higher numbers mean more accurate shadows.
-
-option.shadowDistance=Distance
-option.shadowDistance.comment=How far away shadows will be rendered.
-
 option.SHADOW_FILTER=Filtering
 option.SHADOW_FILTER.comment=Type type of filtering to apply to shadow sampling.
 value.SHADOW_FILTER.0=None
 value.SHADOW_FILTER.1=PCF
 value.SHADOW_FILTER.2=PCF+PCSS
 
+option.shadowMapResolution=Resolution
+option.shadowMapResolution.comment=Resolution of the shadow map. Higher numbers mean more accurate shadows.
+
+option.shadowDistance=Distance
+option.shadowDistance.comment=How far away shadows will be rendered.
+
+option.SHADOW_PCF_SIZE=PCF Radius
+option.SHADOW_PCF_SIZE.comment=The radius of the shadow blurring using a block-sized scale.
+
+option.SHADOW_PCF_SAMPLES=PCF Samples
+option.SHADOW_PCF_SAMPLES.comment=The number of samples to use when blurring.
+
+option.SHADOW_COLOR=Colored
+option.SHADOW_COLOR.comment=When enabled, sun/moon light will be tinted when passing through transparent objects.
+
+option.SHADOW_PARTICLES=Particles
+option.SHADOW_PARTICLES.comment=When enabled, particles will receive shadows.
+
+
+screen.SHADOW_ADV_OPTIONS=Advanced
+
 option.SHADOW_EXCLUDE_ENTITIES=Hide Entities
 option.SHADOW_EXCLUDE_ENTITIES.comment=If true, entities will not cast shadows.
 
 option.SHADOW_EXCLUDE_FOLIAGE=Hide Foliage
 option.SHADOW_EXCLUDE_FOLIAGE.comment=If true, foliage will not cast shadows.
+
+option.SHADOW_DISTORT_FACTOR=Distortion
+option.SHADOW_DISTORT_FACTOR.comment=Distortion factor for the shadow map. Applies to distorted shadows only.
 
 option.SHADOW_BIAS_SCALE=Bias Scale
 option.SHADOW_BIAS_SCALE.comment=Increase this if you get shadow acne. Decrease this if you get peter panning.
@@ -193,27 +211,11 @@ value.SHADOW_BIAS_SCALE.2.3=230
 value.SHADOW_BIAS_SCALE.2.4=240
 value.SHADOW_BIAS_SCALE.2.5=250
 
-option.SHADOW_DISTORT_FACTOR=Distortion
-option.SHADOW_DISTORT_FACTOR.comment=Distortion factor for the shadow map. Applies to distorted shadows only.
-
 option.SHADOW_CSM_FITRANGE=Fit CSM to Shadow Range
 option.SHADOW_CSM_FITRANGE.comment=When enabled, all but the nearest cascade will be scaled to fit the shadow range.
 
 option.SHADOW_CSM_TIGHTEN=Fit CSM to Frustum
 option.SHADOW_CSM_TIGHTEN.comment=When enabled, the shadows cascades will be tightly fit to the view frustum to improve quality. Applies to CSM only. NOTE: disables entity shadows because Optifine bugs!
-
-option.SHADOW_ENTITY_CASCADE=Entity Cascade
-option.SHADOW_ENTITY_CASCADE.comment=The fixed cascade level for rendering entity shadows. Applies to CSM only.
-value.SHADOW_ENTITY_CASCADE.0=1
-value.SHADOW_ENTITY_CASCADE.1=2
-value.SHADOW_ENTITY_CASCADE.2=3
-value.SHADOW_ENTITY_CASCADE.3=4
-
-option.SHADOW_PCF_SIZE=PCF Radius
-option.SHADOW_PCF_SIZE.comment=The radius of the shadow blurring using a block-sized scale.
-
-option.SHADOW_PCF_SAMPLES=PCF Samples
-option.SHADOW_PCF_SAMPLES.comment=The number of samples to use when blurring.
 
 option.SHADOW_ENABLE_HWCOMP=HW-Accelerated
 option.SHADOW_ENABLE_HWCOMP.comment=When enabled, shadows will leverage hardware-filtering for better quality and performance. NOTE: May only work on NVidia!

@@ -232,7 +232,11 @@
 
             #ifdef SSS_ENABLED
                 if (material.scattering > EPSILON) {
-                    shadowSSS = GetShadowSSS(shadowPos);
+                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                        shadowSSS = GetShadowSSS(shadowPos);
+                    #else
+                        shadowSSS = GetShadowSSS(shadowPos, shadowBias);
+                    #endif
                 }
             #endif
         #endif

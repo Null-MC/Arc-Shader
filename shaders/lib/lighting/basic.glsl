@@ -34,25 +34,27 @@
                 }
 
                 #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX && !defined WORLD_NETHER
-                    float windSpeed = GetWindSpeed();
-                    float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
-                    
-                    float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
-                    vec2 waterWorldPos = waterWorldScale * (pos.xz + cameraPosition.xz);
-                    float depth = GetWaves(waterWorldPos, waveSpeed, WATER_OCTAVES_VERTEX);
-                    pos.y -= (1.0 - depth) * WATER_WAVE_DEPTH;
+                    if (gl_Normal.y > 0.01) {
+                        float windSpeed = GetWindSpeed();
+                        float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
+                        
+                        float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
+                        vec2 waterWorldPos = waterWorldScale * (pos.xz + cameraPosition.xz);
+                        float depth = GetWaves(waterWorldPos, waveSpeed, WATER_OCTAVES_VERTEX);
+                        pos.y -= (1.0 - depth) * WATER_WAVE_DEPTH;
 
-                    #ifndef WATER_FANCY
-                        vec2 waterWorldPosX = waterWorldPos + vec2(waterWorldScale, 0.0);
-                        float depthX = GetWaves(waterWorldPosX, waveSpeed, WATER_OCTAVES_VERTEX);
-                        vec3 pX = vec3(1.0, 0.0, (depthX - depth) * WATER_WAVE_DEPTH);
+                        #ifndef WATER_FANCY
+                            vec2 waterWorldPosX = waterWorldPos + vec2(waterWorldScale, 0.0);
+                            float depthX = GetWaves(waterWorldPosX, waveSpeed, WATER_OCTAVES_VERTEX);
+                            vec3 pX = vec3(1.0, 0.0, (depthX - depth) * WATER_WAVE_DEPTH);
 
-                        vec2 waterWorldPosY = waterWorldPos + vec2(0.0, waterWorldScale);
-                        float depthY = GetWaves(waterWorldPosY, waveSpeed, WATER_OCTAVES_VERTEX);
-                        vec3 pY = vec3(0.0, 1.0, (depthY - depth) * WATER_WAVE_DEPTH);
+                            vec2 waterWorldPosY = waterWorldPos + vec2(0.0, waterWorldScale);
+                            float depthY = GetWaves(waterWorldPosY, waveSpeed, WATER_OCTAVES_VERTEX);
+                            vec3 pY = vec3(0.0, 1.0, (depthY - depth) * WATER_WAVE_DEPTH);
 
-                        normal = normalize(cross(pX, pY)).xzy;
-                    #endif
+                            normal = normalize(cross(pX, pY)).xzy;
+                        #endif
+                    }
                 #endif
             }
         #endif
@@ -75,14 +77,16 @@
         #endif
 
         #if defined SHADOW_ENABLED && !defined RENDER_SHADOW && SHADOW_TYPE != SHADOW_TYPE_NONE
-            vec3 localPos = pos;
+            #if defined SHADOW_PARTICLES || (!defined RENDER_TEXTURED && !defined RENDER_WEATHER)
+                vec3 localPos = pos;
 
-            #if defined RENDER_ENTITIES || defined RENDER_BLOCK
-                localPos = (gbufferModelViewInverse * vec4(localPos, 1.0)).xyz;
+                #if defined RENDER_ENTITIES || defined RENDER_BLOCK
+                    localPos = (gbufferModelViewInverse * vec4(localPos, 1.0)).xyz;
+                #endif
+
+                vec3 viewDir = -normalize(viewPos);
+                ApplyShadows(localPos, viewDir);
             #endif
-
-            vec3 viewDir = -normalize(viewPos);
-            ApplyShadows(localPos, viewDir);
         #endif
 
         #ifdef AF_ENABLED
