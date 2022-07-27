@@ -189,7 +189,7 @@ const float DaySkyOvercastLumen = 420.0;
 const float NightSkyLumen = 1200.0;
 const float NightSkyOvercastLumen = 60.0;
 
-const vec3 WaterAbsorbtionExtinction = vec3(0.72, 0.91, 0.93); //0.54, 0.91, 0.93
+const vec3 WaterAbsorbtionExtinction = vec3(0.16, 0.30, 0.45); //0.54, 0.91, 0.93
 
 const vec3 minLight = vec3(0.01);
 const float tile_dist_bias_factor = 0.012288;
@@ -300,8 +300,12 @@ const float invPI = 1.0 / PI;
 #define pow3(x) (x*x*x)
 #define pow4(x) (x*x*x*x)
 #define pow5(x) (x*x*x*x*x)
-#define saturate(x) clamp(x, 0.0, 1.0)
 #define rcp(x) (1.0 / (x))
+#define saturate(x) clamp(x, 0.0, 1.0)
+
+vec3 unproject(const in vec4 pos) {
+    return pos.xyz / pos.w;
+}
 
 float RGBToLinear(const in float color) {
     return pow(color, GAMMA);

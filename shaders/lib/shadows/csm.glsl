@@ -89,16 +89,15 @@ int GetCascadeForScreenPos(const in vec2 pos) {
                 vec3( 1.0,  1.0,  1.0));
 
             for (int i = 0; i < 8; i++) {
-                vec4 shadowClipPos = matSceneToShadowProjection * vec4(frustum[i], 1.0);
-                shadowClipPos.xyz /= shadowClipPos.w;
+                vec3 shadowClipPos = unproject(matSceneToShadowProjection * vec4(frustum[i], 1.0));
 
                 if (i == 0) {
-                    clipMin = shadowClipPos.xyz;
-                    clipMax = shadowClipPos.xyz;
+                    clipMin = shadowClipPos;
+                    clipMax = shadowClipPos;
                 }
                 else {
-                    clipMin = min(clipMin, shadowClipPos.xyz);
-                    clipMax = max(clipMax, shadowClipPos.xyz);
+                    clipMin = min(clipMin, shadowClipPos);
+                    clipMax = max(clipMax, shadowClipPos);
                 }
             }
         }

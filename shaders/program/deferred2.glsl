@@ -170,15 +170,14 @@
 
                 vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
 
-                vec4 localPos = gbufferModelViewInverse * (gbufferProjectionInverse * vec4(clipPos, 1.0));
-                localPos.xyz /= localPos.w;
+                vec3 localPos = unproject(gbufferModelViewInverse * (gbufferProjectionInverse * vec4(clipPos, 1.0)));
 
                 vec2 normalMap = unpackUnorm4x8(deferredNormalLightingData.r).xy;
                 vec3 localNormal = mat3(gbufferModelViewInverse) * RestoreNormalZ(normalMap);
 
-                vec3 shadowViewPos = (shadowModelView * vec4(localPos.xyz, 1.0)).xyz;
+                vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
 
-                color = GetIndirectLighting_RSM(shadowViewPos, localPos.xyz, localNormal);
+                color = GetIndirectLighting_RSM(shadowViewPos, localPos, localNormal);
             }
         }
 

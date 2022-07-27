@@ -234,13 +234,12 @@
             #endif
 
             vec3 clipPos = vec3(texcoord, screenDepth) * 2.0 - 1.0;
-            vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
-            viewPos.xyz /= viewPos.w;
+            vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
 
             PbrMaterial material;
             PopulateMaterial(material, colorMap.rgb, normalMap, specularMap);
 
-            color = PbrLighting2(material, shadowColorMap, lightingMap.xy, lightingMap.b, lightingMap.a, viewPos.xyz, vec2(0.0)).rgb;
+            color = PbrLighting2(material, shadowColorMap, lightingMap.xy, lightingMap.b, lightingMap.a, viewPos, vec2(0.0)).rgb;
 
             #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
                 outColor1 = log2(luminance(color) + EPSILON);

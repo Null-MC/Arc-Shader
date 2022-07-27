@@ -26,14 +26,10 @@
         #else
             lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
 
+            vec3 ndc1 = unproject(projectionMatrix * (VIEW_SCALE * (modelViewMatrix * vec4(vaPosition, 1.0))));
+            vec4 ndc2 = unproject(projectionMatrix * (VIEW_SCALE * (modelViewMatrix * vec4(vaPosition + vaNormal, 1.0))));
+
             vec2 viewSize = vec2(viewWidth, viewHeight);
-
-            vec4 linePosStart = projectionMatrix * (VIEW_SCALE * (modelViewMatrix * vec4(vaPosition, 1.0)));
-            vec3 ndc1 = linePosStart.xyz / linePosStart.w;
-
-            vec4 linePosEnd = projectionMatrix * (VIEW_SCALE * (modelViewMatrix * vec4(vaPosition + vaNormal, 1.0)));
-            vec3 ndc2 = linePosEnd.xyz / linePosEnd.w;
-
             vec2 lineScreenDirection = normalize((ndc2.xy - ndc1.xy) * viewSize);
             vec2 lineOffset = vec2(-lineScreenDirection.y, lineScreenDirection.x) * LINE_WIDTH / viewSize;
 

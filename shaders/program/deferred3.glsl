@@ -151,14 +151,13 @@
                 float lightingMap = unpackUnorm4x8(deferredNormalLightingData.g).g;
 
                 if (lightingMap >= 1.0 / 16.0) {
-                    vec4 localPos = gbufferModelViewInverse * viewPos;
-                    localPos.xyz /= localPos.w;
+                    vec3 localPos = unproject(gbufferModelViewInverse * viewPos);
 
                     vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
 
-                    vec3 shadowViewPos = (shadowModelView * vec4(localPos.xyz, 1.0)).xyz;
+                    vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
 
-                    final = GetIndirectLighting_RSM(shadowViewPos, localPos.xyz, localNormal);
+                    final = GetIndirectLighting_RSM(shadowViewPos, localPos, localNormal);
 
                     #if DEBUG_VIEW == DEBUG_VIEW_RSM_FINAL
                         final = mix(final, vec3(1.0, 0.0, 0.0), 0.25);

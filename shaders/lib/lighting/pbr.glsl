@@ -481,7 +481,7 @@
 
                     float verticalDepth = waterDepthFinal * max(dot(viewLightDir, upDir), 0.0);
                     vec3 absorption = exp(extinctionInv * -(verticalDepth + waterDepthFinal));
-                    float inverseScatterAmount = 1.0 - exp(0.11 * -waterDepthFinal);
+                    float inverseScatterAmount = 1.0 - exp(0.06 * -waterDepthFinal);
 
                     diffuse = (refractColor + scatterColor * inverseScatterAmount) * absorption;
                     final.a = 1.0;
@@ -619,21 +619,17 @@
 
         #if defined SKY_ENABLED && defined VL_ENABLED
             mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
-
-            vec4 shadowViewStart = matViewToShadowView * vec4(vec3(0.0), 1.0);
-            shadowViewStart.xyz /= shadowViewStart.w;
-
-            vec4 shadowViewEnd = matViewToShadowView * vec4(viewPos, 1.0);
-            shadowViewEnd.xyz /= shadowViewEnd.w;
+            vec3 shadowViewStart = unproject(matViewToShadowView * vec4(vec3(0.0), 1.0));
+            vec3 shadowViewEnd = unproject(matViewToShadowView * vec4(viewPos, 1.0));
 
             float shadowBias = 0.0;//-1e-2; // TODO: fuck
 
             float G_scattering = mix(G_SCATTERING_CLEAR, G_SCATTERING_RAIN, rainStrength);
 
             #ifdef SHADOW_COLOR
-                vec3 volScatter = GetVolumetricLightingColor(shadowViewStart.xyz, shadowViewEnd.xyz, shadowBias, G_scattering);
+                vec3 volScatter = GetVolumetricLightingColor(shadowViewStart, shadowViewEnd, shadowBias, G_scattering);
             #else
-                float volScatter = GetVolumetricLighting(shadowViewStart.xyz, shadowViewEnd.xyz, shadowBias, G_scattering);
+                float volScatter = GetVolumetricLighting(shadowViewStart, shadowViewEnd, shadowBias, G_scattering);
             #endif
 
             vec3 volLight = volScatter * (sunColor + moonColor);

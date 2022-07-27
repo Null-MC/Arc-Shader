@@ -105,8 +105,7 @@
         vec3 color = starData;
 
         vec3 clipPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), 1.0) * 2.0 - 1.0;
-        vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
-        viewPos.xyz /= viewPos.w;
+        vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
 
         vec3 sunDir = normalize(sunPosition);
 
@@ -114,7 +113,7 @@
             vec3 localSunPos = mat3(gbufferModelViewInverse) * sunPosition;
             vec3 localSunDir = normalize(localSunPos);
 
-            vec3 localViewPos = mat3(gbufferModelViewInverse) * viewPos.xyz;
+            vec3 localViewPos = mat3(gbufferModelViewInverse) * viewPos;
 
             ScatteringParams setting;
             setting.sunRadius = 3000.0;
@@ -141,7 +140,7 @@
 
             color += sky.rgb;
         #else
-            vec3 viewDir = normalize(viewPos.xyz);
+            vec3 viewDir = normalize(viewPos);
             color += GetVanillaSkyLuminance(viewDir);
             color += GetVanillaSkyScattering(viewDir, sunColor, moonColor);
         #endif

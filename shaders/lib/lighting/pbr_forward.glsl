@@ -45,7 +45,9 @@
                 material.hcm = -1;
 
                 const float waterPixelSize = rcp(WATER_RESOLUTION);
-                float zScale = 32.0;
+
+                float windSpeed = GetWindSpeed();
+                float zScale = 2.0 * windSpeed;
 
                 vec2 waterLocalPos = rcp(2.0*WATER_RADIUS) * localPos.xz;
                 float depth, depthX, depthY;
@@ -90,7 +92,6 @@
 
                     float skyLight = saturate((lm.y - (0.5/16.0)) / (15.0/16.0));
 
-                    float windSpeed = GetWindSpeed();
                     float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
 
                     depth = GetWaves(waterWorldPos, waveSpeed, octaves);

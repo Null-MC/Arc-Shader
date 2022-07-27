@@ -1,55 +1,53 @@
+// === This is originally from BSL ===
+// Huge thanks to Capt Tatsu for allowing me to borrow it
+// until my SSR implementation is working.
+
 // returns: rgb=color  a=attenuation
 vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const in vec3 reflectDir, const in float roughness) {
-    vec4 clipPos = gbufferProjection * vec4(viewPos, 1.0);
-    clipPos.xyz = (clipPos.xyz / clipPos.w) * 0.5 + 0.5;
+    const float maxf = 5.0;
+    const float stp = 0.2;
+    const float ref = 0.5;
+    const float inc = 1.5;
 
-    vec2 screenReflectDir = reflectDir.xy;
-    screenReflectDir.x *= viewWidth / viewHeight;
-
-    vec2 traceStep;
-    if (abs(screenReflectDir.y) > abs(screenReflectDir.x)) {
-        traceStep = vec2(screenReflectDir.x / abs(screenReflectDir.y), sign(screenReflectDir.y));
-    }
-    else {
-        traceStep = vec2(sign(screenReflectDir.x), screenReflectDir.y / abs(screenReflectDir.x));
-    }
-
-    traceStep /= -vec2(viewWidth, viewHeight);
-
-    //vec3 traceViewPosLast = viewPos;
-    //return vec4(10000.0, 0.0, 0.0, 1.0);
-
-    int i = 1;
+    vec3 vector = stp * reflectDir;
+    vec3 traceVector = vector;
+    vec3 traceUV = vec3(0.0);
     float alpha = 0.0;
-    float texDepth = 0.0;
-    vec2 traceUV = clipPos.xy;
-    for (; i <= 6 && alpha < 0.5; i++) {
-        //float traceViewDepth = viewPos.z ;
-        //float traceDepth = delinearizeDepthFast(traceViewDepth, near, far);
 
-        traceUV = clipPos.xy + i * traceStep;
-        texDepth = textureLod(depthtex, traceUV, 0).r;
+    int sr = 0;
+    for (int i = 1; i <= 64 && alpha < 0.5; i++) {
+        vec3 tracePos = viewPos + traceVector;
+        traceUV = unproject(gbufferProjection * vec4(tracePos, 1.0)) * 0.5 + 0.5;
+        if (traceUV.x < -0.05 || traceUV.x > 1.05 || traceUV.y < -0.05 || traceUV.y > 1.05) break;
 
-        vec3 texClipPos = vec3(traceUV, texDepth) * 2.0 - 1.0;
-        vec4 texViewPos = gbufferProjectionInverse * vec4(texClipPos, 1.0);
-        texViewPos.xyz /= texViewPos.w;
+        vec3 rfragpos = vec3(traceUV.xy, textureLod(depthtex, traceUV.xy, 0).r);
+        rfragpos = unproject(gbufferProjectionInverse * vec4(rfragpos * 2.0 - 1.0, 1.0));
 
-        vec2 xyDiff = texViewPos.xy - viewPos.xy;
-        float traceViewZ = viewPos.z - reflectDir.z * length(xyDiff);
-
-        //alpha = step(texViewPos.z, traceViewZ);
-        if (traceViewZ > texViewPos.z + 0.01) {
-            //return vec4(0.0, 1.0, 0.0, 1.0);
-            alpha = 1.0;
-            break;
+        float err = length(tracePos - rfragpos);
+        if (err < pow(length(vector) * pow(length(traceVector), 0.11), 1.1) * 1.2) {
+            alpha = step(maxf, sr++);
+            traceVector -= vector;
+            vector *= ref;
         }
+
+        vector *= inc;
+        traceVector += vector;
     }
+
+    // Previous frame reprojection from Chocapic13
+    vec4 viewPosPrev = gbufferProjectionInverse * vec4(traceUV * 2.0 - 1.0, 1.0);
+    viewPosPrev /= viewPosPrev.w;
+    
+    viewPosPrev = gbufferModelViewInverse * viewPosPrev;
+
+    vec4 previousPosition = viewPosPrev + vec4(cameraPosition - previousCameraPosition, 0.0);
+    previousPosition = gbufferPreviousModelView * previousPosition;
+    previousPosition = gbufferPreviousProjection * previousPosition;
+    traceUV.xy = previousPosition.xy / previousPosition.w * 0.5 + 0.5;
 
     vec3 color = vec3(0.0);
     if (alpha > 0.5) {
-        int prevI = max(i - 1, 0);
-        traceUV = clipPos.xy + prevI * traceStep;
-        color = textureLod(BUFFER_HDR_PREVIOUS, traceUV, 0).rgb;
+        color = textureLod(BUFFER_HDR_PREVIOUS, traceUV.xy, 0).rgb;
     }
 
     return vec4(color, alpha);
