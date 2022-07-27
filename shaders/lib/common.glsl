@@ -74,7 +74,7 @@ const bool colortex11Clear = false;
 //#define CAVEFOG_ENABLED
 #define HCM_AMBIENT 0.16
 #define WEATHER_OPACITY 40 // [10 20 30 40 50 60 70 80 90 100]
-#define G_SCATTERING_CLEAR 0.94
+#define G_SCATTERING_CLEAR 0.96
 #define G_SCATTERING_RAIN 0.25
 
 
@@ -172,14 +172,14 @@ const bool colortex11Clear = false;
 #define GAMMA 2.2
 
 const float sunLumen = 240000.0;//16000000;
-const float moonLumen = 2500.0;
-const float StarLumen = 2000.0;
+const float moonLumen = 800.0;
+const float StarLumen = 1600.0;
 //const float BlockLightLumen = 2000;
 const float EmissionLumens = 100000.0;
 
 const float SunLux = 64000.0;
 const float SunOvercastLux = 2400.0;
-const float MoonLux = 30.0;
+const float MoonLux = 10.0;
 const float MoonOvercastLux = 2.0;
 const float BlockLightLux = 9000.0;
 const float MinWorldLux = 2.0;

@@ -26,8 +26,8 @@ float GetVolumetricFactor(const in vec3 shadowViewStart, const in vec3 shadowVie
         #endif
     }
 
-    //return accumF / VL_SAMPLE_COUNT;
-    return smoothstep(0.0, 1.0, accumF / VL_SAMPLE_COUNT);
+    return accumF / VL_SAMPLE_COUNT;
+    //return smoothstep(0.0, 1.0, accumF / VL_SAMPLE_COUNT);
 }
 
 float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float shadowBias, const in float G_scattering) {
@@ -76,8 +76,8 @@ float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowV
             #endif
         }
 
-        //return accumCol / VL_SAMPLE_COUNT;
-        return smoothstep(0.0, 1.0, accumCol / VL_SAMPLE_COUNT);
+        return accumCol / VL_SAMPLE_COUNT;
+        //return smoothstep(0.0, 1.0, accumCol / VL_SAMPLE_COUNT);
     }
 
     vec3 GetVolumetricLightingColor(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float shadowBias, const in float G_scattering) {
