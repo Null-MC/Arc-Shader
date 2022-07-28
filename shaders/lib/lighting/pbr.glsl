@@ -286,16 +286,16 @@
         float blockLight = saturate((lmValue.x - (1.0/16.0 + EPSILON)) / (15.0/16.0));
         float skyLight = saturate((lmValue.y - (1.0/16.0 + EPSILON)) / (15.0/16.0));
 
-        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-            // Increase skylight when in direct sunlight
-            skyLight = max(skyLight, shadow);
-        #endif
-
         float shadowFinal = shadow;
         #ifdef LIGHTLEAK_FIX
             // Make areas without skylight fully shadowed (light leak fix)
-            float lightLeakFix = step(EPSILON, skyLight);
+            float lightLeakFix = step(skyLight, EPSILON);
             shadowFinal *= lightLeakFix;
+        #endif
+
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+            // Increase skylight when in direct sunlight
+            skyLight = max(skyLight, shadow);
         #endif
 
         float skyLight2 = pow2(skyLight);
@@ -329,7 +329,7 @@
         #if defined SKY_ENABLED && defined RSM_ENABLED && defined RENDER_DEFERRED
             #if RSM_SCALE == 0 || defined RSM_UPSCALE
                 //ivec2 iuv = ivec2(texcoord * viewSize);
-                vec3 rsmColor = texelFetch(BUFFER_RSM_COLOR, gl_FragCoord.xy, 0).rgb;
+                vec3 rsmColor = texelFetch(BUFFER_RSM_COLOR, ivec2(gl_FragCoord.xy), 0).rgb;
             #else
                 const float rsm_scale = 1.0 / exp2(RSM_SCALE);
                 vec3 rsmColor = textureLod(BUFFER_RSM_COLOR, texcoord * rsm_scale, 0).rgb;
