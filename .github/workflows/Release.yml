@@ -1,0 +1,49 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version number.'
+        required: true
+
+jobs:
+  release:
+    name: Prepare Release
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.create_release.outputs.id }}
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Zip Content
+        run: zip -r "Arc_v${{ github.event.inputs.version }}.zip" . -x ".git/*" ".github/*"
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          release_name: Release ${{ github.event.inputs.version }}
+          draft: true
+      - name: Upload Release Artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Arc_v${{ github.event.inputs.version }}.zip
+          asset_name: Arc_v${{ github.event.inputs.version }}.zip
+          asset_content_type: application/zip
+      - name: Publish to CurseForge
+        uses: itsmeow/curseforge-upload@v3
+        with:
+          display_name: Arc v${{ github.event.inputs.version }}
+          file_path: Arc_v${{ github.event.inputs.version }}.zip
+          changelog: "###Release ${{ github.event.inputs.version }}"
+          release_type: beta
+          project_id: 648063
+          game_endpoint: minecraft
+          game_versions: "9008,8857,8830,8516,8203,8152,8134,8056,8010,7892,7890,7675,7664,7469,7413,7361,7344,7318,7132,7107,7081"
+          token: ${{ secrets.CF_API_TOKEN }}
