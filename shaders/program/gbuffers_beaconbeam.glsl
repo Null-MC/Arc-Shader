@@ -52,13 +52,19 @@ varying vec3 tanViewPos;
 	void main() {
 		vec4 colorMap;
         #ifdef PARALLAX_ENABLED
-			colorMap = textureAF(gtexture, texcoord) * glcolor;
+			colorMap = textureAF(gtexture, texcoord);
         #else
-			colorMap = texture(gtexture, texcoord) * glcolor;
+			colorMap = texture(gtexture, texcoord);
         #endif
 
         if (colorMap.a < 0.98) discard;
         colorMap.a = 1.0;
+
+        colorMap.rgb *= glcolor.rgb;
+
+        #if !defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE
+            colorMap.rgb *= glcolor.a;
+        #endif
 
 		vec4 normalMap = vec4(viewNormal, 1.0);
 		vec4 specularMap = vec4(0.0, 0.02, 0.0, 0.9);

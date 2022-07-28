@@ -75,8 +75,8 @@
 
 
     void main() {
-        vec4 colorMap = texture(gtexture, texcoord) * glcolor;
-        colorMap.rgb = RGBToLinear(colorMap.rgb);
+        vec4 colorMap = texture(gtexture, texcoord);
+        colorMap.rgb = RGBToLinear(colorMap.rgb * glcolor.rgb);
 
         vec2 skyLightLevels = GetSkyLightLevels();
         float darkness = 1.0 - 0.65 * rainStrength;

@@ -4,8 +4,10 @@
 
 #ifdef RENDER_FRAG
     void BasicLighting(const in mat2 dFdXY, out vec4 colorMap, out float shadow) {
-        colorMap = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]) * glcolor;
+        colorMap = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]);
         if (colorMap.a < alphaTestRef) discard;
+
+        colorMap.rgb *= glcolor.rgb;
 
         const float minSkylightThreshold = 1.0 / 32.0 + EPSILON;
         shadow = step(minSkylightThreshold, lmcoord.y);
@@ -33,6 +35,10 @@
                     // #endif
                 }
             #endif
+        #endif
+
+        #if !defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE
+            shadow = glcolor.a;
         #endif
         
         colorMap.a = 1.0;

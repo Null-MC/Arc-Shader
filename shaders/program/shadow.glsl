@@ -294,7 +294,8 @@ const bool shadowHardwareFiltering1 = true;
         vec4 sampleColor = vec4(0.0);
 
         #if defined RSM_ENABLED || defined SHADOW_COLOR
-            sampleColor = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]) * glcolor;
+            sampleColor = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]);
+            sampleColor.rgb *= glcolor.rgb;
 
             vec4 lightColor = sampleColor;
             if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
@@ -307,7 +308,8 @@ const bool shadowHardwareFiltering1 = true;
 
             outColor0 = lightColor;
         #else
-            sampleColor.a = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]).a * glcolor.a;
+            sampleColor.a = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]).a;
+            //sampleColor.a *= glcolor.a;
         #endif
 
         if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {

@@ -150,7 +150,8 @@
         float sssF_Out = F_schlick(NoLm, 1.0, sssF90);
 
         // TODO: modified this to prevent NaN's!
-        return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (min(1.0 / max(NoVm + NoLm, 0.0001), 1.0) - 0.5) + 0.5) * abs(NoL);
+        //return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (1.0 / (NoVm + NoLm) - 0.5) + 0.5) * abs(NoL);
+        return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (min(1.0 / max(NoVm + NoLm, 0.0001), 1.0) - 0.5) + 0.5);// * abs(NoL);
         //return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (rcp(1.0 + (NoV + NoL)) - 0.5) + 0.5);
     }
 
@@ -244,8 +245,8 @@
             vec3 skyLumen = GetVanillaSkyLuminance(reflectDir);
             vec3 skyScatter = GetVanillaSkyScattering(reflectDir, sunColor, moonColor);
 
-            //return (skyLumen + skyScatter) * reflectF;
-            return skyLumen * reflectF;
+            return (skyLumen + skyScatter) * reflectF;
+            //return skyLumen * reflectF;
         }
     #endif
 
@@ -496,7 +497,7 @@
 
                     float verticalDepth = waterDepth * max(dot(viewLightDir, upDir), 0.0);
                     vec3 absorption = exp(extinctionInv * -(waterDepth + verticalDepth));
-                    float scatterAmount = exp(0.1 * -waterDepth);
+                    float scatterAmount = exp(0.01 * -waterDepth);
 
                     //diffuse = (diffuse + scatterColor * scatterAmount);// * absorption;
                     diffuse = scatterColor * scatterAmount + absorption;
@@ -575,7 +576,8 @@
 
                 //vec3 scatterColor = material.albedo.rgb * skyLightColorFinal;// * shadowFinal;
                 //float skyLight5 = pow5(skyLight);
-                vec3 scatterColor = vec3(0.0178, 0.0566, 0.0754) * skyLight;// * shadowFinal;
+                float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
+                vec3 scatterColor = vec3(0.0178, 0.0566, 0.0754) * skyLight * pow3(eyeLight);// * shadowFinal;
                 vec3 extinctionInv = 1.0 - WaterAbsorbtionExtinction;
 
                 //float verticalDepth = waterDepthFinal * max(dot(viewLightDir, upDir), 0.0);
@@ -591,6 +593,8 @@
         #endif
 
         if (isEyeInWater == 1) {
+            float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
+
             #ifdef SKY_ENABLED
                 // TODO: Get this outa here (vertex shader)
                 vec2 skyLightLevels = GetSkyLightLevels();
@@ -602,7 +606,7 @@
             // apply water fog
             float waterFogEnd = min(40.0, fogEnd);
             float waterFogF = GetFogFactor(viewDist, near, waterFogEnd, 0.5);
-            vec3 waterFogColor = vec3(0.0178, 0.0566, 0.0754) * skyLightLuxColor;
+            vec3 waterFogColor = vec3(0.0178, 0.0566, 0.0754) * skyLightLuxColor * (0.02 + 0.98*eyeLight);
             final.rgb = mix(final.rgb, waterFogColor, waterFogF);
         }
         else {

@@ -133,8 +133,9 @@
         lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
         glcolor = gl_Color;
 
-        if (mc_Entity.x == 100.0) materialId = 1;
-        else materialId = 0;
+        //if (mc_Entity.x == 100.0) materialId = 1;
+        //else materialId = 0;
+        materialId = 0;
 
         BasicVertex(viewPos);
         PbrVertex(viewPos);
@@ -321,8 +322,12 @@
         uniform sampler2D BUFFER_HDR_PREVIOUS;
         uniform sampler2D depthtex1;
 
+        uniform vec3 cameraPosition;
+        uniform vec3 previousCameraPosition;
         uniform mat4 gbufferProjection;
         uniform mat4 gbufferProjectionInverse;
+        uniform mat4 gbufferPreviousModelView;
+        uniform mat4 gbufferPreviousProjection;
 
         #include "/lib/ssr.glsl"
     #endif

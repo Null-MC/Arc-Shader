@@ -58,7 +58,7 @@ const bool colortex11Clear = false;
 #define WATER_WAVE_TYPE 1 // [0 1 2]
 #define WATER_SCALE 16.0
 #define WATER_RADIUS 32
-#define WATER_OCTAVES_NEAR 32
+#define WATER_OCTAVES_NEAR 24
 #define WATER_OCTAVES_FAR 16
 #define WATER_OCTAVES_VERTEX 4
 #define WATER_PARALLAX_DEPTH 0.02
@@ -108,7 +108,7 @@ const bool colortex11Clear = false;
 #define SSS_FILTER 2 // [0 2]
 #define SSS_PCF_SIZE 0.4 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
-#define REFLECTION_MODE 1 // [0 1 2]
+#define REFLECTION_MODE 2 // [0 1 2]
 
 
 // Material Parallax Options
@@ -189,7 +189,7 @@ const float DaySkyOvercastLumen = 420.0;
 const float NightSkyLumen = 1200.0;
 const float NightSkyOvercastLumen = 60.0;
 
-const vec3 WaterAbsorbtionExtinction = vec3(0.16, 0.30, 0.45); //0.54, 0.91, 0.93
+const vec3 WaterAbsorbtionExtinction = vec3(0.28, 0.34, 0.42); //0.54, 0.91, 0.93
 
 const vec3 minLight = vec3(0.01);
 const float tile_dist_bias_factor = 0.012288;

@@ -146,7 +146,9 @@
         localPos = gl_Vertex.xyz;
         glcolor = gl_Color;
 
-        if (mc_Entity.x == 100.0) materialId = 1;
+        // water
+        if (mc_Entity.x == 100.0 || mc_Entity.x == 101.0) materialId = 1;
+        // undefined
         else materialId = 0;
 
         BasicVertex(viewPos);

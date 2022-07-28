@@ -10,8 +10,7 @@
             if (albedo.a < alphaTestRef) discard;
         #endif
 
-        albedo *= glcolor;
-        albedo.rgb = RGBToLinear(albedo.rgb);
+        albedo.rgb = RGBToLinear(albedo.rgb * glcolor.rgb);
 
         float blockLight = clamp((lmcoord.x - (0.5/16.0)) / (15.0/16.0), 0.0, 1.0);
         float skyLight = clamp((lmcoord.y - (0.5/16.0)) / (15.0/16.0), 0.0, 1.0);
@@ -64,6 +63,8 @@
                     shadowColorMap = RGBToLinear(shadowColorMap);
                 #endif
             #endif
+        #else
+            shadow = glcolor.a;
         #endif
         
         //vec2 lmCoord = vec2(blockLight, skyLight) * (15.0/16.0) + (0.5/16.0);

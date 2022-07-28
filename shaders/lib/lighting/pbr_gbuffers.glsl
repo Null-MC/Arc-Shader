@@ -28,7 +28,7 @@
             colorMap.a = 1.0;
         #endif
 
-        colorMap *= glcolor;
+        colorMap.rgb *= glcolor.rgb;
 
         #ifdef RENDER_ENTITIES
             //colorMap.rgb *= (1.0 - entityColor.a) + entityColor.rgb * entityColor.a;
@@ -168,6 +168,10 @@
                     }
                 #endif
             #endif
+        #endif
+
+        #if !defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE
+            shadow = glcolor.a;
         #endif
         
         vec2 lm = lmcoord;

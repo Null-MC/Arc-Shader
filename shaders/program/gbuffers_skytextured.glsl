@@ -82,8 +82,8 @@
 
 
     void main() {
-        outColor0 = textureLod(gtexture, texcoord, 0) * glcolor;
-        outColor0.rgb = RGBToLinear(outColor0.rgb);
+        outColor0 = textureLod(gtexture, texcoord, 0);
+        outColor0.rgb = RGBToLinear(outColor0.rgb * glcolor.rgb);
 
         if (renderStage == MC_RENDER_STAGE_SUN) {
             outColor0.rgb *= sunLightLum;

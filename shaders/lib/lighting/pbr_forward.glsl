@@ -117,7 +117,8 @@
                     atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, viewDist, texDepth, traceCoordDepth);
             #endif
 
-            vec4 colorMap = textureGrad(gtexture, atlasCoord, dFdXY[0], dFdXY[1]) * glcolor;
+            vec4 colorMap = textureGrad(gtexture, atlasCoord, dFdXY[0], dFdXY[1]);
+            colorMap.rgb *= glcolor.rgb;
 
             #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
                 vec4 specularMap = textureGrad(specular, atlasCoord, dFdXY[0], dFdXY[1]);
@@ -240,6 +241,8 @@
                     #endif
                 }
             #endif
+        #else
+            shadow = glcolor.a;
         #endif
 
         material.normal = material.normal * matTBN;
