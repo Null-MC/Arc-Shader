@@ -80,6 +80,10 @@
     uniform vec3 skyColor;
     uniform int moonPhase;
 
+    #ifdef IS_OPTIFINE
+        uniform float eyeHumidity;
+    #endif
+
     #include "/lib/world/scattering.glsl"
 
     #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FANCY

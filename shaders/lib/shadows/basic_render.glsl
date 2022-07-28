@@ -210,6 +210,9 @@
                             //light++;
                             sampleHit++;
                         }
+                        else {
+                            light++;
+                        }
                     }
 
                     return light / max(sampleHit, 1.0);

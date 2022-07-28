@@ -62,6 +62,10 @@
     uniform vec3 skyColor;
     uniform int moonPhase;
 
+    #ifdef IS_OPTIFINE
+        uniform float eyeHumidity;
+    #endif
+
     /* RENDERTARGETS: 4,6 */
     out vec4 outColor0;
 

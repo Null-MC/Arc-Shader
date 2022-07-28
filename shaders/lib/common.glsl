@@ -75,6 +75,7 @@ const bool colortex11Clear = false;
 #define HCM_AMBIENT 0.16
 #define WEATHER_OPACITY 40 // [10 20 30 40 50 60 70 80 90 100]
 #define G_SCATTERING_CLEAR 0.96
+#define G_SCATTERING_HUMID 0.84
 #define G_SCATTERING_RAIN 0.25
 
 

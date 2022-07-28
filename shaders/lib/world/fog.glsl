@@ -19,9 +19,15 @@ float GetCaveFogFactor(const in float viewDist) {
         const float rainFogStrength = 0.8;
 
         float density = mix(nightFogDensity, dayFogDensity, sunLightLevel);
-        density = mix(density, rainFogDensity, rainStrength);
-
         float strength = mix(nightFogStrength, dayFogStrength, sunLightLevel);
+
+        #ifdef IS_OPTIFINE
+            //density = mix(density, rainFogDensity, rainStrength);
+            density = max(density - 0.2 * eyeHumidity, 0.0);
+            strength = min(strength + 0.4 * eyeHumidity, 1.0);
+        #endif
+
+        density = mix(density, rainFogDensity, rainStrength);
         strength = mix(strength, rainFogStrength, rainStrength);
 
         return GetFogFactor(viewDist, 0.0, fogEnd, density) * strength;
@@ -40,16 +46,16 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
         vec3 atmosphereColor = GetVanillaSkyLuminance(viewDir);
 
         // #ifndef VL_ENABLED
-        //     float G_scattering = mix(G_SCATTERING_CLEAR, G_SCATTERING_RAIN, rainStrength);
+        //     float scattering = GetScatteringFactor();
 
         //     vec3 sunDir = normalize(sunPosition);
         //     float sun_VoL = dot(viewDir, sunDir);
-        //     float sunScattering = ComputeVolumetricScattering(sun_VoL, G_scattering);
+        //     float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering);
         //     atmosphereColor += sunScattering * sunColor;
 
         //     vec3 moonDir = normalize(moonPosition);
         //     float moon_VoL = dot(viewDir, moonDir);
-        //     float moonScattering = ComputeVolumetricScattering(moon_VoL, G_scattering);
+        //     float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering);
         //     atmosphereColor += moonScattering * moonColor;
         // #endif
     #else

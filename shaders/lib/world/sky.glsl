@@ -150,15 +150,15 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
     }
 
     vec3 GetVanillaSkyScattering(const in vec3 viewDir, const in vec3 sunColor, const in vec3 moonColor) {
-        float G_scattering = mix(G_SCATTERING_CLEAR, G_SCATTERING_RAIN, rainStrength);
+        float scattering = GetScatteringFactor();
 
         vec3 sunDir = normalize(sunPosition);
         float sun_VoL = dot(viewDir, sunDir);
-        float sunScattering = ComputeVolumetricScattering(sun_VoL, G_scattering);
+        float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering);
 
         vec3 moonDir = normalize(moonPosition);
         float moon_VoL = dot(viewDir, moonDir);
-        float moonScattering = ComputeVolumetricScattering(moon_VoL, G_scattering);
+        float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering);
 
         return sunScattering * sunColor + moonScattering * moonColor;
     }

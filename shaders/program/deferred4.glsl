@@ -145,6 +145,10 @@
         uniform float darknessFactor;
     #endif
 
+    #ifdef IS_OPTIFINE
+        uniform float eyeHumidity;
+    #endif
+
     #include "/lib/depth.glsl"
     #include "/lib/sampling/linear.glsl"
     #include "/lib/world/scattering.glsl"

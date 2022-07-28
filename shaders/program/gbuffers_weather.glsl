@@ -163,6 +163,10 @@
         uniform float darknessFactor;
     #endif
 
+    #ifdef IS_OPTIFINE
+        uniform float eyeHumidity;
+    #endif
+
     #ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;
 
