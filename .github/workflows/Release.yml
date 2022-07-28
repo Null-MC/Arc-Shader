@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version number.'
+        description: 'Release Version'
         required: true
 
 jobs:
@@ -43,8 +43,8 @@ jobs:
           display_name: Arc v${{ github.event.inputs.version }}
           file_path: Arc_v${{ github.event.inputs.version }}.zip
           changelog: "###Release ${{ github.event.inputs.version }}"
-          release_type: beta
-          project_id: 648063
-          game_endpoint: minecraft
-          game_versions: "9008,8857,8830,8516,8203,8152,8134,8056,8010,7892,7890,7675,7664,7469,7413,7361,7344,7318,7132,7107,7081"
+          game_versions: "9259,9186,9008,8857,8830,8516,8203,8152,8134,8056,8010,7892,7890"
           token: ${{ secrets.CF_API_TOKEN }}
+          game_endpoint: minecraft
+          project_id: 648063
+          release_type: beta

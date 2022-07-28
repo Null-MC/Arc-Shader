@@ -96,6 +96,18 @@
             #ifdef SHADOW_ENABLED
                 vec3 lightDir = normalize(shadowLightPosition);
                 geoNoL = dot(lightDir, viewNormal);
+            #elif defined SKY_ENABLED
+                vec3 upDir = normalize(upPosition);
+                vec3 sunLightDir = normalize(sunPosition);
+                vec3 moonLightDir = normalize(moonPosition);
+                float sunNoL = dot(sunLightDir, upDir);
+                float moonNoL = dot(moonLightDir, upDir);
+
+                vec3 lightDir;
+                if (sunNoL > moonNoL) lightDir = sunLightDir;
+                else lightDir = moonLightDir;
+
+                geoNoL = dot(lightDir, viewNormal);
             #else
                 geoNoL = 1.0;
             #endif

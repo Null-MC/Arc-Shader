@@ -58,7 +58,7 @@ const bool colortex11Clear = false;
 #define WATER_WAVE_TYPE 1 // [0 1 2]
 #define WATER_SCALE 16.0
 #define WATER_RADIUS 32
-#define WATER_OCTAVES_NEAR 24
+#define WATER_OCTAVES_NEAR 48
 #define WATER_OCTAVES_FAR 16
 #define WATER_OCTAVES_VERTEX 4
 #define WATER_PARALLAX_DEPTH 0.02
@@ -239,7 +239,7 @@ const float invPI = 1.0 / PI;
 
 #if !defined SHADOW_ENABLED || SHADOW_TYPE == 0
     #undef RSM_ENABLED
-    #undef SSS_ENABLED
+    //#undef SSS_ENABLED
     #undef VL_ENABLED
 #endif
 

@@ -214,7 +214,8 @@
     uniform sampler2D lightmap;
     uniform sampler2D colortex10;
 
-    uniform mat4 shadowProjection;
+    //uniform mat4 shadowProjection;
+    uniform mat4 gbufferModelViewInverse;
     uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
     uniform float viewWidth;
@@ -237,6 +238,7 @@
     #endif
 
     #ifdef SHADOW_ENABLED
+        uniform mat4 shadowProjection;
         uniform vec3 shadowLightPosition;
 
         #if SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -287,7 +289,7 @@
     #include "/lib/lighting/blackbody.glsl"
 
     #if defined SKY_ENABLED && defined VL_ENABLED
-        uniform mat4 gbufferModelViewInverse;
+        //uniform mat4 gbufferModelViewInverse;
         uniform mat4 shadowModelView;
         //uniform mat4 shadowProjection;
 
@@ -322,12 +324,13 @@
         uniform sampler2D BUFFER_HDR_PREVIOUS;
         uniform sampler2D depthtex1;
 
-        uniform vec3 cameraPosition;
-        uniform vec3 previousCameraPosition;
+        //uniform mat4 gbufferModelViewInverse;
         uniform mat4 gbufferProjection;
         uniform mat4 gbufferProjectionInverse;
         uniform mat4 gbufferPreviousModelView;
         uniform mat4 gbufferPreviousProjection;
+        uniform vec3 previousCameraPosition;
+        uniform vec3 cameraPosition;
 
         #include "/lib/ssr.glsl"
     #endif

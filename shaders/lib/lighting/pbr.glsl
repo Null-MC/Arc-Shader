@@ -280,7 +280,7 @@
         float blockLight = saturate((lmValue.x - (0.5/16.0)) / (15.0/16.0));
         float skyLight = saturate((lmValue.y - (0.5/16.0)) / (15.0/16.0));
 
-        #ifdef SHADOW_ENABLED
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             // Increase skylight when in direct sunlight
             skyLight = max(skyLight, shadow);
         #endif
@@ -302,7 +302,7 @@
 
                 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
                     vec4 roughReflectColor = GetReflectColor(depthtex1, viewPos, reflectDir, rough);
-                    reflectColor = roughReflectColor.rgb * roughReflectColor.a / exposure;
+                    reflectColor = (roughReflectColor.rgb / exposure);// * roughReflectColor.a;
 
                     #ifdef SKY_ENABLED
                         if (roughReflectColor.a + EPSILON < 1.0) {
@@ -317,6 +317,7 @@
             }
         #endif
 
+        reflectColor *= 3.0;
         //return vec4(reflectColor, 1.0);
 
         #if defined SKY_ENABLED && defined RSM_ENABLED && defined RENDER_DEFERRED
@@ -347,23 +348,20 @@
         vec4 final = material.albedo;
 
         vec3 iblSpec = vec3(0.0);
-        #ifdef SHADOW_ENABLED
-            //vec3 iblF = vec3(0.0);
-            #if REFLECTION_MODE != REFLECTION_MODE_NONE
-                if (any(greaterThan(reflectColor, vec3(EPSILON)))) {
-                    vec2 envBRDF = textureLod(BUFFER_BRDF_LUT, vec2(NoVm, material.smoothness), 0).rg;
-                    envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
+        #if REFLECTION_MODE != REFLECTION_MODE_NONE
+            if (any(greaterThan(reflectColor, vec3(EPSILON)))) {
+                vec2 envBRDF = textureLod(BUFFER_BRDF_LUT, vec2(NoVm, material.smoothness), 0).rg;
+                envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
 
-                    vec3 iblF = GetFresnel(material, NoVm, roughL);
-                    iblSpec = reflectColor * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
+                vec3 iblF = GetFresnel(material, NoVm, roughL);
+                iblSpec = reflectColor * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
 
-                    float Fmax = max(max(iblF.x, iblF.y), iblF.z);
-                    final.a += Fmax * max(1.0 - final.a, 0.0);
-                }
-            #endif
+                float Fmax = max(max(iblF.x, iblF.y), iblF.z);
+                final.a += Fmax * max(1.0 - final.a, 0.0);
+            }
+        #endif
 
-            //specFmax = max(specFmax, sunF);
-
+        #ifdef SKY_ENABLED
             float shadowBrightness = mix(0.5 * skyLight3, 0.95 * skyLight, rainStrength); // SHADOW_BRIGHTNESS
             vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * shadowBrightness;
             ambient += skyAmbient;

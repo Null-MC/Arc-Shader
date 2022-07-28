@@ -99,8 +99,12 @@
         #endif
 
         float lightSSS = 0.0;
-
         shadowColorMap = vec3(1.0);
+
+        #ifdef SSS_ENABLED
+            float materialSSS = GetLabPbr_SSS(specularMap.b);
+        #endif
+
         #ifdef SHADOW_ENABLED
             vec3 tanLightDir = normalize(tanLightPos);
             float NoL = dot(normal, tanLightDir);
@@ -148,7 +152,6 @@
                 #endif
 
                 #ifdef SSS_ENABLED
-                    float materialSSS = GetLabPbr_SSS(specularMap.b);
                     if (materialSSS > EPSILON) {
                         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                             lightSSS = GetShadowSSS(_shadowPos);
@@ -170,11 +173,17 @@
             #endif
         #endif
 
+        vec2 lm = lmcoord;
+
         #if !defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE
             shadow = glcolor.a;
+
+            // #ifdef SSS_ENABLED
+            //     float skyLight = saturate((lm.y - (0.5/16.0)) / (15.0/16.0));
+            //     lightSSS = skyLight * materialSSS;
+            // #endif
         #endif
         
-        vec2 lm = lmcoord;
         #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
             vec3 texViewNormal = normalize(normal.xyz * matTBN);
             ApplyDirectionalLightmap(lm.x, texViewNormal);

@@ -33,7 +33,7 @@ float GetWaves(inout vec2 position, const in float waveSpeed, const in int itera
 
         weight = mix(weight, 0.0, 0.2);
 
-        iter += 0.1*i;//12.0;
+        iter += 0.9*i;//12.0;
         phase *= 1.18;
         speed *= 1.07;
     }
