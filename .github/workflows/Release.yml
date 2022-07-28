@@ -8,7 +8,7 @@ on:
 
 jobs:
   release:
-    name: Prepare Release
+    name: Release
     runs-on: ubuntu-latest
     outputs:
       release_id: ${{ steps.create_release.outputs.id }}
@@ -17,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Zip Content
-        run: zip -r "Arc_v${{ github.event.inputs.version }}.zip" . -x ".git/*" ".github/*"
+        run: zip -r "Arc_v${{ github.event.inputs.version }}.zip" . -x ".git/*" ".github/*" "shaders/info/*"
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -26,6 +26,7 @@ jobs:
         with:
           tag_name: v${{ github.event.inputs.version }}
           release_name: Release ${{ github.event.inputs.version }}
+          prerelease: true
           draft: true
       - name: Upload Release Artifact
         uses: actions/upload-release-asset@v1
