@@ -3,7 +3,7 @@
 // until my SSR implementation is working.
 
 // returns: rgb=color  a=attenuation
-vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const in vec3 reflectDir, const in float roughness) {
+vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const in vec3 reflectDir, const in int lod) {
     const float maxf = 5.0;
     const float stp = 0.2;
     const float ref = 0.5;
@@ -47,7 +47,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
 
     vec3 color = vec3(0.0);
     if (alpha > 0.5) {
-        color = textureLod(BUFFER_HDR_PREVIOUS, traceUV.xy, 0).rgb;
+        color = textureLod(BUFFER_HDR_PREVIOUS, traceUV.xy, lod).rgb;
     }
 
     return vec4(color, alpha);

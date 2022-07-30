@@ -308,7 +308,11 @@
                 vec3 reflectDir = reflect(-viewDir, viewNormal);
 
                 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-                    vec4 roughReflectColor = GetReflectColor(depthtex1, viewPos, reflectDir, rough);
+                    // TODO: move to vertex shader!
+                    int maxHdrPrevLod = textureQueryLevels(BUFFER_HDR_PREVIOUS);
+
+                    int lod = int(rough * maxHdrPrevLod);
+                    vec4 roughReflectColor = GetReflectColor(depthtex1, viewPos, reflectDir, lod);
                     reflectColor = (roughReflectColor.rgb / exposure) * roughReflectColor.a;
 
                     #ifdef SKY_ENABLED
@@ -356,10 +360,13 @@
         vec3 iblSpec = vec3(0.0);
         #if REFLECTION_MODE != REFLECTION_MODE_NONE
             if (any(greaterThan(reflectColor, vec3(EPSILON)))) {
-                vec2 envBRDF = textureLod(BUFFER_BRDF_LUT, vec2(NoVm, material.smoothness), 0).rg;
-                //envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
+                vec2 envBRDF = textureLod(BUFFER_BRDF_LUT, vec2(NoVm, rough), 0).rg;
 
-                vec3 iblF = GetFresnel(material, NoVm, roughL);
+                #ifndef IS_OPTIFINE
+                    //envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
+                #endif
+
+                vec3 iblF = GetFresnel(material, NoVm, rough);
                 iblSpec = reflectColor * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
 
                 float Fmax = max(max(iblF.x, iblF.y), iblF.z);
