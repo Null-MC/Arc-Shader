@@ -4,10 +4,10 @@
 
 // returns: rgb=color  a=attenuation
 vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const in vec3 reflectDir, const in int lod) {
-    const float maxf = 5.0;
-    const float stp = 0.2;
-    const float ref = 0.5;
-    const float inc = 1.5;
+    const float maxf = 4.0;
+    const float stp = 0.1;
+    const float ref = 0.8;
+    const float inc = 1.2;
 
     vec3 vector = stp * reflectDir;
     vec3 traceVector = vector;
@@ -47,6 +47,10 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
 
     vec3 color = vec3(0.0);
     if (alpha > 0.5) {
+        #ifndef IS_OPTIFINE
+            traceUV.xy *= 0.5;
+        #endif
+
         color = textureLod(BUFFER_HDR_PREVIOUS, traceUV.xy, lod).rgb;
     }
 

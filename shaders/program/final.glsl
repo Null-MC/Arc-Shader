@@ -303,7 +303,11 @@
                 if (texcoord.x >= 0.5) lod = luminanceLod-2;
             #endif
 
-            float logLum = textureLod(BUFFER_HDR_PREVIOUS, texcoord, lod).a;
+            vec2 tex = texcoord;
+            #ifndef IS_OPTIFINE
+                tex *= 0.5;
+            #endif
+            float logLum = textureLod(BUFFER_HDR_PREVIOUS, tex, lod).a;
             color = vec3(exp2(logLum) - EPSILON) * 1e-5;
 
             #if defined DEBUG_EXPOSURE_METERS && CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL

@@ -56,11 +56,14 @@ float GetAverageLuminance() {
         int luminanceLod = GetLuminanceLod()-2;
 
         float averageLuminance = 0.0;
-        ivec2 size = ivec2(ceil(vec2(viewWidth, viewHeight) / exp2(luminanceLod)));
-        size = min(size, ivec2(12, 8));
+        vec2 viewSize = vec2(viewWidth, viewHeight);
+        vec2 texSize = 0.5 * viewSize;
 
-        for (int y = 0; y < size.y; y++) {
-            for (int x = 0; x < size.x; x++) {
+        ivec2 lodSize = ivec2(ceil(texSize / exp2(luminanceLod)));
+        lodSize = min(lodSize, ivec2(12, 8));
+
+        for (int y = 0; y < lodSize.y; y++) {
+            for (int x = 0; x < lodSize.x; x++) {
                 float sampleLum = texelFetch(BUFFER_HDR_PREVIOUS, ivec2(x, y), luminanceLod).a;
                 sampleLum = max(exp2(sampleLum) - EPSILON, 0.0);
 
@@ -69,7 +72,7 @@ float GetAverageLuminance() {
             }
         }
 
-        averageLuminance /= size.x*size.y;
+        averageLuminance /= lodSize.x*lodSize.y;
         //averageLuminance = textureLod(BUFFER_HDR_PREVIOUS, vec2(0.5), luminanceLod).a;
         //return exp2(averageLuminance);
         return averageLuminance;

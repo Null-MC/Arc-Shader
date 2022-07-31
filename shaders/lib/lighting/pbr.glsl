@@ -249,10 +249,13 @@
             //reflectF *= 1.0 - pow(NoRm, 0.5);
 
             vec3 skyLumen = GetVanillaSkyLuminance(reflectDir);
-            //vec3 skyScatter = GetVanillaSkyScattering(reflectDir, sunColor, moonColor);
+            vec3 skyScatter = GetVanillaSkyScattering(reflectDir, sunColor, moonColor);
 
-            //return (skyLumen + skyScatter) * reflectF;
-            return skyLumen * reflectF;
+            // TODO: clamp skyScatter?
+            skyScatter = min(skyScatter, 65554.0);
+
+            return (skyLumen + skyScatter) * reflectF;
+            //return skyLumen * reflectF;
         }
     #endif
 
