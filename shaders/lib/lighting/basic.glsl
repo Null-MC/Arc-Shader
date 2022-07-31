@@ -155,6 +155,6 @@
 
         vec3 skyLightLux = RGBToLinear(skyColor); // TODO: multiply by sky lux?
 
-        return 0.1 * (skyLightLux + sunLightLux + moonLightLux);
+        return skyLightLux + sunLightLux + moonLightLux;
     }
 #endif

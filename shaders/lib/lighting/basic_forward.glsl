@@ -23,7 +23,8 @@
 
         vec3 skyAmbient = vec3(pow(skyLight, 5.0));
         #ifdef SKY_ENABLED
-            skyAmbient *= GetSkyAmbientLight(viewNormal);
+            float ambientBrightness = mix(0.36 * skyLight2, 0.95 * skyLight, rainStrength); // SHADOW_BRIGHTNESS
+            skyAmbient *= GetSkyAmbientLight(viewNormal) * ambientBrightness;
         #endif
 
         float blockAmbient = pow(blockLight, 5.0) * BlockLightLux;

@@ -357,6 +357,7 @@
         vec3 specular = vec3(0.0);
         vec4 final = material.albedo;
 
+        vec3 iblF = vec3(0.0);
         vec3 iblSpec = vec3(0.0);
         #if REFLECTION_MODE != REFLECTION_MODE_NONE
             if (any(greaterThan(reflectColor, vec3(EPSILON)))) {
@@ -366,19 +367,20 @@
                     //envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
                 #endif
 
-                vec3 iblF = GetFresnel(material, NoVm, rough);
+                iblF = GetFresnel(material, NoVm, rough);
                 iblSpec = reflectColor * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
+                //iblSpec = reflectColor * mix(envBRDF.xxx, envBRDF.yyy, iblF) * material.occlusion;
 
-                float Fmax = max(max(iblF.x, iblF.y), iblF.z);
-                final.a += Fmax * max(1.0 - final.a, 0.0);
+                float iblFmax = max(max(iblF.x, iblF.y), iblF.z);
+                final.a += iblFmax * max(1.0 - final.a, 0.0);
             }
         #endif
 
         //return vec4(iblSpec, 1.0);
 
         #ifdef SKY_ENABLED
-            float shadowBrightness = mix(0.36 * skyLight2, 0.95 * skyLight, rainStrength); // SHADOW_BRIGHTNESS
-            vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * shadowBrightness;
+            float ambientBrightness = mix(0.36 * skyLight2, 0.95 * skyLight, rainStrength); // SHADOW_BRIGHTNESS
+            vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * ambientBrightness;
             ambient += skyAmbient;
             //return vec4(ambient, 1.0);
 
@@ -561,7 +563,7 @@
 
         //return vec4(diffuse, 1.0);
 
-        final.rgb = final.rgb * (ambient * material.occlusion + emissive)
+        final.rgb = final.rgb * (ambient * max(1.0 - iblF, vec3(0.0)) * material.occlusion + emissive)
             + diffuse * material.albedo.a
             + (specular + iblSpec) * specularTint;
 

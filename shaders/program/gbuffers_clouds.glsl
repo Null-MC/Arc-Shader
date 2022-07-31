@@ -64,6 +64,10 @@
 
     #ifdef IS_OPTIFINE
         uniform float eyeHumidity;
+
+        #if MC_VERSION >= 11700
+            uniform float alphaTestRef;
+        #endif
     #endif
 
     /* RENDERTARGETS: 4,6 */
@@ -81,6 +85,8 @@
     void main() {
         vec4 colorMap = texture(gtexture, texcoord);
         colorMap.rgb = RGBToLinear(colorMap.rgb * glcolor.rgb);
+
+        if (colorMap.a < alphaTestRef) discard;
 
         vec2 skyLightLevels = GetSkyLightLevels();
         float darkness = 1.0 - 0.65 * rainStrength;
