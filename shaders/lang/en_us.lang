@@ -290,6 +290,9 @@ screen.VL_ENABLED.comment=Makes light rays more visible by simulating atmospheri
 
 option.VL_ENABLED=Enabled
 
+option.VL_STRENGTH=Strength
+suffix.VL_STRENGTH=%
+
 option.VL_SAMPLE_COUNT=Samples
 
 

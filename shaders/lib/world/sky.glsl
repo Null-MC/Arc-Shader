@@ -160,6 +160,6 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
         float moon_VoL = dot(viewDir, moonDir);
         float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering);
 
-        return sunScattering * sunColor + moonScattering * moonColor;
+        return (sunScattering * sunColor + moonScattering * moonColor) * (0.01 * VL_STRENGTH);
     }
 #endif

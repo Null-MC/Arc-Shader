@@ -252,7 +252,7 @@
             vec3 skyScatter = GetVanillaSkyScattering(reflectDir, sunColor, moonColor);
 
             // TODO: clamp skyScatter?
-            skyScatter = min(skyScatter, 65554.0);
+            //skyScatter = min(skyScatter, 65554.0);
 
             return (skyLumen + skyScatter) * reflectF;
             //return skyLumen * reflectF;
@@ -320,13 +320,13 @@
 
                     #ifdef SKY_ENABLED
                         if (roughReflectColor.a + EPSILON < 1.0) {
-                            vec3 skyReflectColor = GetSkyReflectionColor(reflectDir, viewNormal) * skyLight;
+                            vec3 skyReflectColor = GetSkyReflectionColor(reflectDir, viewNormal) * skyLight3;
                             reflectColor += skyReflectColor * (1.0 - roughReflectColor.a);
                         }
                     #endif
 
                 #elif REFLECTION_MODE == REFLECTION_MODE_SKY && defined SKY_ENABLED
-                    reflectColor = GetSkyReflectionColor(reflectDir, viewNormal) * skyLight;
+                    reflectColor = GetSkyReflectionColor(reflectDir, viewNormal) * skyLight3;
                 #endif
             }
         #endif
@@ -374,6 +374,8 @@
                 iblSpec = reflectColor * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
                 //iblSpec = reflectColor * mix(envBRDF.xxx, envBRDF.yyy, iblF) * material.occlusion;
 
+                //iblSpec = min(iblSpec, 100000.0);
+
                 float iblFmax = max(max(iblF.x, iblF.y), iblF.z);
                 final.a += iblFmax * max(1.0 - final.a, 0.0);
             }
@@ -416,7 +418,7 @@
 
                 vec3 sunSpec = GetSpecularBRDF(sunF, NoVm, NoLm, NoHm, roughL) * skyLightColorFinal * skyLight2 * shadowFinal;
                 
-                specular += sunSpec * material.albedo.a;
+                specular += sunSpec;// * material.albedo.a;
 
                 final.a = min(final.a + luminance(sunSpec) * exposure, 1.0);
             }
@@ -652,7 +654,7 @@
                 float volScatter = GetVolumetricLighting(shadowViewStart, shadowViewEnd, shadowBias, scattering);
             #endif
 
-            vec3 volLight = volScatter * (sunColor + moonColor);
+            vec3 volLight = volScatter * (sunColor + moonColor) * (0.01 * VL_STRENGTH);
 
             //final.a = min(final.a + luminance(volLight) * exposure, 1.0);
             final.rgb += volLight;
