@@ -154,7 +154,7 @@
 
             #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FAST
                 float VoSun = max(dot(viewDir, sunDir), 0.0);
-                outColor1 += pow(max(VoSun - 0.99, 0.0) * 100.0, 0.5) * sunLumen;
+                outColor1 += pow(max(VoSun - 0.998, 0.0) * rcp(0.998), 0.5) * sunLumen;
             #endif
         #endif
 

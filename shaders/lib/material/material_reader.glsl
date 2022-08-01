@@ -30,16 +30,17 @@ float GetLabPbr_Emission(const in float specularA) {
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
             material.f0 = GetLabPbr_F0(specularMap.g);
             material.hcm = GetLabPbr_HCM(specularMap.g);
-            material.occlusion = normalMap.z;
+            material.occlusion = normalMap.a;
+            material.porosity = GetLabPbr_Porosity(specularMap.b);
         #else
             material.occlusion = 1.0;
             material.f0 = specularMap.g;
             material.hcm = -1;
+            material.porosity = 1.0 - specularMap.g;
         #endif
 
-        material.normal = RestoreNormalZ(normalMap.xy);
+        material.normal = normalize(normalMap.xyz * 2.0 - 1.0);
         material.smoothness = specularMap.r;
-        material.porosity = GetLabPbr_Porosity(specularMap.b);
         material.scattering = GetLabPbr_SSS(specularMap.b);
         material.emission = GetLabPbr_Emission(specularMap.a);
     }
@@ -74,6 +75,7 @@ float GetLabPbr_Emission(const in float specularA) {
             material.f0 = specularMap.g;
             //material.hcm = specularMap.g >= 0.5 ? 15 : -1;
             material.smoothness = specularMap.r;
+            material.porosity = 1.0 - specularMap.g;
             material.occlusion = 1.0;
             material.hcm = -1;
         #elif MATERIAL_FORMAT == MATERIAL_FORMAT_PATRIX
@@ -88,6 +90,7 @@ float GetLabPbr_Emission(const in float specularA) {
             material.emission = GetLabPbr_Emission(specularMap.a);
             material.f0 = specularMap.g;
             //material.hcm = specularMap.g >= 0.5 ? 15 : -1;
+            material.porosity = 1.0 - specularMap.g;
             material.occlusion = 1.0;
             //material.f0 = 0.04;
             material.hcm = -1;

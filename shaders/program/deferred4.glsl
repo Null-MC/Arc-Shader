@@ -86,6 +86,7 @@
     uniform sampler2D lightmap;
     uniform sampler2D depthtex0;
     uniform sampler2D depthtex1;
+    uniform sampler2D noisetex;
 
     #if defined SHADOW_ENABLED && defined SHADOW_COLOR
         uniform sampler2D BUFFER_DEFERRED2;
@@ -119,6 +120,7 @@
     uniform mat4 gbufferModelView;
     uniform float viewWidth;
     uniform float viewHeight;
+    uniform vec3 upPosition;
     uniform float near;
     uniform float far;
     
@@ -126,16 +128,18 @@
     uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
 
-    uniform float rainStrength;
-    uniform vec3 sunPosition;
-    uniform vec3 moonPosition;
-    uniform vec3 upPosition;
-    uniform vec3 skyColor;
-    uniform int moonPhase;
-
     uniform vec3 fogColor;
     uniform float fogStart;
     uniform float fogEnd;
+
+    #ifdef SKY_ENABLED
+        uniform vec3 skyColor;
+        uniform float rainStrength;
+        uniform float wetness;
+        uniform vec3 sunPosition;
+        uniform vec3 moonPosition;
+        uniform int moonPhase;
+    #endif
 
     #ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;
@@ -183,6 +187,7 @@
 
     #include "/lib/world/sky.glsl"
     #include "/lib/world/fog.glsl"
+    #include "/lib/world/porosity.glsl"
     #include "/lib/material/hcm.glsl"
     #include "/lib/material/material.glsl"
     #include "/lib/material/material_reader.glsl"
@@ -237,7 +242,8 @@
                 shadowColorMap = texelFetch(BUFFER_DEFERRED2, iTex, 0).rgb;
             #endif
 
-            vec3 clipPos = vec3(texcoord, screenDepth) * 2.0 - 1.0;
+            vec2 viewSize = vec2(viewWidth, viewHeight);
+            vec3 clipPos = vec3(gl_FragCoord.xy / viewSize, screenDepth) * 2.0 - 1.0;
             vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
 
             PbrMaterial material;
@@ -249,7 +255,7 @@
                 outColor1 = log2(luminance(color) + EPSILON);
             #endif
 
-            color = clamp(color * exposure, vec3(0.0), vec3(1000.0));
+            color = clamp(color * exposure, vec3(0.0), vec3(65554.0));
         }
 
         outColor0 = vec4(color, 1.0);

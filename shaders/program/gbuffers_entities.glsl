@@ -9,8 +9,9 @@
     out vec4 glcolor;
     out vec3 viewPos;
     out vec3 viewNormal;
+    out vec3 viewTangent;
+    flat out float tangentW;
     out float geoNoL;
-    out mat3 matTBN;
     out vec3 tanViewPos;
 
     #ifdef PARALLAX_ENABLED
@@ -98,8 +99,9 @@
     in vec4 glcolor;
     in vec3 viewPos;
     in vec3 viewNormal;
+    in vec3 viewTangent;
+    flat in float tangentW;
     in float geoNoL;
-    in mat3 matTBN;
     in vec3 tanViewPos;
 
     #ifdef PARALLAX_ENABLED
@@ -134,6 +136,11 @@
 
     uniform vec4 entityColor;
     uniform int entityId;
+
+    #ifdef SKY_ENABLED
+        uniform vec3 upPosition;
+        uniform float wetness;
+    #endif
 
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
         uniform float alphaTestRef;
@@ -190,12 +197,14 @@
         #endif
     #endif
     
+    #include "/lib/sampling/linear.glsl"
+    
     #ifdef PARALLAX_ENABLED
         uniform ivec2 atlasSize;
 
-        #ifdef PARALLAX_SMOOTH
-            #include "/lib/sampling/linear.glsl"
-        #endif
+        // #ifdef PARALLAX_SMOOTH
+        //     #include "/lib/sampling/linear.glsl"
+        // #endif
 
         #include "/lib/parallax.glsl"
     #endif

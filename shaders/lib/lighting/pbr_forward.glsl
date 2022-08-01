@@ -39,7 +39,7 @@
                 material.albedo = vec4(vec3(0.0178, 0.0566, 0.0754), 0.06);
                 material.normal = vec3(0.0, 0.0, 1.0);
                 material.occlusion = 1.0;
-                material.smoothness = 0.96;
+                material.smoothness = WATER_SMOOTH;
                 material.scattering = 0.8;
                 material.f0 = 0.02;
                 material.hcm = -1;
@@ -245,7 +245,12 @@
             shadow = glcolor.a;
         #endif
 
-        material.normal = material.normal * matTBN;
+        vec3 _viewNormal = normalize(viewNormal);
+        vec3 _viewTangent = normalize(viewTangent);
+        vec3 _viewBinormal = normalize(cross(_viewTangent, _viewNormal) * tangentW);
+        mat3 matTBN = mat3(_viewTangent, _viewBinormal, _viewNormal);
+        
+        material.normal = matTBN * material.normal;
 
         #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
             ApplyDirectionalLightmap(lm.x, material.normal);

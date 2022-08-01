@@ -93,6 +93,7 @@
     #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_NORMAL
         // Deferred Normal
         uniform usampler2D BUFFER_DEFERRED;
+        uniform mat4 gbufferModelViewInverse;
     #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SPECULAR
         // Deferred Specular
         uniform usampler2D BUFFER_DEFERRED;
@@ -235,8 +236,8 @@
         #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_NORMAL
             // Deferred Normal
             uint deferredDataG = texelFetch(BUFFER_DEFERRED, iuv, 0).g;
-            color.rg = unpackUnorm4x8(deferredDataG).rg;
-            color.b = 0.0;
+            vec3 normal = unpackUnorm4x8(deferredDataG).rgb * 2.0 - 1.0;
+            color = (mat3(gbufferModelViewInverse) * normal) * 0.5 + 0.5;
         #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SPECULAR
             // Deferred Specular
             uint deferredDataB = texelFetch(BUFFER_DEFERRED, iuv, 0).b;
@@ -267,7 +268,7 @@
         #elif DEBUG_VIEW == DEBUG_VIEW_LUMINANCE
             // Luminance
             float logLum = textureLod(BUFFER_LUMINANCE, texcoord, 0).r;
-            color = vec3(exp2(logLum) - EPSILON) * 1e-4;
+            color = vec3(exp2(logLum) - EPSILON) * 1e-5;
 
             #if defined DEBUG_EXPOSURE_METERS && CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
                 RenderLuminanceMeters(color, averageLuminance, EV100);

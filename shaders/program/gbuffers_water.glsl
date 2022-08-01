@@ -11,8 +11,9 @@
     out vec3 viewPos;
     out vec3 localPos;
     out vec3 viewNormal;
+    out vec3 viewTangent;
+    flat out float tangentW;
     out float geoNoL;
-    out mat3 matTBN;
     out vec3 tanViewPos;
     flat out float exposure;
     flat out int materialId;
@@ -175,8 +176,9 @@
     in vec3 viewPos;
     in vec3 localPos;
     in vec3 viewNormal;
+    in vec3 viewTangent;
+    flat in float tangentW;
     in float geoNoL;
-    in mat3 matTBN;
     in vec3 tanViewPos;
     flat in float exposure;
     flat in int materialId;
@@ -202,6 +204,7 @@
         uniform vec3 sunPosition;
         uniform vec3 moonPosition;
         uniform float rainStrength;
+        uniform float wetness;
         uniform int moonPhase;
         uniform vec3 skyColor;
     #endif
@@ -231,6 +234,7 @@
     uniform sampler2D specular;
     uniform sampler2D lightmap;
     uniform sampler2D depthtex1;
+    uniform sampler2D noisetex;
     uniform sampler2D colortex10;
 
     uniform mat4 shadowProjection;
@@ -362,6 +366,7 @@
     #endif
 
     #include "/lib/world/fog.glsl"
+    #include "/lib/world/porosity.glsl"
     #include "/lib/material/hcm.glsl"
     #include "/lib/material/material.glsl"
     #include "/lib/material/material_reader.glsl"

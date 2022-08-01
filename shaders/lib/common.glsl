@@ -166,6 +166,7 @@ const bool colortex11Clear = false;
 
 // INTERNAL
 #define TITLE
+#define WATER_SMOOTH 0.92
 #define IOR_AIR 1.000293
 #define IOR_WATER 1.333
 #define PI 3.1415926538
@@ -173,7 +174,7 @@ const bool colortex11Clear = false;
 #define EPSILON 1e-7
 #define GAMMA 2.2
 
-const float sunLumen = 240000.0;//16000000;
+const float sunLumen = 12e4;//16e6;
 const float moonLumen = 800.0;
 const float StarLumen = 1600.0;
 //const float BlockLightLumen = 2000;
@@ -184,6 +185,8 @@ const float SunOvercastLux = 2400.0;
 const float MoonLux = 10.0;
 const float MoonOvercastLux = 2.0;
 const float BlockLightLux = 9000.0;
+const float DaySkyLux = 20000.0;
+const float NightSkyLux = 1.0;
 const float MinWorldLux = 2.0;
 
 const float DaySkyLumen = 14000.0;
@@ -196,9 +199,11 @@ const vec3 WaterAbsorbtionExtinction = vec3(0.28, 0.34, 0.42); //0.54, 0.91, 0.9
 const vec3 minLight = vec3(0.01);
 const float tile_dist_bias_factor = 0.012288;
 const vec3 handOffset = vec3(0.2, -0.3, -0.2);
-const vec3 luma_factor = vec3(0.2126f, 0.7152f, 0.0722f);
+const vec3 luma_factor = vec3(0.2126, 0.7152, 0.0722);
 const float invPI = 1.0 / PI;
 
+const float wetnessHalflife = 300.0;
+const float drynessHalflife = 10.0;
 
 #if MC_VERSION < 11700 || !defined IS_OPTIFINE
     const float alphaTestRef = 0.1;

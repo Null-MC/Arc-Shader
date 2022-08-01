@@ -10,8 +10,9 @@
     out vec4 glcolor;
     out vec3 viewPos;
     out vec3 viewNormal;
+    out vec3 viewTangent;
+    flat out float tangentW;
     out float geoNoL;
-    out mat3 matTBN;
     out vec3 tanViewPos;
     flat out float exposure;
     flat out int materialId;
@@ -160,8 +161,9 @@
     in vec4 glcolor;
     in vec3 viewPos;
     in vec3 viewNormal;
+    in vec3 viewTangent;
+    flat in float tangentW;
     in float geoNoL;
-    in mat3 matTBN;
     in vec3 tanViewPos;
     flat in float exposure;
     flat in int materialId;
@@ -182,7 +184,6 @@
         flat in vec3 sunColor;
         flat in vec3 moonColor;
 
-        uniform vec3 upPosition;
         uniform vec3 sunPosition;
         uniform vec3 moonPosition;
     #endif
@@ -212,21 +213,19 @@
     uniform sampler2D normals;
     uniform sampler2D specular;
     uniform sampler2D lightmap;
+    uniform sampler2D noisetex;
     uniform sampler2D colortex10;
 
     //uniform mat4 shadowProjection;
     uniform mat4 gbufferModelViewInverse;
     uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
+    uniform vec3 upPosition;
     uniform float viewWidth;
     uniform float viewHeight;
-    
     uniform int isEyeInWater;
-    uniform float rainStrength;
-    uniform int moonPhase;
     uniform float near;
 
-    uniform vec3 skyColor;
     uniform vec3 fogColor;
     uniform float fogStart;
     uniform float fogEnd;
@@ -239,6 +238,13 @@
 
     #ifdef IS_OPTIFINE
         uniform float eyeHumidity;
+    #endif
+
+    #ifdef SKY_ENABLED
+        uniform vec3 skyColor;
+        uniform float rainStrength;
+        uniform float wetness;
+        uniform int moonPhase;
     #endif
 
     #ifdef SHADOW_ENABLED
@@ -320,6 +326,7 @@
     #endif
 
     #include "/lib/world/fog.glsl"
+    #include "/lib/world/porosity.glsl"
     #include "/lib/material/hcm.glsl"
     #include "/lib/material/material.glsl"
     #include "/lib/material/material_reader.glsl"

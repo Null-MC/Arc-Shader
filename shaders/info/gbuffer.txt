@@ -7,8 +7,8 @@ red
 green
 	normal-x
 	normal-y
+	normal-z
 	occlusion
-	<empty>
 
 blue
 	specular-smooth

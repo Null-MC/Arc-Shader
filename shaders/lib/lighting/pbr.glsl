@@ -1,9 +1,11 @@
 #ifdef RENDER_VERTEX
     void PbrVertex(const in vec3 viewPos) {
-        vec3 viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
+        //vec3 viewNormal = normalize(gl_NormalMatrix * gl_Normal);
+        viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
         vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
+        tangentW = at_tangent.w;
 
-        matTBN = mat3(
+        mat3 matTBN = mat3(
             viewTangent.x, viewBinormal.x, viewNormal.x,
             viewTangent.y, viewBinormal.y, viewNormal.y,
             viewTangent.z, viewBinormal.z, viewNormal.z);
@@ -94,30 +96,30 @@
         return rcp(mix(pow2(LoH), 1.0, pow2(alpha) * 0.25));
     }
 
-    vec3 GetFresnel(const in PbrMaterial material, const in float VoH, const in float roughL) {
+    vec3 GetFresnel(const in vec3 albedo, const in float f0, const in float hcm, const in float VoH, const in float roughL) {
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-            if (material.hcm >= 0) {
+            if (hcm >= 0) {
                 vec3 iorN, iorK;
-                GetHCM_IOR(material.albedo.rgb, material.hcm, iorN, iorK);
+                GetHCM_IOR(albedo, hcm, iorN, iorK);
                 return F_conductor(VoH, IOR_AIR, iorN, iorK);
             }
             else {
-                return vec3(SchlickRoughness(material.f0, VoH, roughL));
+                return vec3(SchlickRoughness(f0, VoH, roughL));
             }
         #else
             float dielectric_F = 0.0;
-            if (material.f0 + EPSILON < 1.0)
-                dielectric_F = SchlickRoughness(0.04, VoH, roughL);
+            if (f0 + EPSILON < 1.0)
+                dielectric_F = SchlickRoughness(min(f0, 0.04), VoH, roughL);
 
             vec3 conductor_F = vec3(0.0);
-            if (material.f0 - EPSILON > 0.04) {
-                vec3 iorN = vec3(f0ToIOR(material.albedo.rgb));
-                vec3 iorK = material.albedo.rgb;
+            if (f0 - EPSILON > 0.04) {
+                vec3 iorN = vec3(f0ToIOR(albedo));
+                vec3 iorK = albedo;
 
                 conductor_F = min(F_conductor(VoH, IOR_AIR, iorN, iorK), 1000.0);
             }
 
-            float metalF = saturate((material.f0 - 0.04) * (1.0/0.96));
+            float metalF = saturate((f0 - 0.04) * (1.0/0.96));
             return mix(vec3(dielectric_F), conductor_F, metalF);
         #endif
     }
@@ -161,14 +163,14 @@
         return result;
     }
 
-    vec3 GetDiffuseBSDF(const in PbrMaterial material, const in vec3 diffuse, const in float NoV, const in float NoL, const in float LoH, const in float roughL) {
+    vec3 GetDiffuseBSDF(const in vec3 diffuse, const in vec3 albedo, const in float scattering, const in float NoV, const in float NoL, const in float LoH, const in float roughL) {
         //vec3 diffuse = GetDiffuse_Burley(material.albedo.rgb, NoV, NoL, LoH, roughL);
 
         #ifdef SSS_ENABLED
-            if (material.scattering < EPSILON) return diffuse;
+            if (scattering < EPSILON) return diffuse;
 
-            vec3 subsurface = GetSubsurface(material.albedo.rgb, NoV, NoL, LoH, roughL);
-            return mix(diffuse, subsurface, material.scattering);
+            vec3 subsurface = GetSubsurface(albedo, NoV, NoL, LoH, roughL);
+            return mix(diffuse, subsurface, scattering);
         #else
             return diffuse;
         #endif
@@ -183,7 +185,7 @@
             return pow5(diffuseAtt);
         }
 
-        void ApplyHandLighting(out vec3 diffuse, out vec3 specular, const in PbrMaterial material, const in vec3 viewNormal, const in vec3 viewPos, const in vec3 viewDir, const in float NoVm, const in float roughL) {
+        void ApplyHandLighting(out vec3 diffuse, out vec3 specular, const in vec3 albedo, const in float f0, const in float hcm, const in float scattering, const in vec3 viewNormal, const in vec3 viewPos, const in vec3 viewDir, const in float NoVm, const in float roughL) {
             vec3 lightPos = handOffset - viewPos.xyz;
             vec3 lightDir = normalize(lightPos);
 
@@ -203,9 +205,9 @@
 
             vec3 handLightColor = blockLightColor * attenuation;
 
-            vec3 F = GetFresnel(material, LoHm, roughL);
-            vec3 handDiffuse = GetDiffuse_Burley(material.albedo.rgb, NoVm, NoLm, LoHm, roughL) * max(1.0 - F, 0.0);
-            diffuse = GetDiffuseBSDF(material, handDiffuse, NoVm, NoL, LoHm, roughL) * handLightColor;
+            vec3 F = GetFresnel(albedo, f0, hcm, LoHm, roughL);
+            vec3 handDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * max(1.0 - F, 0.0);
+            diffuse = GetDiffuseBSDF(handDiffuse, albedo, scattering, NoVm, NoL, LoHm, roughL) * handLightColor;
 
             if (NoLm < EPSILON) {
                 specular = vec3(0.0);
@@ -238,7 +240,7 @@
     #endif
 
     #ifdef SKY_ENABLED
-        vec3 GetSkyReflectionColor(const in vec3 reflectDir, const in vec3 viewNormal) {
+        vec3 GetSkyReflectionColor(const in vec3 reflectDir) {
             // darken lower horizon
             vec3 downDir = normalize(-upPosition);
             float RoDm = max(dot(reflectDir, downDir), 0.0);
@@ -262,8 +264,8 @@
     vec4 PbrLighting2(const in PbrMaterial material, const in vec3 shadowColorMap, const in vec2 lmValue, const in float shadow, const in float shadowSSS, const in vec3 viewPos, const in vec2 waterSolidDepth) {
         vec2 viewSize = vec2(viewWidth, viewHeight);
         vec3 viewNormal = normalize(material.normal);
-        vec3 viewDir = -normalize(viewPos.xyz);
-        float viewDist = length(viewPos.xyz);
+        vec3 viewDir = -normalize(viewPos);
+        float viewDist = length(viewPos);
 
         vec2 screenUV = gl_FragCoord.xy / viewSize;
 
@@ -283,11 +285,42 @@
         float NoLm = max(NoL, 0.0);
         float NoVm = max(dot(viewNormal, viewDir), 0.0);
 
-        float rough = 1.0 - material.smoothness;
-        float roughL = max(rough * rough, 0.005);
+        //vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
+        //return vec4(localNormal * 1000.0, 1.0);
 
         float blockLight = saturate((lmValue.x - (1.0/16.0 + EPSILON)) / (15.0/16.0));
         float skyLight = saturate((lmValue.y - (1.0/16.0 + EPSILON)) / (15.0/16.0));
+
+        vec3 viewUpDir = normalize(upPosition);
+        // float wetness_NoU = dot(viewNormal, viewUpDir) * 0.4 + 0.6;
+        // float wetness_skyLight = max((skyLight - (14.0/16.0)) * 16.0, 0.0);
+        // float wetnessFinal = wetness * wetness_skyLight * wetness_NoU;
+        float wetnessFinal = GetDirectionalWetness(viewNormal, skyLight);
+
+        vec3 albedo = material.albedo.rgb;
+        float smoothness = material.smoothness;
+        float f0 = material.f0;
+
+        #ifdef RENDER_WATER
+            if (materialId != 1) {
+        #endif
+            if (wetnessFinal > EPSILON) {
+                vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
+                float noise = textureLod(noisetex, 0.22*localPos.xz, 0).r;
+                wetnessFinal *= noise * 0.2 + 0.8;
+
+                albedo *= GetWetnessDarkening(wetnessFinal, material.porosity);
+
+                float surfaceWetness = GetSurfaceWetness(wetnessFinal, material.porosity);
+                smoothness = mix(smoothness, WATER_SMOOTH, surfaceWetness);
+                f0 = mix(f0, 0.02, surfaceWetness * (1.0 - f0));
+            }
+        #ifdef RENDER_WATER
+            }
+        #endif
+
+        float rough = 1.0 - smoothness;
+        float roughL = max(rough * rough, 0.005);
 
         float shadowFinal = shadow;
         #ifdef LIGHTLEAK_FIX
@@ -307,7 +340,7 @@
         //float reflectF = 0.0;
         vec3 reflectColor = vec3(0.0);
         #if REFLECTION_MODE != REFLECTION_MODE_NONE
-            if (material.smoothness > EPSILON) {
+            if (smoothness > EPSILON) {
                 vec3 reflectDir = reflect(-viewDir, viewNormal);
 
                 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
@@ -320,13 +353,13 @@
 
                     #ifdef SKY_ENABLED
                         if (roughReflectColor.a + EPSILON < 1.0) {
-                            vec3 skyReflectColor = GetSkyReflectionColor(reflectDir, viewNormal) * skyLight3;
+                            vec3 skyReflectColor = GetSkyReflectionColor(reflectDir) * skyLight3;
                             reflectColor += skyReflectColor * (1.0 - roughReflectColor.a);
                         }
                     #endif
 
                 #elif REFLECTION_MODE == REFLECTION_MODE_SKY && defined SKY_ENABLED
-                    reflectColor = GetSkyReflectionColor(reflectDir, viewNormal) * skyLight3;
+                    reflectColor = GetSkyReflectionColor(reflectDir) * skyLight3;
                 #endif
             }
         #endif
@@ -358,7 +391,7 @@
         vec3 ambient = vec3(MinWorldLux + blockLightAmbient);
         vec3 diffuse = vec3(0.0);
         vec3 specular = vec3(0.0);
-        vec4 final = material.albedo;
+        vec4 final = vec4(albedo, material.albedo.a);
 
         vec3 iblF = vec3(0.0);
         vec3 iblSpec = vec3(0.0);
@@ -370,7 +403,7 @@
                     //envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
                 #endif
 
-                iblF = GetFresnel(material, NoVm, rough);
+                iblF = GetFresnel(material.albedo.rgb, f0, material.hcm, NoVm, rough);
                 iblSpec = reflectColor * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
                 //iblSpec = reflectColor * mix(envBRDF.xxx, envBRDF.yyy, iblF) * material.occlusion;
 
@@ -381,6 +414,7 @@
             }
         #endif
 
+        //return vec4(vec3(NoVm * 1000.0), 1.0);
         //return vec4(iblSpec, 1.0);
 
         #ifdef SKY_ENABLED
@@ -408,9 +442,9 @@
             //    diffuseLight += 20.0 * rsmColor * skyLightColorFinal * material.scattering;
             //#endif
 
-            vec3 sunF = GetFresnel(material, LoHm, roughL);
-            vec3 sunDiffuse = GetDiffuse_Burley(material.albedo.rgb, NoVm, NoLm, LoHm, roughL) * max(1.0 - sunF, 0.0);
-            sunDiffuse = GetDiffuseBSDF(material, sunDiffuse, NoVm, NoL, LoHm, roughL) * diffuseLight;
+            vec3 sunF = GetFresnel(material.albedo.rgb, f0, material.hcm, LoHm, roughL);
+            vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * max(1.0 - sunF, 0.0);
+            sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo, material.scattering, NoVm, NoL, LoHm, roughL) * diffuseLight;
             diffuse += sunDiffuse * material.albedo.a;
 
             if (NoLm > EPSILON) {
@@ -425,7 +459,6 @@
         #endif
 
         #if defined RENDER_WATER && !defined WORLD_NETHER
-            vec3 upDir = normalize(upPosition);
             if (materialId == 1) {
                 const float ScatteringCoeff = 0.11;
 
@@ -498,7 +531,7 @@
 
                     vec3 scatterColor = material.albedo.rgb * skyLightColorFinal * skyLight2;// * shadowFinal;
 
-                    float verticalDepth = waterDepthFinal * max(dot(viewLightDir, upDir), 0.0);
+                    float verticalDepth = waterDepthFinal * max(dot(viewLightDir, viewUpDir), 0.0);
                     vec3 absorption = exp(extinctionInv * -(verticalDepth + waterDepthFinal));
                     float inverseScatterAmount = 1.0 - exp(0.06 * -waterDepthFinal);
 
@@ -513,7 +546,7 @@
 
                     vec3 scatterColor = material.albedo.rgb * skyLightColorFinal * skyLight2;// * shadowFinal;
 
-                    float verticalDepth = waterDepth * max(dot(viewLightDir, upDir), 0.0);
+                    float verticalDepth = waterDepth * max(dot(viewLightDir, viewUpDir), 0.0);
                     vec3 absorption = exp(extinctionInv * -(waterDepth + verticalDepth));
                     float scatterAmount = exp(0.01 * -waterDepth);
 
@@ -530,7 +563,7 @@
         #if defined HANDLIGHT_ENABLED && !defined RENDER_HAND && !defined RENDER_HAND_WATER
             if (heldBlockLightValue > EPSILON) {
                 vec3 handDiffuse, handSpecular;
-                ApplyHandLighting(handDiffuse, handSpecular, material, viewNormal, viewPos.xyz, viewDir, NoVm, roughL);
+                ApplyHandLighting(handDiffuse, handSpecular, material.albedo.rgb, f0, material.hcm, material.scattering, viewNormal, viewPos.xyz, viewDir, NoVm, roughL);
 
                 diffuse += handDiffuse;
                 specular += handSpecular;
@@ -598,7 +631,7 @@
                 vec3 scatterColor = vec3(0.0178, 0.0566, 0.0754) * skyLight2 * pow3(eyeLight);// * shadowFinal;
                 vec3 extinctionInv = 1.0 - WaterAbsorbtionExtinction;
 
-                //float verticalDepth = waterDepthFinal * max(dot(viewLightDir, upDir), 0.0);
+                //float verticalDepth = waterDepthFinal * max(dot(viewLightDir, viewUpDir), 0.0);
                 //vec3 absorption = exp(extinctionInv * -(verticalDepth + waterDepthFinal));
                 vec3 absorption = exp(extinctionInv * -viewDepthLinear);
                 float inverseScatterAmount = 1.0 - exp(0.11 * -viewDepthLinear);
@@ -629,12 +662,12 @@
         }
         else {
             #ifdef RENDER_DEFERRED
-                ApplyFog(final.rgb, viewPos.xyz, skyLight);
+                ApplyFog(final.rgb, viewPos, skyLight);
             #elif defined RENDER_GBUFFER
                 #if defined RENDER_WATER || defined RENDER_HAND_WATER
-                    ApplyFog(final, viewPos.xyz, skyLight, EPSILON);
+                    ApplyFog(final, viewPos, skyLight, EPSILON);
                 #else
-                    ApplyFog(final, viewPos.xyz, skyLight, alphaTestRef);
+                    ApplyFog(final, viewPos, skyLight, alphaTestRef);
                 #endif
             #endif
         }
