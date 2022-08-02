@@ -131,11 +131,11 @@ const bool colortex11Clear = false;
 // Camera Options
 #define CAMERA_EXPOSURE_MODE 2 // [0 1 2]
 #define CAMERA_EXPOSURE 0 // [-17 -16 -15 -14 -13 -12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6]
-#define CAMERA_LUM_MIN 20.0
-#define CAMERA_LUM_MAX 20000.0
+#define CAMERA_LUM_MIN 30.0
+#define CAMERA_LUM_MAX 36000.0
 #define EXPOSURE_POINT 0.2
-#define EXPOSURE_SPEED_UP 0.04
-#define EXPOSURE_SPEED_DOWN 0.04
+#define EXPOSURE_SPEED_UP 0.08
+#define EXPOSURE_SPEED_DOWN 0.05
 
 
 // Effect Options
@@ -178,7 +178,7 @@ const float sunLumen = 2e4;//16e6;
 const float moonLumen = 800.0;
 const float StarLumen = 1600.0;
 //const float BlockLightLumen = 2000;
-const float EmissionLumens = 0.5e6;
+const float EmissionLumens = 1.0e6;
 
 const float SunLux = 64000.0;
 const float SunOvercastLux = 2400.0;

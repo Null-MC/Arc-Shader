@@ -266,6 +266,9 @@ option.BLOOM_STRENGTH=Strength
 option.BLOOM_STRENGTH.comment=How strong/visible the effect should be.
 suffix.BLOOM_STRENGTH=%
 
+option.BLOOM_SMOOTH=Smooth
+option.BLOOM_SMOOTH.comment=Makes bloom smoother at a slight performance cost.
+
 
 screen.EFFECT_RSM_OPTIONS=Global Illumination
 screen.EFFECT_RSM_OPTIONS.comment=Reflective Shadow Mapping for Global Illumination.
@@ -327,5 +330,5 @@ value.DEBUG_VIEW.18=Water Waves
 option.DEBUG_EXPOSURE_METERS=Exposure Meters
 option.DEBUG_EXPOSURE_METERS.comment=When enabled, two bars will be shown on the left screen edge. - The average luminance is the first bar in red. - The EV value is the second bar in green.
 
-option.IS_OPTIFINE=Using Optifine?
-option.IS_OPTIFINE.comment=Optifine currently has a bug with the gbuffer matrices in the shadow pass that requires a workaround using the previous-frame matrices. Disable this workaround if you are using Iris.
+option.IS_OPTIFINE=Optifine?
+option.IS_OPTIFINE.comment=Turn this on if you are using Optifine; turn off for Iris.

@@ -403,7 +403,7 @@
                     //envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
                 #endif
 
-                iblF = GetFresnel(material.albedo.rgb, f0, material.hcm, NoVm, rough);
+                iblF = GetFresnel(material.albedo.rgb, f0, material.hcm, NoVm, roughL);
                 iblSpec = reflectColor * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
                 //iblSpec = reflectColor * mix(envBRDF.xxx, envBRDF.yyy, iblF) * material.occlusion;
 
@@ -591,7 +591,7 @@
 
         //ambient += minLight;
 
-        float emissive = pow3(material.emission) * EmissionLumens;
+        float emissive = pow4(material.emission) * EmissionLumens;
 
         // #ifdef RENDER_WATER
         //     //ambient = vec3(0.0);
