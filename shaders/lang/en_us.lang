@@ -1,5 +1,5 @@
-option.TITLE=Arc Shader
-option.TITLE.comment=By NULL
+screen.DEBUG_OPTIONS=Arc Shader
+screen.DEBUG_OPTIONS.comment=By NULL
 
 profile.POTATO=Potato
 profile.POTATO.comment=Potato: For machines with less power than a potato.
@@ -22,6 +22,12 @@ screen.WORLD_OPTIONS=World
 option.BLOCKLIGHT_TEMP=BlockLight Temp
 option.BLOCKLIGHT_TEMP.comment=Adjusts the color of block-lighting in the world based on the kelvin temperature scale.
 suffix.BLOCKLIGHT_TEMP=°k
+
+option.BLOCK_OUTLINE=Block Outline
+value.BLOCK_OUTLINE.0=None
+value.BLOCK_OUTLINE.1=Black
+value.BLOCK_OUTLINE.2=White
+value.BLOCK_OUTLINE.3=Fancy
 
 option.SHADOW_BRIGHTNESS=Ambient Brightness
 option.SHADOW_BRIGHTNESS.comment=Controls how dark shadows are.
@@ -295,14 +301,6 @@ suffix.VL_STRENGTH=%
 
 option.VL_SAMPLE_COUNT=Samples
 
-
-screen.DEBUG_OPTIONS=Debug
-
-option.BLOCK_OUTLINE=Block Outline
-value.BLOCK_OUTLINE.0=None
-value.BLOCK_OUTLINE.1=Black
-value.BLOCK_OUTLINE.2=White
-value.BLOCK_OUTLINE.3=Fancy
 
 option.DEBUG_VIEW=Display
 option.DEBUG_VIEW.comment=Configures which buffer to draw to the screen.

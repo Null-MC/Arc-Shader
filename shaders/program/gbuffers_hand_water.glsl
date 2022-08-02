@@ -220,6 +220,7 @@
     uniform mat4 gbufferModelViewInverse;
     uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
+    uniform vec3 cameraPosition;
     uniform vec3 upPosition;
     uniform float viewWidth;
     uniform float viewHeight;
@@ -341,7 +342,7 @@
         uniform mat4 gbufferPreviousModelView;
         uniform mat4 gbufferPreviousProjection;
         uniform vec3 previousCameraPosition;
-        uniform vec3 cameraPosition;
+        //uniform vec3 cameraPosition;
 
         #include "/lib/ssr.glsl"
     #endif

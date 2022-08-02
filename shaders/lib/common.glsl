@@ -24,7 +24,7 @@ const bool colortex4Clear = false;
 const bool colortex5MipmapEnabled = true;
 const bool colortex5Clear = false;
 
-const bool colortex6MipmapEnabled = false;
+const bool colortex6MipmapEnabled = true;
 const bool colortex6Clear = false;
 
 const bool colortex7MipmapEnabled = false;
@@ -174,17 +174,17 @@ const bool colortex11Clear = false;
 #define EPSILON 1e-7
 #define GAMMA 2.2
 
-const float sunLumen = 12e4;//16e6;
+const float sunLumen = 2e4;//16e6;
 const float moonLumen = 800.0;
 const float StarLumen = 1600.0;
 //const float BlockLightLumen = 2000;
-const float EmissionLumens = 100000.0;
+const float EmissionLumens = 0.5e6;
 
 const float SunLux = 64000.0;
 const float SunOvercastLux = 2400.0;
 const float MoonLux = 10.0;
 const float MoonOvercastLux = 2.0;
-const float BlockLightLux = 9000.0;
+const float BlockLightLux = 4200.0; // 9k
 const float DaySkyLux = 20000.0;
 const float NightSkyLux = 1.0;
 const float MinWorldLux = 2.0;

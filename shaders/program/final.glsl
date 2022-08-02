@@ -293,6 +293,7 @@
         #elif DEBUG_VIEW == DEBUG_VIEW_BLOOM
             // Bloom Tiles
             color = textureLod(BUFFER_BLOOM, texcoord, 0).rgb;
+            color = LinearToRGB(color);
         #elif DEBUG_VIEW == DEBUG_VIEW_PREV_COLOR
             // Previous HDR Color
             color = textureLod(BUFFER_HDR_PREVIOUS, texcoord, 0).rgb;

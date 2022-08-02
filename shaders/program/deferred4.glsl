@@ -106,7 +106,7 @@
         uniform mat4 gbufferPreviousProjection;
         //uniform mat4 gbufferModelViewInverse;
         uniform mat4 gbufferProjection;
-        uniform vec3 cameraPosition;
+        //uniform vec3 cameraPosition;
         uniform vec3 previousCameraPosition;
 
         uniform sampler2D BUFFER_HDR_PREVIOUS;
@@ -120,6 +120,7 @@
     uniform mat4 gbufferModelView;
     uniform float viewWidth;
     uniform float viewHeight;
+    uniform vec3 cameraPosition;
     uniform vec3 upPosition;
     uniform float near;
     uniform float far;

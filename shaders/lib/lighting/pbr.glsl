@@ -96,7 +96,7 @@
         return rcp(mix(pow2(LoH), 1.0, pow2(alpha) * 0.25));
     }
 
-    vec3 GetFresnel(const in vec3 albedo, const in float f0, const in float hcm, const in float VoH, const in float roughL) {
+    vec3 GetFresnel(const in vec3 albedo, const in float f0, const in int hcm, const in float VoH, const in float roughL) {
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
             if (hcm >= 0) {
                 vec3 iorN, iorK;
@@ -185,7 +185,7 @@
             return pow5(diffuseAtt);
         }
 
-        void ApplyHandLighting(out vec3 diffuse, out vec3 specular, const in vec3 albedo, const in float f0, const in float hcm, const in float scattering, const in vec3 viewNormal, const in vec3 viewPos, const in vec3 viewDir, const in float NoVm, const in float roughL) {
+        void ApplyHandLighting(out vec3 diffuse, out vec3 specular, const in vec3 albedo, const in float f0, const in int hcm, const in float scattering, const in vec3 viewNormal, const in vec3 viewPos, const in vec3 viewDir, const in float NoVm, const in float roughL) {
             vec3 lightPos = handOffset - viewPos.xyz;
             vec3 lightDir = normalize(lightPos);
 
@@ -591,7 +591,7 @@
 
         //ambient += minLight;
 
-        float emissive = material.emission*material.emission * EmissionLumens;
+        float emissive = pow3(material.emission) * EmissionLumens;
 
         // #ifdef RENDER_WATER
         //     //ambient = vec3(0.0);
@@ -601,7 +601,9 @@
 
         //return vec4(diffuse, 1.0);
 
-        final.rgb = final.rgb * (ambient * max(1.0 - iblF, vec3(0.0)) * material.occlusion + emissive)
+        //ambient *= max(1.0 - iblF, vec3(0.0));
+
+        final.rgb = final.rgb * (ambient * material.occlusion + emissive)
             + diffuse * material.albedo.a
             + (specular + iblSpec) * specularTint;
 
