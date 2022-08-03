@@ -31,6 +31,7 @@
 
     uniform float screenBrightness;
     uniform int heldBlockLightValue;
+    uniform float blindness;
     
     uniform float rainStrength;
     uniform vec3 sunPosition;

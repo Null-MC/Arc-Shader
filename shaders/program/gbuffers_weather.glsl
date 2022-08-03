@@ -40,6 +40,7 @@
 
     uniform float screenBrightness;
     uniform vec3 cameraPosition;
+    uniform float blindness;
     uniform int moonPhase;
 
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL

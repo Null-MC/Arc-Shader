@@ -23,6 +23,7 @@
 
     uniform float screenBrightness;
     uniform int heldBlockLightValue;
+    uniform float blindness;
 
     #if MC_VERSION >= 11900
         uniform float darknessFactor;

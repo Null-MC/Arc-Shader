@@ -9,6 +9,7 @@
     flat out float exposure;
     
     uniform float screenBrightness;
+    uniform float blindness;
 
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         uniform sampler2D BUFFER_HDR_PREVIOUS;

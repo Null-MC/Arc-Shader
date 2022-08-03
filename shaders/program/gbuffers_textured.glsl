@@ -58,6 +58,7 @@
     uniform mat4 gbufferModelView;
     uniform mat4 gbufferModelViewInverse;
     uniform float screenBrightness;
+    uniform float blindness;
 
     #if MC_VERSION >= 11900
         uniform float darknessFactor;

@@ -91,6 +91,9 @@ float GetEV100() {
 }
 
 float GetExposure() {
-    float EV100 = GetEV100();
-    return GetExposure(EV100 - CAMERA_EXPOSURE);
+    float EV100 = GetEV100() - CAMERA_EXPOSURE;
+
+    //EV100 += 8.0 * blindness;
+
+    return GetExposure(EV100);
 }

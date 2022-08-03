@@ -88,6 +88,7 @@
     uniform mat4 gbufferModelViewInverse;
     uniform float screenBrightness;
     uniform vec3 cameraPosition;
+    uniform float blindness;
 
     #if MC_VERSION >= 11700 && (defined IS_OPTIFINE || defined IRIS_FEATURE_CHUNK_OFFSET)
         uniform vec3 chunkOffset;

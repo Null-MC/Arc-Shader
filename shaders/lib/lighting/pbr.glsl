@@ -349,7 +349,7 @@
 
                     int lod = int(rough * max(maxHdrPrevLod - 0.5, 0.0));
                     vec4 roughReflectColor = GetReflectColor(depthtex1, viewPos, reflectDir, lod);
-                    reflectColor = (roughReflectColor.rgb / exposure) * roughReflectColor.a;
+                    reflectColor = roughReflectColor.rgb / exposure * roughReflectColor.a;
                     //reflectColor = clamp(reflectColor, vec3(0.0), vec3(65000.0));
 
                     #ifdef SKY_ENABLED
@@ -401,7 +401,7 @@
                 vec2 envBRDF = textureLod(BUFFER_BRDF_LUT, vec2(NoVm, rough), 0).rg;
 
                 #ifndef IS_OPTIFINE
-                    //envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
+                    envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
                 #endif
 
                 iblF = GetFresnel(material.albedo.rgb, f0, material.hcm, NoVm, roughL);
@@ -420,8 +420,8 @@
 
         #ifdef SKY_ENABLED
             float ambientBrightness = mix(0.36 * skyLight2, 0.95 * skyLight, rainStrength); // SHADOW_BRIGHTNESS
-            vec3 skyAmbient = GetSkyAmbientLight(viewNormal) * ambientBrightness;
-            ambient += skyAmbient;
+            vec3 skyAmbient = GetSkyAmbientLight(viewNormal);
+            ambient += skyAmbient * ambientBrightness;
             //return vec4(ambient, 1.0);
 
             vec3 skyLightColorFinal = skyLightColor * shadowColorMap;
@@ -603,19 +603,17 @@
         //return vec4(diffuse, 1.0);
 
         //ambient *= max(1.0 - iblF, vec3(0.0));
+        //return vec4((iblSpec) * specularTint, 1.0);
+
+        #ifdef SSS_ENABLED
+            //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
+            vec3 ambient_sss = skyAmbient * skyLight2 * material.scattering;
+            ambient += invPI * ambient_sss;
+        #endif
 
         final.rgb = final.rgb * (ambient * material.occlusion + emissive)
             + diffuse * material.albedo.a
             + (specular + iblSpec) * specularTint;
-
-        // #ifdef SSS_ENABLED
-        //     //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
-        //     vec3 ambient_sss = skyAmbient * material.scattering * material.occlusion;
-
-        //     // Transmission
-        //     vec3 sss = (1.0 - shadowFinal) * shadowSSS * material.scattering * skyLightColorFinal;// * max(-NoL, 0.0);
-        //     final.rgb += material.albedo.rgb * invPI * (ambient_sss + sss);
-        // #endif
 
         #ifdef RENDER_DEFERRED
             if (isEyeInWater == 1) {

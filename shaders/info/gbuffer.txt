@@ -26,7 +26,7 @@ alpha
 
 
 shadow2
-	shadow-red
-	shadow-green
-	shadow-blue
+	light-red
+	light-green
+	light-blue
 	<empty>
