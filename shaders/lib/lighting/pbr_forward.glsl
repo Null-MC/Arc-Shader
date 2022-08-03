@@ -13,6 +13,7 @@
             material.scattering = matSSS;
             material.f0 = GetLabPbr_F0(matF0);
             material.hcm = GetLabPbr_HCM(matF0);
+            material.emission = matEmissive;
         }
     #endif
 
@@ -188,7 +189,7 @@
         #if defined RENDER_WATER && defined WATER_FANCY && !defined WORLD_NETHER
             }
         #endif
-        
+
         float shadow = step(EPSILON, geoNoL);// * step(1.0 / 32.0, skyLight);
         vec3 shadowColorMap = vec3(1.0);
         float NoL = 1.0;

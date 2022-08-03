@@ -33,6 +33,7 @@ const bool shadowHardwareFiltering1 = true;
         flat out float matSmooth;
         flat out float matSSS;
         flat out float matF0;
+        flat out float matEmissive;
     #endif
 
     #ifdef SSS_ENABLED
@@ -237,6 +238,7 @@ const bool shadowHardwareFiltering1 = true;
         flat in float matSmooth;
         flat in float matSSS;
         flat in float matF0;
+        flat in float matEmissive;
     #endif
 
     #ifdef SSS_ENABLED

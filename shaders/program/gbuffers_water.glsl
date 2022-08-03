@@ -23,6 +23,7 @@
         flat out float matSmooth;
         flat out float matF0;
         flat out float matSSS;
+        flat out float matEmissive;
     #endif
 
     #ifdef PARALLAX_ENABLED
@@ -149,6 +150,8 @@
 
         // water
         if (mc_Entity.x == 100.0 || mc_Entity.x == 101.0) materialId = 1;
+        // Nether Portal
+        else if (mc_Entity.x == 102.0) materialId = 2;
         // undefined
         else materialId = 0;
 
@@ -188,6 +191,7 @@
         flat in float matSmooth;
         flat in float matF0;
         flat in float matSSS;
+        flat in float matEmissive;
     #endif
 
     #ifdef PARALLAX_ENABLED

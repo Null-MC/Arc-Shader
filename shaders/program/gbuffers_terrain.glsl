@@ -18,6 +18,7 @@
         flat out float matSmooth;
         flat out float matF0;
         flat out float matSSS;
+        flat out float matEmissive;
     #endif
 
     #ifdef PARALLAX_ENABLED
@@ -128,6 +129,7 @@
         flat in float matSmooth;
         flat in float matF0;
         flat in float matSSS;
+        flat in float matEmissive;
     #endif
 
     #ifdef PARALLAX_ENABLED

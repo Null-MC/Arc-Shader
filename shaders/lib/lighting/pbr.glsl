@@ -109,14 +109,14 @@
         #else
             float dielectric_F = 0.0;
             if (f0 + EPSILON < 1.0)
-                dielectric_F = SchlickRoughness(min(f0, 0.04), VoH, roughL);
+                dielectric_F = SchlickRoughness(0.04, VoH, roughL);
 
             vec3 conductor_F = vec3(0.0);
             if (f0 - EPSILON > 0.04) {
                 vec3 iorN = vec3(f0ToIOR(albedo));
                 vec3 iorK = albedo;
 
-                conductor_F = min(F_conductor(VoH, IOR_AIR, iorN, iorK), 1000.0);
+                conductor_F = F_conductor(VoH, IOR_AIR, iorN, iorK);
             }
 
             float metalF = saturate((f0 - 0.04) * (1.0/0.96));
@@ -349,7 +349,7 @@
 
                     int lod = int(rough * max(maxHdrPrevLod - 0.5, 0.0));
                     vec4 roughReflectColor = GetReflectColor(depthtex1, viewPos, reflectDir, lod);
-                    reflectColor = (roughReflectColor.rgb / max(exposure, 0.1)) * roughReflectColor.a;
+                    reflectColor = (roughReflectColor.rgb / exposure) * roughReflectColor.a;
                     //reflectColor = clamp(reflectColor, vec3(0.0), vec3(65000.0));
 
                     #ifdef SKY_ENABLED
