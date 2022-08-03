@@ -345,11 +345,12 @@
 
                 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
                     // TODO: move to vertex shader!
-                    int maxHdrPrevLod = textureQueryLevels(BUFFER_HDR_PREVIOUS);
+                    int maxHdrPrevLod = 4;//textureQueryLevels(BUFFER_HDR_PREVIOUS);
 
-                    int lod = int(rough * maxHdrPrevLod);
+                    int lod = int(rough * max(maxHdrPrevLod - 0.5, 0.0));
                     vec4 roughReflectColor = GetReflectColor(depthtex1, viewPos, reflectDir, lod);
-                    reflectColor = (roughReflectColor.rgb / exposure) * roughReflectColor.a;
+                    reflectColor = (roughReflectColor.rgb / max(exposure, 0.1)) * roughReflectColor.a;
+                    //reflectColor = clamp(reflectColor, vec3(0.0), vec3(65000.0));
 
                     #ifdef SKY_ENABLED
                         if (roughReflectColor.a + EPSILON < 1.0) {
@@ -676,8 +677,8 @@
 
         #if defined SKY_ENABLED && defined VL_ENABLED
             mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
-            vec3 shadowViewStart = unproject(matViewToShadowView * vec4(vec3(0.0), 1.0));
-            vec3 shadowViewEnd = unproject(matViewToShadowView * vec4(viewPos, 1.0));
+            vec3 shadowViewStart = (matViewToShadowView * vec4(vec3(0.0, 0.0, -near), 1.0)).xyz;
+            vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
 
             float shadowBias = 0.0;//-1e-2; // TODO: fuck
 

@@ -52,8 +52,8 @@
         vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
         sunLightLevel = GetSunLightLevel(skyLightLevels.x);
         moonLightLevel = GetMoonLightLevel(skyLightLevels.y);
-        sunLightLum = GetSunLightColor(skyLightTemp.x, skyLightLevels.x) * sunLumen;
-        moonLightLum = GetMoonLightColor(skyLightTemp.y, skyLightLevels.y) * moonLumen;
+        sunLightLum = GetSunLightColor(skyLightTemp.x, skyLightLevels.x) * SunLux;
+        moonLightLum = GetMoonLightColor(skyLightTemp.y, skyLightLevels.y) * MoonLux;
     }
 #endif
 
@@ -82,16 +82,16 @@
 
 
     void main() {
-        outColor0 = textureLod(gtexture, texcoord, 0);
-        outColor0.rgb = RGBToLinear(outColor0.rgb * glcolor.rgb);
+        vec4 color = textureLod(gtexture, texcoord, 0);
+        color.rgb = RGBToLinear(color.rgb * glcolor.rgb);
 
         if (renderStage == MC_RENDER_STAGE_SUN) {
-            outColor0.rgb *= sunLightLum;
-            outColor0.a *= sunLightLevel;
+            color.rgb *= sunLightLum * sunLightLevel;
+            color.a *= sunLightLevel;
         }
         else if (renderStage == MC_RENDER_STAGE_MOON) {
-            outColor0.rgb *= moonLightLum;
-            outColor0.a *= moonLightLevel;
+            color.rgb *= moonLightLum * moonLightLevel;
+            color.a *= moonLightLevel;
         }
 
         // #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
@@ -104,6 +104,7 @@
         //     outLuminance = vec4(lum, 0.0, 0.0, 1.0);
         // #endif
 
-        outColor0.rgb = clamp(outColor0.rgb * exposure, vec3(0.0), vec3(65000));
+        color.rgb = clamp(color.rgb * exposure, vec3(0.0), vec3(65000));
+        outColor0 = color;
     }
 #endif

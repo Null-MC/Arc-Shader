@@ -147,10 +147,11 @@
             //float lumNew = (lum * BLOOM_SCALE) / exp2(BLOOM_POWER + tile);
             //final *= (lumNew / max(lum, EPSILON));
 
-            lum /= 2.0*exp2(tile);
-            lum = clamp(lum * exposure, 0.0, 65554.0);
+            lum *= exposure;
+            lum /= 4.0 * exp2(tile);
+            //lum = clamp(lum, 0.0, 65554.0);
             lum = lum / (lum + 1.0);
-            lum = pow2(lum);
+            lum = pow3(lum);
             //lum /= 0.0004*exp2(12.0 + 0.6*tile);
             //lum = pow(lum, tile);
             //lum = max(lum - 0.01*exp2(tile), 0.0);

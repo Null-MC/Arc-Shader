@@ -5,25 +5,27 @@
 // returns: rgb=color  a=attenuation
 vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const in vec3 reflectDir, const in int lod) {
     const float maxf = 4.0;
-    const float stp = 0.1;
-    const float ref = 0.8;
-    const float inc = 1.2;
+    const float stp = 1.0;
+    const float ref = 0.1;
+    const float inc = 2.0;
 
     vec3 vector = stp * reflectDir;
     vec3 traceVector = vector;
     vec3 traceUV = vec3(0.0);
     float alpha = 0.0;
 
+    vec3 startViewPos = viewPos + vector;
+
     int sr = 0;
-    for (int i = 1; i <= 64 && alpha < 0.5; i++) {
-        vec3 tracePos = viewPos + traceVector;
-        traceUV = unproject(gbufferProjection * vec4(tracePos, 1.0)) * 0.5 + 0.5;
-        if (traceUV.x < -0.05 || traceUV.x > 1.05 || traceUV.y < -0.05 || traceUV.y > 1.05) break;
+    for (int i = 1; i <= 30 && alpha < 0.5; i++) {
+        vec3 traceViewPos = startViewPos + traceVector;
+        traceUV = unproject(gbufferProjection * vec4(traceViewPos, 1.0)) * 0.5 + 0.5;
+        if (traceUV.x < 0.0 || traceUV.x > 1.0 || traceUV.y < 0.0 || traceUV.y > 1.0) break;
 
-        vec3 rfragpos = vec3(traceUV.xy, textureLod(depthtex, traceUV.xy, 0).r);
-        rfragpos = unproject(gbufferProjectionInverse * vec4(rfragpos * 2.0 - 1.0, 1.0));
+        vec3 clipPos = vec3(traceUV.xy, textureLod(depthtex, traceUV.xy, 0).r) * 2.0 - 1.0;
+        vec3 texViewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
 
-        float err = length(tracePos - rfragpos);
+        float err = length(traceViewPos - texViewPos);
         if (err < pow(length(vector) * pow(length(traceVector), 0.11), 1.1) * 1.2) {
             alpha = step(maxf, sr++);
             traceVector -= vector;
@@ -34,19 +36,14 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         traceVector += vector;
     }
 
-    // Previous frame reprojection from Chocapic13
-    vec4 viewPosPrev = gbufferProjectionInverse * vec4(traceUV * 2.0 - 1.0, 1.0);
-    viewPosPrev /= viewPosPrev.w;
-    
-    viewPosPrev = gbufferModelViewInverse * viewPosPrev;
-
-    vec4 previousPosition = viewPosPrev + vec4(cameraPosition - previousCameraPosition, 0.0);
-    previousPosition = gbufferPreviousModelView * previousPosition;
-    previousPosition = gbufferPreviousProjection * previousPosition;
-    traceUV.xy = previousPosition.xy / previousPosition.w * 0.5 + 0.5;
-
     vec3 color = vec3(0.0);
     if (alpha > 0.5) {
+        // Previous frame reprojection from Chocapic13
+        vec3 viewPosPrev = unproject(gbufferModelViewInverse * (gbufferProjectionInverse * vec4(traceUV * 2.0 - 1.0, 1.0)));
+        vec3 previousPosition = viewPosPrev + cameraPosition - previousCameraPosition;
+        vec3 finalViewPos = unproject(gbufferPreviousProjection * (gbufferPreviousModelView * vec4(previousPosition, 1.0))) * 0.5 + 0.5;
+        traceUV.xy = finalViewPos.xy;
+
         #ifndef IS_OPTIFINE
             traceUV.xy *= 0.5;
         #endif

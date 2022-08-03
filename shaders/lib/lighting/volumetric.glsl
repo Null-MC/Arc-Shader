@@ -31,11 +31,16 @@ float GetVolumetricFactor(const in vec3 shadowViewStart, const in vec3 shadowVie
 }
 
 float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float shadowBias, const in float G_scattering) {
-    const vec3 sunDirection = vec3(0.0, 0.0, 1.0);
-    vec3 rayDirection = normalize(shadowViewEnd - shadowViewStart);
-    float VoL = dot(rayDirection, sunDirection);
+    vec3 ray = shadowViewEnd - shadowViewStart;
+    vec3 rayDir = normalize(ray);
+    float rayLen = min(length(ray) / VL_DIST_SCALE, 1.0);
 
-    float scattering = ComputeVolumetricScattering(VoL, G_scattering);
+    const vec3 sunDir = vec3(0.0, 0.0, 1.0);
+    float VoL = dot(rayDir, sunDir);
+
+    float scattering = ComputeVolumetricScattering(VoL, G_scattering) * rayLen;
+    if (scattering < EPSILON) return 0.0;
+
     return GetVolumetricFactor(shadowViewStart, shadowViewEnd, shadowBias) * scattering;
 }
 
@@ -81,12 +86,15 @@ float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowV
     }
 
     vec3 GetVolumetricLightingColor(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float shadowBias, const in float G_scattering) {
-        const vec3 sunDirection = vec3(0.0, 0.0, 1.0);
-        vec3 rayDirection = normalize(shadowViewEnd - shadowViewStart);
-        float VoL = dot(rayDirection, sunDirection);
+        vec3 ray = shadowViewEnd - shadowViewStart;
+        vec3 rayDir = normalize(ray);
+        float rayLen = min(length(ray) / VL_DIST_SCALE, 1.0);
 
-        float scattering = ComputeVolumetricScattering(VoL, G_scattering);
-        //if (scattering < 0.0001) return vec3(0.0);
+        const vec3 sunDir = vec3(0.0, 0.0, 1.0);
+        float VoL = dot(rayDir, sunDir);
+
+        float scattering = ComputeVolumetricScattering(VoL, G_scattering) * rayLen;
+        if (scattering < EPSILON) return vec3(0.0);
 
         return GetVolumetricColor(shadowViewStart, shadowViewEnd, shadowBias) * scattering;
     }

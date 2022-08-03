@@ -92,6 +92,9 @@
         uniform float near;
 
         #include "/lib/world/atmosphere.glsl"
+    #else
+        uniform float near;
+        uniform float far;
     #endif
 
     #include "/lib/lighting/blackbody.glsl"
@@ -110,8 +113,6 @@
 
         vec3 clipPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), 1.0) * 2.0 - 1.0;
         vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
-
-        vec3 sunDir = normalize(sunPosition);
 
         #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FANCY
             vec3 localSunPos = mat3(gbufferModelViewInverse) * sunPosition;
@@ -150,12 +151,21 @@
         #endif
 
         #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            outColor1 = log2(luminance(color) + EPSILON);
+            float lum = luminance(color);
 
             #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FAST
+                vec3 sunDir = normalize(sunPosition);
                 float VoSun = max(dot(viewDir, sunDir), 0.0);
-                outColor1 += pow(max(VoSun - 0.998, 0.0) * rcp(0.998), 0.5) * sunLumen;
+                float sunDot = saturate((VoSun - 0.9997) * rcp(0.0003));
+                lum += pow(sunDot, 0.5) * sunLumen;
+
+                vec3 moonDir = normalize(moonPosition);
+                float VoMoon = max(dot(viewDir, moonDir), 0.0);
+                float moonDot = saturate((VoMoon - 0.9994) * rcp(0.0006));
+                lum += pow(moonDot, 0.5) * moonLumen;
             #endif
+
+            outColor1 = log2(lum + EPSILON);
         #endif
 
         outColor0 = clamp(color * exposure, vec3(0.0), vec3(65000));

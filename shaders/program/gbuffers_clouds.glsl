@@ -54,12 +54,15 @@
 
     uniform sampler2D gtexture;
 
-    uniform float rainStrength;
     uniform vec3 upPosition;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
-    uniform vec3 fogColor;
+    uniform float near;
+    uniform float far;
+
+    uniform float rainStrength;
     uniform vec3 skyColor;
+    uniform vec3 fogColor;
     uniform int moonPhase;
 
     #ifdef IS_OPTIFINE
@@ -87,9 +90,10 @@
         colorMap.rgb = RGBToLinear(colorMap.rgb * glcolor.rgb);
 
         if (colorMap.a < alphaTestRef) discard;
+        colorMap.a = 1.0;
 
         vec2 skyLightLevels = GetSkyLightLevels();
-        float darkness = 1.0 - 0.65 * rainStrength;
+        float darkness = 0.7 - 0.3 * rainStrength;
         colorMap.rgb *= GetSkyLightLuminance(skyLightLevels) * darkness;
 
         #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL

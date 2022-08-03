@@ -43,9 +43,6 @@ const bool colortex11Clear = false;
 // World Options
 #define ENABLE_WAVING
 #define HANDLIGHT_ENABLED
-#define VL_ENABLED
-#define VL_STRENGTH 80 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
-#define VL_SAMPLE_COUNT 60 // [15 30 60 90]
 #define BLOCKLIGHT_TEMP 3500 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 80 // [0 10 20 30 40 50 60 70 80 90 100]
 #define SHADOW_BRIGHTNESS 0.60 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
@@ -75,8 +72,8 @@ const bool colortex11Clear = false;
 //#define CAVEFOG_ENABLED
 #define HCM_AMBIENT 0.16
 #define WEATHER_OPACITY 40 // [10 20 30 40 50 60 70 80 90 100]
-#define G_SCATTERING_CLEAR 0.84 // 0.96
-#define G_SCATTERING_HUMID 0.48 // 0.84
+#define G_SCATTERING_CLEAR 0.7 // 0.96
+#define G_SCATTERING_HUMID 0.5 // 0.84
 #define G_SCATTERING_RAIN 0.25
 
 
@@ -131,8 +128,8 @@ const bool colortex11Clear = false;
 // Camera Options
 #define CAMERA_EXPOSURE_MODE 2 // [0 1 2]
 #define CAMERA_EXPOSURE 0 // [-17 -16 -15 -14 -13 -12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6]
-#define CAMERA_LUM_MIN 30.0
-#define CAMERA_LUM_MAX 36000.0
+#define CAMERA_LUM_MIN 60.0
+#define CAMERA_LUM_MAX 64000.0
 #define EXPOSURE_POINT 0.2
 #define EXPOSURE_SPEED_UP 0.08
 #define EXPOSURE_SPEED_DOWN 0.05
@@ -150,6 +147,10 @@ const bool colortex11Clear = false;
 #define BLOOM_POWER 8.0
 #define BLOOM_SCALE 60.0
 #define BLOOM_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
+#define VL_ENABLED
+#define VL_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
+#define VL_SAMPLE_COUNT 60 // [15 30 60 90]
+#define VL_DIST_SCALE 100
 #define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
@@ -174,9 +175,9 @@ const bool colortex11Clear = false;
 #define EPSILON 1e-7
 #define GAMMA 2.2
 
-const float sunLumen = 2e4;//16e6;
-const float moonLumen = 800.0;
-const float StarLumen = 1600.0;
+const float sunLumen = 10000000;//16e6; 1,600,000,000
+const float moonLumen = 4000.0;
+const float StarLumen = 1200.0;
 //const float BlockLightLumen = 2000;
 const float EmissionLumens = 1.0e6;
 
@@ -184,7 +185,7 @@ const float SunLux = 64000.0;
 const float SunOvercastLux = 2400.0;
 const float MoonLux = 10.0;
 const float MoonOvercastLux = 2.0;
-const float BlockLightLux = 4200.0; // 9k
+const float BlockLightLux = 3400.0; // 9k
 const float DaySkyLux = 20000.0;
 const float NightSkyLux = 1.0;
 const float MinWorldLux = 2.0;
