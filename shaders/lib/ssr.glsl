@@ -36,6 +36,8 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         traceVector += vector;
     }
 
+    alpha *= step(0.001, length(traceVector));
+
     vec3 color = vec3(0.0);
     if (alpha > 0.5) {
         // Previous frame reprojection from Chocapic13
