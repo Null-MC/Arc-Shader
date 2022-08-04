@@ -17,16 +17,25 @@
         uniform float viewHeight;
     #endif
 
-    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-        uniform ivec2 eyeBrightness;
-    #endif
-
-    uniform float screenBrightness;
     uniform int heldBlockLightValue;
+    uniform float screenBrightness;
     uniform float blindness;
 
     #if MC_VERSION >= 11900
         uniform float darknessFactor;
+    #endif
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        uniform ivec2 eyeBrightness;
+
+        uniform float rainStrength;
+        uniform vec3 sunPosition;
+        uniform vec3 moonPosition;
+        uniform vec3 upPosition;
+        uniform int moonPhase;
+        
+        #include "/lib/lighting/blackbody.glsl"
+        #include "/lib/world/sky.glsl"
     #endif
 
     #include "/lib/camera/bloom.glsl"

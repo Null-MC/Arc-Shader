@@ -71,6 +71,7 @@
     uniform mat4 gbufferProjectionInverse;
     uniform float viewWidth;
     uniform float viewHeight;
+    uniform float far;
     
     uniform int isEyeInWater;
     uniform float rainStrength;
@@ -95,7 +96,7 @@
         #include "/lib/world/atmosphere.glsl"
     #else
         uniform float near;
-        uniform float far;
+        //uniform float far;
     #endif
 
     #include "/lib/lighting/blackbody.glsl"
@@ -154,17 +155,17 @@
         #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
             float lum = luminance(color);
 
-            #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FAST
-                vec3 sunDir = normalize(sunPosition);
-                float VoSun = max(dot(viewDir, sunDir), 0.0);
-                float sunDot = saturate((VoSun - 0.9997) * rcp(0.0003));
-                lum += pow(sunDot, 0.5) * sunLumen;
+            // #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FAST
+            //     vec3 sunDir = normalize(sunPosition);
+            //     float VoSun = max(dot(viewDir, sunDir), 0.0);
+            //     float sunDot = saturate((VoSun - 0.9997) * rcp(0.0003));
+            //     lum += pow(sunDot, 0.5) * sunLumen;
 
-                vec3 moonDir = normalize(moonPosition);
-                float VoMoon = max(dot(viewDir, moonDir), 0.0);
-                float moonDot = saturate((VoMoon - 0.9994) * rcp(0.0006));
-                lum += pow(moonDot, 0.5) * moonLumen;
-            #endif
+            //     vec3 moonDir = normalize(moonPosition);
+            //     float VoMoon = max(dot(viewDir, moonDir), 0.0);
+            //     float moonDot = saturate((VoMoon - 0.9994) * rcp(0.0006));
+            //     lum += pow(moonDot, 0.5) * moonLumen;
+            // #endif
 
             outColor1 = log2(lum + EPSILON);
         #endif

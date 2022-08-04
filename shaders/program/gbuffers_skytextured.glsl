@@ -8,8 +8,8 @@
     out vec4 glcolor;
     flat out float sunLightLevel;
     flat out float moonLightLevel;
-    flat out vec3 sunLightLum;
-    flat out vec3 moonLightLum;
+    flat out vec3 sunLightLumColor;
+    flat out vec3 moonLightLumColor;
     flat out float exposure;
     
     uniform float screenBrightness;
@@ -53,8 +53,8 @@
         vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
         sunLightLevel = GetSunLightLevel(skyLightLevels.x);
         moonLightLevel = GetMoonLightLevel(skyLightLevels.y);
-        sunLightLum = GetSunLightColor(skyLightTemp.x, skyLightLevels.x) * SunLux;
-        moonLightLum = GetMoonLightColor(skyLightTemp.y, skyLightLevels.y) * MoonLux;
+        sunLightLumColor = GetSunLightColor(skyLightTemp.x, skyLightLevels.x) * sunLumen;
+        moonLightLumColor = GetMoonLightColor(skyLightTemp.y, skyLightLevels.y) * moonLumen;
     }
 #endif
 
@@ -63,8 +63,8 @@
     in vec4 glcolor;
     flat in float sunLightLevel;
     flat in float moonLightLevel;
-    flat in vec3 sunLightLum;
-    flat in vec3 moonLightLum;
+    flat in vec3 sunLightLumColor;
+    flat in vec3 moonLightLumColor;
     flat in float exposure;
 
     uniform sampler2D gtexture;
@@ -74,38 +74,41 @@
     //uniform float viewHeight;
     uniform int renderStage;
 
-    /* RENDERTARGETS: 4 */
-    out vec4 outColor0;
+    /* RENDERTARGETS: 4,6 */
+    //out vec4 outColor0;
 
     //#if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-    //    out vec4 outLuminance;
+        //out vec4 outColor1;
     //#endif
 
 
     void main() {
-        vec4 color = textureLod(gtexture, texcoord, 0);
-        color.rgb = RGBToLinear(color.rgb * glcolor.rgb);
+        vec3 color = textureLod(gtexture, texcoord, 0).rgb;
+        color = RGBToLinear(color * glcolor.rgb);
+        //if (color.a < 0.5) discard;
+
+        float lum = saturate(luminance(color));
+        float lumF = 0.0;
 
         if (renderStage == MC_RENDER_STAGE_SUN) {
-            color.rgb *= sunLightLum * sunLightLevel;
-            color.a *= sunLightLevel;
+            color *= sunLightLumColor * sunLightLevel;
+            lum *= sunLightLevel;
+
+            lumF += sunLumen;
         }
         else if (renderStage == MC_RENDER_STAGE_MOON) {
-            color.rgb *= moonLightLum * moonLightLevel;
-            color.a *= moonLightLevel;
+            color *= moonLightLumColor * moonLightLevel;
+            lum *= moonLightLevel;
+
+            lumF += moonLumen;
         }
 
-        // #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-        //     //ivec2 itex = ivec2(gl_FragCoord.xy);
-        //     //float skyLum = texelFetch(BUFFER_LUMINANCE, itex, 0).r;
-        //     //skyLum = exp2(skyLum) - EPSILON;
+        color = clamp(color * exposure, vec3(0.0), vec3(65000));
+        gl_FragData[0] = vec4(color, lum);
 
-        //     float lum = log2(sunLightLevel * sunLumen + EPSILON);
-        //     //float finalLum = mix(skyLum, lum, outColor.a);
-        //     outLuminance = vec4(lum, 0.0, 0.0, 1.0);
-        // #endif
-
-        color.rgb = clamp(color.rgb * exposure, vec3(0.0), vec3(65000));
-        outColor0 = color;
+        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+            float lumFinal = log2(lum * lumF + EPSILON);
+            gl_FragData[1] = vec4(lumFinal, 0.0, 0.0, lum);
+        #endif
     }
 #endif
