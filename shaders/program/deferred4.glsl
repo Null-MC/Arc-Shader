@@ -98,16 +98,10 @@
         uniform sampler2D BUFFER_LUMINANCE;
     #endif
 
-    #if REFLECTION_MODE == REFLECTION_MODE_SCREEN || defined VL_ENABLED
-        uniform mat4 gbufferModelViewInverse;
-    #endif
-
     #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
         uniform mat4 gbufferPreviousModelView;
         uniform mat4 gbufferPreviousProjection;
-        //uniform mat4 gbufferModelViewInverse;
         uniform mat4 gbufferProjection;
-        //uniform vec3 cameraPosition;
         uniform vec3 previousCameraPosition;
 
         uniform sampler2D BUFFER_HDR_PREVIOUS;
@@ -117,6 +111,7 @@
         uniform sampler2D BUFFER_RSM_COLOR;
     #endif
 
+    uniform mat4 gbufferModelViewInverse;
     uniform mat4 gbufferProjectionInverse;
     uniform mat4 gbufferModelView;
     uniform float viewWidth;

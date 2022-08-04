@@ -644,6 +644,9 @@
             }
         #endif
 
+        //float waterDepth = textureLod(shadowtex0, shadowPos, 0);
+        //waterDepth = (waterDepth * 2.0 - 1.0) * far * 2.0;
+
         if (isEyeInWater == 1) {
             float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
 

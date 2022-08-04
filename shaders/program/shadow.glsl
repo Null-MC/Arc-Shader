@@ -213,13 +213,10 @@ const bool shadowHardwareFiltering1 = true;
                 mat3 matViewTBN;
             #endif
 
-            matViewTBN = mat3(
-                viewTangent.x, viewBinormal.x, viewNormal.x,
-                viewTangent.y, viewBinormal.y, viewNormal.y,
-                viewTangent.z, viewBinormal.z, viewNormal.z);
+            matViewTBN = mat3(viewTangent, viewBinormal, viewNormal);
 
             #ifdef SSS_ENABLED
-                viewPosTan = matViewTBN * viewPos.xyz;
+                viewPosTan = viewPos.xyz * matViewTBN;
             #endif
 
             #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
@@ -322,18 +319,18 @@ const bool shadowHardwareFiltering1 = true;
         vec3 viewNormal = vec3(0.0);
         #if defined RSM_ENABLED
             vec2 normalMap = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).rg;
-            viewNormal = RestoreNormalZ(normalMap) * matViewTBN;
+            viewNormal = matViewTBN * RestoreNormalZ(normalMap);
         #endif
 
         float sss = 0.0;
         #ifdef SSS_ENABLED
-            float specularMapB = textureGrad(specular, texcoord, dFdXY[0], dFdXY[1]).b;
-            vec3 viewDirT = normalize(viewPosTan);
+            //vec3 viewDirT = normalize(viewPosTan);
 
             #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-                sss = matSSS * abs(viewDirT.z);
+                sss = matSSS;// * abs(viewDirT.z);
             #else
-                sss = GetLabPbr_SSS(specularMapB) * abs(viewDirT.z);
+                float specularMapB = textureGrad(specular, texcoord, dFdXY[0], dFdXY[1]).b;
+                sss = GetLabPbr_SSS(specularMapB);// * abs(viewDirT.z);
             #endif
         #endif
 

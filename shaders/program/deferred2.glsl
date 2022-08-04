@@ -126,10 +126,9 @@
     uniform mat4 shadowModelView;
     uniform float viewWidth;
     uniform float viewHeight;
-
-    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         uniform float far;
 
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         #include "/lib/shadows/csm.glsl"
     #elif SHADOW_TYPE == SHADOW_TYPE_DISTORTED
         #include "/lib/shadows/basic.glsl"
@@ -152,6 +151,20 @@
     #endif
 
 
+    vec3 SampleRSM(const in float clipDepth, const in uvec2 deferredNormalLightingData) {
+        //normal = texelFetch(BUFFER_NORMAL, itex, 0).rg;
+
+        vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
+
+        vec3 localPos = unproject(gbufferModelViewInverse * (gbufferProjectionInverse * vec4(clipPos, 1.0)));
+        vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
+
+        vec2 normalMap = unpackUnorm4x8(deferredNormalLightingData.r).xy;
+        vec3 shadowViewNormal = RestoreNormalZ(normalMap);
+
+        return GetIndirectLighting_RSM(shadowViewPos, shadowViewNormal);
+    }
+
 	void main() {
         vec2 viewSize = vec2(viewWidth, viewHeight);
 
@@ -159,26 +172,17 @@
         float clipDepth = texelFetch(depthtex0, itex, 0).r;
 
         vec3 color = vec3(0.0);
-        vec2 normal = vec2(0.0);
+        //vec2 normal = vec2(0.0);
 
         if (clipDepth < 1.0) {
             uvec2 deferredNormalLightingData = texelFetch(BUFFER_DEFERRED, itex, 0).ga;
-            float lightingMap = unpackUnorm4x8(deferredNormalLightingData.g).g;
 
-            if (lightingMap >= 1.0 / 16.0) {
-                //normal = texelFetch(BUFFER_NORMAL, itex, 0).rg;
-
-                vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
-
-                vec3 localPos = unproject(gbufferModelViewInverse * (gbufferProjectionInverse * vec4(clipPos, 1.0)));
-
-                vec2 normalMap = unpackUnorm4x8(deferredNormalLightingData.r).xy;
-                vec3 localNormal = mat3(gbufferModelViewInverse) * RestoreNormalZ(normalMap);
-
-                vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
-
-                color = GetIndirectLighting_RSM(shadowViewPos, localPos, localNormal);
-            }
+            #ifdef LIGHTLEAK_FIX
+                float lightingMap = unpackUnorm4x8(deferredNormalLightingData.g).g;
+                if (lightingMap >= 1.0 / 16.0) color = SampleRSM(clipDepth, deferredNormalLightingData);
+            #else
+                color = SampleRSM(clipDepth, deferredNormalLightingData);
+            #endif
         }
 
         outColor0 = clamp(color, vec3(0.0), vec3(65000.0));

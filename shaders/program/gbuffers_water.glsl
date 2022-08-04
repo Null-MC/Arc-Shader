@@ -243,6 +243,7 @@
     uniform sampler2D colortex10;
 
     uniform mat4 shadowProjection;
+    uniform mat4 gbufferModelViewInverse;
     uniform vec3 cameraPosition;
     uniform float viewWidth;
     uniform float viewHeight;
@@ -308,10 +309,6 @@
                 #include "/lib/shadows/basic_render.glsl"
             #endif
         #endif
-    #endif
-
-    #if REFLECTION_MODE == REFLECTION_MODE_SCREEN || defined VL_ENABLED
-        uniform mat4 gbufferModelViewInverse;
     #endif
 
     #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
