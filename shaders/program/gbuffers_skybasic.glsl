@@ -112,6 +112,7 @@
 
     void main() {
         vec3 color = starData;
+        float lum = luminance(starData) * StarLumen;
 
         vec3 clipPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), 1.0) * 2.0 - 1.0;
         vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
@@ -146,15 +147,16 @@
             vec4 sky = ComputeSkyInscattering(setting, eye, localViewDir, localSunDir);
 
             color += sky.rgb;
+            lum += luminance(sky.rgb);
         #else
             vec3 viewDir = normalize(viewPos);
-            color += GetVanillaSkyLuminance(viewDir);
-            color += GetVanillaSkyScattering(viewDir, sunColor, moonColor);
+            vec3 sky = GetVanillaSkyLuminance(viewDir);
+            sky += GetVanillaSkyScattering(viewDir, sunColor, moonColor);
+            lum += luminance(sky);
+            color += sky;
         #endif
 
         #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            float lum = luminance(color);
-
             // #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FAST
             //     vec3 sunDir = normalize(sunPosition);
             //     float VoSun = max(dot(viewDir, sunDir), 0.0);
