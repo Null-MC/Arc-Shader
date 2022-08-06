@@ -37,6 +37,11 @@
         uniform float darknessFactor;
     #endif
 
+    #ifdef IS_OPTIFINE
+        uniform mat4 gbufferModelView;
+        uniform int worldTime;
+    #endif
+
     #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/camera/exposure.glsl"
@@ -71,6 +76,7 @@
     uniform mat4 gbufferProjectionInverse;
     uniform float viewWidth;
     uniform float viewHeight;
+    uniform float near;
     uniform float far;
     
     uniform int isEyeInWater;
@@ -83,10 +89,10 @@
     uniform int moonPhase;
 
     #ifdef IS_OPTIFINE
+        //uniform mat4 gbufferModelView;
         uniform float eyeHumidity;
+        uniform int worldTime;
     #endif
-
-    #include "/lib/world/scattering.glsl"
 
     #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FANCY
         uniform mat4 gbufferModelViewInverse;
@@ -95,12 +101,13 @@
 
         #include "/lib/world/atmosphere.glsl"
     #else
-        uniform float near;
+        //uniform float near;
         //uniform float far;
     #endif
 
     #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/sky.glsl"
+    #include "/lib/world/scattering.glsl"
 
     /* RENDERTARGETS: 4,6 */
     out vec3 outColor0;

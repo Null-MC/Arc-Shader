@@ -1,14 +1,40 @@
 const float[5] moonPhaseLevels = float[](0.08, 0.25, 0.50, 0.75, 1.0);
 
-float GetSolidAngle(const in float angularDiameter) {
-    return 2.0 * PI * (1.0 - cos(0.5 * angularDiameter * PI * 180.0));
-}
+// float GetSolidAngle(const in float angularDiameter) {
+//     return 2.0 * PI * (1.0 - cos(0.5 * angularDiameter * PI * 180.0));
+// }
+
+#if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED)
+    // by BuilderBoy
+    vec3 GetFixedSunPosition() {
+        //inline radians() as * PI / 180.0, because radians() doesn't count as a constant function on some drivers.
+        const vec2 sunRotationData = vec2(cos(sunPathRotation * 0.01745329251994), -sin(sunPathRotation * 0.01745329251994));
+
+        //minecraft's native calculateCelestialAngle() function, ported to GLSL.
+        float ang = fract(worldTime / 24000.0 - 0.25);
+        ang = (ang + (cos(ang * PI) * -0.5 + 0.5 - ang) / 3.0) * (2.0*PI); //0-2pi, rolls over from 2pi to 0 at noon.
+
+        //this one tracks optifine's sunPosition uniform.
+        return mat3(gbufferModelView) * vec3(-sin(ang), cos(ang) * sunRotationData);
+        //this one tracks the center of the *actual* sun, which is ever-so-slightly different.
+        //return normalize((gbufferModelView * vec4(sin(ang) * -100.0, (cos(ang) * 100.0) * sunRotationData, 1.0)).xyz);
+        //I choose to use the sunPosition one for 2 reasons:
+        //1: it's simpler.
+        //2: it's consistent with the actual uniform value in other programs.
+    }
+#endif
 
 // returns: x:sun y:moon
 vec2 GetSkyLightLevels() {
-    vec3 upDir = normalize(upPosition);
-    vec3 sunLightDir = normalize(sunPosition);
     vec3 moonLightDir = normalize(moonPosition);
+
+    #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED)
+        vec3 upDir = gbufferModelView[1].xyz;
+        vec3 sunLightDir = GetFixedSunPosition();
+    #else
+        vec3 upDir = normalize(upPosition);
+        vec3 sunLightDir = normalize(sunPosition);
+    #endif
 
     return vec2(
         dot(upDir, sunLightDir),
@@ -129,7 +155,12 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
 
         fogColorLinear = mix(fogColorLinear, 0.06*vec3(0.839, 0.843, 0.824), rainStrength);
 
-        vec3 upDir = normalize(upPosition);
+        #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED)
+            vec3 upDir = gbufferModelView[1].xyz;
+        #else
+            vec3 upDir = normalize(upPosition);
+        #endif
+
         float VoUm = max(dot(viewDir, upDir), 0.0);
         float skyFogFactor = GetVanillaSkyFog(VoUm, 0.25);
         return mix(skyColorLinear, fogColorLinear, skyFogFactor) * skyLumen;
@@ -144,24 +175,14 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
         vec3 skyColorLinear = RGBToLinear(skyColor) * skyLux;
         vec3 fogColorLinear = RGBToLinear(fogColor) * skyLux;
 
-        vec3 upDir = normalize(upPosition);
+        #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED)
+            vec3 upDir = gbufferModelView[1].xyz;
+        #else
+            vec3 upDir = normalize(upPosition);
+        #endif
+        
         float VoUm = max(dot(viewDir, upDir), 0.0);
         float skyFogFactor = GetVanillaSkyFog(VoUm, 0.25);
         return mix(skyColorLinear, fogColorLinear, skyFogFactor);
-    }
-
-    vec3 GetVanillaSkyScattering(const in vec3 viewDir, const in vec3 sunColor, const in vec3 moonColor) {
-        float scattering = GetScatteringFactor();
-        float scatterDistF = min((far - near) / (101.0 - VL_STRENGTH), 1.0);
-
-        vec3 sunDir = normalize(sunPosition);
-        float sun_VoL = dot(viewDir, sunDir);
-        float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering);
-
-        vec3 moonDir = normalize(moonPosition);
-        float moon_VoL = dot(viewDir, moonDir);
-        float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering);
-
-        return (sunScattering * sunColor + moonScattering * moonColor) * scatterDistF;
     }
 #endif

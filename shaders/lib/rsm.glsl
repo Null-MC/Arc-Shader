@@ -94,7 +94,7 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 shadowVi
         // Irradiance at current fragment w.r.t. pixel light at uv.
         vec3 ray = shadowViewPos - x_p; // Difference vector.
         vec3 rayDir = normalize(ray);
-        float rayDist = dot(ray, ray); // Square distance.
+        float rayDist = length(ray); // Square distance.
 
         vec2 normalMap = unpackUnorm4x8(data.g).rg;
         vec3 n_p = RestoreNormalZ(normalMap);
@@ -108,13 +108,9 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 shadowVi
 
         vec3 E_p = flux * NoR;
 
-        // Weighting contribution and normalizing.
         //float weight = rsmPoissonDisk[i].x * rsmPoissonDisk[i].x;
         float weight = dot(rsmPoissonDisk[i], rsmPoissonDisk[i]);
-        E_p *= weight / rayDist;
-
-        // Accumulate
-        shading += E_p;
+        shading += E_p * max(1.0 - weight, 0.0) / rayDist;
     }
 
     // Modulate result with some intensity value.
