@@ -36,7 +36,7 @@ float GetLabPbr_Emission(const in float specularA) {
             material.occlusion = 1.0;
             material.f0 = specularMap.g;
             material.hcm = -1;
-            material.porosity = 1.0 - specularMap.g;
+            material.porosity = 0.86 * (1.0 - specularMap.g);
         #endif
 
         material.normal = normalize(normalMap.xyz * 2.0 - 1.0);

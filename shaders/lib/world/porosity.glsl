@@ -10,5 +10,5 @@ float GetSurfaceWetness(const in float wetness, const in float porosity) {
 }
 
 float GetWetnessDarkening(const in float wetness, const in float porosity) {
-    return 1.0 - 0.58 * wetness * porosity;
+    return 1.0 - 0.68 * wetness * pow2(porosity);
 }

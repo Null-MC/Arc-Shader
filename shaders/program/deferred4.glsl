@@ -23,10 +23,14 @@
     #ifdef SKY_ENABLED
         flat out vec3 sunColor;
         flat out vec3 moonColor;
+
+        uniform vec3 skyColor;
     #endif
 
     #ifdef SHADOW_ENABLED
         flat out vec3 skyLightColor;
+
+        uniform vec3 shadowLightPosition;
     #endif
 
     uniform float screenBrightness;
@@ -59,6 +63,17 @@
             moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
             //skyLightColor = GetSkyLightLuxColor(skyLightLevels);
             skyLightColor = sunColor + moonColor; // TODO: get rid of this variable
+
+            // TODO: add lightning check
+            if (rainStrength > 0.5) {
+                // if (all(greaterThan(skyColor, vec3(0.9)))) {
+                //     skyLightColor = vec3(60000.0, 0.0, 0.0);
+                // }
+                if (dot(shadowLightPosition, shadowLightPosition) < 0.1) {
+                    skyLightColor = vec3(60000.0, 0.0, 0.0);
+                    skyLightLevels = vec2(1.0, 1.0);
+                }
+            }
         #endif
 
         blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;

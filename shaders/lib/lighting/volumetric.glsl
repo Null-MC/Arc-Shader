@@ -33,7 +33,7 @@ float GetVolumetricFactor(const in vec3 shadowViewStart, const in vec3 shadowVie
 float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float shadowBias, const in float G_scattering) {
     vec3 ray = shadowViewEnd - shadowViewStart;
     vec3 rayDir = normalize(ray);
-    float rayLen = min(length(ray) / VL_DIST_SCALE, 1.0);
+    float rayLen = min(length(ray) / (101.0 - VL_STRENGTH), 1.0);
 
     const vec3 sunDir = vec3(0.0, 0.0, 1.0);
     float VoL = dot(rayDir, sunDir);
@@ -88,7 +88,7 @@ float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowV
     vec3 GetVolumetricLightingColor(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float shadowBias, const in float G_scattering) {
         vec3 ray = shadowViewEnd - shadowViewStart;
         vec3 rayDir = normalize(ray);
-        float rayLen = min(length(ray) / VL_DIST_SCALE, 1.0);
+        float rayLen = min(length(ray) / (101.0 - VL_STRENGTH), 1.0);
 
         const vec3 sunDir = vec3(0.0, 0.0, 1.0);
         float VoL = dot(rayDir, sunDir);

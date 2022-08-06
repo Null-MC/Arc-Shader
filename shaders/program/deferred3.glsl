@@ -103,8 +103,28 @@
     out vec3 outColor0;
 
 
+    vec3 SampleRSM(const in float clipDepth, const in uvec2 deferredNormalLightingData) {
+        //normal = texelFetch(BUFFER_NORMAL, itex, 0).rg;
+
+        vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
+
+        vec3 localPos = unproject(gbufferModelViewInverse * (gbufferProjectionInverse * vec4(clipPos, 1.0)));
+        vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
+
+        vec2 normalMap = unpackUnorm4x8(deferredNormalLightingData.r).xy;
+        vec3 shadowViewNormal = RestoreNormalZ(normalMap);
+
+        vec3 final = GetIndirectLighting_RSM(shadowViewPos, shadowViewNormal);
+
+        #if DEBUG_VIEW == DEBUG_VIEW_RSM_FINAL
+            final = mix(final, vec3(1.0, 0.0, 0.0), 0.25);
+        #endif
+
+        return final;
+    }
+
 	void main() {
-        const float rsm_scale = 1.0 / exp2(RSM_SCALE);
+        const float rsmScaleInv = 1.0 / exp2(RSM_SCALE);
 
         vec2 viewSize = vec2(viewWidth, viewHeight);
         ivec2 itexFull = ivec2(texcoord * viewSize);
@@ -114,11 +134,11 @@
         if (clipDepth < 1.0) {
             uvec2 deferredNormalLightingData = texelFetch(BUFFER_DEFERRED, itexFull, 0).ga;
 
-            vec2 texLow = texcoord * rsm_scale;
+            vec2 texLow = texcoord * rsmScaleInv;
 
-            #ifndef IS_OPTIFINE
-                texLow *= rsm_scale;
-            #endif
+            //#ifndef IS_OPTIFINE
+            //    texLow *= rsmScaleInv;
+            //#endif
 
             //ivec2 itexLow = ivec2(texLow * vec2(viewWidth, viewHeight));
             vec4 rsmDepths = textureGather(BUFFER_RSM_DEPTH, texLow, 0);
@@ -128,12 +148,12 @@
             float rsmDepthMinLinear = linearizeDepth(rsmDepthMin * 2.0 - 1.0, near, far);
             float rsmDepthMaxLinear = linearizeDepth(rsmDepthMax * 2.0 - 1.0, near, far);
 
-            vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
-            vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
+            //vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
+            //vec4 viewPos = gbufferProjectionInverse * vec4(clipPos, 1.0);
             //vec3 rsmViewNormal = RestoreNormalZ(rsmNormalDepth.xy);
 
-            vec2 normalMap = unpackUnorm4x8(deferredNormalLightingData.r).xy;
-            vec3 viewNormal = RestoreNormalZ(normalMap);
+            //vec2 normalMap = unpackUnorm4x8(deferredNormalLightingData.r).xy;
+            //vec3 viewNormal = RestoreNormalZ(normalMap);
 
             //float dist = clamp((-viewPos.z - near) / (far - near), 0.0, 1.0);
             //float depthThreshold = mix(0.1, 0.001, dist) / (far - near);
@@ -148,21 +168,12 @@
                 final = textureLod(BUFFER_RSM_COLOR, texLow, 0).rgb;
             }
             else {
-                float lightingMap = unpackUnorm4x8(deferredNormalLightingData.g).g;
-
-                if (lightingMap >= 1.0 / 16.0) {
-                    vec3 localPos = unproject(gbufferModelViewInverse * viewPos);
-
-                    vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
-
-                    vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
-
-                    final = GetIndirectLighting_RSM(shadowViewPos, localPos, localNormal);
-
-                    #if DEBUG_VIEW == DEBUG_VIEW_RSM_FINAL
-                        final = mix(final, vec3(1.0, 0.0, 0.0), 0.25);
-                    #endif
-                }
+                #ifdef LIGHTLEAK_FIX
+                    float lightingMap = unpackUnorm4x8(deferredNormalLightingData.g).g;
+                    if (lightingMap >= 1.0 / 16.0) final = SampleRSM(clipDepth, deferredNormalLightingData);
+                #else
+                    final = SampleRSM(clipDepth, deferredNormalLightingData);
+                #endif
             }
         }
 

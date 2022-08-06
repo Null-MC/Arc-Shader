@@ -74,6 +74,10 @@
 		gl_Position = ftransform();
 		texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
+        #ifdef IS_OPTIFINE
+           texcoord *= exp2(RSM_SCALE);
+        #endif
+
         exposure = GetExposure();
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -126,7 +130,7 @@
     uniform mat4 shadowModelView;
     uniform float viewWidth;
     uniform float viewHeight;
-        uniform float far;
+    uniform float far;
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         #include "/lib/shadows/csm.glsl"
@@ -168,14 +172,15 @@
 	void main() {
         vec2 viewSize = vec2(viewWidth, viewHeight);
 
-        ivec2 itex = ivec2(texcoord * viewSize);
-        float clipDepth = texelFetch(depthtex0, itex, 0).r;
+        ivec2 itexFull = ivec2(texcoord * viewSize);
+
+        float clipDepth = texelFetch(depthtex0, itexFull, 0).r;
 
         vec3 color = vec3(0.0);
         //vec2 normal = vec2(0.0);
 
         if (clipDepth < 1.0) {
-            uvec2 deferredNormalLightingData = texelFetch(BUFFER_DEFERRED, itex, 0).ga;
+            uvec2 deferredNormalLightingData = texelFetch(BUFFER_DEFERRED, itexFull, 0).ga;
 
             #ifdef LIGHTLEAK_FIX
                 float lightingMap = unpackUnorm4x8(deferredNormalLightingData.g).g;
@@ -196,6 +201,6 @@
 // Temporary fix for disabling on Iris
 #ifndef RSM_ENABLED
     void main() {
-        /* RENDERTARGETS: 8 */
+        /* RENDERTARGETS: 8,9 */
     }
 #endif

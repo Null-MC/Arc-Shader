@@ -38,7 +38,7 @@
         return f0 + (f90 - f0) * pow5(invCosTheta);
     }
 
-    float SchlickRoughness(const in float f0, const in float cos_theta, const in float rough) {
+    float F_SchlickRoughness(const in float f0, const in float cos_theta, const in float rough) {
         float invCosTheta = saturate(1.0 - cos_theta);
         return f0 + (max(1.0 - rough, f0) - f0) * pow5(invCosTheta);
     }
@@ -64,6 +64,11 @@
         vec3 rp = rs * (t3 - t4) / (t3 + t4);
 
         return 0.5f * (rp + rs);
+    }
+
+    vec3 F_Lazanyi2019(const in float cosTheta, const in vec3 f0, const in vec3 f82) {
+        vec3 a = 17.6513846 * (f0 - f82) + 8.16666667 * (1.0 - f0);
+        return saturate(f0 + (1.0 - f0) * pow(1.0 - cosTheta, 5.0) - a * cosTheta * pow(1.0 - cosTheta, 6.0));
     }
 
     float GGX(const in float NoH, const in float roughL) {
@@ -99,24 +104,28 @@
     vec3 GetFresnel(const in vec3 albedo, const in float f0, const in int hcm, const in float VoH, const in float roughL) {
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
             if (hcm >= 0) {
-                vec3 iorN, iorK;
-                GetHCM_IOR(albedo, hcm, iorN, iorK);
-                return F_conductor(VoH, IOR_AIR, iorN, iorK);
+                #ifdef HCM_LAZANYI
+                    vec3 hcm_f0, hcm_f82;
+                    GetHCM_IOR(albedo, hcm, hcm_f0, hcm_f82);
+                    return F_Lazanyi2019(VoH, hcm_f0, hcm_f82);
+                #else
+                    vec3 iorN, iorK;
+                    GetHCM_IOR(albedo, hcm, iorN, iorK);
+                    return F_conductor(VoH, IOR_AIR, iorN, iorK);
+                #endif
             }
             else {
-                return vec3(SchlickRoughness(f0, VoH, roughL));
+                return vec3(F_SchlickRoughness(f0, VoH, roughL));
             }
         #else
             float dielectric_F = 0.0;
             if (f0 + EPSILON < 1.0)
-                dielectric_F = SchlickRoughness(0.04, VoH, roughL);
+                dielectric_F = F_SchlickRoughness(0.04, VoH, roughL);
 
             vec3 conductor_F = vec3(0.0);
             if (f0 - EPSILON > 0.04) {
                 vec3 iorN = vec3(f0ToIOR(albedo));
-                vec3 iorK = albedo;
-
-                conductor_F = F_conductor(VoH, IOR_AIR, iorN, iorK);
+                conductor_F = F_conductor(VoH, IOR_AIR, iorN, albedo);
             }
 
             float metalF = saturate((f0 - 0.04) * (1.0/0.96));
@@ -306,8 +315,13 @@
         #endif
             if (wetnessFinal > EPSILON) {
                 vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
-                float noise = textureLod(noisetex, 0.22*localPos.xz, 0).r;
-                wetnessFinal *= noise * 0.2 + 0.8;
+                float noiseHigh = 1.0 - textureLod(noisetex, 0.24*localPos.xz, 0).r;
+                float noiseLow = 1.0 - textureLod(noisetex, 0.03*localPos.xz, 0).r;
+
+
+                float shit = 0.78*wetnessFinal;
+                wetnessFinal = smoothstep(0.0, 1.0, wetnessFinal);
+                wetnessFinal *= (1.0 - noiseHigh * noiseLow) * (1.0 - shit) + shit;
 
                 albedo *= GetWetnessDarkening(wetnessFinal, material.porosity);
 
@@ -607,9 +621,11 @@
 
         #ifdef SSS_ENABLED
             //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
-            vec3 ambient_sss = skyAmbient * skyLight2 * material.scattering;
-            ambient += invPI * ambient_sss;
+            //vec3 ambient_sss = skyAmbient * skyLight2 * material.scattering;
+            //ambient += invPI * ambient_sss;
         #endif
+
+        //return vec4(ambient, 1.0);
 
         final.rgb = final.rgb * (ambient * material.occlusion + emissive)
             + diffuse * material.albedo.a
@@ -691,7 +707,7 @@
                 float volScatter = GetVolumetricLighting(shadowViewStart, shadowViewEnd, shadowBias, scattering);
             #endif
 
-            vec3 volLight = volScatter * (sunColor + moonColor) * (0.01 * VL_STRENGTH);
+            vec3 volLight = volScatter * (sunColor + moonColor);
 
             //final.a = min(final.a + luminance(volLight) * exposure, 1.0);
             final.rgb += volLight;
