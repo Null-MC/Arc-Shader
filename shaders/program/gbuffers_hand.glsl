@@ -26,9 +26,14 @@
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             out vec3 shadowPos[4];
             out vec3 shadowParallaxPos[4];
-            out vec2 shadowProjectionSizes[4];
-            out float cascadeSizes[4];
+            //out vec2 shadowProjectionSizes[4];
+            //out float cascadeSizes[4];
             flat out int shadowCascade;
+
+            #if defined VL_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE)
+                flat out float cascadeSizes[4];
+                flat out mat4 matShadowProjections[4];
+            #endif
         #elif SHADOW_TYPE != SHADOW_TYPE_NONE
             out vec4 shadowPos;
             out vec4 shadowParallaxPos;

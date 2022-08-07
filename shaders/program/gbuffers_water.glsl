@@ -41,21 +41,26 @@
         uniform vec3 moonPosition;
         uniform float rainStrength;
         uniform int moonPhase;
-    #endif
 
-    #ifdef SHADOW_ENABLED
-        out float shadowBias;
-        out vec3 tanLightPos;
+        #ifdef SHADOW_ENABLED
+            out float shadowBias;
+            out vec3 tanLightPos;
 
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            out vec3 shadowPos[4];
-            out vec3 shadowParallaxPos[4];
-            out vec2 shadowProjectionSizes[4];
-            out float cascadeSizes[4];
-            flat out int shadowCascade;
-        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            out vec4 shadowPos;
-            out vec4 shadowParallaxPos;
+            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                out vec3 shadowPos[4];
+                out vec3 shadowParallaxPos[4];
+                //out vec2 shadowProjectionSizes[4];
+                //out float cascadeSizes[4];
+                flat out int shadowCascade;
+
+                #if defined VL_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE)
+                    flat out float cascadeSizes[4];
+                    flat out mat4 matShadowProjections[4];
+                #endif
+            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+                out vec4 shadowPos;
+                out vec4 shadowParallaxPos;
+            #endif
         #endif
     #endif
 
@@ -212,21 +217,26 @@
         uniform float wetness;
         uniform int moonPhase;
         uniform vec3 skyColor;
-    #endif
 
-    #ifdef SHADOW_ENABLED
-        in float shadowBias;
-        in vec3 tanLightPos;
+        #ifdef SHADOW_ENABLED
+            in float shadowBias;
+            in vec3 tanLightPos;
 
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            in vec3 shadowPos[4];
-            in vec3 shadowParallaxPos[4];
-            in vec2 shadowProjectionSizes[4];
-            in float cascadeSizes[4];
-            flat in int shadowCascade;
-        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            in vec4 shadowPos;
-            in vec4 shadowParallaxPos;
+            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                in vec3 shadowPos[4];
+                in vec3 shadowParallaxPos[4];
+                //in vec2 shadowProjectionSizes[4];
+                //in float cascadeSizes[4];
+                flat in int shadowCascade;
+
+                #if defined VL_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE)
+                    flat in float cascadeSizes[4];
+                    flat in mat4 matShadowProjections[4];
+                #endif
+            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+                in vec4 shadowPos;
+                in vec4 shadowParallaxPos;
+            #endif
         #endif
     #endif
 

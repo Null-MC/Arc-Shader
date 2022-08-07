@@ -26,11 +26,9 @@
 
         uniform vec3 skyColor;
 
-        #if defined VL_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE)
-            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                flat out float cascadeSizes[4];
-                flat out mat4 matShadowProjections[4];
-            #endif
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED && (defined VL_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE))
+            flat out float cascadeSizes[4];
+            flat out mat4 matShadowProjections[4];
         #endif
     #endif
 

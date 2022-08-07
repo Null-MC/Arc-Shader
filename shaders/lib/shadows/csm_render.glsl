@@ -82,11 +82,11 @@
     }
 
     vec2 GetProjectionSize(const in int index) {
-        #ifdef RENDER_DEFERRED
+        //#ifdef RENDER_DEFERRED
             return 2.0 / vec2(matShadowProjections[index][0].x, matShadowProjections[index][1].y);
-        #else
-            return shadowProjectionSizes[index];
-        #endif
+        //#else
+        //    return shadowProjectionSizes[index];
+        //#endif
     }
 
     float GetNearestDepth(const in vec3 shadowPos[4], const in vec2 blockOffset, out int cascade) {
@@ -321,7 +321,8 @@
                         vec2 blockOffset = poissonDisk[i] * blockRadius;
                         float texDepth = GetNearestDepth(shadowPos, blockOffset, cascade);
 
-                        vec2 pixelPerBlockScale = (cascadeTexSize / shadowProjectionSizes[cascade]) * shadowPixelSize;
+                        vec2 shadowProjectionSize = GetProjectionSize(cascade);
+                        vec2 pixelPerBlockScale = (cascadeTexSize / shadowProjectionSize) * shadowPixelSize;
                         vec2 pixelOffset = blockOffset * pixelPerBlockScale;
 
                         float bias = GetCascadeBias(cascade);

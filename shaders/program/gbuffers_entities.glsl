@@ -19,21 +19,21 @@
         out vec2 localCoord;
     #endif
 
-    #ifdef SHADOW_ENABLED
-        out float shadowBias;
-        out vec3 tanLightPos;
+    // #ifdef SHADOW_ENABLED
+    //     out float shadowBias;
+    //     out vec3 tanLightPos;
 
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            out vec3 shadowPos[4];
-            out vec3 shadowParallaxPos[4];
-            out vec2 shadowProjectionSizes[4];
-            out float cascadeSizes[4];
-            flat out int shadowCascade;
-        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            out vec4 shadowPos;
-            out vec4 shadowParallaxPos;
-        #endif
-    #endif
+    //     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+    //         out vec3 shadowPos[4];
+    //         out vec3 shadowParallaxPos[4];
+    //         out vec2 shadowProjectionSizes[4];
+    //         out float cascadeSizes[4];
+    //         flat out int shadowCascade;
+    //     #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+    //         out vec4 shadowPos;
+    //         out vec4 shadowParallaxPos;
+    //     #endif
+    // #endif
 
     #ifdef AF_ENABLED
         out vec4 spriteBounds;
@@ -50,31 +50,31 @@
     uniform vec3 cameraPosition;
     uniform int entityId;
 
-    #ifdef SHADOW_ENABLED
-        uniform mat4 shadowModelView;
-        uniform mat4 shadowProjection;
-        uniform vec3 shadowLightPosition;
-        uniform float far;
+    // #ifdef SHADOW_ENABLED
+    //     uniform mat4 shadowModelView;
+    //     uniform mat4 shadowProjection;
+    //     uniform vec3 shadowLightPosition;
+    //     uniform float far;
 
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            attribute vec3 at_midBlock;
+    //     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+    //         attribute vec3 at_midBlock;
 
-            #ifdef IS_OPTIFINE
-                uniform mat4 gbufferPreviousProjection;
-                uniform mat4 gbufferPreviousModelView;
-            #endif
+    //         #ifdef IS_OPTIFINE
+    //             uniform mat4 gbufferPreviousProjection;
+    //             uniform mat4 gbufferPreviousModelView;
+    //         #endif
 
-            uniform mat4 gbufferProjection;
-            //uniform int entityId;
-            uniform float near;
+    //         uniform mat4 gbufferProjection;
+    //         //uniform int entityId;
+    //         uniform float near;
 
-            #include "/lib/shadows/csm.glsl"
-            #include "/lib/shadows/csm_render.glsl"
-        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            #include "/lib/shadows/basic.glsl"
-            #include "/lib/shadows/basic_render.glsl"
-        #endif
-    #endif
+    //         #include "/lib/shadows/csm.glsl"
+    //         #include "/lib/shadows/csm_render.glsl"
+    //     #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+    //         #include "/lib/shadows/basic.glsl"
+    //         #include "/lib/shadows/basic_render.glsl"
+    //     #endif
+    // #endif
     
     #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/pbr.glsl"
@@ -109,21 +109,21 @@
         in vec2 localCoord;
     #endif
 
-    #ifdef SHADOW_ENABLED
-        in float shadowBias;
-        in vec3 tanLightPos;
+    // #ifdef SHADOW_ENABLED
+    //     in float shadowBias;
+    //     in vec3 tanLightPos;
 
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            in vec3 shadowPos[4];
-            in vec3 shadowParallaxPos[4];
-            in vec2 shadowProjectionSizes[4];
-            in float cascadeSizes[4];
-            flat in int shadowCascade;
-        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            in vec4 shadowPos;
-            in vec4 shadowParallaxPos;
-        #endif
-    #endif
+    //     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+    //         in vec3 shadowPos[4];
+    //         in vec3 shadowParallaxPos[4];
+    //         in vec2 shadowProjectionSizes[4];
+    //         in float cascadeSizes[4];
+    //         flat in int shadowCascade;
+    //     #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+    //         in vec4 shadowPos;
+    //         in vec4 shadowParallaxPos;
+    //     #endif
+    // #endif
 
     #ifdef AF_ENABLED
         in vec4 spriteBounds;
@@ -150,52 +150,52 @@
         uniform float viewHeight;
     #endif
     
-    #ifdef SHADOW_ENABLED
-        uniform sampler2D shadowtex0;
+    // #ifdef SHADOW_ENABLED
+    //     uniform sampler2D shadowtex0;
 
-        #ifdef SHADOW_COLOR
-            uniform sampler2D shadowcolor0;
-        #endif
+    //     #ifdef SHADOW_COLOR
+    //         uniform sampler2D shadowcolor0;
+    //     #endif
 
-        #ifdef SSS_ENABLED
-            uniform usampler2D shadowcolor1;
-        #endif
+    //     #ifdef SSS_ENABLED
+    //         uniform usampler2D shadowcolor1;
+    //     #endif
 
-        #ifdef SHADOW_ENABLE_HWCOMP
-            #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
-                uniform sampler2DShadow shadowtex1HW;
-                uniform sampler2D shadowtex1;
-            #else
-                uniform sampler2DShadow shadowtex1;
-            #endif
-        #else
-            uniform sampler2D shadowtex1;
-        #endif
+    //     #ifdef SHADOW_ENABLE_HWCOMP
+    //         #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+    //             uniform sampler2DShadow shadowtex1HW;
+    //             uniform sampler2D shadowtex1;
+    //         #else
+    //             uniform sampler2DShadow shadowtex1;
+    //         #endif
+    //     #else
+    //         uniform sampler2D shadowtex1;
+    //     #endif
 
-        uniform vec3 shadowLightPosition;
-        uniform float near;
-        uniform float far;
+    //     uniform vec3 shadowLightPosition;
+    //     uniform float near;
+    //     uniform float far;
 
-        #if SHADOW_PCF_SAMPLES == 12
-            #include "/lib/sampling/poisson_12.glsl"
-        #elif SHADOW_PCF_SAMPLES == 24
-            #include "/lib/sampling/poisson_24.glsl"
-        #elif SHADOW_PCF_SAMPLES == 36
-            #include "/lib/sampling/poisson_36.glsl"
-        #endif
+    //     #if SHADOW_PCF_SAMPLES == 12
+    //         #include "/lib/sampling/poisson_12.glsl"
+    //     #elif SHADOW_PCF_SAMPLES == 24
+    //         #include "/lib/sampling/poisson_24.glsl"
+    //     #elif SHADOW_PCF_SAMPLES == 36
+    //         #include "/lib/sampling/poisson_36.glsl"
+    //     #endif
 
-        //#include "/lib/depth.glsl"
+    //     //#include "/lib/depth.glsl"
 
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            #include "/lib/shadows/csm.glsl"
-            #include "/lib/shadows/csm_render.glsl"
-        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            uniform mat4 shadowProjection;
+    //     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+    //         #include "/lib/shadows/csm.glsl"
+    //         #include "/lib/shadows/csm_render.glsl"
+    //     #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+    //         uniform mat4 shadowProjection;
         
-            #include "/lib/shadows/basic.glsl"
-            #include "/lib/shadows/basic_render.glsl"
-        #endif
-    #endif
+    //         #include "/lib/shadows/basic.glsl"
+    //         #include "/lib/shadows/basic_render.glsl"
+    //     #endif
+    // #endif
     
     #include "/lib/sampling/linear.glsl"
     

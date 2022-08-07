@@ -140,98 +140,98 @@
             #endif
         #endif
 
-        #if defined SKY_ENABLED && defined LIGHTLEAK_FIX
-            const float minSkylightThreshold = 1.0 / 16.0 + EPSILON;
-            float shadow = step(minSkylightThreshold, lmcoord.y);
-        #else
-            float shadow = 1.0;
-        #endif
+        // #if defined SKY_ENABLED && defined LIGHTLEAK_FIX
+        //     const float minSkylightThreshold = 1.0 / 16.0 + EPSILON;
+        //     float shadow = step(minSkylightThreshold, lmcoord.y);
+        // #else
+        //     float shadow = 1.0;
+        // #endif
 
-        float lightSSS = 0.0;
-        shadowColorMap = vec3(1.0);
+        // float lightSSS = 0.0;
+        // shadowColorMap = vec3(1.0);
 
-        #ifdef SSS_ENABLED
-            float materialSSS = GetLabPbr_SSS(specularMap.b);
-        #endif
+        // #ifdef SSS_ENABLED
+        //     float materialSSS = GetLabPbr_SSS(specularMap.b);
+        // #endif
 
-        #ifdef SHADOW_ENABLED
-            vec3 tanLightDir = normalize(tanLightPos);
-            float NoL = dot(normal, tanLightDir);
+        // #ifdef SHADOW_ENABLED
+        //     vec3 tanLightDir = normalize(tanLightPos);
+        //     float NoL = dot(normal, tanLightDir);
 
-            shadow *= step(EPSILON, geoNoL);
-            shadow *= step(EPSILON, NoL);
+        //     shadow *= step(EPSILON, geoNoL);
+        //     shadow *= step(EPSILON, NoL);
             
-            #if SHADOW_TYPE != SHADOW_TYPE_NONE
-                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    vec3 _shadowPos[4] = shadowPos;
-                #else
-                    vec4 _shadowPos = shadowPos;
-                #endif
+        //     #if SHADOW_TYPE != SHADOW_TYPE_NONE
+        //         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        //             vec3 _shadowPos[4] = shadowPos;
+        //         #else
+        //             vec4 _shadowPos = shadowPos;
+        //         #endif
 
-                #if defined PARALLAX_ENABLED && defined PARALLAX_SHADOW_FIX
-                    float depth = 1.0 - traceCoordDepth.z;
-                    float eyeDepth = 0.0; //depth / max(geoNoV, EPSILON);
+        //         #if defined PARALLAX_ENABLED && defined PARALLAX_SHADOW_FIX
+        //             float depth = 1.0 - traceCoordDepth.z;
+        //             float eyeDepth = 0.0; //depth / max(geoNoV, EPSILON);
 
-                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        _shadowPos[0] = mix(shadowPos[0], shadowParallaxPos[0], depth) - eyeDepth;
-                        _shadowPos[1] = mix(shadowPos[1], shadowParallaxPos[1], depth) - eyeDepth;
-                        _shadowPos[2] = mix(shadowPos[2], shadowParallaxPos[2], depth) - eyeDepth;
-                        _shadowPos[3] = mix(shadowPos[3], shadowParallaxPos[3], depth) - eyeDepth;
-                    #else
-                        _shadowPos = mix(shadowPos, shadowParallaxPos, depth) - eyeDepth;
-                    #endif
-                #endif
+        //             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        //                 _shadowPos[0] = mix(shadowPos[0], shadowParallaxPos[0], depth) - eyeDepth;
+        //                 _shadowPos[1] = mix(shadowPos[1], shadowParallaxPos[1], depth) - eyeDepth;
+        //                 _shadowPos[2] = mix(shadowPos[2], shadowParallaxPos[2], depth) - eyeDepth;
+        //                 _shadowPos[3] = mix(shadowPos[3], shadowParallaxPos[3], depth) - eyeDepth;
+        //             #else
+        //                 _shadowPos = mix(shadowPos, shadowParallaxPos, depth) - eyeDepth;
+        //             #endif
+        //         #endif
 
-                if (shadow > EPSILON) {
-                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        shadow *= GetShadowing(_shadowPos);
-                    #else
-                        shadow *= GetShadowing(_shadowPos, shadowBias);
-                    #endif
-                }
+        //         if (shadow > EPSILON) {
+        //             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        //                 shadow *= GetShadowing(_shadowPos);
+        //             #else
+        //                 shadow *= GetShadowing(_shadowPos, shadowBias);
+        //             #endif
+        //         }
 
-                #ifdef SHADOW_COLOR
-                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        shadowColorMap = GetShadowColor(shadowPos);
-                    #else
-                        shadowColorMap = GetShadowColor(shadowPos.xyz, shadowBias);
-                    #endif
+        //         #ifdef SHADOW_COLOR
+        //             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        //                 shadowColorMap = GetShadowColor(shadowPos);
+        //             #else
+        //                 shadowColorMap = GetShadowColor(shadowPos.xyz, shadowBias);
+        //             #endif
                     
-                    shadowColorMap = RGBToLinear(shadowColorMap);
-                #endif
+        //             shadowColorMap = RGBToLinear(shadowColorMap);
+        //         #endif
 
-                #ifdef SSS_ENABLED
-                    if (materialSSS > EPSILON) {
-                        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                            lightSSS = GetShadowSSS(_shadowPos);
-                        #else
-                            lightSSS = GetShadowSSS(_shadowPos, shadowBias);
-                        #endif
-                    }
-                #endif
+        //         #ifdef SSS_ENABLED
+        //             if (materialSSS > EPSILON) {
+        //                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        //                     lightSSS = GetShadowSSS(_shadowPos);
+        //                 #else
+        //                     lightSSS = GetShadowSSS(_shadowPos, shadowBias);
+        //                 #endif
+        //             }
+        //         #endif
 
-                #ifdef PARALLAX_SHADOWS_ENABLED
-                    if (shadow > EPSILON && traceCoordDepth.z + EPSILON < 1.0) {
-                        #ifdef PARALLAX_USE_TEXELFETCH
-                            shadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
-                        #else
-                            shadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
-                        #endif
-                    }
-                #endif
-            #endif
-        #endif
+        //         #ifdef PARALLAX_SHADOWS_ENABLED
+        //             if (shadow > EPSILON && traceCoordDepth.z + EPSILON < 1.0) {
+        //                 #ifdef PARALLAX_USE_TEXELFETCH
+        //                     shadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
+        //                 #else
+        //                     shadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
+        //                 #endif
+        //             }
+        //         #endif
+        //     #endif
+        // #endif
 
         vec2 lm = lmcoord;
 
-        #if !defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE
-            shadow = glcolor.a;
+        // #if !defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE
+        //     shadow = glcolor.a;
 
-            // #ifdef SSS_ENABLED
-            //     float skyLight = saturate((lm.y - (0.5/16.0)) / (15.0/16.0));
-            //     lightSSS = skyLight * materialSSS;
-            // #endif
-        #endif
+        //     // #ifdef SSS_ENABLED
+        //     //     float skyLight = saturate((lm.y - (0.5/16.0)) / (15.0/16.0));
+        //     //     lightSSS = skyLight * materialSSS;
+        //     // #endif
+        // #endif
 
         vec3 _viewNormal = normalize(viewNormal);
         vec3 _viewTangent = normalize(viewTangent);
@@ -246,6 +246,6 @@
 
         normalMap.xyz = texViewNormal * 0.5 + 0.5;
 
-        lightingMap = vec4(lm, shadow, lightSSS);
+        lightingMap = vec4(lm, geoNoL, 0.0);
     }
 #endif
