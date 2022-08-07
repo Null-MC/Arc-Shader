@@ -1,7 +1,7 @@
 #extension GL_ARB_texture_gather : enable
 
 #ifdef RENDER_VERTEX
-	void ApplyShadows(const in vec3 localPos, const in vec3 viewDir) {
+    void ApplyShadows(const in vec3 localPos, const in vec3 viewDir) {
         #ifndef SSS_ENABLED
             if (geoNoL > 0.0) {
         #endif
@@ -11,7 +11,7 @@
                 mat4 matShadowModelView = shadowModelView;
             #endif
 
-			//vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+            //vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
             vec3 shadowViewPos = (matShadowModelView * vec4(localPos, 1.0)).xyz;
 
             #if defined PARALLAX_ENABLED && !defined RENDER_SHADOW && defined PARALLAX_SHADOW_FIX
@@ -34,17 +34,15 @@
             matShadowProjections[2] = GetShadowCascadeProjectionMatrix(2);
             matShadowProjections[3] = GetShadowCascadeProjectionMatrix(3);
 
-			for (int i = 0; i < 4; i++) {
-				shadowProjectionSizes[i] = 2.0 / vec2(
-					matShadowProjections[i][0].x,
-					matShadowProjections[i][1].y);
-				
-				shadowPos[i] = (matShadowProjections[i] * vec4(shadowViewPos, 1.0)).xyz;
+            for (int i = 0; i < 4; i++) {
+                shadowProjectionSizes[i] = 2.0 / vec2(
+                    matShadowProjections[i][0].x,
+                    matShadowProjections[i][1].y);
+                
+                shadowPos[i] = (matShadowProjections[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
 
-				vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
-				shadowPos[i] = shadowPos[i] * 0.5 + 0.5;
-
-				shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
+                vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
+                shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
 
                 #if defined PARALLAX_ENABLED && !defined RENDER_SHADOW && defined PARALLAX_SHADOW_FIX
                     // TODO: Get shadow position with max parallax offset
@@ -53,26 +51,26 @@
 
                     shadowParallaxPos[i].xy = shadowParallaxPos[i].xy * 0.5 + shadowCascadePos;
                 #endif
-			}
+            }
 
-			shadowCascade = GetShadowCascade(matShadowProjections);
+            shadowCascade = GetShadowCascade(matShadowProjections);
         #ifndef SSS_ENABLED
             }
             else {
                 shadowCascade = -1;
             }
         #endif
-	}
+    }
 #endif
 
 #ifdef RENDER_FRAG
-	//#define PCF_MAX_RADIUS 0.16
+    //#define PCF_MAX_RADIUS 0.16
 
     const float cascadeTexSize = shadowMapSize * 0.5;
-	const int pcf_sizes[4] = int[](4, 3, 2, 1);
-	const int pcf_max = 4;
+    const int pcf_sizes[4] = int[](4, 3, 2, 1);
+    const int pcf_max = 4;
 
-	float SampleDepth(const in vec2 shadowPos, const in vec2 offset) {
+    float SampleDepth(const in vec2 shadowPos, const in vec2 offset) {
         #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
             return textureLod(shadowtex1, shadowPos + offset, 0).r;
         #elif defined SHADOW_ENABLE_HWCOMP
@@ -81,61 +79,70 @@
             ivec2 itex = ivec2((shadowPos + offset) * shadowMapSize);
             return texelFetch(shadowtex1, itex, 0).r;
         #endif
-	}
+    }
 
-	float GetNearestDepth(const in vec3 shadowPos[4], const in vec2 blockOffset, out int cascade) {
-		float depth = 1.0;
-		cascade = -1;
+    vec2 GetProjectionSize(const in int index) {
+        #ifdef RENDER_DEFERRED
+            return 2.0 / vec2(matShadowProjections[index][0].x, matShadowProjections[index][1].y);
+        #else
+            return shadowProjectionSizes[index];
+        #endif
+    }
 
-		float shadowResScale = tile_dist_bias_factor * shadowPixelSize;
+    float GetNearestDepth(const in vec3 shadowPos[4], const in vec2 blockOffset, out int cascade) {
+        float depth = 1.0;
+        cascade = -1;
 
-		for (int i = 0; i < 4; i++) {
-			vec2 shadowTilePos = GetShadowCascadeClipPos(i);
+        float shadowResScale = tile_dist_bias_factor * shadowPixelSize;
+
+        for (int i = 0; i < 4; i++) {
+            vec2 shadowTilePos = GetShadowCascadeClipPos(i);
             vec2 clipMin = shadowTilePos + 2.0 * shadowPixelSize;
             vec2 clipMax = shadowTilePos + 0.5 - 4.0 * shadowPixelSize;
 
             // Ignore if outside cascade bounds
-			if (shadowPos[i].x < clipMin.x || shadowPos[i].x >= clipMax.x
-			 || shadowPos[i].y < clipMin.y || shadowPos[i].y >= clipMax.y) continue;
+            if (shadowPos[i].x < clipMin.x || shadowPos[i].x >= clipMax.x
+             || shadowPos[i].y < clipMin.y || shadowPos[i].y >= clipMax.y) continue;
 
-			vec2 pixelPerBlockScale = cascadeTexSize / shadowProjectionSizes[i];
-			vec2 pixelOffset = blockOffset * pixelPerBlockScale * shadowPixelSize;
-			float texDepth = SampleDepth(shadowPos[i].xy, pixelOffset);
+            vec2 shadowProjectionSize = GetProjectionSize(i);
+            vec2 pixelPerBlockScale = cascadeTexSize / shadowProjectionSize;
+            vec2 pixelOffset = blockOffset * pixelPerBlockScale * shadowPixelSize;
+            float texDepth = SampleDepth(shadowPos[i].xy, pixelOffset);
 
             if (texDepth < depth) {
-				depth = texDepth;
-				cascade = i;
-			}
-		}
+                depth = texDepth;
+                cascade = i;
+            }
+        }
 
-		return depth;
-	}
-
-    float GetCascadeBias(const in int cascade) {
-        float maxProjSize = max(shadowProjectionSizes[cascade].x, shadowProjectionSizes[cascade].y);
-        //float maxProjSize = shadowProjectionSizes[cascade].x * shadowProjectionSizes[cascade].y;
-        //float maxProjSize = length(shadowProjectionSizes[cascade]);
-        //const float cascadePixelSize = 1.0 / cascadeTexSize;
-        float zRangeBias = 0.05 / (3.0 * far);
-
-        maxProjSize = pow(maxProjSize, 1.3);
-
-        #if SHADOW_FILTER == 1
-            float xySizeBias = 0.004 * maxProjSize * shadowPixelSize;// * tile_dist_bias_factor * 4.0;
-        #else
-            float xySizeBias = 0.004 * maxProjSize * shadowPixelSize;// * tile_dist_bias_factor;
-        #endif
-
-        float bias = mix(xySizeBias, zRangeBias, geoNoL) * SHADOW_BIAS_SCALE;
-
-        //bias += pow(1.0 - geoNoL, 16.0);
-
-        return bias;
+        return depth;
     }
 
-    vec2 GetPixelRadius(const in float blockRadius) {
-        float texSize = shadowMapSize * 0.5;
-        return blockRadius * (texSize / shadowProjectionSizes[shadowCascade]) * shadowPixelSize;
+    float GetCascadeBias(const in int cascade) {
+        #ifdef RENDER_DEFERRED
+            return 0.0; // TODO: can't get geometry normal in deferred
+        #else
+            vec2 shadowProjectionSize = GetProjectionSize(cascade);
+            float maxProjSize = max(shadowProjectionSize.x, shadowProjectionSize.y);
+            //float maxProjSize = shadowProjectionSizes[cascade].x * shadowProjectionSizes[cascade].y;
+            //float maxProjSize = length(shadowProjectionSizes[cascade]);
+            //const float cascadePixelSize = 1.0 / cascadeTexSize;
+            float zRangeBias = 0.05 / (3.0 * far);
+
+            maxProjSize = pow(maxProjSize, 1.3);
+
+            #if SHADOW_FILTER == 1
+                float xySizeBias = 0.004 * maxProjSize * shadowPixelSize;// * tile_dist_bias_factor * 4.0;
+            #else
+                float xySizeBias = 0.004 * maxProjSize * shadowPixelSize;// * tile_dist_bias_factor;
+            #endif
+
+            float bias = mix(xySizeBias, zRangeBias, geoNoL) * SHADOW_BIAS_SCALE;
+
+            //bias += pow(1.0 - geoNoL, 16.0);
+
+            return bias;
+        #endif
     }
 
     // returns: [0] when depth occluded, [1] otherwise
@@ -155,7 +162,7 @@
     // returns: [0] when depth occluded, [1] otherwise
     float CompareNearestDepth(const in vec3 shadowPos[4], const in vec2 blockOffset) {
         float texComp = 1.0;
-        for (int i = 0; i < 4 && texComp > 0.0; i++) {
+        for (int i = 3; i >= 0 && texComp > 0.0; i--) {
             vec2 shadowTilePos = GetShadowCascadeClipPos(i);
             vec2 clipMin = shadowTilePos + 2.0 * shadowPixelSize;
             vec2 clipMax = shadowTilePos + 0.5 - 4.0 * shadowPixelSize;
@@ -164,7 +171,8 @@
             if (shadowPos[i].x < clipMin.x || shadowPos[i].x >= clipMax.x
              || shadowPos[i].y < clipMin.y || shadowPos[i].y >= clipMax.y) continue;
 
-            vec2 pixelPerBlockScale = cascadeTexSize / shadowProjectionSizes[i];
+            vec2 shadowProjectionSize = GetProjectionSize(i);
+            vec2 pixelPerBlockScale = cascadeTexSize / shadowProjectionSize;
             vec2 pixelOffset = blockOffset * pixelPerBlockScale * shadowPixelSize;
 
             float bias = GetCascadeBias(i);
@@ -174,7 +182,45 @@
         return max(texComp, 0.0);
     }
 
+    #ifdef SHADOW_COLOR
+        vec3 GetShadowColor(const in vec3 shadowPos[4]) {
+            int cascade = -1;
+            float depthLast = 1.0;
+            for (int i = 0; i < 4; i++) {
+                vec2 shadowTilePos = GetShadowCascadeClipPos(i);
+                if (shadowPos[i].x < shadowTilePos.x || shadowPos[i].x > shadowTilePos.x + 0.5) continue;
+                if (shadowPos[i].y < shadowTilePos.y || shadowPos[i].y > shadowTilePos.y + 0.5) continue;
+
+                float shadowBias = 0.0; // TODO
+
+                float waterDepth = textureLod(shadowtex0, shadowPos[i].xy, 0).r;
+                //float waterShadow = step(waterDepth, shadowPos[i].z - shadowBias);
+
+                if (shadowPos[i].z - shadowBias > waterDepth && waterDepth < depthLast) {
+                    depthLast = waterDepth;
+                    cascade = i;
+                }
+            }
+
+            if (cascade < 0) return vec3(1.0);
+
+            //surface has translucent object between it and the sun. modify its color.
+            //if the block light is high, modify the color less.
+            vec3 color = textureLod(shadowcolor0, shadowPos[cascade].xy, 0).rgb;
+            return RGBToLinear(color);
+
+            //make colors more intense when the shadow light color is more opaque.
+            //return mix(vec3(1.0), color, shadowLightColor.a);
+        }
+    #endif
+
     #ifndef RENDER_DEFERRED
+        vec2 GetPixelRadius(const in float blockRadius) {
+            float texSize = shadowMapSize * 0.5;
+            vec2 shadowProjectionSize = GetProjectionSize(shadowCascade);
+            return blockRadius * (texSize / shadowProjectionSize) * shadowPixelSize;
+        }
+
         #if SHADOW_FILTER != 0
             float GetShadowing_PCF(const in vec3 shadowPos[4], const in float blockRadius, const in int sampleCount) {
                 float shadow = 0.0;
@@ -187,94 +233,62 @@
             }
         #endif
 
-    	#ifdef SHADOW_COLOR
-    		vec3 GetShadowColor(const in vec3 shadowPos[4]) {
-    			int cascade = -1;
-    			float depthLast = 1.0;
-    			for (int i = 0; i < 4; i++) {
-    				vec2 shadowTilePos = GetShadowCascadeClipPos(i);
-    				if (shadowPos[i].x < shadowTilePos.x || shadowPos[i].x > shadowTilePos.x + 0.5) continue;
-    				if (shadowPos[i].y < shadowTilePos.y || shadowPos[i].y > shadowTilePos.y + 0.5) continue;
+        #if SHADOW_FILTER == 2
+            // PCF + PCSS
+            float FindBlockerDistance(const in vec3 shadowPos[4], const in float blockRadius, const in int sampleCount) {
+                //float blockRadius = SearchWidth(uvLightSize, shadowPos.z);
+                //float blockRadius = 6.0; //SHADOW_LIGHT_SIZE * (shadowPos.z - PCSS_NEAR) / shadowPos.z;
+                float avgBlockerDistance = 0.0;
+                int blockers = 0;
 
-                    float shadowBias = 0.0; // TODO
-
-    				float waterDepth = textureLod(shadowtex0, shadowPos[i].xy, 0).r;
-                    //float waterShadow = step(waterDepth, shadowPos[i].z - shadowBias);
-
-    				if (shadowPos[i].z - shadowBias > waterDepth && waterDepth < depthLast) {
-    					depthLast = waterDepth;
-    					cascade = i;
-    				}
-    			}
-
-    			if (cascade < 0) return vec3(1.0);
-
-    			//surface has translucent object between it and the sun. modify its color.
-    			//if the block light is high, modify the color less.
-    			vec3 color = textureLod(shadowcolor0, shadowPos[cascade].xy, 0).rgb;
-    			return RGBToLinear(color);
-
-    			//make colors more intense when the shadow light color is more opaque.
-    			//return mix(vec3(1.0), color, shadowLightColor.a);
-    		}
-    	#endif
-
-    	#if SHADOW_FILTER == 2
-    		// PCF + PCSS
-    		float FindBlockerDistance(const in vec3 shadowPos[4], const in float blockRadius, const in int sampleCount) {
-    			//float blockRadius = SearchWidth(uvLightSize, shadowPos.z);
-    			//float blockRadius = 6.0; //SHADOW_LIGHT_SIZE * (shadowPos.z - PCSS_NEAR) / shadowPos.z;
-    			float avgBlockerDistance = 0.0;
-    			int blockers = 0;
-
-    			for (int i = 0; i < sampleCount; i++) {
+                for (int i = 0; i < sampleCount; i++) {
                     int cascade;
-    				vec2 blockOffset = poissonDisk[i] * blockRadius;
-    				float texDepth = GetNearestDepth(shadowPos, blockOffset, cascade);
+                    vec2 blockOffset = poissonDisk[i] * blockRadius;
+                    float texDepth = GetNearestDepth(shadowPos, blockOffset, cascade);
 
                     float bias = GetCascadeBias(cascade);
 
-    				if (texDepth < shadowPos[cascade].z - bias) {
-    					avgBlockerDistance += texDepth;
-    					blockers++;
-    				}
-    			}
+                    if (texDepth < shadowPos[cascade].z - bias) {
+                        avgBlockerDistance += texDepth;
+                        blockers++;
+                    }
+                }
 
                 if (blockers == sampleCount) return 1.0;
-    			return blockers > 0 ? avgBlockerDistance / blockers : -1.0;
-    		}
+                return blockers > 0 ? avgBlockerDistance / blockers : -1.0;
+            }
 
-    		float GetShadowing(const in vec3 shadowPos[4]) {
-    			// blocker search
-    			int blockerSampleCount = POISSON_SAMPLES;
-    			float blockerDistance = FindBlockerDistance(shadowPos, SHADOW_PCF_SIZE, blockerSampleCount);
-    			if (blockerDistance <= 0.0) return 1.0;
+            float GetShadowing(const in vec3 shadowPos[4]) {
+                // blocker search
+                int blockerSampleCount = POISSON_SAMPLES;
+                float blockerDistance = FindBlockerDistance(shadowPos, SHADOW_PCF_SIZE, blockerSampleCount);
+                if (blockerDistance <= 0.0) return 1.0;
                 if (blockerDistance == 1.0) return 0.0;
 
-    			// penumbra estimation
-    			float penumbraWidth = (shadowPos[shadowCascade].z - blockerDistance) / blockerDistance;
+                // penumbra estimation
+                float penumbraWidth = (shadowPos[shadowCascade].z - blockerDistance) / blockerDistance;
 
-    			// percentage-close filtering
-    			float blockRadius = min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0) * SHADOW_PCF_SIZE; // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
+                // percentage-close filtering
+                float blockRadius = min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0) * SHADOW_PCF_SIZE; // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
 
                 int pcfSampleCount = POISSON_SAMPLES;
-    			vec2 pixelRadius = GetPixelRadius(blockRadius);
-    			if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) pcfSampleCount = 1;
+                vec2 pixelRadius = GetPixelRadius(blockRadius);
+                if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) pcfSampleCount = 1;
 
-    			return 1.0 - GetShadowing_PCF(shadowPos, blockRadius, pcfSampleCount);
-    		}
-    	#elif SHADOW_FILTER == 1
-    		// PCF
-    		float GetShadowing(const in vec3 shadowPos[4]) {
+                return 1.0 - GetShadowing_PCF(shadowPos, blockRadius, pcfSampleCount);
+            }
+        #elif SHADOW_FILTER == 1
+            // PCF
+            float GetShadowing(const in vec3 shadowPos[4]) {
                 int sampleCount = POISSON_SAMPLES;
                 vec2 pixelRadius = GetPixelRadius(SHADOW_PCF_SIZE);
                 if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
-    			return 1.0 - GetShadowing_PCF(shadowPos, SHADOW_PCF_SIZE, sampleCount);
-    		}
-    	#elif SHADOW_FILTER == 0
-    		// Unfiltered
-    		float GetShadowing(const in vec3 shadowPos[4]) {
+                return 1.0 - GetShadowing_PCF(shadowPos, SHADOW_PCF_SIZE, sampleCount);
+            }
+        #elif SHADOW_FILTER == 0
+            // Unfiltered
+            float GetShadowing(const in vec3 shadowPos[4]) {
                 //int cascade = GetCascadeSampleIndex(shadowPos, vec2(0.0));
                 //if (cascade < 0) return 1.0;
 
@@ -284,14 +298,14 @@
                     return CompareNearestDepth(shadowPos, vec2(0.0));
                     //return CompareDepth(shadowPos[cascade], vec2(0.0), bias);
                 #else
-        			int cascade;
-        			float texDepth = GetNearestDepth(shadowPos, vec2(0.0), cascade);
+                    int cascade;
+                    float texDepth = GetNearestDepth(shadowPos, vec2(0.0), cascade);
 
                     float bias = GetCascadeBias(cascade);
-        			return step(shadowPos[cascade].z - bias, texDepth + EPSILON);
+                    return step(shadowPos[cascade].z - bias, texDepth + EPSILON);
                 #endif
-    		}
-    	#endif
+            }
+        #endif
 
         #ifdef SSS_ENABLED
             float SampleShadowSSS(const in vec2 shadowPos) {

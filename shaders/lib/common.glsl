@@ -251,10 +251,10 @@ const float drynessHalflife = 10.0;
     #undef VL_ENABLED
 #endif
 
-#if SHADOW_TYPE == 3
-    // VL is not currently supported with CSM
-    #undef VL_ENABLED
-#endif
+// #if SHADOW_TYPE == 3
+//     // VL is not currently supported with CSM
+//     #undef VL_ENABLED
+// #endif
 
 #if !defined RSM_ENABLED || RSM_SCALE == 0
     #undef RSM_UPSCALE

@@ -25,12 +25,42 @@
         flat out vec3 moonColor;
 
         uniform vec3 skyColor;
+
+        #if defined VL_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE)
+            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                flat out float cascadeSizes[4];
+                flat out mat4 matShadowProjections[4];
+            #endif
+        #endif
     #endif
 
     #ifdef SHADOW_ENABLED
         flat out vec3 skyLightColor;
 
         uniform vec3 shadowLightPosition;
+    #endif
+
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED && (defined VL_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE))
+        uniform mat4 shadowModelView;
+        uniform float near;
+        uniform float far;
+
+        #if MC_VERSION >= 11700 && (defined IS_OPTIFINE || defined IRIS_FEATURE_CHUNK_OFFSET)
+            uniform vec3 chunkOffset;
+        #else
+            uniform mat4 gbufferModelViewInverse;
+        #endif
+
+        #ifdef IS_OPTIFINE
+            // NOTE: We are using the previous gbuffer matrices cause the current ones don't work in shadow pass
+            uniform mat4 gbufferPreviousModelView;
+            uniform mat4 gbufferPreviousProjection;
+        #else
+            uniform mat4 gbufferModelView;
+            uniform mat4 gbufferProjection;
+        #endif
+
+        #include "/lib/shadows/csm.glsl"
     #endif
 
     uniform float screenBrightness;
@@ -74,6 +104,16 @@
                     skyLightLevels = vec2(1.0, 1.0);
                 }
             }
+
+            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED && (defined VL_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE))
+                cascadeSizes[0] = GetCascadeDistance(0);
+                cascadeSizes[1] = GetCascadeDistance(1);
+                cascadeSizes[2] = GetCascadeDistance(2);
+                cascadeSizes[3] = GetCascadeDistance(3);
+
+                for (int i = 0; i < 4; i++)
+                    matShadowProjections[i] = GetShadowCascadeProjectionMatrix(i);
+            #endif
         #endif
 
         blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
@@ -170,7 +210,7 @@
     #include "/lib/world/scattering.glsl"
     #include "/lib/lighting/blackbody.glsl"
 
-    #if defined SKY_ENABLED && defined VL_ENABLED
+    #if defined SKY_ENABLED && (defined VL_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE))
         #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
             uniform sampler2DShadow shadowtex1HW;
         #elif defined SHADOW_ENABLE_HWCOMP
@@ -180,9 +220,7 @@
             uniform sampler2D shadowtex1;
         #endif
 
-        //uniform mat4 gbufferModelViewInverse;
         uniform mat4 shadowModelView;
-        uniform mat4 shadowProjection;
 
         #if SHADOW_TYPE == SHADOW_TYPE_BASIC
             #include "/lib/shadows/basic_render.glsl"
@@ -190,9 +228,18 @@
             #include "/lib/shadows/basic.glsl"
             #include "/lib/shadows/basic_render.glsl"
         #elif SHADOW_TYPE == SHADOW_TYPE_CASCADED
+            flat in float cascadeSizes[4];
+            flat in mat4 matShadowProjections[4];
+
             #include "/lib/shadows/csm.glsl"
             #include "/lib/shadows/csm_render.glsl"
         #endif
+    #endif
+
+    #if defined SKY_ENABLED && defined VL_ENABLED
+        //uniform mat4 gbufferModelViewInverse;
+        //uniform mat4 shadowModelView;
+        uniform mat4 shadowProjection;
 
         #include "/lib/lighting/volumetric.glsl"
     #endif
