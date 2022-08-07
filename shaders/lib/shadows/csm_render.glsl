@@ -296,7 +296,7 @@
         #ifdef SSS_ENABLED
             float SampleShadowSSS(const in vec2 shadowPos) {
                 uint data = textureLod(shadowcolor1, shadowPos, 0).g;
-                return unpackUnorm4x8(data).b;
+                return unpackUnorm4x8(data).a;
             }
 
             #if SSS_FILTER != 0

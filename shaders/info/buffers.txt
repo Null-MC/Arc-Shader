@@ -1,5 +1,5 @@
 shadowcolor0	RGBA8		light-color
-shadowcolor1	RG32UI		R: rsm-color; G: normal-XY, sss
+shadowcolor1	RG32UI		R: rsm-color; G: normal-XYZ, sss
 
 colortex2		RGBA32		R: color; G: normal; B: specular; A: lighting
 colortex3		RGB8		shadow-color

@@ -208,6 +208,23 @@
         #include "/lib/ssr.glsl"
     #endif
 
+    #if defined RSM_ENABLED && defined RSM_UPSCALE
+        uniform sampler2D BUFFER_RSM_DEPTH;
+        uniform usampler2D shadowcolor1;
+
+        uniform mat4 shadowProjectionInverse;
+
+        #if RSM_SAMPLE_COUNT == 400
+            #include "/lib/sampling/rsm_400.glsl"
+        #elif RSM_SAMPLE_COUNT == 200
+            #include "/lib/sampling/rsm_200.glsl"
+        #else
+            #include "/lib/sampling/rsm_100.glsl"
+        #endif
+
+        #include "/lib/rsm.glsl"
+    #endif
+
     #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/pbr.glsl"
 

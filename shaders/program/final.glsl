@@ -285,11 +285,10 @@
             color = RestoreNormalZ(normalXY) * 0.5 + 0.5;
         #elif DEBUG_VIEW == DEBUG_VIEW_RSM_FINAL
             // RSM Final
-            #if RSM_SCALE == 0 || defined RSM_UPSCALE
-                color = texelFetch(BUFFER_RSM_COLOR, iuv, 0).rgb;
+            #ifdef IS_OPTIFINE
+                color = textureLod(BUFFER_RSM_COLOR, texcoord, 0).rgb;
             #else
-                const float rsm_scale = 1.0 / exp2(RSM_SCALE);
-                color = textureLod(BUFFER_RSM_COLOR, texcoord * rsm_scale, 0).rgb;
+                color = textureLod(BUFFER_RSM_COLOR, texcoord / exp2(RSM_SCALE), 0).rgb;
             #endif
         #elif DEBUG_VIEW == DEBUG_VIEW_BLOOM
             // Bloom Tiles

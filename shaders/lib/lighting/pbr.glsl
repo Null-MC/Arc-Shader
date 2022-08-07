@@ -270,6 +270,40 @@
         }
     #endif
 
+    #if defined SKY_ENABLED && defined RSM_ENABLED && defined RSM_UPSCALE && defined RENDER_DEFERRED
+        vec3 GetUpscaledRSM(const in vec3 shadowViewPos, const in vec3 shadowViewNormal, const in float depthLinear, const in vec2 screenUV, const in float skyLight) {
+            vec4 rsmDepths = textureGather(BUFFER_RSM_DEPTH, screenUV, 0);
+            float rsmDepthMin = min(min(rsmDepths.x, rsmDepths.y), min(rsmDepths.z, rsmDepths.w));
+            float rsmDepthMax = max(max(rsmDepths.x, rsmDepths.y), max(rsmDepths.z, rsmDepths.w));
+
+            float rsmDepthMinLinear = linearizeDepth(rsmDepthMin * 2.0 - 1.0, near, far);
+            float rsmDepthMaxLinear = linearizeDepth(rsmDepthMax * 2.0 - 1.0, near, far);
+
+            // TODO: Not sure if this should be negative or not!
+            //float clipDepthLinear = -viewPos.z; //linearizeDepth(clipDepth * 2.0 - 1.0, near, far);
+            float depthThreshold = 0.01 + 0.018 * pow2(depthLinear);
+
+            bool depthTest = abs(rsmDepthMinLinear - depthLinear) <= depthThreshold
+                          && abs(rsmDepthMaxLinear - depthLinear) <= depthThreshold;
+
+            if (depthTest) {
+                return textureLod(BUFFER_RSM_COLOR, screenUV, 0).rgb;
+            }
+            else {
+                #ifdef LIGHTLEAK_FIX
+                    vec3 final  vec3(0.0);
+                    if (skyLight >= 1.0 / 16.0)
+                        final = GetIndirectLighting_RSM(shadowViewPos, shadowViewNormal);
+                #else
+                    vec3 final = GetIndirectLighting_RSM(shadowViewPos, shadowViewNormal);
+                #endif
+
+                //final = mix(final, vec3(600.0, 0.0, 0.0), 0.25);
+                return final;
+            }
+        }
+    #endif
+
     vec4 PbrLighting2(const in PbrMaterial material, const in vec3 shadowColorMap, const in vec2 lmValue, const in float shadow, const in float shadowSSS, const in vec3 viewPos, const in vec2 waterSolidDepth) {
         vec2 viewSize = vec2(viewWidth, viewHeight);
         vec3 viewNormal = normalize(material.normal);
@@ -317,7 +351,6 @@
                 vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
                 float noiseHigh = 1.0 - textureLod(noisetex, 0.24*localPos.xz, 0).r;
                 float noiseLow = 1.0 - textureLod(noisetex, 0.03*localPos.xz, 0).r;
-
 
                 float shit = 0.78*wetnessFinal;
                 wetnessFinal = smoothstep(0.0, 1.0, wetnessFinal);
@@ -382,12 +415,19 @@
         //return vec4(reflectColor, 1.0);
 
         #if defined SKY_ENABLED && defined RSM_ENABLED && defined RENDER_DEFERRED
-            #if RSM_SCALE == 0 || defined RSM_UPSCALE
-                //ivec2 iuv = ivec2(texcoord * viewSize);
-                vec3 rsmColor = texelFetch(BUFFER_RSM_COLOR, ivec2(gl_FragCoord.xy), 0).rgb;
+            vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
+            vec3 shadowViewNormal = mat3(shadowModelView) * (mat3(gbufferModelViewInverse) * viewNormal);
+
+            vec2 tex = screenUV;
+
+            #ifndef IS_OPTIFINE
+                tex /= exp2(RSM_SCALE);
+            #endif
+
+            #ifdef RSM_UPSCALE
+                vec3 rsmColor = GetUpscaledRSM(shadowViewPos, shadowViewNormal, -viewPos.z, tex, skyLight);
             #else
-                const float rsm_scale = 1.0 / exp2(RSM_SCALE);
-                vec3 rsmColor = textureLod(BUFFER_RSM_COLOR, texcoord * rsm_scale, 0).rgb;
+                vec3 rsmColor = textureLod(BUFFER_RSM_COLOR, tex, 0).rgb;
             #endif
         #endif
 

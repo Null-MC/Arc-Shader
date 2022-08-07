@@ -50,6 +50,8 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 shadowVi
     //  mat4 matShadowClipToLocal = shadowModelViewInverse * shadowProjectionInverse;
     //#endif
 
+    //return shadowViewNormal * 0.5 + 0.5;
+
     for (int i = 0; i < RSM_SAMPLE_COUNT; i++) {
         vec3 offsetShadowViewPos = shadowViewPos;
         offsetShadowViewPos.xy += rsmPoissonDisk[i] * RSM_FILTER_SIZE;
@@ -92,21 +94,22 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 shadowVi
         uvec2 data = texelFetch(shadowcolor1, iuv, 0).rg;
 
         // Irradiance at current fragment w.r.t. pixel light at uv.
-        vec3 ray = shadowViewPos - x_p; // Difference vector.
+        vec3 ray = x_p - shadowViewPos; // Difference vector.
         vec3 rayDir = normalize(ray);
         float rayDist = length(ray); // Square distance.
 
-        vec2 normalMap = unpackUnorm4x8(data.g).rg;
-        vec3 n_p = RestoreNormalZ(normalMap);
-        //n_p = mat3(shadowModelViewInverse) * n_p;
+        vec3 normal = unpackUnorm4x8(data.g).rgb;
+        normal = normalize(normal * 2.0 - 1.0);
+        //normal = mat3(shadowModelViewInverse) * normal;
+        //return normal * 0.5 + 0.5;
 
         vec3 flux = unpackUnorm4x8(data.r).rgb;
         flux = RGBToLinear(flux);
 
-        float NoL = max(dot(n_p, vec3(0.0, 0.0, 1.0)), 0.0);
-        float NoR = max(dot(n_p, rayDir), 0.0);
+        float NoR1 = max(dot(shadowViewNormal, rayDir), 0.0);
+        float NoR2 = max(dot(normal, -rayDir), 0.0);
 
-        vec3 E_p = flux * NoR;
+        vec3 E_p = flux * NoR1 * NoR2;
 
         //float weight = rsmPoissonDisk[i].x * rsmPoissonDisk[i].x;
         float weight = dot(rsmPoissonDisk[i], rsmPoissonDisk[i]);
@@ -116,3 +119,15 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 shadowVi
     // Modulate result with some intensity value.
     return (shading / RSM_SAMPLE_COUNT) * RSM_INTENSITY * RSM_FILTER_SIZE;
 }
+
+// vec3 SampleRSM(const in vec3 shadowViewPos, const in uvec2 deferredNormalLightingData) {
+//     // vec3 localPos = unproject(gbufferModelViewInverse * (gbufferProjectionInverse * vec4(clipPos, 1.0)));
+//     // vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
+
+//     vec3 normalMap = unpackUnorm4x8(deferredNormalLightingData.r).xyz;
+//     vec3 viewNormal = normalize(normalMap * 2.0 - 1.0);
+
+//     vec3 shadowViewNormal = mat3(shadowModelView) * (mat3(gbufferModelViewInverse) * viewNormal);
+
+//     return GetIndirectLighting_RSM(shadowViewPos, shadowViewNormal);
+// }

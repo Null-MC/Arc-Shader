@@ -320,6 +320,8 @@ const bool shadowHardwareFiltering1 = true;
         #if defined RSM_ENABLED
             vec2 normalMap = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).rg;
             viewNormal = matViewTBN * RestoreNormalZ(normalMap);
+
+            sampleColor.rgb *= max(dot(viewNormal, vec3(0.0, 0.0, 1.0)), 0.0);
         #endif
 
         float sss = 0.0;
@@ -339,7 +341,7 @@ const bool shadowHardwareFiltering1 = true;
 
             uvec2 data;
             data.r = packUnorm4x8(vec4(rsmColor, 1.0));
-            data.g = packUnorm4x8(vec4(viewNormal.xy * 0.5 + 0.5, sss, 1.0));
+            data.g = packUnorm4x8(vec4(viewNormal * 0.5 + 0.5, sss));
             outColor1 = data;
         #endif
     }
