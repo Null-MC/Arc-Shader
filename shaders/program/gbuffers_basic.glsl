@@ -32,31 +32,31 @@
         uniform float rainStrength;
 
         #ifdef SHADOW_ENABLED
-            out float shadowBias;
+        //     out float shadowBias;
 
-            uniform mat4 shadowModelView;
-            uniform mat4 shadowProjection;
+        //     uniform mat4 shadowModelView;
+        //     uniform mat4 shadowProjection;
             uniform vec3 shadowLightPosition;
-            uniform float far;
+        //     uniform float far;
 
-            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                out vec3 shadowPos[4];
-                out vec3 shadowParallaxPos[4];
-                out vec2 shadowProjectionSizes[4];
-                out float cascadeSizes[4];
-                flat out int shadowCascade;
+        //     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        //         out vec3 shadowPos[4];
+        //         out vec3 shadowParallaxPos[4];
+        //         out vec2 shadowProjectionSizes[4];
+        //         out float cascadeSizes[4];
+        //         flat out int shadowCascade;
 
-                #ifdef IS_OPTIFINE
-                    uniform mat4 gbufferPreviousProjection;
-                    uniform mat4 gbufferPreviousModelView;
-                #endif
+        //         #ifdef IS_OPTIFINE
+        //             uniform mat4 gbufferPreviousProjection;
+        //             uniform mat4 gbufferPreviousModelView;
+        //         #endif
 
-                uniform mat4 gbufferProjection;
-                uniform float near;
-            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-                out vec4 shadowPos;
-                out vec4 shadowParallaxPos;
-            #endif
+        //         uniform mat4 gbufferProjection;
+        //         uniform float near;
+        //     #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+        //         out vec4 shadowPos;
+        //         out vec4 shadowParallaxPos;
+        //     #endif
         #endif
     #endif
 
@@ -90,15 +90,15 @@
     #include "/lib/world/wind.glsl"
     #include "/lib/world/waving.glsl"
 
-    #ifdef SHADOW_ENABLED
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            #include "/lib/shadows/csm.glsl"
-            #include "/lib/shadows/csm_render.glsl"
-        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            #include "/lib/shadows/basic.glsl"
-            #include "/lib/shadows/basic_render.glsl"
-        #endif
-    #endif
+    // #ifdef SHADOW_ENABLED
+    //     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+    //         #include "/lib/shadows/csm.glsl"
+    //         #include "/lib/shadows/csm_render.glsl"
+    //     #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+    //         #include "/lib/shadows/basic.glsl"
+    //         #include "/lib/shadows/basic_render.glsl"
+    //     #endif
+    // #endif
 
     #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
         #include "/lib/material/default.glsl"

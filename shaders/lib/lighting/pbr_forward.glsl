@@ -260,6 +260,10 @@
             ApplyDirectionalLightmap(lm.x, material.normal);
         #endif
 
+        #if SHADOW_TYPE == SHADOW_TYPE_NONE
+            vec4 shadowPos;
+        #endif
+
         return PbrLighting2(material, lm, geoNoL, viewPos.xyz, shadowPos, waterSolidDepth);
     }
 #endif

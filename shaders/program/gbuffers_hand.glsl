@@ -25,32 +25,32 @@
 
     #ifdef SKY_ENABLED
         #if defined SHADOW_ENABLED
-            out float shadowBias;
+        //     //out float shadowBias;
 
-            uniform mat4 shadowModelView;
-            uniform mat4 shadowProjection;
+        //     uniform mat4 shadowModelView;
+        //     uniform mat4 shadowProjection;
             uniform vec3 shadowLightPosition;
-            uniform float far;
+        //     uniform float far;
 
-            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                out vec3 shadowPos[4];
-                //out vec3 shadowParallaxPos[4];
-                //out vec2 shadowProjectionSizes[4];
-                flat out float cascadeSizes[4];
-                flat out mat4 matShadowProjections[4];
-                //flat out int shadowCascade;
+        //     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        //         out vec3 shadowPos[4];
+        //         //out vec3 shadowParallaxPos[4];
+        //         //out vec2 shadowProjectionSizes[4];
+        //         flat out float cascadeSizes[4];
+        //         flat out mat4 matShadowProjections[4];
+        //         //flat out int shadowCascade;
 
-                #ifdef IS_OPTIFINE
-                    uniform mat4 gbufferPreviousProjection;
-                    uniform mat4 gbufferPreviousModelView;
-                #endif
+        //         #ifdef IS_OPTIFINE
+        //             uniform mat4 gbufferPreviousProjection;
+        //             uniform mat4 gbufferPreviousModelView;
+        //         #endif
 
-                uniform mat4 gbufferProjection;
-                uniform float near;
-            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-                out vec4 shadowPos;
-                //out vec4 shadowParallaxPos;
-            #endif
+        //         uniform mat4 gbufferProjection;
+        //         uniform float near;
+        //     #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+        //         out vec4 shadowPos;
+        //         //out vec4 shadowParallaxPos;
+        //     #endif
         #endif
     #endif
 
@@ -68,15 +68,15 @@
     uniform mat4 gbufferModelViewInverse;
     uniform vec3 cameraPosition;
 
-    #ifdef SHADOW_ENABLED
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            #include "/lib/shadows/csm.glsl"
-            #include "/lib/shadows/csm_render.glsl"
-        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            #include "/lib/shadows/basic.glsl"
-            #include "/lib/shadows/basic_render.glsl"
-        #endif
-    #endif
+    // #ifdef SHADOW_ENABLED
+    //     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+    //         #include "/lib/shadows/csm.glsl"
+    //         #include "/lib/shadows/csm_render.glsl"
+    //     #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+    //         #include "/lib/shadows/basic.glsl"
+    //         #include "/lib/shadows/basic_render.glsl"
+    //     #endif
+    // #endif
     
     #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/pbr.glsl"
@@ -119,50 +119,50 @@
         uniform vec3 upPosition;
         uniform float wetness;
 
-        #if defined SHADOW_ENABLED
-            in float shadowBias;
+        // #if defined SHADOW_ENABLED
+        //     //in float shadowBias;
 
-            uniform sampler2D shadowtex0;
+        //     uniform sampler2D shadowtex0;
 
-            uniform vec3 shadowLightPosition;
-            uniform float near;
-            uniform float far;
+        //     uniform vec3 shadowLightPosition;
+        //     uniform float near;
+        //     uniform float far;
 
-            #ifdef SHADOW_COLOR
-                uniform sampler2D shadowcolor0;
-            #endif
+        //     #ifdef SHADOW_COLOR
+        //         uniform sampler2D shadowcolor0;
+        //     #endif
 
-            #ifdef SSS_ENABLED
-                uniform usampler2D shadowcolor1;
-            #endif
+        //     #ifdef SSS_ENABLED
+        //         uniform usampler2D shadowcolor1;
+        //     #endif
 
-            #ifdef SHADOW_ENABLE_HWCOMP
-                #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
-                    uniform sampler2DShadow shadowtex1HW;
-                    uniform sampler2D shadowtex1;
-                #else
-                    uniform sampler2DShadow shadowtex1;
-                #endif
-            #else
-                uniform sampler2D shadowtex1;
-            #endif
+        //     #ifdef SHADOW_ENABLE_HWCOMP
+        //         #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+        //             uniform sampler2DShadow shadowtex1HW;
+        //             uniform sampler2D shadowtex1;
+        //         #else
+        //             uniform sampler2DShadow shadowtex1;
+        //         #endif
+        //     #else
+        //         uniform sampler2D shadowtex1;
+        //     #endif
 
-            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                in vec3 shadowPos[4];
-                //in vec3 shadowParallaxPos[4];
-                //in vec2 shadowProjectionSizes[4];
-                flat in float cascadeSizes[4];
-                flat in mat4 matShadowProjections[4];
-                //flat in int shadowCascade;
-            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-                in vec4 shadowPos;
-                //in vec4 shadowParallaxPos;
-            #endif
+        //     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        //         in vec3 shadowPos[4];
+        //         //in vec3 shadowParallaxPos[4];
+        //         //in vec2 shadowProjectionSizes[4];
+        //         flat in float cascadeSizes[4];
+        //         flat in mat4 matShadowProjections[4];
+        //         //flat in int shadowCascade;
+        //     #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+        //         in vec4 shadowPos;
+        //         //in vec4 shadowParallaxPos;
+        //     #endif
 
-            #if SHADOW_TYPE != SHADOW_TYPE_NONE
-                uniform mat4 shadowProjection;
-            #endif
-        #endif
+        //     #if SHADOW_TYPE != SHADOW_TYPE_NONE
+        //         uniform mat4 shadowProjection;
+        //     #endif
+        // #endif
     #endif
 
     #ifdef AF_ENABLED
@@ -187,23 +187,23 @@
     #include "/lib/sampling/linear.glsl"
     #include "/lib/world/porosity.glsl"
 
-    #ifdef SHADOW_ENABLED
-        #if SHADOW_PCF_SAMPLES == 12
-            #include "/lib/sampling/poisson_12.glsl"
-        #elif SHADOW_PCF_SAMPLES == 24
-            #include "/lib/sampling/poisson_24.glsl"
-        #elif SHADOW_PCF_SAMPLES == 36
-            #include "/lib/sampling/poisson_36.glsl"
-        #endif
+    // #ifdef SHADOW_ENABLED
+    //     #if SHADOW_PCF_SAMPLES == 12
+    //         #include "/lib/sampling/poisson_12.glsl"
+    //     #elif SHADOW_PCF_SAMPLES == 24
+    //         #include "/lib/sampling/poisson_24.glsl"
+    //     #elif SHADOW_PCF_SAMPLES == 36
+    //         #include "/lib/sampling/poisson_36.glsl"
+    //     #endif
         
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            #include "/lib/shadows/csm.glsl"
-            #include "/lib/shadows/csm_render.glsl"
-        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            #include "/lib/shadows/basic.glsl"
-            #include "/lib/shadows/basic_render.glsl"
-        #endif
-    #endif
+    //     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+    //         #include "/lib/shadows/csm.glsl"
+    //         #include "/lib/shadows/csm_render.glsl"
+    //     #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+    //         #include "/lib/shadows/basic.glsl"
+    //         #include "/lib/shadows/basic_render.glsl"
+    //     #endif
+    // #endif
     
     #ifdef PARALLAX_ENABLED
         #include "/lib/parallax.glsl"

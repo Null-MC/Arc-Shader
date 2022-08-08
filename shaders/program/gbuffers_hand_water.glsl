@@ -147,8 +147,13 @@
         vec3 localPos = gl_Vertex.xyz;
         BasicVertex(localPos);
         
-        vec3 viewPos = (gbufferModelView * vec4(localPos, 1.0)).xyz;
+        //vec3 viewPos = (gbufferModelView * vec4(localPos, 1.0)).xyz;
         PbrVertex(viewPos);
+
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+            vec3 viewDir = normalize(viewPos);
+            ApplyShadows(localPos, viewDir);
+        #endif
 
         #ifdef SKY_ENABLED
             vec2 skyLightLevels = GetSkyLightLevels();

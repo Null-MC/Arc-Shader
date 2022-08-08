@@ -13,7 +13,7 @@ float GetVolumetricFactor(const in vec3 shadowViewStart, const in vec3 shadowVie
             vec3 shadowPos[4];
             for (int i = 0; i < 4; i++) {
                 shadowPos[i] = (matShadowProjections[i] * vec4(currentShadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                
+
                 vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
                 shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
             }
@@ -23,8 +23,8 @@ float GetVolumetricFactor(const in vec3 shadowViewStart, const in vec3 shadowVie
             vec4 shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
 
             #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                float distortFactor = getDistortFactor(shadowPos.xy);
-                shadowPos.xyz = distort(shadowPos.xyz, distortFactor);
+                //float distortFactor = getDistortFactor(shadowPos.xy);
+                shadowPos.xyz = distort(shadowPos.xyz);
             #endif
 
             shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
@@ -64,8 +64,12 @@ float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowV
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 vec3 shadowPos[4];
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < 4; i++) {
                     shadowPos[i] = (matShadowProjections[i] * vec4(currentShadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+
+                    vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
+                    shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
+                }
 
                 float depthSample = CompareNearestDepth(shadowPos, vec2(0.0));
 
@@ -77,8 +81,8 @@ float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowV
                 vec4 shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
 
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                    float distortFactor = getDistortFactor(shadowPos.xy);
-                    shadowPos.xyz = distort(shadowPos.xyz, distortFactor);
+                    //float distortFactor = getDistortFactor(shadowPos.xy);
+                    shadowPos.xyz = distort(shadowPos.xyz);
                 #endif
 
                 shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;

@@ -253,7 +253,7 @@
                 // #endif
 
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                    float distortFactor = getDistortFactor(shadowPos.xy);
+                    float distortFactor = getDistortFactor(shadowPos.xy * 2.0 - 1.0);
                     float shadowBias = GetShadowBias(geoNoL, distortFactor);
                 #elif SHADOW_TYPE == SHADOW_TYPE_BASIC
                     float shadowBias = GetShadowBias(geoNoL);
@@ -350,9 +350,6 @@
         //return vec4(reflectColor, 1.0);
 
         #if defined SKY_ENABLED && defined RSM_ENABLED && defined RENDER_DEFERRED
-            //vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
-            vec3 shadowViewNormal = mat3(shadowModelView) * (mat3(gbufferModelViewInverse) * viewNormal);
-
             vec2 tex = screenUV;
 
             #ifndef IS_OPTIFINE
@@ -360,6 +357,9 @@
             #endif
 
             #ifdef RSM_UPSCALE
+                vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
+                vec3 shadowViewNormal = mat3(shadowModelView) * (mat3(gbufferModelViewInverse) * viewNormal);
+
                 vec3 rsmColor = GetUpscaledRSM(shadowViewPos, shadowViewNormal, -viewPos.z, tex, skyLight);
             #else
                 vec3 rsmColor = textureLod(BUFFER_RSM_COLOR, tex, 0).rgb;

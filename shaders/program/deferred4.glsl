@@ -354,7 +354,7 @@
                     vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
                     shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
                 }
-            #else
+            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
                 vec4 shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
                 //float shadowBias = 0.0;//-1e-2; // TODO: fuck
 
@@ -367,6 +367,8 @@
                 #endif
 
                 shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
+            #else
+                vec4 shadowPos;
             #endif
 
             PbrMaterial material;

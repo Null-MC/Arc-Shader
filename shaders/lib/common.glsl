@@ -253,7 +253,7 @@ const float drynessHalflife = 10.0;
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     #define SHADOW_POS_TYPE vec3 shadowPos[4]
-#elif SHADOW_TYPE != SHADOW_TYPE_NONE
+#else
     #define SHADOW_POS_TYPE vec4 shadowPos
 #endif
 
