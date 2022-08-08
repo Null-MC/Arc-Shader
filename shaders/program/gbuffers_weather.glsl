@@ -16,32 +16,54 @@
     out float geoNoL;
     flat out float exposure;
 
-    #ifdef SHADOW_ENABLED
-        out float shadowBias;
+    #ifdef SKY_ENABLED
         flat out vec3 sunColor;
         flat out vec3 moonColor;
         flat out vec3 skyLightColor;
-
+        
+        uniform float rainStrength;
         uniform vec3 sunPosition;
         uniform vec3 moonPosition;
         uniform vec3 upPosition;
+        uniform int moonPhase;
 
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            out vec3 shadowPos[4];
-            out vec3 shadowParallaxPos[4];
-            out vec2 shadowProjectionSizes[4];
-            out float cascadeSizes[4];
-            flat out int shadowCascade;
-        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            out vec4 shadowPos;
-            out vec4 shadowParallaxPos;
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+            out float shadowBias;
+
+            uniform mat4 gbufferModelView;
+            uniform mat4 gbufferModelViewInverse;
+            uniform vec3 shadowLightPosition;
+            uniform mat4 shadowModelView;
+            uniform mat4 shadowProjection;
+
+            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                out vec3 shadowPos[4];
+                //out vec3 shadowParallaxPos[4];
+                //out vec2 shadowProjectionSizes[4];
+                flat out float cascadeSizes[4];
+                flat out mat4 matShadowProjections[4];
+                //flat out int shadowCascade;
+
+                attribute vec3 at_midBlock;
+
+                #ifdef IS_OPTIFINE
+                    uniform mat4 gbufferPreviousProjection;
+                    uniform mat4 gbufferPreviousModelView;
+                #endif
+
+                uniform mat4 gbufferProjection;
+                uniform float near;
+                uniform float far;
+            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+                out vec4 shadowPos;
+                //out vec4 shadowParallaxPos;
+            #endif
         #endif
     #endif
 
     uniform float screenBrightness;
     uniform vec3 cameraPosition;
     uniform float blindness;
-    uniform int moonPhase;
 
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         uniform sampler2D BUFFER_HDR_PREVIOUS;
@@ -59,27 +81,8 @@
         uniform float darknessFactor;
     #endif
   
-    #ifdef SHADOW_ENABLED
-        uniform mat4 gbufferModelView;
-        uniform mat4 gbufferModelViewInverse;
-        uniform vec3 shadowLightPosition;
-        uniform mat4 shadowModelView;
-        uniform mat4 shadowProjection;
-
-        uniform float rainStrength;
-        uniform float far;
-
+    #if defined SKY_ENABLED && defined SHADOW_ENABLED
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            attribute vec3 at_midBlock;
-
-            #ifdef IS_OPTIFINE
-                uniform mat4 gbufferPreviousProjection;
-                uniform mat4 gbufferPreviousModelView;
-            #endif
-
-            uniform mat4 gbufferProjection;
-            uniform float near;
-
             #include "/lib/shadows/csm.glsl"
             #include "/lib/shadows/csm_render.glsl"
         #elif SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -100,7 +103,8 @@
         lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
         glcolor = gl_Color;
 
-        BasicVertex(viewPos);
+        vec3 localPos = gl_Vertex.xyz;
+        BasicVertex(localPos);
 
         vec2 skyLightLevels = GetSkyLightLevels();
         vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
@@ -121,25 +125,34 @@
     in float geoNoL;
     flat in float exposure;
 
-    #ifdef SHADOW_ENABLED
-        in float shadowBias;
-        flat in vec3 sunColor;
-        flat in vec3 moonColor;
-        flat in vec3 skyLightColor;
+    #ifdef SKY_ENABLED
+        uniform vec3 skyColor;
+        uniform float rainStrength;
+        uniform float wetness;
+        uniform int moonPhase;
 
-        uniform vec3 sunPosition;
-        uniform vec3 moonPosition;
-        uniform vec3 upPosition;
+        #ifdef SHADOW_ENABLED
+            in float shadowBias;
+            flat in vec3 sunColor;
+            flat in vec3 moonColor;
+            flat in vec3 skyLightColor;
 
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            in vec3 shadowPos[4];
-            in vec3 shadowParallaxPos[4];
-            in vec2 shadowProjectionSizes[4];
-            in float cascadeSizes[4];
-            flat in int shadowCascade;
-        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            in vec4 shadowPos;
-            in vec4 shadowParallaxPos;
+            uniform vec3 shadowLightPosition;
+            uniform vec3 sunPosition;
+            uniform vec3 moonPosition;
+            uniform vec3 upPosition;
+
+            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                in vec3 shadowPos[4];
+                //in vec3 shadowParallaxPos[4];
+                //in vec2 shadowProjectionSizes[4];
+                flat in float cascadeSizes[4];
+                flat in mat4 matShadowProjections[4];
+                //flat in int shadowCascade;
+            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+                in vec4 shadowPos;
+                //in vec4 shadowParallaxPos;
+            #endif
         #endif
     #endif
 
@@ -148,12 +161,9 @@
 
     uniform ivec2 eyeBrightnessSmooth;
     //uniform ivec2 eyeBrightness;
-    uniform float rainStrength;
-    uniform float wetness;
-    uniform int moonPhase;
     uniform float near;
+    uniform float far;
 
-    uniform vec3 skyColor;
     uniform vec3 fogColor;
     uniform float fogStart;
     uniform float fogEnd;
@@ -169,8 +179,6 @@
     #endif
 
     #ifdef SHADOW_ENABLED
-        uniform vec3 shadowLightPosition;
-
         #if SHADOW_TYPE != SHADOW_TYPE_NONE
             uniform sampler2D shadowtex0;
 
@@ -181,8 +189,6 @@
             #ifdef SSS_ENABLED
                 uniform usampler2D shadowcolor1;
             #endif
-
-            uniform float far;
 
             #ifdef SHADOW_ENABLE_HWCOMP
                 #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS

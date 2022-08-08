@@ -26,39 +26,37 @@
 
         uniform vec3 skyColor;
 
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED && (defined VL_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE))
-            flat out float cascadeSizes[4];
-            flat out mat4 matShadowProjections[4];
+        #ifdef SHADOW_ENABLED
+            flat out vec3 skyLightColor;
+
+            uniform vec3 shadowLightPosition;
+
+            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                flat out float cascadeSizes[4];
+                flat out mat4 matShadowProjections[4];
+
+                uniform mat4 shadowModelView;
+                uniform float near;
+                uniform float far;
+
+                #if MC_VERSION >= 11700 && (defined IS_OPTIFINE || defined IRIS_FEATURE_CHUNK_OFFSET)
+                    uniform vec3 chunkOffset;
+                #else
+                    uniform mat4 gbufferModelViewInverse;
+                #endif
+
+                #ifdef IS_OPTIFINE
+                    // NOTE: We are using the previous gbuffer matrices cause the current ones don't work in shadow pass
+                    uniform mat4 gbufferPreviousModelView;
+                    uniform mat4 gbufferPreviousProjection;
+                #else
+                    uniform mat4 gbufferModelView;
+                    uniform mat4 gbufferProjection;
+                #endif
+
+                #include "/lib/shadows/csm.glsl"
+            #endif
         #endif
-    #endif
-
-    #ifdef SHADOW_ENABLED
-        flat out vec3 skyLightColor;
-
-        uniform vec3 shadowLightPosition;
-    #endif
-
-    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED && (defined VL_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE))
-        uniform mat4 shadowModelView;
-        uniform float near;
-        uniform float far;
-
-        #if MC_VERSION >= 11700 && (defined IS_OPTIFINE || defined IRIS_FEATURE_CHUNK_OFFSET)
-            uniform vec3 chunkOffset;
-        #else
-            uniform mat4 gbufferModelViewInverse;
-        #endif
-
-        #ifdef IS_OPTIFINE
-            // NOTE: We are using the previous gbuffer matrices cause the current ones don't work in shadow pass
-            uniform mat4 gbufferPreviousModelView;
-            uniform mat4 gbufferPreviousProjection;
-        #else
-            uniform mat4 gbufferModelView;
-            uniform mat4 gbufferProjection;
-        #endif
-
-        #include "/lib/shadows/csm.glsl"
     #endif
 
     uniform float screenBrightness;
@@ -109,8 +107,10 @@
                 cascadeSizes[2] = GetCascadeDistance(2);
                 cascadeSizes[3] = GetCascadeDistance(3);
 
-                for (int i = 0; i < 4; i++)
-                    matShadowProjections[i] = GetShadowCascadeProjectionMatrix(i);
+                matShadowProjections[0] = GetShadowCascadeProjectionMatrix(0);
+                matShadowProjections[1] = GetShadowCascadeProjectionMatrix(1);
+                matShadowProjections[2] = GetShadowCascadeProjectionMatrix(2);
+                matShadowProjections[3] = GetShadowCascadeProjectionMatrix(3);
             #endif
         #endif
 
@@ -189,10 +189,45 @@
         uniform vec3 sunPosition;
         uniform vec3 moonPosition;
         uniform int moonPhase;
-    #endif
 
-    #ifdef SHADOW_ENABLED
-        uniform vec3 shadowLightPosition;
+        #ifdef SHADOW_ENABLED
+            uniform vec3 shadowLightPosition;
+
+            #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+                uniform sampler2DShadow shadowtex1HW;
+            #elif defined SHADOW_ENABLE_HWCOMP
+                uniform sampler2D shadowtex0;
+                uniform sampler2DShadow shadowtex1;
+            #else
+                uniform sampler2D shadowtex1;
+            #endif
+
+            #if defined SSS_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE)
+                uniform usampler2D shadowcolor1;
+            #endif
+
+            //#ifdef SHADOW_COLOR
+            //    uniform sampler2D shadowcolor0;
+            //#endif
+
+            uniform mat4 shadowModelView;
+
+            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                flat in float cascadeSizes[4];
+                flat in mat4 matShadowProjections[4];
+            #endif
+
+            #ifdef VL_ENABLED
+                uniform mat4 shadowProjection;
+            #endif
+
+            #if defined RSM_ENABLED && defined RSM_UPSCALE
+                uniform sampler2D BUFFER_RSM_DEPTH;
+                //uniform usampler2D shadowcolor1;
+
+                uniform mat4 shadowProjectionInverse;
+            #endif
+        #endif
     #endif
 
     #if MC_VERSION >= 11900
@@ -208,38 +243,30 @@
     #include "/lib/world/scattering.glsl"
     #include "/lib/lighting/blackbody.glsl"
 
-    #if defined SKY_ENABLED && (defined VL_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE))
-        #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
-            uniform sampler2DShadow shadowtex1HW;
-        #elif defined SHADOW_ENABLE_HWCOMP
-            uniform sampler2D shadowtex0;
-            uniform sampler2DShadow shadowtex1;
-        #else
-            uniform sampler2D shadowtex1;
+    #ifdef SKY_ENABLED
+        #ifdef SHADOW_ENABLED
+            #if SHADOW_PCF_SAMPLES == 12
+                #include "/lib/sampling/poisson_12.glsl"
+            #elif SHADOW_PCF_SAMPLES == 24
+                #include "/lib/sampling/poisson_24.glsl"
+            #elif SHADOW_PCF_SAMPLES == 36
+                #include "/lib/sampling/poisson_36.glsl"
+            #endif
+
+            #if SHADOW_TYPE == SHADOW_TYPE_BASIC
+                #include "/lib/shadows/basic_render.glsl"
+            #elif SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                #include "/lib/shadows/basic.glsl"
+                #include "/lib/shadows/basic_render.glsl"
+            #elif SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                #include "/lib/shadows/csm.glsl"
+                #include "/lib/shadows/csm_render.glsl"
+            #endif
+
+            #if SHADOW_TYPE != SHADOW_TYPE_NONE && defined VL_ENABLED
+                #include "/lib/lighting/volumetric.glsl"
+            #endif
         #endif
-
-        uniform mat4 shadowModelView;
-
-        #if SHADOW_TYPE == SHADOW_TYPE_BASIC
-            #include "/lib/shadows/basic_render.glsl"
-        #elif SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-            #include "/lib/shadows/basic.glsl"
-            #include "/lib/shadows/basic_render.glsl"
-        #elif SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            flat in float cascadeSizes[4];
-            flat in mat4 matShadowProjections[4];
-
-            #include "/lib/shadows/csm.glsl"
-            #include "/lib/shadows/csm_render.glsl"
-        #endif
-    #endif
-
-    #if defined SKY_ENABLED && defined VL_ENABLED
-        //uniform mat4 gbufferModelViewInverse;
-        //uniform mat4 shadowModelView;
-        uniform mat4 shadowProjection;
-
-        #include "/lib/lighting/volumetric.glsl"
     #endif
 
     #include "/lib/world/sky.glsl"
@@ -254,11 +281,6 @@
     #endif
 
     #if defined RSM_ENABLED && defined RSM_UPSCALE
-        uniform sampler2D BUFFER_RSM_DEPTH;
-        uniform usampler2D shadowcolor1;
-
-        uniform mat4 shadowProjectionInverse;
-
         #if RSM_SAMPLE_COUNT == 400
             #include "/lib/sampling/rsm_400.glsl"
         #elif RSM_SAMPLE_COUNT == 200
@@ -271,6 +293,7 @@
     #endif
 
     #include "/lib/lighting/basic.glsl"
+    #include "/lib/lighting/brdf.glsl"
     #include "/lib/lighting/pbr.glsl"
 
     /* RENDERTARGETS: 4,6 */
@@ -311,19 +334,45 @@
             vec4 specularMap = unpackUnorm4x8(deferredData.b);
             vec4 lightingMap = unpackUnorm4x8(deferredData.a);
             
-            vec3 shadowColorMap = vec3(1.0);
-            #if defined SHADOW_ENABLED && defined SHADOW_COLOR
-                shadowColorMap = texelFetch(BUFFER_DEFERRED2, iTex, 0).rgb;
-            #endif
+            // vec3 shadowColorMap = vec3(1.0);
+            // #if defined SHADOW_ENABLED && defined SHADOW_COLOR
+            //     shadowColorMap = texelFetch(BUFFER_DEFERRED2, iTex, 0).rgb;
+            // #endif
 
             vec2 viewSize = vec2(viewWidth, viewHeight);
             vec3 clipPos = vec3(gl_FragCoord.xy / viewSize, screenDepth) * 2.0 - 1.0;
             vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
 
+            vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
+            float geoNoL = lightingMap.z;
+
+            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                vec3 shadowPos[4];
+                for (int i = 0; i < 4; i++) {
+                    shadowPos[i] = (matShadowProjections[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                    
+                    vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
+                    shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
+                }
+            #else
+                vec4 shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
+                //float shadowBias = 0.0;//-1e-2; // TODO: fuck
+
+                #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                    float distortFactor = getDistortFactor(shadowPos.xy);
+                    shadowPos.xyz = distort(shadowPos.xyz, distortFactor);
+                    float shadowBias = GetShadowBias(geoNoL, distortFactor);
+                #elif SHADOW_TYPE == SHADOW_TYPE_BASIC
+                    float shadowBias = GetShadowBias(geoNoL);
+                #endif
+
+                shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
+            #endif
+
             PbrMaterial material;
             PopulateMaterial(material, colorMap.rgb, normalMap, specularMap);
 
-            color = PbrLighting2(material, shadowColorMap, lightingMap.xy, lightingMap.b, lightingMap.a, viewPos, vec2(0.0)).rgb;
+            color = PbrLighting2(material, lightingMap.xy, geoNoL, viewPos, shadowPos, vec2(0.0)).rgb;
 
             #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
                 outColor1 = log2(luminance(color) + EPSILON);

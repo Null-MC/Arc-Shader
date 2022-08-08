@@ -154,14 +154,16 @@
         //     float materialSSS = GetLabPbr_SSS(specularMap.b);
         // #endif
 
-        // #ifdef SHADOW_ENABLED
+        float parallaxShadow = 1.0;
+
+        #ifdef SHADOW_ENABLED
         //     vec3 tanLightDir = normalize(tanLightPos);
         //     float NoL = dot(normal, tanLightDir);
 
         //     shadow *= step(EPSILON, geoNoL);
         //     shadow *= step(EPSILON, NoL);
             
-        //     #if SHADOW_TYPE != SHADOW_TYPE_NONE
+            #if SHADOW_TYPE != SHADOW_TYPE_NONE
         //         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         //             vec3 _shadowPos[4] = shadowPos;
         //         #else
@@ -210,17 +212,19 @@
         //             }
         //         #endif
 
-        //         #ifdef PARALLAX_SHADOWS_ENABLED
-        //             if (shadow > EPSILON && traceCoordDepth.z + EPSILON < 1.0) {
-        //                 #ifdef PARALLAX_USE_TEXELFETCH
-        //                     shadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
-        //                 #else
-        //                     shadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
-        //                 #endif
-        //             }
-        //         #endif
-        //     #endif
-        // #endif
+                #ifdef PARALLAX_SHADOWS_ENABLED
+                    if (traceCoordDepth.z + EPSILON < 1.0) {
+                        vec3 tanLightDir = normalize(tanLightPos);
+                        
+                        #ifdef PARALLAX_USE_TEXELFETCH
+                            parallaxShadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
+                        #else
+                            parallaxShadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
+                        #endif
+                    }
+                #endif
+            #endif
+        #endif
 
         vec2 lm = lmcoord;
 

@@ -214,9 +214,9 @@ const float drynessHalflife = 10.0;
 //     #undef SHADOW_ENABLED
 // #endif
 
-#if SHADOW_TYPE != 1 && SHADOW_TYPE != 2
-	#undef SHADOW_DISTORT_FACTOR
-#endif
+// #if SHADOW_TYPE != 1 && SHADOW_TYPE != 2
+// 	#undef SHADOW_DISTORT_FACTOR
+// #endif
 
 // #if SHADOW_TYPE != 3
 // 	#undef DEBUG_CASCADE_TINT
@@ -249,6 +249,12 @@ const float drynessHalflife = 10.0;
     #undef RSM_ENABLED
     //#undef SSS_ENABLED
     #undef VL_ENABLED
+#endif
+
+#if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+    #define SHADOW_POS_TYPE vec3 shadowPos[4]
+#elif SHADOW_TYPE != SHADOW_TYPE_NONE
+    #define SHADOW_POS_TYPE vec4 shadowPos
 #endif
 
 // #if SHADOW_TYPE == 3

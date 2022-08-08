@@ -26,7 +26,10 @@
         PbrMaterial material;
 
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
-        vec3 tanViewDir = normalize(tanViewPos);
+
+        #ifdef PARALLAX_ENABLED
+            vec3 tanViewDir = normalize(tanViewPos);
+        #endif
 
         #ifdef RENDER_WATER
             if (materialId == 1) {
@@ -190,61 +193,61 @@
             }
         #endif
 
-        float shadow = step(EPSILON, geoNoL);// * step(1.0 / 32.0, skyLight);
-        vec3 shadowColorMap = vec3(1.0);
-        float NoL = 1.0;
+        //float shadow = step(EPSILON, geoNoL);// * step(1.0 / 32.0, skyLight);
+        //vec3 shadowColorMap = vec3(1.0);
+        //float NoL = 1.0;
 
-        #ifdef SHADOW_ENABLED
-            vec3 tanLightDir = normalize(tanLightPos);
-            NoL = dot(material.normal, tanLightDir);
-            shadow *= step(EPSILON, NoL);
+        // #ifdef SHADOW_ENABLED
+        //     vec3 tanLightDir = normalize(tanLightPos);
+        //     NoL = dot(material.normal, tanLightDir);
+        //     shadow *= step(EPSILON, NoL);
 
-            #ifdef PARALLAX_SHADOWS_ENABLED
-                #if defined RENDER_WATER && defined WATER_FANCY
-                    if (materialId != 1) {
-                #endif
+        //     #ifdef PARALLAX_SHADOWS_ENABLED
+        //         #if defined RENDER_WATER && defined WATER_FANCY
+        //             if (materialId != 1) {
+        //         #endif
 
-                    if (shadow > EPSILON && traceCoordDepth.z + EPSILON < 1.0)
-                        shadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
+        //             if (shadow > EPSILON && traceCoordDepth.z + EPSILON < 1.0)
+        //                 shadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
 
-                #if defined RENDER_WATER && defined WATER_FANCY
-                    }
-                #endif
-            #endif
-        #endif
+        //         #if defined RENDER_WATER && defined WATER_FANCY
+        //             }
+        //         #endif
+        //     #endif
+        // #endif
 
-        float shadowSSS = 0.0;
-        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-            if (shadow > EPSILON) {
-                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    shadow *= GetShadowing(shadowPos);
-                #else
-                    shadow *= GetShadowing(shadowPos, shadowBias);
-                #endif
-            }
+        // float shadowSSS = 0.0;
+        // #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        //     if (shadow > EPSILON) {
+        //         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        //             shadow *= GetShadowing(shadowPos);
+        //         #else
+        //             shadow *= GetShadowing(shadowPos, shadowBias);
+        //         #endif
+        //     }
 
-            #ifdef SHADOW_COLOR
-                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    shadowColorMap = GetShadowColor(shadowPos);
-                #else
-                    shadowColorMap = GetShadowColor(shadowPos.xyz, shadowBias);
-                #endif
+        //     #ifdef SHADOW_COLOR
+        //         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        //             shadowColorMap = GetShadowColor(shadowPos);
+        //         #else
+        //             shadowColorMap = GetShadowColor(shadowPos.xyz, shadowBias);
+        //         #endif
                 
-                shadowColorMap = RGBToLinear(shadowColorMap);
-            #endif
+        //         shadowColorMap = RGBToLinear(shadowColorMap);
+        //     #endif
 
-            #ifdef SSS_ENABLED
-                if (material.scattering > EPSILON) {
-                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        shadowSSS = GetShadowSSS(shadowPos);
-                    #else
-                        shadowSSS = GetShadowSSS(shadowPos, shadowBias);
-                    #endif
-                }
-            #endif
-        #else
-            shadow = glcolor.a;
-        #endif
+        //     #ifdef SSS_ENABLED
+        //         if (material.scattering > EPSILON) {
+        //             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        //                 shadowSSS = GetShadowSSS(shadowPos);
+        //             #else
+        //                 shadowSSS = GetShadowSSS(shadowPos, shadowBias);
+        //             #endif
+        //         }
+        //     #endif
+        // #else
+        //     shadow = glcolor.a;
+        // #endif
 
         vec3 _viewNormal = normalize(viewNormal);
         vec3 _viewTangent = normalize(viewTangent);
@@ -257,6 +260,6 @@
             ApplyDirectionalLightmap(lm.x, material.normal);
         #endif
 
-        return PbrLighting2(material, shadowColorMap, lm, shadow, shadowSSS, viewPos.xyz, waterSolidDepth);
+        return PbrLighting2(material, lm, geoNoL, viewPos.xyz, shadowPos, waterSolidDepth);
     }
 #endif

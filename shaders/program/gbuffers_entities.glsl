@@ -4,20 +4,21 @@
 #define RENDER_ENTITIES
 
 #ifdef RENDER_VERTEX
+    in vec4 at_tangent;
+
+    #if defined PARALLAX_ENABLED || defined AF_ENABLED
+        in vec4 mc_midTexCoord;
+    #endif
+
     out vec2 lmcoord;
     out vec2 texcoord;
     out vec4 glcolor;
+    out float geoNoL;
     out vec3 viewPos;
     out vec3 viewNormal;
     out vec3 viewTangent;
     flat out float tangentW;
-    out float geoNoL;
-    out vec3 tanViewPos;
-
-    #ifdef PARALLAX_ENABLED
-        out mat2 atlasBounds;
-        out vec2 localCoord;
-    #endif
+    flat out mat2 atlasBounds;
 
     // #ifdef SHADOW_ENABLED
     //     out float shadowBias;
@@ -39,10 +40,17 @@
         out vec4 spriteBounds;
     #endif
 
-    in vec4 at_tangent;
+    #ifdef PARALLAX_ENABLED
+        out vec2 localCoord;
+        out vec3 tanViewPos;
 
-    #if defined PARALLAX_ENABLED || defined AF_ENABLED
-        in vec4 mc_midTexCoord;
+        #if defined SKY_ENABLED && defined SHADOW_ENABLED
+            out vec3 tanLightPos;
+        #endif
+    #endif
+
+    #if defined SKY_ENABLED && defined SHADOW_ENABLED
+        uniform vec3 shadowLightPosition;
     #endif
 
     uniform mat4 gbufferModelView;
@@ -50,7 +58,7 @@
     uniform vec3 cameraPosition;
     uniform int entityId;
 
-    // #ifdef SHADOW_ENABLED
+    //#if defined SKY_ENABLED && defined SHADOW_ENABLED
     //     uniform mat4 shadowModelView;
     //     uniform mat4 shadowProjection;
     //     uniform vec3 shadowLightPosition;
@@ -74,7 +82,7 @@
     //         #include "/lib/shadows/basic.glsl"
     //         #include "/lib/shadows/basic_render.glsl"
     //     #endif
-    // #endif
+    //#endif
     
     #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/pbr.glsl"
@@ -85,11 +93,14 @@
         lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
         glcolor = gl_Color;
 
-        BasicVertex(viewPos);
-
+        vec3 localPos = gl_Vertex.xyz;
+        BasicVertex(localPos);
+        
         // No PBR for lightning
-        if (entityId != 100.0)
+        if (entityId != 100.0) {
+            vec3 viewPos = (gbufferModelView * vec4(localPos, 1.0)).xyz;
             PbrVertex(viewPos);
+        }
     }
 #endif
 
@@ -97,16 +108,20 @@
     in vec2 lmcoord;
     in vec2 texcoord;
     in vec4 glcolor;
+    in float geoNoL;
     in vec3 viewPos;
     in vec3 viewNormal;
     in vec3 viewTangent;
     flat in float tangentW;
-    in float geoNoL;
-    in vec3 tanViewPos;
+    flat in mat2 atlasBounds;
 
     #ifdef PARALLAX_ENABLED
-        in mat2 atlasBounds;
         in vec2 localCoord;
+        in vec3 tanViewPos;
+
+        #if defined SKY_ENABLED && defined SHADOW_ENABLED
+            in vec3 tanLightPos;
+        #endif
     #endif
 
     // #ifdef SHADOW_ENABLED
@@ -127,12 +142,16 @@
 
     #ifdef AF_ENABLED
         in vec4 spriteBounds;
+
+        uniform float viewHeight;
     #endif
 
     uniform sampler2D gtexture;
     uniform sampler2D normals;
     uniform sampler2D specular;
     uniform sampler2D lightmap;
+
+    uniform ivec2 atlasSize;
 
     uniform vec4 entityColor;
     uniform int entityId;
@@ -144,10 +163,6 @@
 
     #if MC_VERSION >= 11700 && defined IS_OPTIFINE
         uniform float alphaTestRef;
-    #endif
-
-    #ifdef AF_ENABLED
-        uniform float viewHeight;
     #endif
     
     // #ifdef SHADOW_ENABLED
@@ -197,15 +212,10 @@
     //     #endif
     // #endif
     
+    #include "/lib/atlas.glsl"
     #include "/lib/sampling/linear.glsl"
     
     #ifdef PARALLAX_ENABLED
-        uniform ivec2 atlasSize;
-
-        // #ifdef PARALLAX_SMOOTH
-        //     #include "/lib/sampling/linear.glsl"
-        // #endif
-
         #include "/lib/parallax.glsl"
     #endif
 

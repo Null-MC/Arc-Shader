@@ -10,12 +10,6 @@
             viewTangent.y, viewBinormal.y, viewNormal.y,
             viewTangent.z, viewBinormal.z, viewNormal.z);
 
-        #if defined SHADOW_ENABLED
-            tanLightPos = matTBN * shadowLightPosition;
-        #endif
-
-        tanViewPos = matTBN * viewPos;
-
         #ifdef PARALLAX_ENABLED
             vec2 coordMid = (gl_TextureMatrix[0] * mc_midTexCoord).xy;
             vec2 coordNMid = texcoord - coordMid;
@@ -24,6 +18,12 @@
             atlasBounds[1] = abs(coordNMid) * 2.0;
  
             localCoord = sign(coordNMid) * 0.5 + 0.5;
+
+            #if defined SHADOW_ENABLED
+                tanLightPos = matTBN * shadowLightPosition;
+            #endif
+
+            tanViewPos = matTBN * viewPos;
         #endif
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && (defined RENDER_TERRAIN || defined RENDER_WATER)
@@ -149,7 +149,7 @@
         }
     #endif
 
-    vec4 PbrLighting2(const in PbrMaterial material, const in vec3 shadowColorMap, const in vec2 lmValue, const in vec3 viewPos, const in float geoNoL, const in vec2 waterSolidDepth) {
+    vec4 PbrLighting2(const in PbrMaterial material, const in vec2 lmValue, const in float geoNoL, const in vec3 viewPos, const in SHADOW_POS_TYPE, const in vec2 waterSolidDepth) {
         vec2 viewSize = vec2(viewWidth, viewHeight);
         vec3 viewNormal = normalize(material.normal);
         vec3 viewDir = -normalize(viewPos);
@@ -216,79 +216,94 @@
 
 
 
-        float shadowFinal = shadow;
-        shadow *= step(EPSILON, geoNoL);
+        float shadow = 1.0;
+        float shadowSSS = 0.0;
+        vec3 shadowColor = vec3(1.0);
 
-        #ifdef SHADOW_ENABLED
-            vec3 tanLightDir = normalize(tanLightPos);
-            float NoL = dot(normal, tanLightDir);
-
+        #ifdef SKY_ENABLED
             shadow *= step(EPSILON, geoNoL);
             shadow *= step(EPSILON, NoL);
-            
-            #if SHADOW_TYPE != SHADOW_TYPE_NONE
-                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    vec3 _shadowPos[4] = shadowPos;
-                #else
-                    vec4 _shadowPos = shadowPos;
-                #endif
 
-                #if defined PARALLAX_ENABLED && defined PARALLAX_SHADOW_FIX
-                    float depth = 1.0 - traceCoordDepth.z;
-                    float eyeDepth = 0.0; //depth / max(geoNoV, EPSILON);
+            //float NoL = dot(viewNormal, viewLightDir);
 
-                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        _shadowPos[0] = mix(shadowPos[0], shadowParallaxPos[0], depth) - eyeDepth;
-                        _shadowPos[1] = mix(shadowPos[1], shadowParallaxPos[1], depth) - eyeDepth;
-                        _shadowPos[2] = mix(shadowPos[2], shadowParallaxPos[2], depth) - eyeDepth;
-                        _shadowPos[3] = mix(shadowPos[3], shadowParallaxPos[3], depth) - eyeDepth;
-                    #else
-                        _shadowPos = mix(shadowPos, shadowParallaxPos, depth) - eyeDepth;
-                    #endif
+            #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+                // vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
+
+                // #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                //     vec3 shadowPos[4];
+                //     for (int i = 0; i < 4; i++) {
+                //         shadowPos[i] = (matShadowProjections[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                        
+                //         vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
+                //         shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
+                //     }
+                // #else
+                //     vec4 shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
+                //     //float shadowBias = 0.0;//-1e-2; // TODO: fuck
+
+                //     #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                //         float distortFactor = getDistortFactor(shadowPos.xy);
+                //         shadowPos.xyz = distort(shadowPos.xyz, distortFactor);
+                //         float shadowBias = GetShadowBias(geoNoL, distortFactor);
+                //     #elif SHADOW_TYPE == SHADOW_TYPE_BASIC
+                //         float shadowBias = GetShadowBias(geoNoL);
+                //     #endif
+
+                //     shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
+                // #endif
+
+                #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                    float distortFactor = getDistortFactor(shadowPos.xy);
+                    float shadowBias = GetShadowBias(geoNoL, distortFactor);
+                #elif SHADOW_TYPE == SHADOW_TYPE_BASIC
+                    float shadowBias = GetShadowBias(geoNoL);
                 #endif
 
                 if (shadow > EPSILON) {
                     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        shadow *= GetShadowing(_shadowPos);
+                        shadow *= GetShadowing(shadowPos);
                     #else
-                        shadow *= GetShadowing(_shadowPos, shadowBias);
+                        shadow *= GetShadowing(shadowPos, shadowBias);
                     #endif
                 }
 
                 #ifdef SHADOW_COLOR
                     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        shadowColorMap = GetShadowColor(shadowPos);
+                        shadowColor = GetShadowColor(shadowPos);
                     #else
-                        shadowColorMap = GetShadowColor(shadowPos.xyz, shadowBias);
+                        shadowColor = GetShadowColor(shadowPos.xyz, shadowBias);
                     #endif
                     
-                    shadowColorMap = RGBToLinear(shadowColorMap);
+                    shadowColor = RGBToLinear(shadowColor);
                 #endif
 
                 #ifdef SSS_ENABLED
-                    if (materialSSS > EPSILON) {
+                    if (material.scattering > EPSILON) {
                         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                            lightSSS = GetShadowSSS(_shadowPos);
+                            shadowSSS = GetShadowSSS(shadowPos);
                         #else
-                            lightSSS = GetShadowSSS(_shadowPos, shadowBias);
+                            shadowSSS = GetShadowSSS(shadowPos, shadowBias);
                         #endif
                     }
                 #endif
 
-                #ifdef PARALLAX_SHADOWS_ENABLED
-                    if (shadow > EPSILON && traceCoordDepth.z + EPSILON < 1.0) {
-                        #ifdef PARALLAX_USE_TEXELFETCH
-                            shadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
-                        #else
-                            shadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
-                        #endif
-                    }
-                #endif
+                // #ifdef PARALLAX_SHADOWS_ENABLED
+                //     if (shadow > EPSILON && traceCoordDepth.z + EPSILON < 1.0) {
+                //         #ifdef PARALLAX_USE_TEXELFETCH
+                //             shadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
+                //         #else
+                //             shadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
+                //         #endif
+                //     }
+                // #endif
             #endif
         #endif
 
 
 
+
+        float shadowFinal = shadow;
+        //return vec4(vec3(shadow * 800.0), 1.0);
 
         #ifdef LIGHTLEAK_FIX
             // Make areas without skylight fully shadowed (light leak fix)
@@ -298,7 +313,7 @@
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             // Increase skylight when in direct sunlight
-            skyLight = max(skyLight, shadow);
+            skyLight = max(skyLight, shadowFinal);
         #endif
 
         float skyLight2 = pow2(skyLight);
@@ -335,7 +350,7 @@
         //return vec4(reflectColor, 1.0);
 
         #if defined SKY_ENABLED && defined RSM_ENABLED && defined RENDER_DEFERRED
-            vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
+            //vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
             vec3 shadowViewNormal = mat3(shadowModelView) * (mat3(gbufferModelViewInverse) * viewNormal);
 
             vec2 tex = screenUV;
@@ -398,7 +413,7 @@
             ambient += skyAmbient * ambientBrightness;
             //return vec4(ambient, 1.0);
 
-            vec3 skyLightColorFinal = skyLightColor * shadowColorMap;
+            vec3 skyLightColorFinal = skyLightColor * shadowColor;
             float diffuseLightF = shadowFinal;
 
             #ifdef SSS_ENABLED
@@ -657,9 +672,12 @@
             vec3 shadowViewStart = (matViewToShadowView * vec4(vec3(0.0, 0.0, -near), 1.0)).xyz;
             vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
 
-            float shadowBias = 0.0;//-1e-2; // TODO: fuck
-
             float scattering = GetScatteringFactor();
+
+            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                // TODO: get rid of this lazy useless hack
+                float shadowBias = 0.0;
+            #endif
 
             #ifdef SHADOW_COLOR
                 vec3 volScatter = GetVolumetricLightingColor(shadowViewStart, shadowViewEnd, shadowBias, scattering);

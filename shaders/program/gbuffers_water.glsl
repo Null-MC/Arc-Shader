@@ -8,16 +8,16 @@
     out vec2 lmcoord;
     out vec2 texcoord;
     out vec4 glcolor;
+    out float geoNoL;
     out vec3 viewPos;
     out vec3 localPos;
     out vec3 viewNormal;
     out vec3 viewTangent;
     flat out float tangentW;
-    out float geoNoL;
-    out vec3 tanViewPos;
     flat out float exposure;
     flat out int materialId;
     flat out vec3 blockLightColor;
+    flat out mat2 atlasBounds;
 
     #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
         flat out float matSmooth;
@@ -27,8 +27,12 @@
     #endif
 
     #ifdef PARALLAX_ENABLED
-        out mat2 atlasBounds;
         out vec2 localCoord;
+        out vec3 tanViewPos;
+
+        #if defined SKY_ENABLED && defined SHADOW_ENABLED
+            out vec3 tanLightPos;
+        #endif
     #endif
 
     #ifdef SKY_ENABLED
@@ -43,20 +47,28 @@
         uniform int moonPhase;
 
         #ifdef SHADOW_ENABLED
-            out float shadowBias;
-            out vec3 tanLightPos;
+            //out float shadowBias;
+
+            uniform mat4 shadowModelView;
+            uniform mat4 shadowProjection;
+            uniform vec3 shadowLightPosition;
+            uniform float far;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 out vec3 shadowPos[4];
-                out vec3 shadowParallaxPos[4];
+                //out vec3 shadowParallaxPos[4];
                 //out vec2 shadowProjectionSizes[4];
-                //out float cascadeSizes[4];
-                flat out int shadowCascade;
+                flat out float cascadeSizes[4];
+                flat out mat4 matShadowProjections[4];
+                //flat out int shadowCascade;
 
-                #if defined VL_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE)
-                    flat out float cascadeSizes[4];
-                    flat out mat4 matShadowProjections[4];
+                #ifdef IS_OPTIFINE
+                    uniform mat4 gbufferPreviousProjection;
+                    uniform mat4 gbufferPreviousModelView;
                 #endif
+
+                uniform mat4 gbufferProjection;
+                uniform float near;
             #elif SHADOW_TYPE != SHADOW_TYPE_NONE
                 out vec4 shadowPos;
                 out vec4 shadowParallaxPos;
@@ -95,6 +107,10 @@
     uniform vec3 cameraPosition;
     uniform float blindness;
 
+    #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX && !defined WORLD_NETHER
+        uniform float frameTimeCounter;
+    #endif
+
     #if MC_VERSION >= 11700 && (defined IS_OPTIFINE || defined IRIS_FEATURE_CHUNK_OFFSET)
         uniform vec3 chunkOffset;
     #endif
@@ -104,20 +120,7 @@
     #endif
 
     #ifdef SHADOW_ENABLED
-        uniform mat4 shadowModelView;
-        uniform mat4 shadowProjection;
-        uniform vec3 shadowLightPosition;
-        uniform float far;
-
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            #ifdef IS_OPTIFINE
-                uniform mat4 gbufferPreviousProjection;
-                uniform mat4 gbufferPreviousModelView;
-            #endif
-
-            uniform mat4 gbufferProjection;
-            uniform float near;
-
             #include "/lib/shadows/csm.glsl"
             #include "/lib/shadows/csm_render.glsl"
         #elif SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -127,8 +130,6 @@
     #endif
 
     #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX && !defined WORLD_NETHER
-        uniform float frameTimeCounter;
-
         #include "/lib/world/wind.glsl"
         #include "/lib/world/water.glsl"
     #endif
@@ -161,7 +162,8 @@
         // undefined
         else materialId = 0;
 
-        BasicVertex(viewPos);
+        BasicVertex(localPos);
+
         PbrVertex(viewPos);
 
         #ifdef SKY_ENABLED
@@ -182,16 +184,16 @@
     in vec2 lmcoord;
     in vec2 texcoord;
     in vec4 glcolor;
+    in float geoNoL;
     in vec3 viewPos;
     in vec3 localPos;
     in vec3 viewNormal;
     in vec3 viewTangent;
     flat in float tangentW;
-    in float geoNoL;
-    in vec3 tanViewPos;
     flat in float exposure;
     flat in int materialId;
     flat in vec3 blockLightColor;
+    flat in mat2 atlasBounds;
 
     #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
         flat in float matSmooth;
@@ -201,8 +203,12 @@
     #endif
 
     #ifdef PARALLAX_ENABLED
-        in mat2 atlasBounds;
         in vec2 localCoord;
+        in vec3 tanViewPos;
+
+        #if defined SKY_ENABLED && defined SHADOW_ENABLED
+            in vec3 tanLightPos;
+        #endif
     #endif
 
     #ifdef SKY_ENABLED
@@ -219,24 +225,48 @@
         uniform vec3 skyColor;
 
         #ifdef SHADOW_ENABLED
-            in float shadowBias;
-            in vec3 tanLightPos;
+            //in float shadowBias;
+
+            uniform vec3 shadowLightPosition;
+
+            #if SHADOW_TYPE != SHADOW_TYPE_NONE
+                uniform sampler2D shadowtex0;
+
+                #ifdef SHADOW_COLOR
+                    uniform sampler2D shadowcolor0;
+                #endif
+
+                #ifdef SSS_ENABLED
+                    uniform usampler2D shadowcolor1;
+                #endif
+
+                #ifdef SHADOW_ENABLE_HWCOMP
+                    #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+                        uniform sampler2DShadow shadowtex1HW;
+                        uniform sampler2D shadowtex1;
+                    #else
+                        uniform sampler2DShadow shadowtex1;
+                    #endif
+                #else
+                    uniform sampler2D shadowtex1;
+                #endif
+            #endif
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 in vec3 shadowPos[4];
-                in vec3 shadowParallaxPos[4];
+                //in vec3 shadowParallaxPos[4];
                 //in vec2 shadowProjectionSizes[4];
-                //in float cascadeSizes[4];
-                flat in int shadowCascade;
-
-                #if defined VL_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE)
-                    flat in float cascadeSizes[4];
-                    flat in mat4 matShadowProjections[4];
-                #endif
+                //flat in int shadowCascade;
+                flat in float cascadeSizes[4];
+                flat in mat4 matShadowProjections[4];
             #elif SHADOW_TYPE != SHADOW_TYPE_NONE
                 in vec4 shadowPos;
-                in vec4 shadowParallaxPos;
+                //in vec4 shadowParallaxPos;
             #endif
+        #endif
+
+        #ifdef VL_ENABLED
+            uniform mat4 shadowModelView;
         #endif
     #endif
 
@@ -257,6 +287,7 @@
     uniform vec3 cameraPosition;
     uniform float viewWidth;
     uniform float viewHeight;
+    uniform ivec2 atlasSize;
     uniform float near;
     uniform float far;
 
@@ -270,6 +301,27 @@
     uniform int fogMode;
     uniform int fogShape;
 
+    #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
+        uniform sampler2D BUFFER_HDR_PREVIOUS;
+        //uniform sampler2D depthtex1;
+
+        uniform mat4 gbufferPreviousModelView;
+        uniform mat4 gbufferPreviousProjection;
+        uniform mat4 gbufferProjectionInverse;
+        uniform mat4 gbufferProjection;
+        uniform vec3 previousCameraPosition;
+    #endif
+
+    #if defined WATER_FANCY || WATER_REFRACTION != WATER_REFRACTION_NONE
+        uniform sampler2D BUFFER_REFRACT;
+    #endif
+
+    #if defined WATER_FANCY && !defined WORLD_NETHER
+        uniform sampler2D BUFFER_WATER_WAVES;
+
+        uniform float frameTimeCounter;
+    #endif
+
     #if MC_VERSION >= 11900
         uniform float darknessFactor;
     #endif
@@ -279,30 +331,7 @@
     #endif
 
     #ifdef SHADOW_ENABLED
-        uniform vec3 shadowLightPosition;
-
         #if SHADOW_TYPE != SHADOW_TYPE_NONE
-            uniform sampler2D shadowtex0;
-
-            #ifdef SHADOW_COLOR
-                uniform sampler2D shadowcolor0;
-            #endif
-
-            #ifdef SSS_ENABLED
-                uniform usampler2D shadowcolor1;
-            #endif
-
-            #ifdef SHADOW_ENABLE_HWCOMP
-                #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
-                    uniform sampler2DShadow shadowtex1HW;
-                    uniform sampler2D shadowtex1;
-                #else
-                    uniform sampler2DShadow shadowtex1;
-                #endif
-            #else
-                uniform sampler2D shadowtex1;
-            #endif
-
             #if SHADOW_PCF_SAMPLES == 12
                 #include "/lib/sampling/poisson_12.glsl"
             #elif SHADOW_PCF_SAMPLES == 24
@@ -321,37 +350,17 @@
         #endif
     #endif
 
-    #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-        uniform sampler2D BUFFER_HDR_PREVIOUS;
-        //uniform sampler2D depthtex1;
-
-        uniform mat4 gbufferPreviousModelView;
-        uniform mat4 gbufferPreviousProjection;
-        uniform mat4 gbufferProjectionInverse;
-        uniform mat4 gbufferProjection;
-        uniform vec3 previousCameraPosition;
-    #endif
-
+    #include "/lib/atlas.glsl"
     #include "/lib/depth.glsl"
     #include "/lib/sampling/linear.glsl"
     #include "/lib/world/scattering.glsl"
     #include "/lib/lighting/blackbody.glsl"
 
     #ifdef PARALLAX_ENABLED
-        uniform ivec2 atlasSize;
-
         #include "/lib/parallax.glsl"
     #endif
 
-    #if defined WATER_FANCY || WATER_REFRACTION != WATER_REFRACTION_NONE
-        uniform sampler2D BUFFER_REFRACT;
-    #endif
-
     #if defined WATER_FANCY && !defined WORLD_NETHER
-        uniform sampler2D BUFFER_WATER_WAVES;
-
-        uniform float frameTimeCounter;
-
         #include "/lib/world/wind.glsl"
         #include "/lib/world/water.glsl"
 
@@ -361,10 +370,6 @@
     #endif
 
     #if defined SKY_ENABLED && defined VL_ENABLED
-        //uniform mat4 gbufferModelViewInverse;
-        uniform mat4 shadowModelView;
-        //uniform mat4 shadowProjection;
-
         #include "/lib/lighting/volumetric.glsl"
     #endif
 
@@ -387,6 +392,7 @@
         #include "/lib/ssr.glsl"
     #endif
 
+    #include "/lib/lighting/brdf.glsl"
     #include "/lib/lighting/pbr.glsl"
     #include "/lib/lighting/pbr_forward.glsl"
 

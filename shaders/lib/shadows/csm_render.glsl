@@ -35,9 +35,9 @@
             matShadowProjections[3] = GetShadowCascadeProjectionMatrix(3);
 
             for (int i = 0; i < 4; i++) {
-                shadowProjectionSizes[i] = 2.0 / vec2(
-                    matShadowProjections[i][0].x,
-                    matShadowProjections[i][1].y);
+                // shadowProjectionSizes[i] = 2.0 / vec2(
+                //     matShadowProjections[i][0].x,
+                //     matShadowProjections[i][1].y);
                 
                 shadowPos[i] = (matShadowProjections[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
 
@@ -53,7 +53,7 @@
                 #endif
             }
 
-            shadowCascade = GetShadowCascade(matShadowProjections);
+            //shadowCascade = GetShadowCascade(matShadowProjections);
         #ifndef SSS_ENABLED
             }
             else {
@@ -214,162 +214,160 @@
         }
     #endif
 
-    #ifndef RENDER_DEFERRED
-        vec2 GetPixelRadius(const in float blockRadius) {
-            float texSize = shadowMapSize * 0.5;
-            vec2 shadowProjectionSize = GetProjectionSize(shadowCascade);
-            return blockRadius * (texSize / shadowProjectionSize) * shadowPixelSize;
+    vec2 GetPixelRadius(const in int cascade, const in float blockRadius) {
+        float texSize = shadowMapSize * 0.5;
+        vec2 shadowProjectionSize = GetProjectionSize(cascade);
+        return blockRadius * (texSize / shadowProjectionSize) * shadowPixelSize;
+    }
+
+    #if SHADOW_FILTER != 0
+        float GetShadowing_PCF(const in vec3 shadowPos[4], const in float blockRadius, const in int sampleCount) {
+            float shadow = 0.0;
+            for (int i = 0; i < sampleCount; i++) {
+                vec2 blockOffset = poissonDisk[i] * blockRadius;
+                shadow += 1.0 - CompareNearestDepth(shadowPos, blockOffset);
+            }
+
+            return shadow / sampleCount;
+        }
+    #endif
+
+    #if SHADOW_FILTER == 2
+        // PCF + PCSS
+        float FindBlockerDistance(const in vec3 shadowPos[4], const in float blockRadius, const in int sampleCount) {
+            //float blockRadius = SearchWidth(uvLightSize, shadowPos.z);
+            //float blockRadius = 6.0; //SHADOW_LIGHT_SIZE * (shadowPos.z - PCSS_NEAR) / shadowPos.z;
+            float avgBlockerDistance = 0.0;
+            int blockers = 0;
+
+            for (int i = 0; i < sampleCount; i++) {
+                int cascade;
+                vec2 blockOffset = poissonDisk[i] * blockRadius;
+                float texDepth = GetNearestDepth(shadowPos, blockOffset, cascade);
+
+                float bias = GetCascadeBias(cascade);
+
+                if (texDepth < shadowPos[cascade].z - bias) {
+                    avgBlockerDistance += texDepth;
+                    blockers++;
+                }
+            }
+
+            if (blockers == sampleCount) return 1.0;
+            return blockers > 0 ? avgBlockerDistance / blockers : -1.0;
         }
 
-        #if SHADOW_FILTER != 0
-            float GetShadowing_PCF(const in vec3 shadowPos[4], const in float blockRadius, const in int sampleCount) {
-                float shadow = 0.0;
-                for (int i = 0; i < sampleCount; i++) {
-                    vec2 blockOffset = poissonDisk[i] * blockRadius;
-                    shadow += 1.0 - CompareNearestDepth(shadowPos, blockOffset);
-                }
+        float GetShadowing(const in vec3 shadowPos[4]) {
+            // blocker search
+            int blockerSampleCount = POISSON_SAMPLES;
+            float blockerDistance = FindBlockerDistance(shadowPos, SHADOW_PCF_SIZE, blockerSampleCount);
+            if (blockerDistance <= 0.0) return 1.0;
+            if (blockerDistance == 1.0) return 0.0;
 
-                return shadow / sampleCount;
-            }
-        #endif
+            // penumbra estimation
+            float penumbraWidth = (shadowPos[shadowCascade].z - blockerDistance) / blockerDistance;
 
-        #if SHADOW_FILTER == 2
-            // PCF + PCSS
-            float FindBlockerDistance(const in vec3 shadowPos[4], const in float blockRadius, const in int sampleCount) {
-                //float blockRadius = SearchWidth(uvLightSize, shadowPos.z);
-                //float blockRadius = 6.0; //SHADOW_LIGHT_SIZE * (shadowPos.z - PCSS_NEAR) / shadowPos.z;
-                float avgBlockerDistance = 0.0;
-                int blockers = 0;
+            // percentage-close filtering
+            float blockRadius = min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0) * SHADOW_PCF_SIZE; // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
 
+            int pcfSampleCount = POISSON_SAMPLES;
+            //vec2 pixelRadius = GetPixelRadius(cascade, blockRadius);
+            //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) pcfSampleCount = 1;
+
+            return 1.0 - GetShadowing_PCF(shadowPos, blockRadius, pcfSampleCount);
+        }
+    #elif SHADOW_FILTER == 1
+        // PCF
+        float GetShadowing(const in vec3 shadowPos[4]) {
+            int sampleCount = POISSON_SAMPLES;
+            //vec2 pixelRadius = GetPixelRadius(cascade, SHADOW_PCF_SIZE);
+            //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
+
+            return 1.0 - GetShadowing_PCF(shadowPos, SHADOW_PCF_SIZE, sampleCount);
+        }
+    #elif SHADOW_FILTER == 0
+        // Unfiltered
+        float GetShadowing(const in vec3 shadowPos[4]) {
+            //int cascade = GetCascadeSampleIndex(shadowPos, vec2(0.0));
+            //if (cascade < 0) return 1.0;
+
+            //float bias = GetCascadeBias(cascade);
+
+            #ifdef SHADOW_ENABLE_HWCOMP
+                return CompareNearestDepth(shadowPos, vec2(0.0));
+                //return CompareDepth(shadowPos[cascade], vec2(0.0), bias);
+            #else
+                int cascade;
+                float texDepth = GetNearestDepth(shadowPos, vec2(0.0), cascade);
+
+                float bias = GetCascadeBias(cascade);
+                return step(shadowPos[cascade].z - bias, texDepth + EPSILON);
+            #endif
+        }
+    #endif
+
+    #ifdef SSS_ENABLED
+        float SampleShadowSSS(const in vec2 shadowPos) {
+            uint data = textureLod(shadowcolor1, shadowPos, 0).g;
+            return unpackUnorm4x8(data).a;
+        }
+
+        #if SSS_FILTER != 0
+            float GetShadowing_PCF_SSS(const in vec3 shadowPos[4], const in float blockRadius, const in int sampleCount) {
+                float light = 0.0;
                 for (int i = 0; i < sampleCount; i++) {
                     int cascade;
                     vec2 blockOffset = poissonDisk[i] * blockRadius;
                     float texDepth = GetNearestDepth(shadowPos, blockOffset, cascade);
 
-                    float bias = GetCascadeBias(cascade);
+                    vec2 shadowProjectionSize = GetProjectionSize(cascade);
+                    vec2 pixelPerBlockScale = (cascadeTexSize / shadowProjectionSize) * shadowPixelSize;
+                    vec2 pixelOffset = blockOffset * pixelPerBlockScale;
 
-                    if (texDepth < shadowPos[cascade].z - bias) {
-                        avgBlockerDistance += texDepth;
-                        blockers++;
-                    }
+                    float bias = GetCascadeBias(cascade);
+                    float shadow_sss = SampleShadowSSS(shadowPos[cascade].xy + pixelOffset);
+                    float dist = max(shadowPos[cascade].z - bias - texDepth, 0.0) * far * 3.0;
+                    light += max(shadow_sss - dist / SSS_MAXDIST, 0.0);
                 }
 
-                if (blockers == sampleCount) return 1.0;
-                return blockers > 0 ? avgBlockerDistance / blockers : -1.0;
-            }
-
-            float GetShadowing(const in vec3 shadowPos[4]) {
-                // blocker search
-                int blockerSampleCount = POISSON_SAMPLES;
-                float blockerDistance = FindBlockerDistance(shadowPos, SHADOW_PCF_SIZE, blockerSampleCount);
-                if (blockerDistance <= 0.0) return 1.0;
-                if (blockerDistance == 1.0) return 0.0;
-
-                // penumbra estimation
-                float penumbraWidth = (shadowPos[shadowCascade].z - blockerDistance) / blockerDistance;
-
-                // percentage-close filtering
-                float blockRadius = min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0) * SHADOW_PCF_SIZE; // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
-
-                int pcfSampleCount = POISSON_SAMPLES;
-                vec2 pixelRadius = GetPixelRadius(blockRadius);
-                if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) pcfSampleCount = 1;
-
-                return 1.0 - GetShadowing_PCF(shadowPos, blockRadius, pcfSampleCount);
-            }
-        #elif SHADOW_FILTER == 1
-            // PCF
-            float GetShadowing(const in vec3 shadowPos[4]) {
-                int sampleCount = POISSON_SAMPLES;
-                vec2 pixelRadius = GetPixelRadius(SHADOW_PCF_SIZE);
-                if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
-
-                return 1.0 - GetShadowing_PCF(shadowPos, SHADOW_PCF_SIZE, sampleCount);
-            }
-        #elif SHADOW_FILTER == 0
-            // Unfiltered
-            float GetShadowing(const in vec3 shadowPos[4]) {
-                //int cascade = GetCascadeSampleIndex(shadowPos, vec2(0.0));
-                //if (cascade < 0) return 1.0;
-
-                //float bias = GetCascadeBias(cascade);
-
-                #ifdef SHADOW_ENABLE_HWCOMP
-                    return CompareNearestDepth(shadowPos, vec2(0.0));
-                    //return CompareDepth(shadowPos[cascade], vec2(0.0), bias);
-                #else
-                    int cascade;
-                    float texDepth = GetNearestDepth(shadowPos, vec2(0.0), cascade);
-
-                    float bias = GetCascadeBias(cascade);
-                    return step(shadowPos[cascade].z - bias, texDepth + EPSILON);
-                #endif
+                return light / sampleCount;
             }
         #endif
 
-        #ifdef SSS_ENABLED
-            float SampleShadowSSS(const in vec2 shadowPos) {
-                uint data = textureLod(shadowcolor1, shadowPos, 0).g;
-                return unpackUnorm4x8(data).a;
+        #if SSS_FILTER == 2
+            // PCF + PCSS
+            float GetShadowSSS(const in vec3 shadowPos[4]) {
+                int cascade;
+                float texDepth = GetNearestDepth(shadowPos, vec2(0.0), cascade);
+                float dist = max(shadowPos[cascade].z - texDepth, 0.0) * 4.0 * far;
+                float distF = 1.0 + 2.0*saturate(dist / SSS_MAXDIST);
+
+                int sampleCount = SSS_PCF_SAMPLES;
+                float blockRadius = SSS_PCF_SIZE * distF;
+                vec2 pixelRadius = GetPixelRadius(cascade, blockRadius);
+                if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
+
+                return GetShadowing_PCF_SSS(shadowPos, blockRadius, sampleCount);
             }
+        #elif SSS_FILTER == 1
+            // PCF
+            float GetShadowSSS(const in vec3 shadowPos[4]) {
+                int sampleCount = POISSON_SAMPLES;
+                //vec2 pixelRadius = GetPixelRadius(cascade, SHADOW_PCF_SIZE);
+                //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
-            #if SSS_FILTER != 0
-                float GetShadowing_PCF_SSS(const in vec3 shadowPos[4], const in float blockRadius, const in int sampleCount) {
-                    float light = 0.0;
-                    for (int i = 0; i < sampleCount; i++) {
-                        int cascade;
-                        vec2 blockOffset = poissonDisk[i] * blockRadius;
-                        float texDepth = GetNearestDepth(shadowPos, blockOffset, cascade);
-
-                        vec2 shadowProjectionSize = GetProjectionSize(cascade);
-                        vec2 pixelPerBlockScale = (cascadeTexSize / shadowProjectionSize) * shadowPixelSize;
-                        vec2 pixelOffset = blockOffset * pixelPerBlockScale;
-
-                        float bias = GetCascadeBias(cascade);
-                        float shadow_sss = SampleShadowSSS(shadowPos[cascade].xy + pixelOffset);
-                        float dist = max(shadowPos[cascade].z - bias - texDepth, 0.0) * far * 3.0;
-                        light += max(shadow_sss - dist / SSS_MAXDIST, 0.0);
-                    }
-
-                    return light / sampleCount;
-                }
-            #endif
-
-            #if SSS_FILTER == 2
-                // PCF + PCSS
-                float GetShadowSSS(const in vec3 shadowPos[4]) {
-                    int cascade;
-                    float texDepth = GetNearestDepth(shadowPos, vec2(0.0), cascade);
-                    float dist = max(shadowPos[cascade].z - texDepth, 0.0) * 4.0 * far;
-                    float distF = 1.0 + 2.0*saturate(dist / SSS_MAXDIST);
-
-                    int sampleCount = SSS_PCF_SAMPLES;
-                    float blockRadius = SSS_PCF_SIZE * distF;
-                    vec2 pixelRadius = GetPixelRadius(blockRadius);
-                    if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
-
-                    return GetShadowing_PCF_SSS(shadowPos, blockRadius, sampleCount);
-                }
-            #elif SSS_FILTER == 1
-                // PCF
-                float GetShadowSSS(const in vec3 shadowPos[4]) {
-                    int sampleCount = POISSON_SAMPLES;
-                    vec2 pixelRadius = GetPixelRadius(SHADOW_PCF_SIZE);
-                    if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
-
-                    return GetShadowing_PCF_SSS(shadowPos, SHADOW_PCF_SIZE, sampleCount);
-                }
-            #elif SSS_FILTER == 0
-                // Unfiltered
-                float GetShadowSSS(const in vec3 shadowPos[4]) {
-                    int cascade;
-                    float texDepth = GetNearestDepth(shadowPos, vec2(0.0), cascade);
-                    float bias = GetCascadeBias(cascade);
-                    float dist = max(shadowPos[cascade].z - bias - texDepth, 0.0) * far * 3.0;
-                    float shadow_sss = SampleShadowSSS(shadowPos[cascade].xy);
-                    return max(shadow_sss - dist / SSS_MAXDIST, 0.0);
-                }
-            #endif
+                return GetShadowing_PCF_SSS(shadowPos, SHADOW_PCF_SIZE, sampleCount);
+            }
+        #elif SSS_FILTER == 0
+            // Unfiltered
+            float GetShadowSSS(const in vec3 shadowPos[4]) {
+                int cascade;
+                float texDepth = GetNearestDepth(shadowPos, vec2(0.0), cascade);
+                float bias = GetCascadeBias(cascade);
+                float dist = max(shadowPos[cascade].z - bias - texDepth, 0.0) * far * 3.0;
+                float shadow_sss = SampleShadowSSS(shadowPos[cascade].xy);
+                return max(shadow_sss - dist / SSS_MAXDIST, 0.0);
+            }
         #endif
     #endif
 #endif
