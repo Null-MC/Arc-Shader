@@ -155,79 +155,21 @@
         // #endif
 
         float parallaxShadow = 1.0;
-        
+
         #if !defined SKY_ENABLED || !defined SHADOW_ENABLED
             parallaxShadow = pow2(glcolor.a);
         #endif
 
-        #ifdef SHADOW_ENABLED
-        //     vec3 tanLightDir = normalize(tanLightPos);
-        //     float NoL = dot(normal, tanLightDir);
-
-        //     shadow *= step(EPSILON, geoNoL);
-        //     shadow *= step(EPSILON, NoL);
-            
-            #if SHADOW_TYPE != SHADOW_TYPE_NONE
-        //         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        //             vec3 _shadowPos[4] = shadowPos;
-        //         #else
-        //             vec4 _shadowPos = shadowPos;
-        //         #endif
-
-        //         #if defined PARALLAX_ENABLED && defined PARALLAX_SHADOW_FIX
-        //             float depth = 1.0 - traceCoordDepth.z;
-        //             float eyeDepth = 0.0; //depth / max(geoNoV, EPSILON);
-
-        //             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        //                 _shadowPos[0] = mix(shadowPos[0], shadowParallaxPos[0], depth) - eyeDepth;
-        //                 _shadowPos[1] = mix(shadowPos[1], shadowParallaxPos[1], depth) - eyeDepth;
-        //                 _shadowPos[2] = mix(shadowPos[2], shadowParallaxPos[2], depth) - eyeDepth;
-        //                 _shadowPos[3] = mix(shadowPos[3], shadowParallaxPos[3], depth) - eyeDepth;
-        //             #else
-        //                 _shadowPos = mix(shadowPos, shadowParallaxPos, depth) - eyeDepth;
-        //             #endif
-        //         #endif
-
-        //         if (shadow > EPSILON) {
-        //             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        //                 shadow *= GetShadowing(_shadowPos);
-        //             #else
-        //                 shadow *= GetShadowing(_shadowPos, shadowBias);
-        //             #endif
-        //         }
-
-        //         #ifdef SHADOW_COLOR
-        //             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        //                 shadowColorMap = GetShadowColor(shadowPos);
-        //             #else
-        //                 shadowColorMap = GetShadowColor(shadowPos.xyz, shadowBias);
-        //             #endif
-                    
-        //             shadowColorMap = RGBToLinear(shadowColorMap);
-        //         #endif
-
-        //         #ifdef SSS_ENABLED
-        //             if (materialSSS > EPSILON) {
-        //                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        //                     lightSSS = GetShadowSSS(_shadowPos);
-        //                 #else
-        //                     lightSSS = GetShadowSSS(_shadowPos, shadowBias);
-        //                 #endif
-        //             }
-        //         #endif
-
-                #ifdef PARALLAX_SHADOWS_ENABLED
-                    if (traceCoordDepth.z + EPSILON < 1.0) {
-                        vec3 tanLightDir = normalize(tanLightPos);
-                        
-                        #ifdef PARALLAX_USE_TEXELFETCH
-                            parallaxShadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
-                        #else
-                            parallaxShadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
-                        #endif
-                    }
+        #ifdef PARALLAX_SHADOWS_ENABLED
+            if (traceCoordDepth.z + EPSILON < 1.0) {
+                vec3 tanLightDir = normalize(tanLightPos);
+                
+                #ifdef PARALLAX_USE_TEXELFETCH
+                    parallaxShadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
+                #else
+                    parallaxShadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
                 #endif
-            #endif
+            }
         #endif
 
         vec2 lm = lmcoord;
