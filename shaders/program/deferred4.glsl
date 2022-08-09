@@ -101,7 +101,7 @@
                 }
             }
 
-            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED && (defined VL_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE))
+            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 cascadeSizes[0] = GetCascadeDistance(0);
                 cascadeSizes[1] = GetCascadeDistance(1);
                 cascadeSizes[2] = GetCascadeDistance(2);
