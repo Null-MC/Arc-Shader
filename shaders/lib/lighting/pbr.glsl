@@ -149,7 +149,7 @@
         }
     #endif
 
-    vec4 PbrLighting2(const in PbrMaterial material, const in vec2 lmValue, const in float geoNoL, const in vec3 viewPos, const in SHADOW_POS_TYPE, const in vec2 waterSolidDepth) {
+    vec4 PbrLighting2(const in PbrMaterial material, const in vec2 lmValue, const in float geoNoL, const in float occlusion, const in vec3 viewPos, const in SHADOW_POS_TYPE, const in vec2 waterSolidDepth) {
         vec2 viewSize = vec2(viewWidth, viewHeight);
         vec3 viewNormal = normalize(material.normal);
         vec3 viewDir = -normalize(viewPos);
@@ -216,9 +216,10 @@
 
 
 
-        float shadow = 1.0;
-        float shadowSSS = 0.0;
+
+        float shadow = occlusion;
         vec3 shadowColor = vec3(1.0);
+        float shadowSSS = 0.0;
 
         #ifdef SKY_ENABLED
             shadow *= step(EPSILON, geoNoL);
@@ -296,6 +297,8 @@
                 //         #endif
                 //     }
                 // #endif
+            #else
+                shadowSSS = material.scattering;
             #endif
         #endif
 

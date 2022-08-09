@@ -1,24 +1,3 @@
-#if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-    float GetEyeBrightnessLuminance() {
-        vec2 eyeBrightnessLinear = eyeBrightness / 240.0;
-
-        vec2 skyLightLevels = GetSkyLightLevels();
-        float sunLightLux = GetSunLightLevel(skyLightLevels.x) * SunLux;
-        float moonLightLux = GetMoonLightLevel(skyLightLevels.y) * MoonLux;
-        float skyLightBrightness = pow(eyeBrightnessLinear.y, 5.0) * (sunLightLux + moonLightLux);
-
-        float blockLightBrightness = eyeBrightnessLinear.x;
-
-        #ifdef HANDLIGHT_ENABLED
-            blockLightBrightness = max(blockLightBrightness, heldBlockLightValue * 0.0625);
-        #endif
-
-        blockLightBrightness = pow(blockLightBrightness, 5.0) * BlockLightLux;
-
-        return max(blockLightBrightness, skyLightBrightness);
-    }
-#endif
-
 float GetEV100(const in float averageLuminance) {
     //return EXPOSURE_POINT / clamp(f, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
     float avgLumClamped = clamp(averageLuminance, CAMERA_LUM_MIN, CAMERA_LUM_MAX);

@@ -111,10 +111,7 @@
 
     /* RENDERTARGETS: 4,6 */
     out vec3 outColor0;
-
-    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-        out float outColor1;
-    #endif
+    out float outColor1;
 
 
     void main() {
@@ -163,22 +160,7 @@
             color += sky;
         #endif
 
-        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            // #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FAST
-            //     vec3 sunDir = normalize(sunPosition);
-            //     float VoSun = max(dot(viewDir, sunDir), 0.0);
-            //     float sunDot = saturate((VoSun - 0.9997) * rcp(0.0003));
-            //     lum += pow(sunDot, 0.5) * sunLumen;
-
-            //     vec3 moonDir = normalize(moonPosition);
-            //     float VoMoon = max(dot(viewDir, moonDir), 0.0);
-            //     float moonDot = saturate((VoMoon - 0.9994) * rcp(0.0006));
-            //     lum += pow(moonDot, 0.5) * moonLumen;
-            // #endif
-
-            outColor1 = log2(lum + EPSILON);
-        #endif
-
+        outColor1 = log2(lum + EPSILON);
         outColor0 = clamp(color * exposure, vec3(0.0), vec3(65000));
     }
 #endif

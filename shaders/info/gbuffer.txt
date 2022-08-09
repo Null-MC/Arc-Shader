@@ -19,8 +19,8 @@ blue
 alpha
 	lightmap-block
 	lightmap-sky
-	shadow
-	light-sss
+	geoNoL
+	AO
 
 
 

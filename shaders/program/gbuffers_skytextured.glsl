@@ -80,11 +80,8 @@
     uniform int renderStage;
 
     /* RENDERTARGETS: 4,6 */
-    //out vec4 outColor0;
-
-    //#if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-        //out vec4 outColor1;
-    //#endif
+    out vec4 outColor0;
+    out vec4 outColor1;
 
 
     void main() {
@@ -109,11 +106,9 @@
         }
 
         color = clamp(color * exposure, vec3(0.0), vec3(65000));
-        gl_FragData[0] = vec4(color, lum);
+        outColor0 = vec4(color, lum);
 
-        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            float lumFinal = log2(lum * lumF + EPSILON);
-            gl_FragData[1] = vec4(lumFinal, 0.0, 0.0, lum);
-        #endif
+        float lumFinal = log2(lum * lumF + EPSILON);
+        outColor1 = vec4(lumFinal, 0.0, 0.0, lum);
     }
 #endif

@@ -372,20 +372,19 @@
     #include "/lib/lighting/pbr_forward.glsl"
 
     /* RENDERTARGETS: 4,6 */
+    out vec4 outColor0;
+    out vec4 outColor1;
 
 
     void main() {
         vec4 color = PbrLighting();
 
-        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            vec4 outLum = vec4(0.0);
-            outLum.r = log2(luminance(color.rgb) + EPSILON);
-            outLum.a = color.a;
-
-            gl_FragData[1] = outLum;
-        #endif
+        vec4 outLum = vec4(0.0);
+        outLum.r = log2(luminance(color.rgb) + EPSILON);
+        outLum.a = color.a;
+        outColor1 = outLum;
 
         color.rgb = clamp(color.rgb * exposure, vec3(0.0), vec3(65000));
-        gl_FragData[0] = color;
+        outColor0 = color;
     }
 #endif

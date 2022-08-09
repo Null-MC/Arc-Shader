@@ -135,6 +135,7 @@
     #endif
 
     uniform usampler2D BUFFER_DEFERRED;
+    uniform sampler2D BUFFER_LUMINANCE;
     uniform sampler2D BUFFER_HDR;
     uniform sampler2D colortex10;
     uniform sampler2D lightmap;
@@ -145,10 +146,6 @@
     #if defined SHADOW_ENABLED && defined SHADOW_COLOR
         uniform sampler2D BUFFER_DEFERRED2;
         uniform sampler2D shadowcolor0;
-    #endif
-
-    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-        uniform sampler2D BUFFER_LUMINANCE;
     #endif
 
     #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
@@ -192,6 +189,8 @@
 
         #ifdef SHADOW_ENABLED
             uniform vec3 shadowLightPosition;
+            uniform mat4 shadowProjection;
+            uniform mat4 shadowModelView;
 
             #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
                 uniform sampler2DShadow shadowtex1HW;
@@ -206,19 +205,9 @@
                 uniform usampler2D shadowcolor1;
             #endif
 
-            //#ifdef SHADOW_COLOR
-            //    uniform sampler2D shadowcolor0;
-            //#endif
-
-            uniform mat4 shadowModelView;
-
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 flat in float cascadeSizes[4];
                 flat in mat4 matShadowProjections[4];
-            #endif
-
-            #ifdef VL_ENABLED
-                uniform mat4 shadowProjection;
             #endif
 
             #if defined RSM_ENABLED && defined RSM_UPSCALE
@@ -298,10 +287,7 @@
 
     /* RENDERTARGETS: 4,6 */
     out vec4 outColor0;
-
-    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-        out float outColor1;
-    #endif
+    out float outColor1;
 
 
     void main() {
@@ -314,15 +300,11 @@
             #ifdef SKY_ENABLED
                 color = texelFetch(BUFFER_HDR, iTex, 0).rgb;
 
-                #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-                    outColor1 = texelFetch(BUFFER_LUMINANCE, iTex, 0).r;
-                #endif
+                outColor1 = texelFetch(BUFFER_LUMINANCE, iTex, 0).r;
             #else
                 color = RGBToLinear(fogColor) * 100.0;
 
-                #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-                    outColor1 = log2(luminance(color) + EPSILON);
-                #endif
+                outColor1 = log2(luminance(color) + EPSILON);
 
                 color = clamp(color * exposure, 0.0, 65000.0);
             #endif
@@ -339,12 +321,13 @@
             //     shadowColorMap = texelFetch(BUFFER_DEFERRED2, iTex, 0).rgb;
             // #endif
 
+            float geoNoL = lightingMap.z;
+            float occlusion = lightingMap.a;
             vec2 viewSize = vec2(viewWidth, viewHeight);
             vec3 clipPos = vec3(gl_FragCoord.xy / viewSize, screenDepth) * 2.0 - 1.0;
             vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
 
             vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
-            float geoNoL = lightingMap.z;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 vec3 shadowPos[4];
@@ -374,11 +357,9 @@
             PbrMaterial material;
             PopulateMaterial(material, colorMap.rgb, normalMap, specularMap);
 
-            color = PbrLighting2(material, lightingMap.xy, geoNoL, viewPos, shadowPos, vec2(0.0)).rgb;
+            color = PbrLighting2(material, lightingMap.xy, geoNoL, occlusion, viewPos, shadowPos, vec2(0.0)).rgb;
 
-            #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-                outColor1 = log2(luminance(color) + EPSILON);
-            #endif
+            outColor1 = log2(luminance(color) + EPSILON);
 
             color = clamp(color * exposure, vec3(0.0), vec3(65554.0));
         }

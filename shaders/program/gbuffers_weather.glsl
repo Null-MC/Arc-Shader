@@ -230,23 +230,17 @@
 
     /* RENDERTARGETS: 4,6 */
     out vec4 outColor0;
-
-    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-        out vec4 outColor1;
-    #endif
+    out vec4 outColor1;
 
 
     void main() {
         vec4 color = BasicLighting();
         color.a *= WEATHER_OPACITY * 0.01;
 
-        #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-            vec4 outLuminance = vec4(0.0);
-            outLuminance.r = log2(luminance(color.rgb) * color.a + EPSILON);
-            outLuminance.a = color.a;
-
-            outColor1 = outLuminance;
-        #endif
+        vec4 outLuminance = vec4(0.0);
+        outLuminance.r = log2(luminance(color.rgb) * color.a + EPSILON);
+        outLuminance.a = color.a;
+        outColor1 = outLuminance;
 
         color.rgb = clamp(color.rgb * exposure, vec3(0.0), vec3(65000));
         outColor0 = color;

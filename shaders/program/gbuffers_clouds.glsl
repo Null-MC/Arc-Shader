@@ -76,10 +76,7 @@
 
     /* RENDERTARGETS: 4,6 */
     out vec4 outColor0;
-
-    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-        out float outColor1;
-    #endif
+    out float outColor1;
 
     #include "/lib/lighting/blackbody.glsl"
     #include "/lib/world/scattering.glsl"
@@ -97,9 +94,7 @@
         float darkness = 0.7 - 0.3 * rainStrength;
         colorMap.rgb *= GetSkyLightLuminance(skyLightLevels) * darkness;
 
-        #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-            outColor1 = log2(luminance(colorMap.rgb) + EPSILON);
-        #endif
+        outColor1 = log2(luminance(colorMap.rgb) + EPSILON);
 
         colorMap.rgb = clamp(colorMap.rgb * exposure, vec3(0.0), vec3(65000));
         outColor0 = colorMap;

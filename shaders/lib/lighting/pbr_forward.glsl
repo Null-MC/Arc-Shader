@@ -249,6 +249,12 @@
         //     shadow = glcolor.a;
         // #endif
 
+        float occlusion = 1.0;
+
+        #if !defined SKY_ENABLED || !defined SHADOW_ENABLED
+            occlusion = pow2(glcolor.a);
+        #endif
+
         vec3 _viewNormal = normalize(viewNormal);
         vec3 _viewTangent = normalize(viewTangent);
         vec3 _viewBinormal = normalize(cross(_viewTangent, _viewNormal) * tangentW);
@@ -264,6 +270,6 @@
             vec4 shadowPos;
         #endif
 
-        return PbrLighting2(material, lm, geoNoL, viewPos.xyz, shadowPos, waterSolidDepth);
+        return PbrLighting2(material, lm, geoNoL, occlusion, viewPos.xyz, shadowPos, waterSolidDepth);
     }
 #endif

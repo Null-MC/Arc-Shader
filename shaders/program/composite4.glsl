@@ -25,12 +25,12 @@
         #include "/lib/world/sky.glsl"
 
         float GetEyeBrightnessLuminance() {
-            vec2 eyeBrightnessLinear = eyeBrightness / 240.0;
+            vec2 eyeBrightnessLinear = saturate2(eyeBrightness / 240.0);
 
             vec2 skyLightLevels = GetSkyLightLevels();
             float sunLightLux = GetSunLightLevel(skyLightLevels.x) * SunLux;
             float moonLightLux = GetMoonLightLevel(skyLightLevels.y) * MoonLux;
-            float skyLightBrightness = pow(eyeBrightnessLinear.y, 5.0) * (sunLightLux + moonLightLux);
+            float skyLightBrightness = pow3(eyeBrightnessLinear.y) * (sunLightLux + moonLightLux);
 
             float blockLightBrightness = eyeBrightnessLinear.x;
 
@@ -38,9 +38,9 @@
                 blockLightBrightness = max(blockLightBrightness, heldBlockLightValue * 0.0625);
             #endif
 
-            blockLightBrightness = pow(blockLightBrightness, 5.0) * BlockLightLux;
+            blockLightBrightness = pow3(blockLightBrightness) * BlockLightLux;
 
-            return 0.1 * max(blockLightBrightness, skyLightBrightness);
+            return 10.0 + 0.1 * max(blockLightBrightness, skyLightBrightness);
         }
     #endif
 

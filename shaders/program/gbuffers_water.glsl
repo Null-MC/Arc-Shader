@@ -230,8 +230,6 @@
         uniform vec3 skyColor;
 
         #ifdef SHADOW_ENABLED
-            //in float shadowBias;
-
             uniform vec3 shadowLightPosition;
 
             #if SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -409,13 +407,10 @@
     void main() {
         vec4 color = PbrLighting();
 
-        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            vec4 outLum = vec4(0.0);
-            outLum.r = log2(luminance(color.rgb) + EPSILON);
-            outLum.a = color.a;
-
-            outColor1 = outLum;
-        #endif
+        vec4 outLum = vec4(0.0);
+        outLum.r = log2(luminance(color.rgb) + EPSILON);
+        outLum.a = color.a;
+        outColor1 = outLum;
 
         color.rgb = clamp(color.rgb * exposure, vec3(0.0), vec3(65000));
         outColor0 = color;

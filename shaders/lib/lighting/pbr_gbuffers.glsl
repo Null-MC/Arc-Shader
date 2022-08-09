@@ -155,6 +155,10 @@
         // #endif
 
         float parallaxShadow = 1.0;
+        
+        #if !defined SKY_ENABLED || !defined SHADOW_ENABLED
+            parallaxShadow = pow2(glcolor.a);
+        #endif
 
         #ifdef SHADOW_ENABLED
         //     vec3 tanLightDir = normalize(tanLightPos);
@@ -250,6 +254,6 @@
 
         normalMap.xyz = texViewNormal * 0.5 + 0.5;
 
-        lightingMap = vec4(lm, geoNoL, 0.0);
+        lightingMap = vec4(lm, geoNoL, parallaxShadow);
     }
 #endif

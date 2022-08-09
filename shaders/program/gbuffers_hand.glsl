@@ -219,7 +219,7 @@
 
     /* RENDERTARGETS: 2,3 */
     out uvec4 outColor0;
-    #if defined SHADOW_ENABLED && defined SHADOW_COLOR
+    #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined SHADOW_COLOR
         out vec3 outColor1;
     #endif
 
@@ -234,7 +234,7 @@
         outColor0.b = packUnorm4x8(specularMap);
         outColor0.a = packUnorm4x8(lightingMap);
 
-        #if defined SHADOW_ENABLED && defined SHADOW_COLOR
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined SHADOW_COLOR
             outColor1 = shadowColorMap;
         #endif
     }
