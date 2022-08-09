@@ -134,6 +134,7 @@
         uniform vec3 sunPosition;
         uniform vec3 moonPosition;
         uniform float rainStrength;
+        uniform float wetness;
         uniform vec3 skyColor;
         uniform int moonPhase;
 

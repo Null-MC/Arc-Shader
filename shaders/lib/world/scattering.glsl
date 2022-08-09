@@ -11,7 +11,7 @@ float GetScatteringFactor() {
         scattering = mix(scattering, G_SCATTERING_HUMID, eyeHumidity);
     #endif
 
-    scattering = mix(scattering, G_SCATTERING_RAIN, rainStrength);
+    scattering = mix(scattering, G_SCATTERING_RAIN, wetness); // rainStrength
     
     return scattering;
 }

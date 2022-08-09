@@ -62,6 +62,7 @@
     uniform float far;
 
     uniform float rainStrength;
+    uniform float wetness;
     uniform vec3 skyColor;
     uniform vec3 fogColor;
     uniform int moonPhase;

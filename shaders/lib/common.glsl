@@ -71,9 +71,6 @@ const bool colortex11Clear = false;
 #define ATMOSFOG_ENABLED
 //#define CAVEFOG_ENABLED
 #define WEATHER_OPACITY 40 // [10 20 30 40 50 60 70 80 90 100]
-#define G_SCATTERING_CLEAR 0.7 // 0.96
-#define G_SCATTERING_HUMID 0.5 // 0.84
-#define G_SCATTERING_RAIN 0.25
 
 
 // Shadow Options
@@ -149,6 +146,9 @@ const bool colortex11Clear = false;
 #define VL_ENABLED
 #define VL_STRENGTH 80 // [10 20 30 40 50 60 70 80 90 100]
 #define VL_SAMPLE_COUNT 60 // [15 30 60 90]
+#define G_SCATTERING_CLEAR 0.18 // 0.96
+#define G_SCATTERING_HUMID 0.72 // 0.84
+#define G_SCATTERING_RAIN 0.98
 #define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0

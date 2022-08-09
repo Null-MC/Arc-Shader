@@ -76,14 +76,15 @@
     uniform mat4 gbufferProjectionInverse;
     uniform float viewWidth;
     uniform float viewHeight;
-    uniform float near;
-    uniform float far;
-    
-    uniform int isEyeInWater;
-    uniform float rainStrength;
     uniform vec3 upPosition;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
+    uniform float near;
+    uniform float far;
+        
+    uniform int isEyeInWater;
+    uniform float rainStrength;
+    uniform float wetness;
     uniform vec3 fogColor;
     uniform vec3 skyColor;
     uniform int moonPhase;

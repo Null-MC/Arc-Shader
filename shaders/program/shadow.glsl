@@ -294,7 +294,7 @@ const bool shadowHardwareFiltering1 = true;
 
         #if defined RSM_ENABLED || defined SHADOW_COLOR
             sampleColor = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]);
-            sampleColor.rgb *= glcolor.rgb;
+            sampleColor.rgb = RGBToLinear(sampleColor.rgb * glcolor.rgb);
 
             vec4 lightColor = sampleColor;
             if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
@@ -305,6 +305,7 @@ const bool shadowHardwareFiltering1 = true;
                 lightColor.rgb = mix(lightColor.rgb, vec3(0.0), lightColor.a);
             }
 
+            lightColor.rgb = LinearToRGB(lightColor.rgb);
             outColor0 = lightColor;
         #else
             sampleColor.a = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]).a;
@@ -338,6 +339,7 @@ const bool shadowHardwareFiltering1 = true;
 
         #if defined RSM_ENABLED || defined SSS_ENABLED
             vec3 rsmColor = mix(vec3(0.0), sampleColor.rgb, sampleColor.a);
+            rsmColor = LinearToRGB(rsmColor);
 
             uvec2 data;
             data.r = packUnorm4x8(vec4(rsmColor, 1.0));
