@@ -25,10 +25,8 @@
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         flat out float cascadeSizes[4];
-        flat out mat4 matShadowProjections[4];
-
-        //flat varying vec4 matShadowProjectionParts[4];
-        //flat varying vec2 matShadowProjectionOffsets[4];
+        flat out vec3 matShadowProjections_scale[4];
+        flat out vec3 matShadowProjections_translation[4];
     #endif
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -82,16 +80,10 @@
             cascadeSizes[2] = GetCascadeDistance(2);
             cascadeSizes[3] = GetCascadeDistance(3);
 
-            for (int i = 0; i < 4; i++) {
-                matShadowProjections[i] = GetShadowCascadeProjectionMatrix(i);
-
-                // matShadowProjectionParts[i].x = ;
-                // matShadowProjectionParts[i].y = ;
-                // matShadowProjectionParts[i].z = ;
-                // matShadowProjectionParts[i].w = ;
-                // matShadowProjectionOffsets[i].x = ;
-                // matShadowProjectionOffsets[i].y = ;
-            }
+            GetShadowCascadeProjectionMatrix_AsParts(0, matShadowProjections_scale[0], matShadowProjections_translation[0]);
+            GetShadowCascadeProjectionMatrix_AsParts(1, matShadowProjections_scale[1], matShadowProjections_translation[1]);
+            GetShadowCascadeProjectionMatrix_AsParts(2, matShadowProjections_scale[2], matShadowProjections_translation[2]);
+            GetShadowCascadeProjectionMatrix_AsParts(3, matShadowProjections_scale[3], matShadowProjections_translation[3]);
         #endif
 	}
 #endif
@@ -102,10 +94,8 @@
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         flat in float cascadeSizes[4];
-        flat in mat4 matShadowProjections[4];
-
-        //flat varying vec4 matShadowProjectionParts[4];
-        //flat varying vec2 matShadowProjectionOffsets[4];
+        flat in vec3 matShadowProjections_scale[4];
+        flat in vec3 matShadowProjections_translation[4];
     #endif
 
     uniform usampler2D BUFFER_DEFERRED;
@@ -127,6 +117,8 @@
     uniform float viewWidth;
     uniform float viewHeight;
     uniform float far;
+
+    #include "/lib/lighting/light_data.glsl"
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         #include "/lib/shadows/csm.glsl"
@@ -172,13 +164,27 @@
 
             #ifdef LIGHTLEAK_FIX
                 float lightingMap = unpackUnorm4x8(deferredNormalLightingData.g).g;
-                if (lightingMap >= 1.0 / 16.0) color = GetIndirectLighting_RSM(shadowViewPos, shadowViewNormal);
-            #else
-                color = GetIndirectLighting_RSM(shadowViewPos, shadowViewNormal);
+                if (lightingMap >= 1.0 / 16.0) {
             #endif
+                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                    mat4 matShadowProjections[4];
+                    matShadowProjections[0] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[0], matShadowProjections_translation[0]);
+                    matShadowProjections[1] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[1], matShadowProjections_translation[1]);
+                    matShadowProjections[2] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[2], matShadowProjections_translation[2]);
+                    matShadowProjections[3] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[3], matShadowProjections_translation[3]);
+
+                    color = GetIndirectLighting_RSM(matShadowProjections, shadowViewPos, shadowViewNormal);
+                #else
+                    color = GetIndirectLighting_RSM(shadowViewPos, shadowViewNormal);
+                #endif
+            #ifdef LIGHTLEAK_FIX
+                }
+            #endif
+
+            color = clamp(color, vec3(0.0), vec3(65000.0));
         }
 
-        outColor0 = clamp(color, vec3(0.0), vec3(65000.0));
+        outColor0 = color;
 
         #ifdef RSM_UPSCALE
             outColor1 = clipDepth;

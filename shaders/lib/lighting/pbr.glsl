@@ -116,7 +116,7 @@
     #endif
 
     #if defined SKY_ENABLED && defined RSM_ENABLED && defined RSM_UPSCALE && defined RENDER_DEFERRED
-        vec3 GetUpscaledRSM(const in vec3 shadowViewPos, const in vec3 shadowViewNormal, const in float depthLinear, const in vec2 screenUV, const in float skyLight) {
+        vec3 GetUpscaledRSM(const in PbrLightData lightData, const in vec3 shadowViewPos, const in vec3 shadowViewNormal, const in float depthLinear, const in vec2 screenUV) {
             vec4 rsmDepths = textureGather(BUFFER_RSM_DEPTH, screenUV, 0);
             float rsmDepthMin = min(min(rsmDepths.x, rsmDepths.y), min(rsmDepths.z, rsmDepths.w));
             float rsmDepthMax = max(max(rsmDepths.x, rsmDepths.y), max(rsmDepths.z, rsmDepths.w));
@@ -135,12 +135,17 @@
                 return textureLod(BUFFER_RSM_COLOR, screenUV, 0).rgb;
             }
             else {
+                vec3 final = vec3(0.0);
                 #ifdef LIGHTLEAK_FIX
-                    vec3 final  vec3(0.0);
-                    if (skyLight >= 1.0 / 16.0)
+                    if (lightData.skyLight >= 1.0 / 16.0) {
+                #endif
+                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                        final = GetIndirectLighting_RSM(lightData.matShadowProjection, shadowViewPos, shadowViewNormal);
+                    #else
                         final = GetIndirectLighting_RSM(shadowViewPos, shadowViewNormal);
-                #else
-                    vec3 final = GetIndirectLighting_RSM(shadowViewPos, shadowViewNormal);
+                    #endif
+                #ifdef LIGHTLEAK_FIX
+                    }
                 #endif
 
                 //final = mix(final, vec3(600.0, 0.0, 0.0), 0.25);
@@ -326,7 +331,7 @@
                 vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
                 vec3 shadowViewNormal = mat3(shadowModelView) * (mat3(gbufferModelViewInverse) * viewNormal);
 
-                vec3 rsmColor = GetUpscaledRSM(shadowViewPos, shadowViewNormal, -viewPos.z, tex, skyLight);
+                vec3 rsmColor = GetUpscaledRSM(lightData, shadowViewPos, shadowViewNormal, -viewPos.z, tex);
             #else
                 vec3 rsmColor = textureLod(BUFFER_RSM_COLOR, tex, 0).rgb;
             #endif
@@ -427,7 +432,7 @@
                         ? IOR_WATER / IOR_AIR
                         : IOR_AIR / IOR_WATER;
                     
-                    float refractDist = max(lightData.solidShadowDepth - waterSolidDepth.x, 0.0);
+                    float refractDist = max(lightData.solidShadowDepth - lightData.waterShadowDepth, 0.0);
 
                     vec2 waterSolidDepthFinal;
                     vec3 refractColor = vec3(0.0);

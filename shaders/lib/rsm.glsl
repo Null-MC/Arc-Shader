@@ -9,7 +9,7 @@ float SampleDepth(const in ivec2 itex) {
 }
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-    vec3 GetNearestDepth(const in vec3 shadowViewPos, out ivec2 uv_out, out int cascade) {
+    vec3 GetNearestDepth(const in mat4 matShadowProjection[4], const in vec3 shadowViewPos, out ivec2 uv_out, out int cascade) {
         float depth = 1.0;
         vec2 pos_out = vec2(0.0);
         uv_out = ivec2(0);
@@ -18,7 +18,7 @@ float SampleDepth(const in ivec2 itex) {
         float shadowResScale = tile_dist_bias_factor * shadowPixelSize;
 
         for (int i = 0; i < 4; i++) {
-            vec3 shadowPos = (matShadowProjections[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+            vec3 shadowPos = (matShadowProjection[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
 
             // Ignore if outside cascade bounds
             if (shadowPos.x < 0.0 || shadowPos.x >= 1.0
@@ -42,7 +42,12 @@ float SampleDepth(const in ivec2 itex) {
     }
 #endif
 
-vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 shadowViewNormal) {
+#if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+    vec3 GetIndirectLighting_RSM(const in mat4 matShadowProjection[4], const in vec3 shadowViewPos, const in vec3 shadowViewNormal)
+#else
+    vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 shadowViewNormal)
+#endif
+{
     vec3 shading = vec3(0.0);
 
     for (int i = 0; i < RSM_SAMPLE_COUNT; i++) {
@@ -53,7 +58,7 @@ vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 shadowVi
         ivec2 iuv;
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             int cascade;
-            float sampleDepth = GetNearestDepth(offsetShadowViewPos, iuv, cascade).z;
+            float sampleDepth = GetNearestDepth(matShadowProjection, offsetShadowViewPos, iuv, cascade).z;
 
             vec3 samplePos = offsetShadowViewPos;
             samplePos.z = -sampleDepth * far * 3.0 + far;
