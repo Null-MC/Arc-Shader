@@ -185,9 +185,7 @@ int GetCascadeForScreenPos(const in vec2 pos) {
         scale.y = matProjection[1][1];
         scale.z = matProjection[2][2];
 
-        translation.x = matProjection[0][3];
-        translation.y = matProjection[1][3];
-        translation.z = matProjection[2][3];
+        translation = matProjection[3].xyz;
     }
 #endif
 
