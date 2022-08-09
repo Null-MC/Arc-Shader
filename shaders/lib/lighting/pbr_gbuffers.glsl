@@ -140,20 +140,6 @@
             #endif
         #endif
 
-        // #if defined SKY_ENABLED && defined LIGHTLEAK_FIX
-        //     const float minSkylightThreshold = 1.0 / 16.0 + EPSILON;
-        //     float shadow = step(minSkylightThreshold, lmcoord.y);
-        // #else
-        //     float shadow = 1.0;
-        // #endif
-
-        // float lightSSS = 0.0;
-        // shadowColorMap = vec3(1.0);
-
-        // #ifdef SSS_ENABLED
-        //     float materialSSS = GetLabPbr_SSS(specularMap.b);
-        // #endif
-
         float parallaxShadow = 1.0;
 
         #if !defined SKY_ENABLED || !defined SHADOW_ENABLED
@@ -172,23 +158,14 @@
             }
         #endif
 
-        vec2 lm = lmcoord;
-
-        // #if !defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE
-        //     shadow = glcolor.a;
-
-        //     // #ifdef SSS_ENABLED
-        //     //     float skyLight = saturate((lm.y - (0.5/16.0)) / (15.0/16.0));
-        //     //     lightSSS = skyLight * materialSSS;
-        //     // #endif
-        // #endif
-
         vec3 _viewNormal = normalize(viewNormal);
         vec3 _viewTangent = normalize(viewTangent);
         vec3 _viewBinormal = normalize(cross(_viewTangent, _viewNormal) * tangentW);
         mat3 matTBN = mat3(_viewTangent, _viewBinormal, _viewNormal);
 
         vec3 texViewNormal = normalize(matTBN * normal);
+
+        vec2 lm = lmcoord;
 
         #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
             ApplyDirectionalLightmap(lm.x, texViewNormal);

@@ -225,34 +225,7 @@
             shadow *= step(EPSILON, geoNoL);
             shadow *= step(EPSILON, NoL);
 
-            //float NoL = dot(viewNormal, viewLightDir);
-
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                // vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
-
-                // #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                //     vec3 shadowPos[4];
-                //     for (int i = 0; i < 4; i++) {
-                //         shadowPos[i] = (matShadowProjections[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                        
-                //         vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
-                //         shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
-                //     }
-                // #else
-                //     vec4 shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
-                //     //float shadowBias = 0.0;//-1e-2; // TODO: fuck
-
-                //     #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                //         float distortFactor = getDistortFactor(shadowPos.xy);
-                //         shadowPos.xyz = distort(shadowPos.xyz, distortFactor);
-                //         float shadowBias = GetShadowBias(geoNoL, distortFactor);
-                //     #elif SHADOW_TYPE == SHADOW_TYPE_BASIC
-                //         float shadowBias = GetShadowBias(geoNoL);
-                //     #endif
-
-                //     shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
-                // #endif
-
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                     float distortFactor = getDistortFactor(shadowPos.xy * 2.0 - 1.0);
                     float shadowBias = GetShadowBias(geoNoL, distortFactor);
@@ -262,7 +235,7 @@
 
                 if (shadow > EPSILON) {
                     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        shadow *= GetShadowing(shadowPos);
+                        shadow *= GetShadowing(shadowPos, geoNoL);
                     #else
                         shadow *= GetShadowing(shadowPos, shadowBias);
                     #endif
@@ -270,7 +243,7 @@
 
                 #ifdef SHADOW_COLOR
                     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        shadowColor = GetShadowColor(shadowPos);
+                        shadowColor = GetShadowColor(shadowPos, geoNoL);
                     #else
                         shadowColor = GetShadowColor(shadowPos.xyz, shadowBias);
                     #endif
@@ -281,22 +254,12 @@
                 #ifdef SSS_ENABLED
                     if (material.scattering > EPSILON) {
                         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                            shadowSSS = GetShadowSSS(shadowPos);
+                            shadowSSS = GetShadowSSS(shadowPos, geoNoL);
                         #else
                             shadowSSS = GetShadowSSS(shadowPos, shadowBias);
                         #endif
                     }
                 #endif
-
-                // #ifdef PARALLAX_SHADOWS_ENABLED
-                //     if (shadow > EPSILON && traceCoordDepth.z + EPSILON < 1.0) {
-                //         #ifdef PARALLAX_USE_TEXELFETCH
-                //             shadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
-                //         #else
-                //             shadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
-                //         #endif
-                //     }
-                // #endif
             #else
                 shadowSSS = material.scattering;
             #endif
