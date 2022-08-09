@@ -149,7 +149,7 @@
         }
     #endif
 
-    vec4 PbrLighting2(const in PbrMaterial material, const in vec2 lmValue, const in float geoNoL, const in float occlusion, const in vec3 viewPos, const in SHADOW_POS_TYPE, const in vec2 waterSolidDepth) {
+    vec4 PbrLighting2(const in PbrMaterial material, const in PbrLightData lightData, const in vec3 viewPos) {
         vec2 viewSize = vec2(viewWidth, viewHeight);
         vec3 viewNormal = normalize(material.normal);
         vec3 viewDir = -normalize(viewPos);
@@ -176,8 +176,8 @@
         //vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
         //return vec4(localNormal * 1000.0, 1.0);
 
-        float blockLight = saturate((lmValue.x - (1.0/16.0 + EPSILON)) / (15.0/16.0));
-        float skyLight = saturate((lmValue.y - (1.0/16.0 + EPSILON)) / (15.0/16.0));
+        float blockLight = saturate((lightData.blockLight - (1.0/16.0 + EPSILON)) / (15.0/16.0));
+        float skyLight = saturate((lightData.skyLight - (1.0/16.0 + EPSILON)) / (15.0/16.0));
 
         vec3 viewUpDir = normalize(upPosition);
         // float wetness_NoU = dot(viewNormal, viewUpDir) * 0.4 + 0.6;
@@ -217,35 +217,35 @@
 
 
 
-        float shadow = occlusion;
+        float shadow = lightData.occlusion;
         vec3 shadowColor = vec3(1.0);
         float shadowSSS = 0.0;
 
         #ifdef SKY_ENABLED
-            shadow *= step(EPSILON, geoNoL);
+            shadow *= step(EPSILON, lightData.geoNoL);
             shadow *= step(EPSILON, NoL);
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                    float distortFactor = getDistortFactor(shadowPos.xy * 2.0 - 1.0);
-                    float shadowBias = GetShadowBias(geoNoL, distortFactor);
+                    float distortFactor = getDistortFactor(lightData.shadowPos.xy * 2.0 - 1.0);
+                    float shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
                 #elif SHADOW_TYPE == SHADOW_TYPE_BASIC
-                    float shadowBias = GetShadowBias(geoNoL);
+                    float shadowBias = GetShadowBias(lightData.geoNoL);
                 #endif
 
                 if (shadow > EPSILON) {
                     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        shadow *= GetShadowing(shadowPos, geoNoL);
+                        shadow *= GetShadowing(lightData.shadowPos, lightData.geoNoL);
                     #else
-                        shadow *= GetShadowing(shadowPos, shadowBias);
+                        shadow *= GetShadowing(lightData.shadowPos, shadowBias);
                     #endif
                 }
 
                 #ifdef SHADOW_COLOR
                     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        shadowColor = GetShadowColor(shadowPos, geoNoL);
+                        shadowColor = GetShadowColor(lightData.shadowPos, lightData.geoNoL);
                     #else
-                        shadowColor = GetShadowColor(shadowPos.xyz, shadowBias);
+                        shadowColor = GetShadowColor(lightData.shadowPos.xyz, shadowBias);
                     #endif
                     
                     shadowColor = RGBToLinear(shadowColor);
@@ -254,9 +254,9 @@
                 #ifdef SSS_ENABLED
                     if (material.scattering > EPSILON) {
                         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                            shadowSSS = GetShadowSSS(shadowPos, geoNoL);
+                            shadowSSS = GetShadowSSS(lightData.shadowPos, lightData.geoNoL);
                         #else
-                            shadowSSS = GetShadowSSS(shadowPos, shadowBias);
+                            shadowSSS = GetShadowSSS(lightData.shadowPos, shadowBias);
                         #endif
                     }
                 #endif
@@ -427,7 +427,7 @@
                         ? IOR_WATER / IOR_AIR
                         : IOR_AIR / IOR_WATER;
                     
-                    float refractDist = max(waterSolidDepth.y - waterSolidDepth.x, 0.0);
+                    float refractDist = max(lightData.solidShadowDepth - waterSolidDepth.x, 0.0);
 
                     vec2 waterSolidDepthFinal;
                     vec3 refractColor = vec3(0.0);
@@ -468,7 +468,8 @@
                         #else
                             if (waterSolidDepthFinal.y < waterSolidDepthFinal.x) {
                                 // refracted vector returned an invalid hit
-                                waterSolidDepthFinal = waterSolidDepth;
+                                waterSolidDepthFinal.x = lightData.waterShadowDepth;
+                                waterSolidDepthFinal.y = lightData.solidShadowDepth;
                                 refractUV = screenUV;
 
                             }
@@ -497,8 +498,8 @@
                     //float waterSurfaceDepth = textureLod(shadowtex0);
                     //float solidSurfaceDepth = textureLod(shadowtex1);
 
-                    float waterDepth = isEyeInWater == 1 ? waterSolidDepth.x
-                        : max(waterSolidDepth.y - waterSolidDepth.x, 0.0);
+                    float waterDepth = isEyeInWater == 1 ? lightData.waterShadowDepth
+                        : max(lightData.solidShadowDepth - lightData.waterShadowDepth, 0.0);
 
                     vec3 scatterColor = material.albedo.rgb * skyLightColorFinal * skyLight2;// * shadowFinal;
 
@@ -638,25 +639,12 @@
             vec3 shadowViewStart = (matViewToShadowView * vec4(vec3(0.0, 0.0, -near), 1.0)).xyz;
             vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
 
-            float scattering = GetScatteringFactor();
-
-            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                // TODO: get rid of this lazy useless hack
-                float shadowBias = 0.0;
-            #endif
+            float vlScatter = GetScatteringFactor();
 
             #ifdef SHADOW_COLOR
-                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    vec3 volScatter = GetVolumetricLightingColor(shadowViewStart, shadowViewEnd, geoNoL, scattering);
-                #else
-                    vec3 volScatter = GetVolumetricLightingColor(shadowViewStart, shadowViewEnd, shadowBias, scattering);
-                #endif
+                vec3 volScatter = GetVolumetricLightingColor(lightData, shadowViewStart, shadowViewEnd, vlScatter);
             #else
-                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    float volScatter = GetVolumetricLighting(shadowViewStart, shadowViewEnd, geoNoL, scattering);
-                #else
-                    float volScatter = GetVolumetricLighting(shadowViewStart, shadowViewEnd, shadowBias, scattering);
-                #endif
+                float volScatter = GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd, vlScatter);
             #endif
 
             final.rgb += volScatter * (sunColor + moonColor);

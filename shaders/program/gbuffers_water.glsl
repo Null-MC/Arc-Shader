@@ -333,8 +333,35 @@
         uniform float eyeHumidity;
     #endif
 
-    #ifdef SHADOW_ENABLED
-        #if SHADOW_TYPE != SHADOW_TYPE_NONE
+    #include "/lib/atlas.glsl"
+    #include "/lib/depth.glsl"
+    #include "/lib/sampling/linear.glsl"
+    #include "/lib/world/scattering.glsl"
+    #include "/lib/lighting/blackbody.glsl"
+    #include "/lib/lighting/light_data.glsl"
+
+    #ifdef PARALLAX_ENABLED
+        #include "/lib/parallax.glsl"
+    #endif
+
+    #if defined WATER_FANCY && !defined WORLD_NETHER
+        #include "/lib/world/wind.glsl"
+        #include "/lib/world/water.glsl"
+
+        #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
+            #include "/lib/water_parallax.glsl"
+        #endif
+    #endif
+
+    #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
+        #include "/lib/lighting/directional.glsl"
+    #endif
+
+    #ifdef SKY_ENABLED
+        #include "/lib/world/sky.glsl"
+        #include "/lib/lighting/basic.glsl"
+
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             #if SHADOW_PCF_SAMPLES == 12
                 #include "/lib/sampling/poisson_12.glsl"
             #elif SHADOW_PCF_SAMPLES == 24
@@ -350,39 +377,11 @@
                 #include "/lib/shadows/basic.glsl"
                 #include "/lib/shadows/basic_render.glsl"
             #endif
+
+            #ifdef VL_ENABLED
+                #include "/lib/lighting/volumetric.glsl"
+            #endif
         #endif
-    #endif
-
-    #include "/lib/atlas.glsl"
-    #include "/lib/depth.glsl"
-    #include "/lib/sampling/linear.glsl"
-    #include "/lib/world/scattering.glsl"
-    #include "/lib/lighting/blackbody.glsl"
-
-    #ifdef PARALLAX_ENABLED
-        #include "/lib/parallax.glsl"
-    #endif
-
-    #if defined WATER_FANCY && !defined WORLD_NETHER
-        #include "/lib/world/wind.glsl"
-        #include "/lib/world/water.glsl"
-
-        #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
-            #include "/lib/water_parallax.glsl"
-        #endif
-    #endif
-
-    #if defined SKY_ENABLED && defined VL_ENABLED
-        #include "/lib/lighting/volumetric.glsl"
-    #endif
-
-    #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
-        #include "/lib/lighting/directional.glsl"
-    #endif
-
-    #ifdef SKY_ENABLED
-        #include "/lib/world/sky.glsl"
-        #include "/lib/lighting/basic.glsl"
     #endif
 
     #include "/lib/world/fog.glsl"

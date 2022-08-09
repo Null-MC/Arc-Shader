@@ -312,9 +312,25 @@
     #include "/lib/atlas.glsl"
     #include "/lib/world/scattering.glsl"
     #include "/lib/lighting/blackbody.glsl"
+    #include "/lib/lighting/light_data.glsl"
 
-    #ifdef SHADOW_ENABLED
-        #if SHADOW_TYPE != SHADOW_TYPE_NONE
+    #ifdef PARALLAX_ENABLED
+        #ifdef PARALLAX_SMOOTH
+            #include "/lib/sampling/linear.glsl"
+        #endif
+
+        #include "/lib/parallax.glsl"
+    #endif
+
+    #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
+        #include "/lib/lighting/directional.glsl"
+    #endif
+
+    #ifdef SKY_ENABLED
+        #include "/lib/world/sky.glsl"
+        #include "/lib/lighting/basic.glsl"
+
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             #if SHADOW_PCF_SAMPLES == 12
                 #include "/lib/sampling/poisson_12.glsl"
             #elif SHADOW_PCF_SAMPLES == 24
@@ -332,28 +348,11 @@
                 #include "/lib/shadows/basic.glsl"
                 #include "/lib/shadows/basic_render.glsl"
             #endif
+
+            #ifdef VL_ENABLED
+                #include "/lib/lighting/volumetric.glsl"
+            #endif
         #endif
-    #endif
-
-    #if defined SKY_ENABLED && defined VL_ENABLED
-        #include "/lib/lighting/volumetric.glsl"
-    #endif
-
-    #ifdef PARALLAX_ENABLED
-        #ifdef PARALLAX_SMOOTH
-            #include "/lib/sampling/linear.glsl"
-        #endif
-
-        #include "/lib/parallax.glsl"
-    #endif
-
-    #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
-        #include "/lib/lighting/directional.glsl"
-    #endif
-
-    #ifdef SKY_ENABLED
-        #include "/lib/world/sky.glsl"
-        #include "/lib/lighting/basic.glsl"
     #endif
 
     #include "/lib/world/fog.glsl"

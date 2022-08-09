@@ -19,11 +19,16 @@
 
     vec4 PbrLighting() {
         vec3 traceCoordDepth = vec3(1.0);
-        vec2 waterSolidDepth = vec2(0.0);
+        //vec2 waterSolidDepth = vec2(0.0);
         vec2 atlasCoord = texcoord;
         float texDepth = 1.0;
-        vec2 lm = lmcoord;
+        PbrLightData lightData;
         PbrMaterial material;
+
+        lightData.blockLight = lmcoord.x;
+        lightData.skyLight = lmcoord.y;
+        lightData.geoNoL = geoNoL;
+        lightData.occlusion = 1.0;
 
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
 
@@ -34,7 +39,9 @@
         #ifdef RENDER_WATER
             if (materialId == 1) {
                 vec2 screenUV = gl_FragCoord.xy / vec2(viewWidth, viewHeight);
-                waterSolidDepth = GetWaterSolidDepth(screenUV);
+                vec2 waterSolidDepth = GetWaterSolidDepth(screenUV);
+                lightData.waterShadowDepth = waterSolidDepth.x;
+                lightData.solidShadowDepth = waterSolidDepth.y;
             }
         #endif
 
@@ -66,7 +73,8 @@
                         mat2 water_dFdXY = mat2(dFdx(waterLocalPos), dFdy(waterLocalPos));
 
                         if (viewDist < WATER_RADIUS) {
-                            float waterDepth = max(waterSolidDepth.y - waterSolidDepth.x, 0.0);
+                            //float waterDepth = max(waterSolidDepth.y - waterSolidDepth.x, 0.0);
+                            float waterDepth = max(lightData.solidShadowDepth - lightData.waterShadowDepth, 0.0);
                             waterTex = GetWaterParallaxCoord(waterTex, water_dFdXY, tanViewDir, viewDist, waterDepth);
 
                             // TODO: depth-write
@@ -94,7 +102,7 @@
                     vec2 waterWorldPosX = waterWorldPos + vec2(1.0, 0.0)*waterPixelSize;
                     vec2 waterWorldPosY = waterWorldPos + vec2(0.0, 1.0)*waterPixelSize;
 
-                    float skyLight = saturate((lm.y - (0.5/16.0)) / (15.0/16.0));
+                    float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
 
                     float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
 
@@ -193,66 +201,8 @@
             }
         #endif
 
-        //float shadow = step(EPSILON, geoNoL);// * step(1.0 / 32.0, skyLight);
-        //vec3 shadowColorMap = vec3(1.0);
-        //float NoL = 1.0;
-
-        // #ifdef SHADOW_ENABLED
-        //     vec3 tanLightDir = normalize(tanLightPos);
-        //     NoL = dot(material.normal, tanLightDir);
-        //     shadow *= step(EPSILON, NoL);
-
-        //     #ifdef PARALLAX_SHADOWS_ENABLED
-        //         #if defined RENDER_WATER && defined WATER_FANCY
-        //             if (materialId != 1) {
-        //         #endif
-
-        //             if (shadow > EPSILON && traceCoordDepth.z + EPSILON < 1.0)
-        //                 shadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
-
-        //         #if defined RENDER_WATER && defined WATER_FANCY
-        //             }
-        //         #endif
-        //     #endif
-        // #endif
-
-        // float shadowSSS = 0.0;
-        // #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-        //     if (shadow > EPSILON) {
-        //         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        //             shadow *= GetShadowing(shadowPos);
-        //         #else
-        //             shadow *= GetShadowing(shadowPos, shadowBias);
-        //         #endif
-        //     }
-
-        //     #ifdef SHADOW_COLOR
-        //         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        //             shadowColorMap = GetShadowColor(shadowPos);
-        //         #else
-        //             shadowColorMap = GetShadowColor(shadowPos.xyz, shadowBias);
-        //         #endif
-                
-        //         shadowColorMap = RGBToLinear(shadowColorMap);
-        //     #endif
-
-        //     #ifdef SSS_ENABLED
-        //         if (material.scattering > EPSILON) {
-        //             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        //                 shadowSSS = GetShadowSSS(shadowPos);
-        //             #else
-        //                 shadowSSS = GetShadowSSS(shadowPos, shadowBias);
-        //             #endif
-        //         }
-        //     #endif
-        // #else
-        //     shadow = glcolor.a;
-        // #endif
-
-        float occlusion = 1.0;
-
         #if !defined SKY_ENABLED || !defined SHADOW_ENABLED
-            occlusion = pow2(glcolor.a);
+            lightData.occlusion = pow2(glcolor.a);
         #endif
 
         vec3 _viewNormal = normalize(viewNormal);
@@ -263,38 +213,38 @@
         material.normal = matTBN * material.normal;
 
         #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
-            ApplyDirectionalLightmap(lm.x, material.normal);
+            ApplyDirectionalLightmap(lightData.blockLight, material.normal);
         #endif
 
         vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos.xyz, 1.0))).xyz;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            vec3 shadowPos[4];
-            mat4 matShadowProjections[4]; // TODO: this needs to be passed to RSM & VL in PbrLighting
+            //vec3 shadowPos[4];
+            //mat4 matShadowProjections[4]; // TODO: this needs to be passed to RSM & VL in PbrLighting
             for (int i = 0; i < 4; i++) {
-                matShadowProjections[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
-                shadowPos[i] = (matShadowProjections[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                lightData.matShadowProjection[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
+                lightData.shadowPos[i] = (lightData.matShadowProjection[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
                 
                 vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
-                shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
+                lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + shadowCascadePos;
             }
         #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            vec4 shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
+            lightData.shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
             //float shadowBias = 0.0;//-1e-2; // TODO: fuck
 
             #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                float distortFactor = getDistortFactor(shadowPos.xy);
-                shadowPos.xyz = distort(shadowPos.xyz, distortFactor);
-                float shadowBias = GetShadowBias(geoNoL, distortFactor);
-            #elif SHADOW_TYPE == SHADOW_TYPE_BASIC
-                float shadowBias = GetShadowBias(geoNoL);
+                //float distortFactor = getDistortFactor(shadowPos.xy);
+                lightData.shadowPos.xyz = distort(lightData.shadowPos.xyz);
+                //float shadowBias = GetShadowBias(geoNoL, distortFactor);
+            //#elif SHADOW_TYPE == SHADOW_TYPE_BASIC
+            //    float shadowBias = GetShadowBias(geoNoL);
             #endif
 
-            shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
-        #else
-            vec4 shadowPos;
+            lightData.shadowPos.xyz = lightData.shadowPos.xyz * 0.5 + 0.5;
+        //#else
+        //    vec4 shadowPos;
         #endif
 
-        return PbrLighting2(material, lm, geoNoL, occlusion, viewPos.xyz, shadowPos, waterSolidDepth);
+        return PbrLighting2(material, lightData, viewPos.xyz);
     }
 #endif
