@@ -37,12 +37,13 @@
             uniform mat4 shadowProjection;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                out vec3 shadowPos[4];
+                //out vec3 shadowPos[4];
                 //out vec3 shadowParallaxPos[4];
                 //out vec2 shadowProjectionSizes[4];
                 flat out float cascadeSizes[4];
-                flat out mat4 matShadowProjections[4];
-                //flat out int shadowCascade;
+                //flat out mat4 matShadowProjections[4];
+                flat out vec3 matShadowProjections_scale[4];
+                flat out vec3 matShadowProjections_translation[4];
 
                 attribute vec3 at_midBlock;
 
@@ -55,7 +56,7 @@
                 uniform float near;
                 uniform float far;
             #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-                out vec4 shadowPos;
+                //out vec4 shadowPos;
                 //out vec4 shadowParallaxPos;
             #endif
         #endif
@@ -143,14 +144,15 @@
             uniform vec3 upPosition;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                in vec3 shadowPos[4];
+                //in vec3 shadowPos[4];
                 //in vec3 shadowParallaxPos[4];
                 //in vec2 shadowProjectionSizes[4];
                 flat in float cascadeSizes[4];
-                flat in mat4 matShadowProjections[4];
-                //flat in int shadowCascade;
+                //flat in mat4 matShadowProjections[4];
+                flat in vec3 matShadowProjections_scale[4];
+                flat in vec3 matShadowProjections_translation[4];
             #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-                in vec4 shadowPos;
+                //in vec4 shadowPos;
                 //in vec4 shadowParallaxPos;
             #endif
         #endif

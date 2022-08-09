@@ -270,7 +270,9 @@
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             vec3 shadowPos[4];
+            mat4 matShadowProjections[4]; // TODO: this needs to be passed to RSM & VL in PbrLighting
             for (int i = 0; i < 4; i++) {
+                matShadowProjections[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
                 shadowPos[i] = (matShadowProjections[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
                 
                 vec2 shadowCascadePos = GetShadowCascadeClipPos(i);

@@ -177,6 +177,18 @@ int GetCascadeForScreenPos(const in vec2 pos) {
 
         return matShadowProjection;
     }
+
+    void GetShadowCascadeProjectionMatrix_AsParts(const in int cascade, out vec3 scale, out vec3 translation) {
+        mat4 matProjection = GetShadowCascadeProjectionMatrix(cascade);
+
+        scale.x = matProjection[0][0];
+        scale.y = matProjection[1][1];
+        scale.z = matProjection[2][2];
+
+        translation.x = matProjection[0][3];
+        translation.y = matProjection[1][3];
+        translation.z = matProjection[2][3];
+    }
 #endif
 
 #if defined RENDER_VERTEX && defined RENDER_GBUFFER
@@ -257,5 +269,15 @@ int GetCascadeForScreenPos(const in vec2 pos) {
         #else
             return -1;
         #endif
+    }
+#endif
+
+#ifdef RENDER_FRAG
+    mat4 GetShadowCascadeProjectionMatrix_FromParts(const in vec3 scale, const in vec3 translation) {
+        return mat4(
+            vec4(scale.x, 0.0, 0.0, 0.0),
+            vec4(0.0, scale.y, 0.0, 0.0),
+            vec4(0.0, 0.0, scale.z, 0.0),
+            vec4(translation, 1.0));
     }
 #endif

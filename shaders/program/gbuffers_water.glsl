@@ -59,8 +59,9 @@
                 //out vec3 shadowParallaxPos[4];
                 //out vec2 shadowProjectionSizes[4];
                 flat out float cascadeSizes[4];
-                flat out mat4 matShadowProjections[4];
-                //flat out int shadowCascade;
+                //flat out mat4 matShadowProjections[4];
+                flat out vec3 matShadowProjections_scale[4];
+                flat out vec3 matShadowProjections_translation[4];
 
                 #ifdef IS_OPTIFINE
                     uniform mat4 gbufferPreviousProjection;
@@ -230,6 +231,7 @@
         uniform vec3 skyColor;
 
         #ifdef SHADOW_ENABLED
+            uniform mat4 shadowModelView;
             uniform vec3 shadowLightPosition;
 
             #if SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -261,15 +263,13 @@
                 //in vec2 shadowProjectionSizes[4];
                 //flat in int shadowCascade;
                 flat in float cascadeSizes[4];
-                flat in mat4 matShadowProjections[4];
+                //flat in mat4 matShadowProjections[4];
+                flat in vec3 matShadowProjections_scale[4];
+                flat in vec3 matShadowProjections_translation[4];
             #elif SHADOW_TYPE != SHADOW_TYPE_NONE
                 //in vec4 shadowPos;
                 //in vec4 shadowParallaxPos;
             #endif
-        #endif
-
-        #ifdef VL_ENABLED
-            uniform mat4 shadowModelView;
         #endif
     #endif
 

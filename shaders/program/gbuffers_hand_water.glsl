@@ -54,12 +54,13 @@
             uniform float far;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                out vec3 shadowPos[4];
+                //out vec3 shadowPos[4];
                 //out vec3 shadowParallaxPos[4];
                 //out vec2 shadowProjectionSizes[4];
                 flat out float cascadeSizes[4];
-                flat out mat4 matShadowProjections[4];
-                //flat out int shadowCascade;
+                //flat out mat4 matShadowProjections[4];
+                flat out vec3 matShadowProjections_scale[4];
+                flat out vec3 matShadowProjections_translation[4];
 
                 #ifdef IS_OPTIFINE
                     uniform mat4 gbufferPreviousProjection;
@@ -69,8 +70,8 @@
                 uniform mat4 gbufferProjection;
                 uniform float near;
             #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-                out vec4 shadowPos;
-                out vec4 shadowParallaxPos;
+                //out vec4 shadowPos;
+                //out vec4 shadowParallaxPos;
             #endif
         #endif
     #endif
@@ -214,6 +215,7 @@
             //in float shadowBias;
             flat in vec3 skyLightColor;
 
+            uniform mat4 shadowModelView;
             uniform mat4 shadowProjection;
             uniform vec3 shadowLightPosition;
 
@@ -241,20 +243,17 @@
             #endif
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                in vec3 shadowPos[4];
+                //in vec3 shadowPos[4];
                 //in vec3 shadowParallaxPos[4];
                 //in vec2 shadowProjectionSizes[4];
                 flat in float cascadeSizes[4];
-                flat in mat4 matShadowProjections[4];
-                //flat in int shadowCascade;
+                //flat in mat4 matShadowProjections[4];
+                flat in vec3 matShadowProjections_scale[4];
+                flat in vec3 matShadowProjections_translation[4];
             #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-                in vec4 shadowPos;
+                //in vec4 shadowPos;
                 //in vec4 shadowParallaxPos;
             #endif
-        #endif
-
-        #ifdef VL_ENABLED
-            uniform mat4 shadowModelView;
         #endif
     #endif
 

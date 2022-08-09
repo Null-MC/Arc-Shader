@@ -240,8 +240,8 @@
     #include "/lib/lighting/basic_forward.glsl"
 
     /* RENDERTARGETS: 4,6 */
-    out vec4 outColor0;
-    out vec4 outColor1;
+    //out vec4 outColor0;
+    //out vec4 outColor1;
 
 
     void main() {
@@ -250,9 +250,9 @@
         vec4 outLuminance = vec4(0.0);
         outLuminance.r = log2(luminance(color.rgb) * color.a + EPSILON);
         outLuminance.a = color.a;
-        outColor1 = outLuminance;
+        gl_FragData[1] = outLuminance;
 
         color.rgb = clamp(color.rgb * exposure, vec3(0.0), vec3(65000));
-        outColor0 = color;
+        gl_FragData[0] = color;
     }
 #endif

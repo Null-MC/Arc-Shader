@@ -1,28 +1,28 @@
 #ifdef RENDER_VERTEX
     void ApplyShadows(const in vec3 shadowViewPos, const in vec3 viewDir) {
-        #ifndef SSS_ENABLED
-            if (geoNoL > 0.0) {
-        #endif
-            shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
+        // #ifndef SSS_ENABLED
+        //     if (geoNoL > 0.0) {
+        // #endif
+        //     shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
 
-            #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                //float distortFactor = getDistortFactor(shadowPos.xy);
-                shadowPos.xyz = distort(shadowPos.xyz);
-                //shadowBias = GetShadowBias(geoNoL, distortFactor);
-            #elif SHADOW_TYPE == SHADOW_TYPE_BASIC
-                //shadowBias = GetShadowBias(geoNoL);
-            #endif
+        //     #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+        //         //float distortFactor = getDistortFactor(shadowPos.xy);
+        //         shadowPos.xyz = distort(shadowPos.xyz);
+        //         //shadowBias = GetShadowBias(geoNoL, distortFactor);
+        //     #elif SHADOW_TYPE == SHADOW_TYPE_BASIC
+        //         //shadowBias = GetShadowBias(geoNoL);
+        //     #endif
 
-            shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
+        //     shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
 
-            #if defined PARALLAX_ENABLED && !defined RENDER_SHADOW && defined PARALLAX_SHADOW_FIX
-                // TODO: Get shadow position with max parallax offset
-                shadowParallaxPos = (matShadowProjections * vec4(parallaxShadowViewPos, 1.0)).xyz;
-                shadowParallaxPos.xyz = shadowParallaxPos.xyz * 0.5 + 0.5;
-            #endif
-        #ifndef SSS_ENABLED
-            }
-        #endif
+        //     #if defined PARALLAX_ENABLED && !defined RENDER_SHADOW && defined PARALLAX_SHADOW_FIX
+        //         // TODO: Get shadow position with max parallax offset
+        //         shadowParallaxPos = (matShadowProjections * vec4(parallaxShadowViewPos, 1.0)).xyz;
+        //         shadowParallaxPos.xyz = shadowParallaxPos.xyz * 0.5 + 0.5;
+        //     #endif
+        // #ifndef SSS_ENABLED
+        //     }
+        // #endif
     }
 #endif
 

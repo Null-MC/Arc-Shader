@@ -28,11 +28,15 @@
             cascadeSizes[2] = GetCascadeDistance(2);
             cascadeSizes[3] = GetCascadeDistance(3);
 
-            mat4 matShadowProjections[4];
-            matShadowProjections[0] = GetShadowCascadeProjectionMatrix(0);
-            matShadowProjections[1] = GetShadowCascadeProjectionMatrix(1);
-            matShadowProjections[2] = GetShadowCascadeProjectionMatrix(2);
-            matShadowProjections[3] = GetShadowCascadeProjectionMatrix(3);
+            // matShadowProjections[0] = GetShadowCascadeProjectionMatrix(0);
+            // matShadowProjections[1] = GetShadowCascadeProjectionMatrix(1);
+            // matShadowProjections[2] = GetShadowCascadeProjectionMatrix(2);
+            // matShadowProjections[3] = GetShadowCascadeProjectionMatrix(3);
+
+            GetShadowCascadeProjectionMatrix_AsParts(0, matShadowProjections_scale[0], matShadowProjections_translation[0]);
+            GetShadowCascadeProjectionMatrix_AsParts(1, matShadowProjections_scale[1], matShadowProjections_translation[1]);
+            GetShadowCascadeProjectionMatrix_AsParts(2, matShadowProjections_scale[2], matShadowProjections_translation[2]);
+            GetShadowCascadeProjectionMatrix_AsParts(3, matShadowProjections_scale[3], matShadowProjections_translation[3]);
 
             // for (int i = 0; i < 4; i++) {
             //     shadowPos[i] = (matShadowProjections[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
@@ -73,9 +77,9 @@
         #endif
     }
 
-    vec2 GetProjectionSize(const in int index) {
-        return 2.0 / vec2(matShadowProjections[index][0].x, matShadowProjections[index][1].y);
-    }
+    // vec2 GetProjectionSize(const in int index) {
+    //     return 2.0 / vec2(matShadowProjections[index][0].x, matShadowProjections[index][1].y);
+    // }
 
     float GetNearestDepth(const in vec3 shadowPos[4], const in vec2 blockOffset, out int cascade) {
         float depth = 1.0;
@@ -92,7 +96,8 @@
             if (shadowPos[i].x < clipMin.x || shadowPos[i].x >= clipMax.x
              || shadowPos[i].y < clipMin.y || shadowPos[i].y >= clipMax.y) continue;
 
-            vec2 shadowProjectionSize = GetProjectionSize(i);
+            //vec2 shadowProjectionSize = 2.0 / vec2(matShadowProjections[i][0].x, matShadowProjections[i][1].y);
+            vec2 shadowProjectionSize = 2.0 / vec2(matShadowProjections_scale[i].x, matShadowProjections_scale[i].y);
             vec2 pixelPerBlockScale = cascadeTexSize / shadowProjectionSize;
             vec2 pixelOffset = blockOffset * pixelPerBlockScale * shadowPixelSize;
             float texDepth = SampleDepth(shadowPos[i].xy, pixelOffset);
@@ -109,7 +114,8 @@
     }
 
     float GetCascadeBias(const in float geoNoL, const in int cascade) {
-        vec2 shadowProjectionSize = GetProjectionSize(cascade);
+        //vec2 shadowProjectionSize = 2.0 / vec2(matShadowProjections[cascade][0].x, matShadowProjections[cascade][1].y);
+        vec2 shadowProjectionSize = 2.0 / vec2(matShadowProjections_scale[cascade].x, matShadowProjections_scale[cascade].y);
         float maxProjSize = max(shadowProjectionSize.x, shadowProjectionSize.y);
         //float maxProjSize = shadowProjectionSizes[cascade].x * shadowProjectionSizes[cascade].y;
         //float maxProjSize = length(shadowProjectionSizes[cascade]);
@@ -157,7 +163,8 @@
             if (shadowPos[i].x < clipMin.x || shadowPos[i].x >= clipMax.x
              || shadowPos[i].y < clipMin.y || shadowPos[i].y >= clipMax.y) continue;
 
-            vec2 shadowProjectionSize = GetProjectionSize(i);
+            //vec2 shadowProjectionSize = 2.0 / vec2(matShadowProjections[i][0].x, matShadowProjections[i][1].y);
+            vec2 shadowProjectionSize = 2.0 / vec2(matShadowProjections_scale[i].x, matShadowProjections_scale[i].y);
             vec2 pixelPerBlockScale = cascadeTexSize / shadowProjectionSize;
             vec2 pixelOffset = blockOffset * pixelPerBlockScale * shadowPixelSize;
 
@@ -201,7 +208,8 @@
 
     vec2 GetPixelRadius(const in int cascade, const in float blockRadius) {
         float texSize = shadowMapSize * 0.5;
-        vec2 shadowProjectionSize = GetProjectionSize(cascade);
+        //vec2 shadowProjectionSize = 2.0 / vec2(matShadowProjections[cascade][0].x, matShadowProjections[cascade][1].y);
+        vec2 shadowProjectionSize = 2.0 / vec2(matShadowProjections_scale[cascade].x, matShadowProjections_scale[cascade].y);
         return blockRadius * (texSize / shadowProjectionSize) * shadowPixelSize;
     }
 
@@ -227,15 +235,15 @@
             cascade = -1;
 
             for (int i = 0; i < sampleCount; i++) {
-                int cascade;
+                int sampleCascade;
                 vec2 blockOffset = poissonDisk[i] * blockRadius;
-                float texDepth = GetNearestDepth(shadowPos, blockOffset, cascade);
+                float texDepth = GetNearestDepth(shadowPos, blockOffset, sampleCascade);
 
-                float bias = GetCascadeBias(geoNoL, cascade);
+                float bias = GetCascadeBias(geoNoL, sampleCascade);
 
-                if (texDepth < shadowPos[cascade].z - bias) {
+                if (texDepth < shadowPos[sampleCascade].z - bias) {
                     avgBlockerDistance += texDepth;
-                    cascade = i;
+                    cascade = sampleCascade;
                     blockers++;
                 }
             }
@@ -249,11 +257,11 @@
             int cascade;
             int blockerSampleCount = POISSON_SAMPLES;
             float blockerDistance = FindBlockerDistance(shadowPos, SHADOW_PCF_SIZE, geoNoL, blockerSampleCount, cascade);
-            if (blockerDistance <= 0.0) return 1.0;
+            if (cascade < 0 || blockerDistance <= 0.0) return 1.0;
             if (blockerDistance == 1.0) return 0.0;
 
             // penumbra estimation
-            float penumbraWidth = (shadowPos[shadowCascade].z - blockerDistance) / blockerDistance;
+            float penumbraWidth = (shadowPos[cascade].z - blockerDistance) / blockerDistance;
 
             // percentage-close filtering
             float blockRadius = min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0) * SHADOW_PCF_SIZE; // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
@@ -308,7 +316,8 @@
                     vec2 blockOffset = poissonDisk[i] * blockRadius;
                     float texDepth = GetNearestDepth(shadowPos, blockOffset, cascade);
 
-                    vec2 shadowProjectionSize = GetProjectionSize(cascade);
+                    //vec2 shadowProjectionSize = 2.0 / vec2(matShadowProjections[cascade][0].x, matShadowProjections[cascade][1].y);
+                    vec2 shadowProjectionSize = 2.0 / vec2(matShadowProjections_scale[cascade].x, matShadowProjections_scale[cascade].y);
                     vec2 pixelPerBlockScale = (cascadeTexSize / shadowProjectionSize) * shadowPixelSize;
                     vec2 pixelOffset = blockOffset * pixelPerBlockScale;
 

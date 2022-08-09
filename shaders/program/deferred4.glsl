@@ -33,7 +33,9 @@
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 flat out float cascadeSizes[4];
-                flat out mat4 matShadowProjections[4];
+                //flat out mat4 matShadowProjections[4];
+                flat out vec3 matShadowProjections_scale[4];
+                flat out vec3 matShadowProjections_translation[4];
 
                 uniform mat4 shadowModelView;
                 uniform float near;
@@ -107,10 +109,15 @@
                 cascadeSizes[2] = GetCascadeDistance(2);
                 cascadeSizes[3] = GetCascadeDistance(3);
 
-                matShadowProjections[0] = GetShadowCascadeProjectionMatrix(0);
-                matShadowProjections[1] = GetShadowCascadeProjectionMatrix(1);
-                matShadowProjections[2] = GetShadowCascadeProjectionMatrix(2);
-                matShadowProjections[3] = GetShadowCascadeProjectionMatrix(3);
+                // matShadowProjections[0] = GetShadowCascadeProjectionMatrix(0);
+                // matShadowProjections[1] = GetShadowCascadeProjectionMatrix(1);
+                // matShadowProjections[2] = GetShadowCascadeProjectionMatrix(2);
+                // matShadowProjections[3] = GetShadowCascadeProjectionMatrix(3);
+
+                GetShadowCascadeProjectionMatrix_AsParts(0, matShadowProjections_scale[0], matShadowProjections_translation[0]);
+                GetShadowCascadeProjectionMatrix_AsParts(1, matShadowProjections_scale[1], matShadowProjections_translation[1]);
+                GetShadowCascadeProjectionMatrix_AsParts(2, matShadowProjections_scale[2], matShadowProjections_translation[2]);
+                GetShadowCascadeProjectionMatrix_AsParts(3, matShadowProjections_scale[3], matShadowProjections_translation[3]);
             #endif
         #endif
 
@@ -207,7 +214,9 @@
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 flat in float cascadeSizes[4];
-                flat in mat4 matShadowProjections[4];
+                //flat in mat4 matShadowProjections[4];
+                flat in vec3 matShadowProjections_scale[4];
+                flat in vec3 matShadowProjections_translation[4];
             #endif
 
             #if defined RSM_ENABLED && defined RSM_UPSCALE
@@ -331,7 +340,9 @@
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 vec3 shadowPos[4];
+                mat4 matShadowProjections[4]; // TODO: this needs to be passed to RSM & VL in PbrLighting
                 for (int i = 0; i < 4; i++) {
+                    matShadowProjections[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
                     shadowPos[i] = (matShadowProjections[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
                     
                     vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
