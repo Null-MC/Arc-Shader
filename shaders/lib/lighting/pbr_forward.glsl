@@ -266,7 +266,30 @@
             ApplyDirectionalLightmap(lm.x, material.normal);
         #endif
 
-        #if SHADOW_TYPE == SHADOW_TYPE_NONE
+        vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos.xyz, 1.0))).xyz;
+
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+            vec3 shadowPos[4];
+            for (int i = 0; i < 4; i++) {
+                shadowPos[i] = (matShadowProjections[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                
+                vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
+                shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
+            }
+        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+            vec4 shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
+            //float shadowBias = 0.0;//-1e-2; // TODO: fuck
+
+            #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                float distortFactor = getDistortFactor(shadowPos.xy);
+                shadowPos.xyz = distort(shadowPos.xyz, distortFactor);
+                float shadowBias = GetShadowBias(geoNoL, distortFactor);
+            #elif SHADOW_TYPE == SHADOW_TYPE_BASIC
+                float shadowBias = GetShadowBias(geoNoL);
+            #endif
+
+            shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
+        #else
             vec4 shadowPos;
         #endif
 

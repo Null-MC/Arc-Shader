@@ -1,6 +1,5 @@
 #ifdef RENDER_VERTEX
     void BasicVertex(inout vec3 pos) {
-        //vec3 pos = gl_Vertex.xyz;
         vec3 normal = gl_Normal;
 
         #if defined RENDER_TERRAIN || defined RENDER_WATER
@@ -112,21 +111,6 @@
                 geoNoL = 1.0;
             #endif
         #endif
-
-        // #if defined SHADOW_ENABLED && !defined RENDER_SHADOW && SHADOW_TYPE != SHADOW_TYPE_NONE
-        //     #if defined SHADOW_PARTICLES || (!defined RENDER_TEXTURED && !defined RENDER_WEATHER)
-        //         vec3 localPos = pos;
-
-        //         #if defined RENDER_ENTITIES || defined RENDER_BLOCK
-        //             localPos = (gbufferModelViewInverse * vec4(localPos, 1.0)).xyz;
-        //         #endif
-
-        //         vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
-
-        //         vec3 viewDir = -normalize(viewPos);
-        //         ApplyShadows(shadowViewPos, viewDir);
-        //     #endif
-        // #endif
 
         #ifdef AF_ENABLED
             vec2 spriteRadius = abs(texcoord - mc_midTexCoord.xy);

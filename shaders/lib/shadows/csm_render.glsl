@@ -34,20 +34,20 @@
             matShadowProjections[2] = GetShadowCascadeProjectionMatrix(2);
             matShadowProjections[3] = GetShadowCascadeProjectionMatrix(3);
 
-            for (int i = 0; i < 4; i++) {
-                shadowPos[i] = (matShadowProjections[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+            // for (int i = 0; i < 4; i++) {
+            //     shadowPos[i] = (matShadowProjections[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
 
-                vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
-                shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
+            //     vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
+            //     shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
 
-                // #if defined PARALLAX_ENABLED && !defined RENDER_SHADOW && defined PARALLAX_SHADOW_FIX
-                //     // TODO: Get shadow position with max parallax offset
-                //     shadowParallaxPos[i] = (matShadowProjections[i] * vec4(parallaxShadowViewPos, 1.0)).xyz;
-                //     shadowParallaxPos[i] = shadowParallaxPos[i] * 0.5 + 0.5;
+            //     // #if defined PARALLAX_ENABLED && !defined RENDER_SHADOW && defined PARALLAX_SHADOW_FIX
+            //     //     // TODO: Get shadow position with max parallax offset
+            //     //     shadowParallaxPos[i] = (matShadowProjections[i] * vec4(parallaxShadowViewPos, 1.0)).xyz;
+            //     //     shadowParallaxPos[i] = shadowParallaxPos[i] * 0.5 + 0.5;
 
-                //     shadowParallaxPos[i].xy = shadowParallaxPos[i].xy * 0.5 + shadowCascadePos;
-                // #endif
-            }
+            //     //     shadowParallaxPos[i].xy = shadowParallaxPos[i].xy * 0.5 + shadowCascadePos;
+            //     // #endif
+            // }
         #ifndef SSS_ENABLED
             }
             //else {

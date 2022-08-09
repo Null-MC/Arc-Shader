@@ -646,15 +646,20 @@
             #endif
 
             #ifdef SHADOW_COLOR
-                vec3 volScatter = GetVolumetricLightingColor(shadowViewStart, shadowViewEnd, shadowBias, scattering);
+                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                    vec3 volScatter = GetVolumetricLightingColor(shadowViewStart, shadowViewEnd, geoNoL, scattering);
+                #else
+                    vec3 volScatter = GetVolumetricLightingColor(shadowViewStart, shadowViewEnd, shadowBias, scattering);
+                #endif
             #else
-                float volScatter = GetVolumetricLighting(shadowViewStart, shadowViewEnd, shadowBias, scattering);
+                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                    float volScatter = GetVolumetricLighting(shadowViewStart, shadowViewEnd, geoNoL, scattering);
+                #else
+                    float volScatter = GetVolumetricLighting(shadowViewStart, shadowViewEnd, shadowBias, scattering);
+                #endif
             #endif
 
-            vec3 volLight = volScatter * (sunColor + moonColor);
-
-            //final.a = min(final.a + luminance(volLight) * exposure, 1.0);
-            final.rgb += volLight;
+            final.rgb += volScatter * (sunColor + moonColor);
         #endif
 
         return final;

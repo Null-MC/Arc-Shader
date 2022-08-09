@@ -1,4 +1,9 @@
-float GetVolumetricFactor(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float shadowBias) {
+#if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+    float GetVolumetricFactor(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float geoNoL)
+#else
+    float GetVolumetricFactor(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float shadowBias)
+#endif
+{
     vec3 rayVector = shadowViewEnd - shadowViewStart;
     float rayLength = length(rayVector);
 
@@ -18,7 +23,7 @@ float GetVolumetricFactor(const in vec3 shadowViewStart, const in vec3 shadowVie
                 shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
             }
 
-            accumF += CompareNearestDepth(shadowPos, vec2(0.0));
+            accumF += CompareNearestDepth(shadowPos, vec2(0.0), geoNoL);
         #else
             vec4 shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
 
@@ -36,7 +41,12 @@ float GetVolumetricFactor(const in vec3 shadowViewStart, const in vec3 shadowVie
     //return smoothstep(0.0, 1.0, accumF / VL_SAMPLE_COUNT);
 }
 
-float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float shadowBias, const in float G_scattering) {
+#if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+    float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float geoNoL, const in float G_scattering)
+#else
+    float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float shadowBias, const in float G_scattering)
+#endif
+{
     vec3 ray = shadowViewEnd - shadowViewStart;
     vec3 rayDir = normalize(ray);
     float rayLen = min(length(ray) / (101.0 - VL_STRENGTH), 1.0);
@@ -47,11 +57,20 @@ float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowV
     float scattering = ComputeVolumetricScattering(VoL, G_scattering) * rayLen;
     if (scattering < EPSILON) return 0.0;
 
-    return GetVolumetricFactor(shadowViewStart, shadowViewEnd, shadowBias) * scattering;
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        return GetVolumetricFactor(shadowViewStart, shadowViewEnd, geoNoL) * scattering;
+    #else
+        return GetVolumetricFactor(shadowViewStart, shadowViewEnd, shadowBias) * scattering;
+    #endif
 }
 
 #ifdef SHADOW_COLOR
-    vec3 GetVolumetricColor(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float shadowBias) {
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        vec3 GetVolumetricColor(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float geoNoL)
+    #else
+        vec3 GetVolumetricColor(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float shadowBias)
+    #endif
+    {
         vec3 rayVector = shadowViewEnd - shadowViewStart;
         float rayLength = length(rayVector);
 
@@ -71,10 +90,10 @@ float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowV
                     shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
                 }
 
-                float depthSample = CompareNearestDepth(shadowPos, vec2(0.0));
+                float depthSample = CompareNearestDepth(shadowPos, vec2(0.0), geoNoL);
 
                 if (depthSample > EPSILON) {
-                    vec3 shadowColor = GetShadowColor(shadowPos);
+                    vec3 shadowColor = GetShadowColor(shadowPos, geoNoL);
                     accumCol += RGBToLinear(shadowColor) * depthSample;
                 }
             #else
@@ -99,7 +118,12 @@ float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowV
         //return smoothstep(0.0, 1.0, accumCol / VL_SAMPLE_COUNT);
     }
 
-    vec3 GetVolumetricLightingColor(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float shadowBias, const in float G_scattering) {
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        vec3 GetVolumetricLightingColor(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float geoNoL, const in float G_scattering)
+    #else
+        vec3 GetVolumetricLightingColor(const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float shadowBias, const in float G_scattering)
+    #endif
+    {
         vec3 ray = shadowViewEnd - shadowViewStart;
         vec3 rayDir = normalize(ray);
         float rayLen = min(length(ray) / (101.0 - VL_STRENGTH), 1.0);
@@ -110,6 +134,10 @@ float GetVolumetricLighting(const in vec3 shadowViewStart, const in vec3 shadowV
         float scattering = ComputeVolumetricScattering(VoL, G_scattering) * rayLen;
         if (scattering < EPSILON) return vec3(0.0);
 
-        return GetVolumetricColor(shadowViewStart, shadowViewEnd, shadowBias) * scattering;
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+            return GetVolumetricColor(shadowViewStart, shadowViewEnd, geoNoL) * scattering;
+        #else
+            return GetVolumetricColor(shadowViewStart, shadowViewEnd, shadowBias) * scattering;
+        #endif
     }
 #endif

@@ -55,7 +55,7 @@
             uniform float far;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                out vec3 shadowPos[4];
+                //out vec3 shadowPos[4];
                 //out vec3 shadowParallaxPos[4];
                 //out vec2 shadowProjectionSizes[4];
                 flat out float cascadeSizes[4];
@@ -70,8 +70,8 @@
                 uniform mat4 gbufferProjection;
                 uniform float near;
             #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-                out vec4 shadowPos;
-                out vec4 shadowParallaxPos;
+                //out vec4 shadowPos;
+                //out vec4 shadowParallaxPos;
             #endif
         #endif
     #endif
@@ -256,14 +256,14 @@
             #endif
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                in vec3 shadowPos[4];
+                //in vec3 shadowPos[4];
                 //in vec3 shadowParallaxPos[4];
                 //in vec2 shadowProjectionSizes[4];
                 //flat in int shadowCascade;
                 flat in float cascadeSizes[4];
                 flat in mat4 matShadowProjections[4];
             #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-                in vec4 shadowPos;
+                //in vec4 shadowPos;
                 //in vec4 shadowParallaxPos;
             #endif
         #endif
