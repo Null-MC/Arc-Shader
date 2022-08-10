@@ -43,6 +43,7 @@ const bool colortex11Clear = false;
 // World Options
 #define ENABLE_WAVING
 #define HANDLIGHT_ENABLED
+#define BLOCK_OUTLINE 1 // [0 1 2 3]
 #define BLOCKLIGHT_TEMP 3500 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 80 // [0 10 20 30 40 50 60 70 80 90 100]
 #define SHADOW_BRIGHTNESS 0.60 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
@@ -146,6 +147,7 @@ const bool colortex11Clear = false;
 #define VL_ENABLED
 #define VL_STRENGTH 80 // [10 20 30 40 50 60 70 80 90 100]
 #define VL_SAMPLE_COUNT 60 // [15 30 60 90]
+//#define VL_PARTICLES
 #define G_SCATTERING_CLEAR 0.18 // 0.96
 #define G_SCATTERING_HUMID 0.72 // 0.84
 #define G_SCATTERING_RAIN 0.98
@@ -160,7 +162,7 @@ const bool colortex11Clear = false;
 #define IS_OPTIFINE
 //#define IRIS_FEATURE_SEPARATE_HW_SAMPLERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
-#define BLOCK_OUTLINE 1 // [0 1 2 3]
+#define PARTICLE_OPACITY 0.8
 #define HCM_LAZANYI
 #define HCM_AMBIENT 0.16
 
@@ -300,6 +302,8 @@ const float drynessHalflife = 10.0;
 #ifdef RSM_UPSCALE
 #endif
 #ifdef VL_ENABLED
+#endif
+#ifdef VL_PARTICLES
 #endif
 
 

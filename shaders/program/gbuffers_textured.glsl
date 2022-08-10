@@ -11,10 +11,14 @@
     out vec2 lmcoord;
     out vec2 texcoord;
     out vec4 glcolor;
+    out float geoNoL;
     out vec3 viewPos;
     out vec3 viewNormal;
-    out float geoNoL;
     flat out float exposure;
+
+    #ifdef HANDLIGHT_ENABLED
+        flat out vec3 blockLightColor;
+    #endif
 
     #ifdef SKY_ENABLED
         flat out vec3 sunColor;
@@ -29,7 +33,6 @@
 
         #ifdef SHADOW_ENABLED
             uniform vec3 shadowLightPosition;
-            //out float shadowBias;
 
             #ifdef SHADOW_PARTICLES
                 #if SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -39,17 +42,11 @@
                 #endif
 
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    out vec3 shadowPos[4];
-                    //out vec3 shadowParallaxPos[4];
-                    //out vec2 shadowProjectionSizes[4];
                     flat out float cascadeSizes[4];
-                    flat out mat4 matShadowProjections[4];
-                    //flat out int shadowCascade;
+                    flat out vec3 matShadowProjections_scale[4];
+                    flat out vec3 matShadowProjections_translation[4];
 
                     uniform float near;
-                #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-                    out vec4 shadowPos;
-                    //out vec4 shadowParallaxPos;
                 #endif
             #endif
         #endif
@@ -104,12 +101,19 @@
         vec3 localPos = gl_Vertex.xyz;
         BasicVertex(localPos);
         
+        #ifdef HANDLIGHT_ENABLED
+            blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
+        #endif
+
         #ifdef SKY_ENABLED
             vec2 skyLightLevels = GetSkyLightLevels();
             vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
-            sunColor = GetSunLightColor(skyLightTemps.x, skyLightLevels.x) * sunLumen;
-            moonColor = GetMoonLightColor(skyLightTemps.y, skyLightLevels.y) * moonLumen;
-            skyLightColor = GetSkyLightLuxColor(skyLightLevels);
+            //sunColor = GetSunLightColor(skyLightTemps.x, skyLightLevels.x) * sunLumen;
+            //moonColor = GetMoonLightColor(skyLightTemps.y, skyLightLevels.y) * moonLumen;
+            //skyLightColor = GetSkyLightLuxColor(skyLightLevels);
+            sunColor = GetSunLightLuxColor(skyLightTemps.x, skyLightLevels.x);
+            moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
+            skyLightColor = sunColor + moonColor; // TODO: get rid of this variable
         #endif
 
         exposure = GetExposure();
@@ -125,6 +129,13 @@
     in vec3 viewNormal;
     flat in float exposure;
 
+    #ifdef HANDLIGHT_ENABLED
+        flat in vec3 blockLightColor;
+
+        uniform int heldBlockLightValue;
+        uniform int heldBlockLightValue2;
+    #endif
+
     #ifdef SKY_ENABLED
         flat in vec3 sunColor;
         flat in vec3 moonColor;
@@ -139,45 +150,38 @@
         uniform int moonPhase;
 
         #ifdef SHADOW_ENABLED
-            //in float shadowBias;
-
             uniform vec3 shadowLightPosition;
+        
+            #if SHADOW_TYPE != SHADOW_TYPE_NONE
+                uniform sampler2D shadowtex0;
 
-            #ifdef SHADOW_PARTICLES
-                #if SHADOW_TYPE != SHADOW_TYPE_NONE
-                    uniform sampler2D shadowtex0;
-
-                    #ifdef SHADOW_COLOR
-                        uniform sampler2D shadowcolor0;
-                    #endif
-
-                    #ifdef SSS_ENABLED
-                        uniform usampler2D shadowcolor1;
-                    #endif
-
-                    #ifdef SHADOW_ENABLE_HWCOMP
-                        #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
-                            uniform sampler2DShadow shadowtex1HW;
-                            uniform sampler2D shadowtex1;
-                        #else
-                            uniform sampler2DShadow shadowtex1;
-                        #endif
-                    #else
-                        uniform sampler2D shadowtex1;
-                    #endif
+                #ifdef SHADOW_COLOR
+                    uniform sampler2D shadowcolor0;
                 #endif
 
+                #ifdef SSS_ENABLED
+                    uniform usampler2D shadowcolor1;
+                #endif
+
+                #ifdef SHADOW_ENABLE_HWCOMP
+                    #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+                        uniform sampler2DShadow shadowtex1HW;
+                        uniform sampler2D shadowtex1;
+                    #else
+                        uniform sampler2DShadow shadowtex1;
+                    #endif
+                #else
+                    uniform sampler2D shadowtex1;
+                #endif
+                
+                uniform mat4 shadowModelView;
+                uniform mat4 gbufferModelViewInverse;
+
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    in vec3 shadowPos[4];
-                    //in vec3 shadowParallaxPos[4];
-                    //in vec2 shadowProjectionSizes[4];
                     flat in float cascadeSizes[4];
-                    flat in mat4 matShadowProjections[4];
-                    //flat in int shadowCascade;
+                    flat in vec3 matShadowProjections_scale[4];
+                    flat in vec3 matShadowProjections_translation[4];
                 #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-                    in vec4 shadowPos;
-                    //in vec4 shadowParallaxPos;
-                    
                     uniform mat4 shadowProjection;
                 #endif
             #endif
@@ -209,7 +213,15 @@
         uniform float eyeHumidity;
     #endif
     
-    #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined SHADOW_PARTICLES
+    #include "/lib/lighting/blackbody.glsl"
+    #include "/lib/lighting/light_data.glsl"
+    #include "/lib/world/scattering.glsl"
+
+    #ifdef HANDLIGHT_ENABLED
+        #include "/lib/lighting/basic_handlight.glsl"
+    #endif
+
+    #if defined SKY_ENABLED && defined SHADOW_ENABLED
         #if SHADOW_TYPE != SHADOW_TYPE_NONE
             #if SHADOW_PCF_SAMPLES == 12
                 #include "/lib/sampling/poisson_12.glsl"
@@ -227,10 +239,11 @@
             #include "/lib/shadows/basic.glsl"
             #include "/lib/shadows/basic_render.glsl"
         #endif
-    #endif
 
-    #include "/lib/lighting/blackbody.glsl"
-    #include "/lib/world/scattering.glsl"
+        #if defined VL_ENABLED && defined VL_PARTICLES
+            #include "/lib/lighting/volumetric.glsl"
+        #endif
+    #endif
 
     #ifdef SKY_ENABLED
         #include "/lib/world/sky.glsl"
@@ -249,7 +262,7 @@
         vec4 color = BasicLighting();
 
         vec4 outLuminance = vec4(0.0);
-        outLuminance.r = log2(luminance(color.rgb) * color.a + EPSILON);
+        outLuminance.r = log2(luminance(color.rgb) + EPSILON);
         outLuminance.a = color.a;
         gl_FragData[1] = outLuminance;
 

@@ -130,10 +130,19 @@
     #ifdef SKY_ENABLED
         flat in vec3 sunColor;
         flat in vec3 moonColor;
-    #endif
 
-    #ifdef SHADOW_ENABLED
-        flat in vec3 skyLightColor;
+        #ifdef SHADOW_ENABLED
+            flat in vec3 skyLightColor;
+        #endif
+
+        #ifdef SHADOW_COLOR
+            uniform sampler2D BUFFER_DEFERRED2;
+            uniform sampler2D shadowcolor0;
+        #endif
+
+        #ifdef RSM_ENABLED
+            uniform sampler2D BUFFER_RSM_COLOR;
+        #endif
     #endif
 
     uniform usampler2D BUFFER_DEFERRED;
@@ -145,11 +154,6 @@
     uniform sampler2D depthtex1;
     uniform sampler2D noisetex;
 
-    #if defined SHADOW_ENABLED && defined SHADOW_COLOR
-        uniform sampler2D BUFFER_DEFERRED2;
-        uniform sampler2D shadowcolor0;
-    #endif
-
     #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
         uniform mat4 gbufferPreviousModelView;
         uniform mat4 gbufferPreviousProjection;
@@ -159,28 +163,27 @@
         uniform sampler2D BUFFER_HDR_PREVIOUS;
     #endif
 
-    #ifdef RSM_ENABLED
-        uniform sampler2D BUFFER_RSM_COLOR;
-    #endif
-
     uniform mat4 gbufferModelViewInverse;
     uniform mat4 gbufferProjectionInverse;
     uniform mat4 gbufferModelView;
-    uniform float viewWidth;
-    uniform float viewHeight;
     uniform vec3 cameraPosition;
     uniform vec3 upPosition;
+    uniform float viewWidth;
+    uniform float viewHeight;
     uniform float near;
     uniform float far;
     
     uniform int isEyeInWater;
     uniform ivec2 eyeBrightnessSmooth;
-    uniform int heldBlockLightValue;
-    uniform int heldBlockLightValue2;
 
     uniform vec3 fogColor;
     uniform float fogStart;
     uniform float fogEnd;
+
+    #ifdef HANDLIGHT_ENABLED
+        uniform int heldBlockLightValue;
+        uniform int heldBlockLightValue2;
+    #endif
 
     #ifdef SKY_ENABLED
         uniform vec3 skyColor;
@@ -290,7 +293,7 @@
     #include "/lib/lighting/brdf.glsl"
 
     #ifdef HANDLIGHT_ENABLED
-        #include "/lib/lighting/handlight.glsl"
+        #include "/lib/lighting/pbr_handlight.glsl"
     #endif
 
     #include "/lib/lighting/pbr.glsl"

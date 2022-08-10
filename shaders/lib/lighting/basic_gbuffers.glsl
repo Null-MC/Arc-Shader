@@ -8,39 +8,6 @@
         if (colorMap.a < alphaTestRef) discard;
 
         colorMap.rgb *= glcolor.rgb;
-
-        // const float minSkylightThreshold = 1.0 / 32.0 + EPSILON;
-        // shadow = step(minSkylightThreshold, lmcoord.y);
-
-        // #ifdef SHADOW_ENABLED
-        //     shadow *= step(EPSILON, geoNoL);
-
-        //     #if SHADOW_TYPE != SHADOW_TYPE_NONE
-        //         if (shadow > 0.0) {
-        //             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        //                 shadow *= GetShadowing(shadowPos);
-        //             #else
-        //                 shadow *= GetShadowing(shadowPos, shadowBias);
-        //             #endif
-
-        //             // #if SHADOW_COLORS == 1
-        //             //     vec3 shadowColor = GetShadowColor();
-
-        //             //     shadowColor = mix(vec3(1.0), shadowColor, shadow);
-
-        //             //     //also make colors less intense when the block light level is high.
-        //             //     shadowColor = mix(shadowColor, vec3(1.0), blockLight);
-
-        //             //     lightColor *= shadowColor;
-        //             // #endif
-        //         }
-        //     #endif
-        // #endif
-
-        // #if !defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE
-        //     shadow = glcolor.a;
-        // #endif
-        
-        colorMap.a = 1.0;
+        colorMap.a = 1.0;        
     }
 #endif

@@ -370,7 +370,7 @@
     #include "/lib/lighting/brdf.glsl"
 
     #ifdef HANDLIGHT_ENABLED
-        #include "/lib/lighting/handlight.glsl"
+        #include "/lib/lighting/pbr_handlight.glsl"
     #endif
     
     #include "/lib/lighting/pbr.glsl"

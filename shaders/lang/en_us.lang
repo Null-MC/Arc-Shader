@@ -302,6 +302,9 @@ option.VL_ENABLED=Enabled
 option.VL_STRENGTH=Strength
 suffix.VL_STRENGTH=%
 
+option.VL_PARTICLES=Particles?
+option.VL_PARTICLES.comment=Adds volumetric lighting to particles. Impact: Heavy
+
 option.VL_SAMPLE_COUNT=Samples
 
 
