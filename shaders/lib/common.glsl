@@ -318,6 +318,7 @@ const float drynessHalflife = 10.0;
 #define rcp(x) (1.0 / (x))
 #define saturate(x) clamp(x, 0.0, 1.0)
 #define saturate2(x) clamp(x, vec2(0.0), vec2(1.0))
+#define saturate3(x) clamp(x, vec3(0.0), vec3(1.0))
 
 vec3 unproject(const in vec4 pos) {
     return pos.xyz / pos.w;

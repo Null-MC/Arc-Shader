@@ -50,6 +50,6 @@ void ApplyHandLighting(out vec3 diffuse, out vec3 specular, const in vec3 albedo
         _ApplyHandLighting(diffuseAlt, specularAlt, albedo, f0, hcm, scattering, lightPosAlt, heldBlockLightValue2, viewNormal, viewPos, viewDir, NoVm, roughL);
     }
     
-    diffuse = diffuseMain + diffuseAlt;
-    specular = specularMain + specularAlt;
+    diffuse = max(diffuseMain + diffuseAlt, vec3(0.0));
+    specular = max(specularMain + specularAlt, vec3(0.0));
 }
