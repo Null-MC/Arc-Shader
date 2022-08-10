@@ -62,6 +62,7 @@
 
     uniform float screenBrightness;
     uniform int heldBlockLightValue;
+    uniform int heldBlockLightValue2;
     uniform float blindness;
     
     uniform float rainStrength;
@@ -175,6 +176,7 @@
     uniform int isEyeInWater;
     uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
+    uniform int heldBlockLightValue2;
 
     uniform vec3 fogColor;
     uniform float fogStart;
@@ -286,6 +288,11 @@
 
     #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/brdf.glsl"
+
+    #ifdef HANDLIGHT_ENABLED
+        #include "/lib/lighting/handlight.glsl"
+    #endif
+
     #include "/lib/lighting/pbr.glsl"
 
     /* RENDERTARGETS: 4,6 */

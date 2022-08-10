@@ -199,7 +199,8 @@ const vec3 WaterAbsorbtionExtinction = vec3(0.28, 0.34, 0.42); //0.54, 0.91, 0.9
 
 const vec3 minLight = vec3(0.01);
 const float tile_dist_bias_factor = 0.012288;
-const vec3 handOffset = vec3(0.2, -0.3, -0.2);
+const vec3 handOffsetMain = vec3(0.6, -0.3, -0.2);
+const vec3 handOffsetAlt = vec3(-0.6, -0.3, -0.2);
 const vec3 luma_factor = vec3(0.2126, 0.7152, 0.0722);
 const float invPI = 1.0 / PI;
 

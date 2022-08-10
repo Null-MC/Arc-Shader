@@ -90,6 +90,7 @@
     #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
         uniform ivec2 eyeBrightness;
         uniform int heldBlockLightValue;
+        uniform int heldBlockLightValue2;
     #endif
 
     in vec4 mc_Entity;
@@ -274,6 +275,7 @@
     uniform mat4 gbufferModelViewInverse;
     uniform ivec2 eyeBrightnessSmooth;
     uniform int heldBlockLightValue;
+    uniform int heldBlockLightValue2;
     uniform vec3 cameraPosition;
     uniform vec3 upPosition;
     uniform float viewWidth;
@@ -366,6 +368,11 @@
     #endif
     
     #include "/lib/lighting/brdf.glsl"
+
+    #ifdef HANDLIGHT_ENABLED
+        #include "/lib/lighting/handlight.glsl"
+    #endif
+    
     #include "/lib/lighting/pbr.glsl"
     #include "/lib/lighting/pbr_forward.glsl"
 

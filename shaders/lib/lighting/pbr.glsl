@@ -33,46 +33,6 @@
 #endif
 
 #ifdef RENDER_FRAG
-    #ifdef HANDLIGHT_ENABLED
-        float GetHandLightAttenuation(const in float lightLevel, const in float lightDist) {
-            float diffuseAtt = max(0.0625*lightLevel - 0.08*lightDist, 0.0);
-            return pow5(diffuseAtt);
-        }
-
-        void ApplyHandLighting(out vec3 diffuse, out vec3 specular, const in vec3 albedo, const in float f0, const in int hcm, const in float scattering, const in vec3 viewNormal, const in vec3 viewPos, const in vec3 viewDir, const in float NoVm, const in float roughL) {
-            vec3 lightPos = handOffset - viewPos.xyz;
-            vec3 lightDir = normalize(lightPos);
-
-            float NoL = dot(viewNormal, lightDir);
-            float NoLm = max(NoL, 0.0);
-
-            float lightDist = length(lightPos);
-            float attenuation = GetHandLightAttenuation(heldBlockLightValue, lightDist);
-            if (attenuation < EPSILON) {
-                diffuse = vec3(0.0);
-                specular = vec3(0.0);
-                return;
-            }
-
-            vec3 halfDir = normalize(lightDir + viewDir);
-            float LoHm = max(dot(lightDir, halfDir), 0.0);
-
-            vec3 handLightColor = blockLightColor * attenuation;
-
-            vec3 F = GetFresnel(albedo, f0, hcm, LoHm, roughL);
-            vec3 handDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * max(1.0 - F, 0.0);
-            diffuse = GetDiffuseBSDF(handDiffuse, albedo, scattering, NoVm, NoL, LoHm, roughL) * handLightColor;
-
-            if (NoLm < EPSILON) {
-                specular = vec3(0.0);
-                return;
-            }
-            
-            float NoHm = max(dot(viewNormal, halfDir), 0.0);
-            specular = GetSpecularBRDF(F, NoVm, NoLm, NoHm, roughL) * handLightColor;
-        }
-    #endif
-
     #ifdef RENDER_WATER
         float GetWaterDepth(const in vec2 screenUV) {
             float waterViewDepthLinear = linearizeDepthFast(gl_FragCoord.z, near, far);
@@ -523,7 +483,7 @@
         #endif
 
         #if defined HANDLIGHT_ENABLED && !defined RENDER_HAND && !defined RENDER_HAND_WATER
-            if (heldBlockLightValue > EPSILON) {
+            if (heldBlockLightValue + heldBlockLightValue2 > EPSILON) {
                 vec3 handDiffuse, handSpecular;
                 ApplyHandLighting(handDiffuse, handSpecular, material.albedo.rgb, f0, material.hcm, material.scattering, viewNormal, viewPos.xyz, viewDir, NoVm, roughL);
 
