@@ -145,8 +145,9 @@ const bool colortex11Clear = false;
 #define BLOOM_SCALE 60.0
 #define BLOOM_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define VL_ENABLED
-#define VL_STRENGTH 80 // [10 20 30 40 50 60 70 80 90 100]
-#define VL_SAMPLE_COUNT 60 // [15 30 60 90]
+#define VL_DITHER
+#define VL_STRENGTH 70 // [10 20 30 40 50 60 70 80 90 100]
+#define VL_SAMPLE_COUNT 30 // [15 30 60 90]
 //#define VL_PARTICLES
 #define G_SCATTERING_CLEAR 0.18 // 0.96
 #define G_SCATTERING_HUMID 0.72 // 0.84
@@ -304,6 +305,8 @@ const float drynessHalflife = 10.0;
 #ifdef VL_ENABLED
 #endif
 #ifdef VL_PARTICLES
+#endif
+#ifdef VL_DITHER
 #endif
 
 

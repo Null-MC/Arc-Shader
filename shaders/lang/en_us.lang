@@ -307,6 +307,8 @@ option.VL_PARTICLES.comment=Adds volumetric lighting to particles. Impact: Heavy
 
 option.VL_SAMPLE_COUNT=Samples
 
+option.VL_DITHER=Dither?
+
 
 option.DEBUG_VIEW=Display
 option.DEBUG_VIEW.comment=Configures which buffer to draw to the screen.

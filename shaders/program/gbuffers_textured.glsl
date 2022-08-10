@@ -131,7 +131,9 @@
 
     #ifdef HANDLIGHT_ENABLED
         flat in vec3 blockLightColor;
+    #endif
 
+    #if defined HANDLIGHT_ENABLED || CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
         uniform int heldBlockLightValue;
         uniform int heldBlockLightValue2;
     #endif
