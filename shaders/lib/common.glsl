@@ -104,7 +104,7 @@ const bool colortex11Clear = false;
 #define SSS_FILTER 2 // [0 2]
 #define SSS_PCF_SIZE 0.4 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
-#define REFLECTION_MODE 2 // [0 1 2]
+#define REFLECTION_MODE 1 // [0 1 2]
 
 
 // Material Parallax Options
