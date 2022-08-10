@@ -6,7 +6,7 @@
             float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
         #endif
 
-        #if defined RENDER_TERRAIN && defined ENABLE_WAVING
+        #if defined SKY_ENABLED && defined RENDER_TERRAIN && defined ENABLE_WAVING
             if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0) {
                 float wavingRange = GetWavingRange(skyLight);
                 pos += GetWavingOffset(wavingRange);
@@ -122,27 +122,29 @@
 #endif
 
 #ifdef RENDER_FRAG
-    vec3 GetSkyAmbientLight(const in vec3 normal) {
-        vec3 upDir = normalize(upPosition);
-        vec3 sunLightDir = normalize(sunPosition);
-        vec3 moonLightDir = normalize(moonPosition);
+    #ifdef SKY_ENABLED
+        vec3 GetSkyAmbientLight(const in vec3 normal) {
+            vec3 upDir = normalize(upPosition);
+            vec3 sunLightDir = normalize(sunPosition);
+            vec3 moonLightDir = normalize(moonPosition);
 
-        vec2 skyLightLevels;
-        skyLightLevels.x = dot(upDir, sunLightDir);
-        skyLightLevels.y = dot(upDir, moonLightDir);
+            vec2 skyLightLevels;
+            skyLightLevels.x = dot(upDir, sunLightDir);
+            skyLightLevels.y = dot(upDir, moonLightDir);
 
-        vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
+            vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
 
-        vec3 sunLightLux = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
-        sunLightLux *= dot(normal, sunLightDir) * 0.2 + 0.4;
+            vec3 sunLightLux = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
+            sunLightLux *= dot(normal, sunLightDir) * 0.2 + 0.4;
 
-        vec3 moonLightLux = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);
-        moonLightLux *= dot(normal, moonLightDir) * 0.2 + 0.4;
+            vec3 moonLightLux = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);
+            moonLightLux *= dot(normal, moonLightDir) * 0.2 + 0.4;
 
-        float skyLux = skyLightLevels.x * DaySkyLux + skyLightLevels.y * NightSkyLux;
-        vec3 skyLightColorLux = RGBToLinear(skyColor) * skyLux;
-        skyLightColorLux *= saturate(dot(normal, upDir) * 0.3 + 0.6);
+            float skyLux = skyLightLevels.x * DaySkyLux + skyLightLevels.y * NightSkyLux;
+            vec3 skyLightColorLux = RGBToLinear(skyColor) * skyLux;
+            skyLightColorLux *= saturate(dot(normal, upDir) * 0.3 + 0.6);
 
-        return skyLightColorLux + sunLightLux + moonLightLux;
-    }
+            return skyLightColorLux + sunLightLux + moonLightLux;
+        }
+    #endif
 #endif

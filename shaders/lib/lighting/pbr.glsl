@@ -137,6 +137,7 @@
 
         float NoLm = max(NoL, 0.0);
         float NoVm = max(dot(viewNormal, viewDir), 0.0);
+        vec3 viewUpDir = normalize(upPosition);
 
         //vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
         //return vec4(localNormal * 1000.0, 1.0);
@@ -144,36 +145,37 @@
         float blockLight = saturate((lightData.blockLight - (1.0/16.0 + EPSILON)) / (15.0/16.0));
         float skyLight = saturate((lightData.skyLight - (1.0/16.0 + EPSILON)) / (15.0/16.0));
 
-        vec3 viewUpDir = normalize(upPosition);
-        // float wetness_NoU = dot(viewNormal, viewUpDir) * 0.4 + 0.6;
-        // float wetness_skyLight = max((skyLight - (14.0/16.0)) * 16.0, 0.0);
-        // float wetnessFinal = wetness * wetness_skyLight * wetness_NoU;
-        float wetnessFinal = GetDirectionalWetness(viewNormal, skyLight);
-
         vec3 albedo = material.albedo.rgb;
         float smoothness = material.smoothness;
         float f0 = material.f0;
 
-        #ifdef RENDER_WATER
-            if (materialId != 1) {
-        #endif
-            if (wetnessFinal > EPSILON) {
-                vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
-                float noiseHigh = 1.0 - textureLod(noisetex, 0.24*localPos.xz, 0).r;
-                float noiseLow = 1.0 - textureLod(noisetex, 0.03*localPos.xz, 0).r;
+        #if defined SKY_ENABLED
+            // float wetness_NoU = dot(viewNormal, viewUpDir) * 0.4 + 0.6;
+            // float wetness_skyLight = max((skyLight - (14.0/16.0)) * 16.0, 0.0);
+            // float wetnessFinal = wetness * wetness_skyLight * wetness_NoU;
+            float wetnessFinal = GetDirectionalWetness(viewNormal, skyLight);
 
-                float shit = 0.78*wetnessFinal;
-                wetnessFinal = smoothstep(0.0, 1.0, wetnessFinal);
-                wetnessFinal *= (1.0 - noiseHigh * noiseLow) * (1.0 - shit) + shit;
+            #ifdef RENDER_WATER
+                if (materialId != 1) {
+            #endif
+                if (wetnessFinal > EPSILON) {
+                    vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
+                    float noiseHigh = 1.0 - textureLod(noisetex, 0.24*localPos.xz, 0).r;
+                    float noiseLow = 1.0 - textureLod(noisetex, 0.03*localPos.xz, 0).r;
 
-                albedo *= GetWetnessDarkening(wetnessFinal, material.porosity);
+                    float shit = 0.78*wetnessFinal;
+                    wetnessFinal = smoothstep(0.0, 1.0, wetnessFinal);
+                    wetnessFinal *= (1.0 - noiseHigh * noiseLow) * (1.0 - shit) + shit;
 
-                float surfaceWetness = GetSurfaceWetness(wetnessFinal, material.porosity);
-                smoothness = mix(smoothness, WATER_SMOOTH, surfaceWetness);
-                f0 = mix(f0, 0.02, surfaceWetness * (1.0 - f0));
-            }
-        #ifdef RENDER_WATER
-            }
+                    albedo *= GetWetnessDarkening(wetnessFinal, material.porosity);
+
+                    float surfaceWetness = GetSurfaceWetness(wetnessFinal, material.porosity);
+                    smoothness = mix(smoothness, WATER_SMOOTH, surfaceWetness);
+                    f0 = mix(f0, 0.02, surfaceWetness * (1.0 - f0));
+                }
+            #ifdef RENDER_WATER
+                }
+            #endif
         #endif
 
         float rough = 1.0 - smoothness;

@@ -92,7 +92,7 @@
                 }
             #endif
 
-            #ifndef RENDER_ENTITIES
+            #if defined SKY_ENABLED && defined WETNESS_SMOOTH_NORMAL && !defined RENDER_ENTITIES
                 float skyLight = saturate((lmcoord.y - (1.0/16.0 + EPSILON)) / (15.0/16.0));
                 float wetnessFinal = GetDirectionalWetness(viewNormal, skyLight);
 
@@ -142,11 +142,11 @@
 
         float parallaxShadow = 1.0;
 
-        #if !defined SKY_ENABLED || !defined SHADOW_ENABLED
+        //#if !defined SKY_ENABLED || !defined SHADOW_ENABLED
             parallaxShadow = pow2(glcolor.a);
-        #endif
+        //#endif
 
-        #ifdef PARALLAX_SHADOWS_ENABLED
+        #if defined SKY_ENABLED && defined PARALLAX_SHADOWS_ENABLED
             if (traceCoordDepth.z + EPSILON < 1.0) {
                 vec3 tanLightDir = normalize(tanLightPos);
                 

@@ -30,6 +30,10 @@
         lightData.geoNoL = geoNoL;
         lightData.occlusion = 1.0;
 
+        //#if !defined SKY_ENABLED || !defined SHADOW_ENABLED
+            lightData.occlusion = pow2(glcolor.a);
+        //#endif
+
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
 
         #ifdef PARALLAX_ENABLED
@@ -201,10 +205,6 @@
             }
         #endif
 
-        #if !defined SKY_ENABLED || !defined SHADOW_ENABLED
-            lightData.occlusion = pow2(glcolor.a);
-        #endif
-
         vec3 _viewNormal = normalize(viewNormal);
         vec3 _viewTangent = normalize(viewTangent);
         vec3 _viewBinormal = normalize(cross(_viewTangent, _viewNormal) * tangentW);
@@ -216,33 +216,26 @@
             ApplyDirectionalLightmap(lightData.blockLight, material.normal);
         #endif
 
-        vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos.xyz, 1.0))).xyz;
+        #if defined SKY_ENABLED && defined SHADOW_RNABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+            vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos.xyz, 1.0))).xyz;
 
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            //vec3 shadowPos[4];
-            //mat4 matShadowProjections[4]; // TODO: this needs to be passed to RSM & VL in PbrLighting
-            for (int i = 0; i < 4; i++) {
-                lightData.matShadowProjection[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
-                lightData.shadowPos[i] = (lightData.matShadowProjection[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                
-                vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
-                lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + shadowCascadePos;
-            }
-        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            lightData.shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
-            //float shadowBias = 0.0;//-1e-2; // TODO: fuck
+            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                for (int i = 0; i < 4; i++) {
+                    lightData.matShadowProjection[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
+                    lightData.shadowPos[i] = (lightData.matShadowProjection[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                    
+                    vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
+                    lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + shadowCascadePos;
+                }
+            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+                lightData.shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
 
-            #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                //float distortFactor = getDistortFactor(shadowPos.xy);
-                lightData.shadowPos.xyz = distort(lightData.shadowPos.xyz);
-                //float shadowBias = GetShadowBias(geoNoL, distortFactor);
-            //#elif SHADOW_TYPE == SHADOW_TYPE_BASIC
-            //    float shadowBias = GetShadowBias(geoNoL);
+                #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                    lightData.shadowPos.xyz = distort(lightData.shadowPos.xyz);
+                #endif
+
+                lightData.shadowPos.xyz = lightData.shadowPos.xyz * 0.5 + 0.5;
             #endif
-
-            lightData.shadowPos.xyz = lightData.shadowPos.xyz * 0.5 + 0.5;
-        //#else
-        //    vec4 shadowPos;
         #endif
 
         return PbrLighting2(material, lightData, viewPos.xyz);

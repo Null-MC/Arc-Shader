@@ -312,7 +312,6 @@
     #endif
 
     #include "/lib/atlas.glsl"
-    #include "/lib/world/scattering.glsl"
     #include "/lib/lighting/blackbody.glsl"
     #include "/lib/lighting/light_data.glsl"
 
@@ -329,6 +328,8 @@
     #endif
 
     #ifdef SKY_ENABLED
+        #include "/lib/world/scattering.glsl"
+        #include "/lib/world/porosity.glsl"
         #include "/lib/world/sky.glsl"
         #include "/lib/lighting/basic.glsl"
 
@@ -358,7 +359,6 @@
     #endif
 
     #include "/lib/world/fog.glsl"
-    #include "/lib/world/porosity.glsl"
     #include "/lib/material/hcm.glsl"
     #include "/lib/material/material.glsl"
     #include "/lib/material/material_reader.glsl"

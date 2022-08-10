@@ -217,7 +217,11 @@
     
     #include "/lib/lighting/blackbody.glsl"
     #include "/lib/lighting/light_data.glsl"
-    #include "/lib/world/scattering.glsl"
+
+    #ifdef SKY_ENABLED
+        #include "/lib/world/scattering.glsl"
+        #include "/lib/world/sky.glsl"
+    #endif
 
     #ifdef HANDLIGHT_ENABLED
         #include "/lib/lighting/basic_handlight.glsl"
@@ -247,12 +251,8 @@
         #endif
     #endif
 
-    #ifdef SKY_ENABLED
-        #include "/lib/world/sky.glsl"
-        #include "/lib/lighting/basic.glsl"
-    #endif
-
     #include "/lib/world/fog.glsl"
+    #include "/lib/lighting/basic.glsl"
     #include "/lib/lighting/basic_forward.glsl"
 
     /* RENDERTARGETS: 4,6 */

@@ -47,19 +47,13 @@
         uniform int moonPhase;
 
         #ifdef SHADOW_ENABLED
-            //out float shadowBias;
-
             uniform mat4 shadowModelView;
             uniform mat4 shadowProjection;
             uniform vec3 shadowLightPosition;
             uniform float far;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                //out vec3 shadowPos[4];
-                //out vec3 shadowParallaxPos[4];
-                //out vec2 shadowProjectionSizes[4];
                 flat out float cascadeSizes[4];
-                //flat out mat4 matShadowProjections[4];
                 flat out vec3 matShadowProjections_scale[4];
                 flat out vec3 matShadowProjections_translation[4];
 
@@ -70,9 +64,6 @@
 
                 uniform mat4 gbufferProjection;
                 uniform float near;
-            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-                //out vec4 shadowPos;
-                //out vec4 shadowParallaxPos;
             #endif
         #endif
     #endif
@@ -165,7 +156,6 @@
         else materialId = 0;
 
         BasicVertex(localPos);
-
         PbrVertex(viewPos);
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -223,7 +213,6 @@
         flat in vec3 moonColor;
         flat in vec3 skyLightColor;
 
-        uniform vec3 upPosition;
         uniform vec3 sunPosition;
         uniform vec3 moonPosition;
         uniform float rainStrength;
@@ -259,23 +248,20 @@
             #endif
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                //in vec3 shadowPos[4];
-                //in vec3 shadowParallaxPos[4];
-                //in vec2 shadowProjectionSizes[4];
-                //flat in int shadowCascade;
                 flat in float cascadeSizes[4];
-                //flat in mat4 matShadowProjections[4];
                 flat in vec3 matShadowProjections_scale[4];
                 flat in vec3 matShadowProjections_translation[4];
-            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-                //in vec4 shadowPos;
-                //in vec4 shadowParallaxPos;
             #endif
         #endif
     #endif
 
     #ifdef AF_ENABLED
         in vec4 spriteBounds;
+    #endif
+
+    #ifdef HANDLIGHT_ENABLED
+        uniform int heldBlockLightValue;
+        uniform int heldBlockLightValue2;
     #endif
 
     uniform sampler2D gtexture;
@@ -289,6 +275,7 @@
     uniform mat4 shadowProjection;
     uniform mat4 gbufferModelViewInverse;
     uniform vec3 cameraPosition;
+    uniform vec3 upPosition;
     uniform float viewWidth;
     uniform float viewHeight;
     uniform ivec2 atlasSize;
@@ -296,8 +283,6 @@
     uniform float far;
 
     uniform ivec2 eyeBrightnessSmooth;
-    uniform int heldBlockLightValue;
-    uniform int heldBlockLightValue2;
     uniform int isEyeInWater;
 
     uniform vec3 fogColor;
@@ -338,7 +323,6 @@
     #include "/lib/atlas.glsl"
     #include "/lib/depth.glsl"
     #include "/lib/sampling/linear.glsl"
-    #include "/lib/world/scattering.glsl"
     #include "/lib/lighting/blackbody.glsl"
     #include "/lib/lighting/light_data.glsl"
 
@@ -360,6 +344,8 @@
     #endif
 
     #ifdef SKY_ENABLED
+        #include "/lib/world/scattering.glsl"
+        #include "/lib/world/porosity.glsl"
         #include "/lib/world/sky.glsl"
         #include "/lib/lighting/basic.glsl"
 
@@ -387,7 +373,6 @@
     #endif
 
     #include "/lib/world/fog.glsl"
-    #include "/lib/world/porosity.glsl"
     #include "/lib/material/hcm.glsl"
     #include "/lib/material/material.glsl"
     #include "/lib/material/material_reader.glsl"

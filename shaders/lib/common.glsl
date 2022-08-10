@@ -164,6 +164,7 @@ const bool colortex11Clear = false;
 //#define IRIS_FEATURE_SEPARATE_HW_SAMPLERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
 #define PARTICLE_OPACITY 0.8
+//#define WETNESS_SMOOTH_NORMAL
 #define HCM_LAZANYI
 #define HCM_AMBIENT 0.16
 

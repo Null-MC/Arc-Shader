@@ -93,17 +93,17 @@
             skyLightColor = sunColor + moonColor; // TODO: get rid of this variable
 
             // TODO: add lightning check
-            if (rainStrength > 0.5) {
-                // if (all(greaterThan(skyColor, vec3(0.9)))) {
-                //     skyLightColor = vec3(60000.0, 0.0, 0.0);
-                // }
-                if (dot(shadowLightPosition, shadowLightPosition) < 0.1) {
-                    skyLightColor = vec3(60000.0, 0.0, 0.0);
-                    skyLightLevels = vec2(1.0, 1.0);
-                }
-            }
+            // if (rainStrength > 0.5) {
+            //     // if (all(greaterThan(skyColor, vec3(0.9)))) {
+            //     //     skyLightColor = vec3(60000.0, 0.0, 0.0);
+            //     // }
+            //     if (dot(shadowLightPosition, shadowLightPosition) < 0.1) {
+            //         skyLightColor = vec3(60000.0, 0.0, 0.0);
+            //         skyLightLevels = vec2(1.0, 1.0);
+            //     }
+            // }
 
-            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+            #if defined SHADOW_ENABLED && SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 cascadeSizes[0] = GetCascadeDistance(0);
                 cascadeSizes[1] = GetCascadeDistance(1);
                 cascadeSizes[2] = GetCascadeDistance(2);
@@ -236,11 +236,14 @@
 
     #include "/lib/depth.glsl"
     #include "/lib/sampling/linear.glsl"
-    #include "/lib/world/scattering.glsl"
     #include "/lib/lighting/blackbody.glsl"
     #include "/lib/lighting/light_data.glsl"
 
     #ifdef SKY_ENABLED
+        #include "/lib/world/scattering.glsl"
+        #include "/lib/world/porosity.glsl"
+        #include "/lib/world/sky.glsl"
+
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             #if SHADOW_PCF_SAMPLES == 12
                 #include "/lib/sampling/poisson_12.glsl"
@@ -266,9 +269,7 @@
         #endif
     #endif
 
-    #include "/lib/world/sky.glsl"
     #include "/lib/world/fog.glsl"
-    #include "/lib/world/porosity.glsl"
     #include "/lib/material/hcm.glsl"
     #include "/lib/material/material.glsl"
     #include "/lib/material/material_reader.glsl"
@@ -329,45 +330,36 @@
             vec4 specularMap = unpackUnorm4x8(deferredData.b);
             vec4 lightingMap = unpackUnorm4x8(deferredData.a);
             
-            // vec3 shadowColorMap = vec3(1.0);
-            // #if defined SHADOW_ENABLED && defined SHADOW_COLOR
-            //     shadowColorMap = texelFetch(BUFFER_DEFERRED2, iTex, 0).rgb;
-            // #endif
-
-            //float geoNoL = lightingMap.z;
-            //float occlusion = lightingMap.a;
             vec2 viewSize = vec2(viewWidth, viewHeight);
             vec3 clipPos = vec3(gl_FragCoord.xy / viewSize, screenDepth) * 2.0 - 1.0;
             vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
-
-            vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
 
             PbrLightData lightData;
             lightData.blockLight = lightingMap.x;
             lightData.skyLight = lightingMap.y;
             lightData.geoNoL = lightingMap.z;
-            lightData.occlusion = 1.0;
+            lightData.occlusion = lightingMap.w;
 
-            #if !defined SKY_ENABLED || !defined SHADOW_ENABLED
-                lightData.occlusion = pow2(glcolor.a);
-            #endif
+            #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+                vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
 
-            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                for (int i = 0; i < 4; i++) {
-                    lightData.matShadowProjection[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
-                    lightData.shadowPos[i] = (lightData.matShadowProjection[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                    
-                    vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
-                    lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + shadowCascadePos;
-                }
-            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-                lightData.shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
+                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                    for (int i = 0; i < 4; i++) {
+                        lightData.matShadowProjection[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
+                        lightData.shadowPos[i] = (lightData.matShadowProjection[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                        
+                        vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
+                        lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + shadowCascadePos;
+                    }
+                #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+                    lightData.shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
 
-                #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                    lightData.shadowPos.xyz = distort(lightData.shadowPos.xyz);
+                    #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                        lightData.shadowPos.xyz = distort(lightData.shadowPos.xyz);
+                    #endif
+
+                    lightData.shadowPos.xyz = lightData.shadowPos.xyz * 0.5 + 0.5;
                 #endif
-
-                lightData.shadowPos.xyz = lightData.shadowPos.xyz * 0.5 + 0.5;
             #endif
 
             PbrMaterial material;
