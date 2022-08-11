@@ -281,7 +281,7 @@
 
     #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
         uniform sampler2D BUFFER_HDR_PREVIOUS;
-        uniform sampler2D depthtex0;
+        uniform sampler2D depthtex1;
 
         //uniform mat4 gbufferModelViewInverse;
         uniform mat4 gbufferProjection;
@@ -295,12 +295,9 @@
     #include "/lib/atlas.glsl"
     #include "/lib/lighting/blackbody.glsl"
     #include "/lib/lighting/light_data.glsl"
+    #include "/lib/sampling/linear.glsl"
 
     #ifdef PARALLAX_ENABLED
-        #ifdef PARALLAX_SMOOTH
-            #include "/lib/sampling/linear.glsl"
-        #endif
-
         #include "/lib/parallax.glsl"
     #endif
 

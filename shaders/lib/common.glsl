@@ -289,6 +289,8 @@ const float drynessHalflife = 10.0;
 #endif
 #ifdef PARALLAX_ENABLED
 #endif
+#ifdef PARALLAX_SHADOWS_ENABLED
+#endif
 #ifdef PARALLAX_DEPTH_WRITE
 #endif
 #ifdef SHADOW_TYPE
