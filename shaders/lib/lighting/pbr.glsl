@@ -260,11 +260,11 @@
 
                 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
                     // TODO: move to vertex shader!
-                    int maxHdrPrevLod = 4;//textureQueryLevels(BUFFER_HDR_PREVIOUS);
+                    int maxHdrPrevLod = textureQueryLevels(BUFFER_HDR_PREVIOUS)-1;
 
                     int lod = int(rough * max(maxHdrPrevLod - 0.5, 0.0));
                     vec4 roughReflectColor = GetReflectColor(depthtex1, viewPos, reflectDir, lod);
-                    reflectColor = roughReflectColor.rgb / exposure * roughReflectColor.a;
+                    reflectColor = roughReflectColor.rgb / exposure * (1.0 - rough);// * roughReflectColor.a;
                     //reflectColor = clamp(reflectColor, vec3(0.0), vec3(65000.0));
 
                     #ifdef SKY_ENABLED

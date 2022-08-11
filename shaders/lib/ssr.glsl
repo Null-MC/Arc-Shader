@@ -1,56 +1,62 @@
-// === This is originally from BSL ===
-// Huge thanks to Capt Tatsu for allowing me to borrow it
-// until my SSR implementation is working.
-
 // returns: rgb=color  a=attenuation
 vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const in vec3 reflectDir, const in int lod) {
-    const float maxf = 4.0;
-    const float stp = 1.0;
-    const float ref = 0.1;
-    const float inc = 2.0;
+    vec3 clipPos = unproject(gbufferProjection * vec4(viewPos, 1.0)) * 0.5 + 0.5;
+    vec3 reflectClipPos = unproject(gbufferProjection * vec4(viewPos + reflectDir, 1.0)) * 0.5 + 0.5;
+    //vec2 screenReflectDir = normalize(reflectClipPos.xy - clipPos.xy);//reflectDir.xy;
+    vec3 screenReflectDir = reflectClipPos - clipPos;//reflectDir.xy;
+    screenReflectDir *= 0.1;
+    //float stepZ = reflectClipPos.z - clipPos.z;
 
-    vec3 vector = stp * reflectDir;
-    vec3 traceVector = vector;
-    vec3 traceUV = vec3(0.0);
+    //vec2 traceStep;
+    //if (abs(screenReflectDir.y) > abs(screenReflectDir.x)) {
+    //    traceStep = vec2(screenReflectDir.x / abs(screenReflectDir.y), sign(screenReflectDir.y));
+    //}
+    //else {
+    //    traceStep = vec2(sign(screenReflectDir.x), screenReflectDir.y / abs(screenReflectDir.x));
+    //}
+
+    //traceStep /= vec2(viewWidth, viewHeight);
+
+    int i = 1;
     float alpha = 0.0;
+    float texDepth = 1.0;
+    vec2 traceUV;// = clipPos.xy;
+    for (; i <= 256 && alpha < 0.5; i++) {
+        traceUV = clipPos.xy + i * screenReflectDir.xy;
+        float traceZ = clipPos.z + i*screenReflectDir.z;
 
-    vec3 startViewPos = viewPos + vector;
+        if (traceUV.x < 0.0 || traceUV.x > 1.0
+         || traceUV.y < 0.0 || traceUV.y > 1.0
+         || traceZ < 0.0 || traceZ > 1.0) break;
 
-    int sr = 0;
-    for (int i = 1; i <= 30 && alpha < 0.5; i++) {
-        vec3 traceViewPos = startViewPos + traceVector;
-        traceUV = unproject(gbufferProjection * vec4(traceViewPos, 1.0)) * 0.5 + 0.5;
-        if (traceUV.x < 0.0 || traceUV.x > 1.0 || traceUV.y < 0.0 || traceUV.y > 1.0) break;
+        texDepth = textureLod(depthtex, traceUV, 0).r;
 
-        vec3 clipPos = vec3(traceUV.xy, textureLod(depthtex, traceUV.xy, 0).r) * 2.0 - 1.0;
-        vec3 texViewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
-
-        float err = length(traceViewPos - texViewPos);
-        if (err < pow(length(vector) * pow(length(traceVector), 0.11), 1.1) * 1.2) {
-            alpha = step(maxf, sr++);
-            traceVector -= vector;
-            vector *= ref;
+        float d = 0.2 * i;
+        if (texDepth < traceZ && linearizeDepth(texDepth * 2.0 - 1.0, near, far) + d > linearizeDepth(traceZ * 2.0 - 1.0, near, far)) {
+            if (i > 1) alpha = 1.0;
+            break;
         }
-
-        vector *= inc;
-        traceVector += vector;
     }
-
-    alpha *= step(0.001, length(traceVector));
 
     vec3 color = vec3(0.0);
     if (alpha > 0.5) {
+        //int prevI = i;//max(i - 1, 0);
+        traceUV = clipPos.xy + i * screenReflectDir.xy;
+
         // Previous frame reprojection from Chocapic13
-        vec3 viewPosPrev = unproject(gbufferModelViewInverse * (gbufferProjectionInverse * vec4(traceUV * 2.0 - 1.0, 1.0)));
+        vec3 clip2 = vec3(traceUV, texDepth) * 2.0 - 1.0;
+        vec3 viewPosPrev = unproject(gbufferModelViewInverse * (gbufferProjectionInverse * vec4(clip2, 1.0)));
         vec3 previousPosition = viewPosPrev + cameraPosition - previousCameraPosition;
         vec3 finalViewPos = unproject(gbufferPreviousProjection * (gbufferPreviousModelView * vec4(previousPosition, 1.0))) * 0.5 + 0.5;
-        traceUV.xy = finalViewPos.xy;
+        traceUV = finalViewPos.xy;
 
         #ifndef IS_OPTIFINE
-            traceUV.xy *= 0.5;
+            traceUV *= 0.5;
         #endif
 
-        color = textureLod(BUFFER_HDR_PREVIOUS, traceUV.xy, lod).rgb;
+        //color = textureLod(BUFFER_HDR_PREVIOUS, traceUV, lod).rgb;
+        vec2 mipTexSize = vec2(viewWidth, viewHeight) / exp2(lod + 1);
+        color = TextureLodLinearRGB(BUFFER_HDR_PREVIOUS, traceUV, mipTexSize, lod);
     }
 
     return vec4(color, alpha);

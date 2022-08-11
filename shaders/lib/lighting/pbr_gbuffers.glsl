@@ -13,8 +13,28 @@
             vec3 tanViewDir = normalize(tanViewPos);
 
             float viewDist = length(viewPos);
-            if (viewDist < PARALLAX_DISTANCE)
+            if (viewDist < PARALLAX_DISTANCE) {
                 atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, viewDist, texDepth, traceCoordDepth);
+
+                #ifdef PARALLAX_DEPTH_WRITE
+                    float pomDist = (1.0 - traceCoordDepth.z) / max(-tanViewDir.z, 0.00001);
+
+                    if (pomDist > 0.0) {
+                        //float depth = linearizePerspectiveDepth(gl_FragCoord.z, gbufferProjection);
+                        //gl_FragDepth = delinearizePerspectiveDepth(depth + pomDist * (0.25 * PARALLAX_DEPTH), gbufferProjection);
+                        float depth = -viewPos.z + pomDist * PARALLAX_DEPTH;
+                        gl_FragDepth = 0.5 * (-gbufferProjection[2].z*depth + gbufferProjection[3].z) / depth + 0.5;
+                    }
+                    else {
+                        gl_FragDepth = gl_FragCoord.z;
+                    }
+                #endif
+            }
+            #ifdef PARALLAX_DEPTH_WRITE
+                else {
+                    gl_FragDepth = gl_FragCoord.z;
+                }
+            #endif
         #endif
         
         #ifdef AF_ENABLED

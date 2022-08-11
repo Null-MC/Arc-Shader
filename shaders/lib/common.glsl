@@ -120,6 +120,7 @@ const bool colortex11Clear = false;
 #define PARALLAX_SOFTSHADOW_FACTOR 1.0
 //#define PARALLAX_USE_TEXELFETCH
 //#define PARALLAX_SHADOW_FIX
+//#define PARALLAX_DEPTH_WRITE
 
 
 // Camera Options
@@ -284,6 +285,10 @@ const float drynessHalflife = 10.0;
 #ifdef CAVEFOG_ENABLED
 #endif
 #ifdef ATMOSFOG_ENABLED
+#endif
+#ifdef PARALLAX_ENABLED
+#endif
+#ifdef PARALLAX_DEPTH_WRITE
 #endif
 #ifdef SHADOW_TYPE
 #endif

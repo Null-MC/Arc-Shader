@@ -378,6 +378,7 @@
     #include "/lib/material/material_reader.glsl"
 
     #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
+        //#include "/lib/depth.glsl"
         #include "/lib/ssr.glsl"
     #endif
 

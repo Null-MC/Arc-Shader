@@ -71,6 +71,8 @@
         in vec2 localCoord;
         in vec3 tanViewPos;
 
+        uniform mat4 gbufferProjection;
+
         #if defined SKY_ENABLED && defined SHADOW_ENABLED
             in vec3 tanLightPos;
         #endif

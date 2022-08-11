@@ -1,5 +1,9 @@
 #extension GL_ARB_gpu_shader5 : enable
 
+#if defined PARALLAX_ENABLED && defined PARALLAX_DEPTH_WRITE
+    #extension GL_ARB_conservative_depth : enable
+#endif
+
 #define RENDER_GBUFFER
 #define RENDER_TERRAIN
 
@@ -90,6 +94,10 @@
 #endif
 
 #ifdef RENDER_FRAG
+    #if defined PARALLAX_ENABLED && defined PARALLAX_DEPTH_WRITE
+        layout (depth_greater) out float gl_FragDepth;
+    #endif
+
     in vec2 lmcoord;
     in vec2 texcoord;
     in vec4 glcolor;
@@ -110,6 +118,8 @@
     #ifdef PARALLAX_ENABLED
         in vec2 localCoord;
         in vec3 tanViewPos;
+
+        uniform mat4 gbufferProjection;
 
         #if defined SKY_ENABLED && defined SHADOW_ENABLED
             in vec3 tanLightPos;
