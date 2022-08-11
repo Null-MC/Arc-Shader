@@ -46,19 +46,13 @@
         uniform int moonPhase;
 
         #if defined SHADOW_ENABLED
-            //out float shadowBias;
-
             uniform mat4 shadowModelView;
             uniform mat4 shadowProjection;
             uniform vec3 shadowLightPosition;
             uniform float far;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                //out vec3 shadowPos[4];
-                //out vec3 shadowParallaxPos[4];
-                //out vec2 shadowProjectionSizes[4];
                 flat out float cascadeSizes[4];
-                //flat out mat4 matShadowProjections[4];
                 flat out vec3 matShadowProjections_scale[4];
                 flat out vec3 matShadowProjections_translation[4];
 
@@ -69,9 +63,6 @@
 
                 uniform mat4 gbufferProjection;
                 uniform float near;
-            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-                //out vec4 shadowPos;
-                //out vec4 shadowParallaxPos;
             #endif
         #endif
     #endif
@@ -148,8 +139,6 @@
 
         vec3 localPos = gl_Vertex.xyz;
         BasicVertex(localPos);
-        
-        //vec3 viewPos = (gbufferModelView * vec4(localPos, 1.0)).xyz;
         PbrVertex(viewPos);
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -213,7 +202,6 @@
         uniform int moonPhase;
 
         #ifdef SHADOW_ENABLED
-            //in float shadowBias;
             flat in vec3 skyLightColor;
 
             uniform mat4 shadowModelView;
@@ -244,16 +232,9 @@
             #endif
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                //in vec3 shadowPos[4];
-                //in vec3 shadowParallaxPos[4];
-                //in vec2 shadowProjectionSizes[4];
                 flat in float cascadeSizes[4];
-                //flat in mat4 matShadowProjections[4];
                 flat in vec3 matShadowProjections_scale[4];
                 flat in vec3 matShadowProjections_translation[4];
-            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-                //in vec4 shadowPos;
-                //in vec4 shadowParallaxPos;
             #endif
         #endif
     #endif
@@ -300,7 +281,7 @@
 
     #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
         uniform sampler2D BUFFER_HDR_PREVIOUS;
-        uniform sampler2D depthtex1;
+        uniform sampler2D depthtex0;
 
         //uniform mat4 gbufferModelViewInverse;
         uniform mat4 gbufferProjection;

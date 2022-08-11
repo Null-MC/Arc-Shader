@@ -168,6 +168,7 @@ const bool colortex11Clear = false;
 //#define WETNESS_SMOOTH_NORMAL
 #define HCM_LAZANYI
 #define HCM_AMBIENT 0.16
+#define SSR_STEPS 512
 
 
 // INTERNAL
