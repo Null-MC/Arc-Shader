@@ -150,7 +150,7 @@
     uniform sampler2D BUFFER_HDR;
     uniform sampler2D colortex10;
     uniform sampler2D lightmap;
-    uniform sampler2D depthtex0;
+    //uniform sampler2D depthtex0;
     uniform sampler2D depthtex1;
     uniform sampler2D noisetex;
 
@@ -161,6 +161,7 @@
         uniform vec3 previousCameraPosition;
 
         uniform sampler2D BUFFER_HDR_PREVIOUS;
+        uniform sampler2D BUFFER_DEPTH_PREV;
     #endif
 
     uniform mat4 gbufferModelViewInverse;
@@ -307,7 +308,7 @@
 
     void main() {
         ivec2 iTex = ivec2(gl_FragCoord.xy);
-        float screenDepth = texelFetch(depthtex0, iTex, 0).r;
+        float screenDepth = texelFetch(depthtex1, iTex, 0).r;
         vec3 color;
 
         // SKY

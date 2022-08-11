@@ -293,7 +293,7 @@
 
     #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
         uniform sampler2D BUFFER_HDR_PREVIOUS;
-        //uniform sampler2D depthtex1;
+        uniform sampler2D BUFFER_DEPTH_PREV;
 
         uniform mat4 gbufferPreviousModelView;
         uniform mat4 gbufferPreviousProjection;

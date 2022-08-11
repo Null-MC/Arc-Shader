@@ -3,7 +3,7 @@
 <opaque>
 
 deferred1	Water Waves
-deferred2	RSM low-res
+deferred2	RSM
 deferred4	Opaque PBR: RGB1: pre-exposed color, R2: Raw Luminance
 deferred5	opaque copy
 
@@ -13,6 +13,6 @@ deferred5	opaque copy
 composite1	Bloom threshold/downsampling
 composite2	Bloom Blur H
 composite3	Bloom Blur V
-composite4	copy previous-frame = RGB: pre-exposed color
+composite4	copy previous-frame = RGB: pre-exposed color; depth-tiles
 
 final		Bloom combine; tonemap; Debug view

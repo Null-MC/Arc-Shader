@@ -263,11 +263,7 @@
                     int maxHdrPrevLod = textureQueryLevels(BUFFER_HDR_PREVIOUS)-1;
                     int lod = int(rough * max(maxHdrPrevLod - 0.5, 0.0));
 
-                    #ifdef RENDER_DEFERRED
-                        vec4 roughReflectColor = GetReflectColor(depthtex0, viewPos, reflectDir, lod);
-                    #else
-                        vec4 roughReflectColor = GetReflectColor(depthtex1, viewPos, reflectDir, lod);
-                    #endif
+                    vec4 roughReflectColor = GetReflectColor(BUFFER_DEPTH_PREV, viewPos, reflectDir, lod);
 
                     reflectColor = (roughReflectColor.rgb / exposure) * (1.0 - rough) * roughReflectColor.a;
                     //reflectColor = clamp(reflectColor, vec3(0.0), vec3(65000.0));

@@ -10,12 +10,13 @@ const int colortex7Format = RGB16F;
 const int colortex8Format = RGB16F;
 const int colortex9Format = R16F;
 const int colortex11Format = R16F;
+const int colortex12Format = R32F;
 */
 
 const bool colortex2MipmapEnabled = false;
 
-const bool colortex3MipmapEnabled = false;
 const vec4 colortex3ClearColor = vec4(1.0, 1.0, 1.0, 1.0);
+const bool colortex3MipmapEnabled = false;
 const bool colortex3Clear = true;
 
 const bool colortex4MipmapEnabled = true;
@@ -38,6 +39,10 @@ const bool colortex9Clear = false;
 
 const bool colortex11MipmapEnabled = false;
 const bool colortex11Clear = false;
+
+const vec4 colortex12ClearColor = vec4(1.0, 1.0, 1.0, 1.0);
+const bool colortex12MipmapEnabled = false;
+const bool colortex12Clear = false;
 
 
 // World Options

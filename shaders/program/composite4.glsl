@@ -71,13 +71,20 @@
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         uniform sampler2D BUFFER_HDR_PREVIOUS;
     #endif
+
+    #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
+        uniform sampler2D depthtex0;
+    #endif
     
     uniform float viewWidth;
     uniform float viewHeight;
     uniform float frameTime;
 
-    /* RENDERTARGETS: 5 */
+    /* RENDERTARGETS: 5,12 */
     out vec4 outColor0;
+    #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
+        out float outColor1;
+    #endif
 
 
     void main() {
@@ -111,5 +118,13 @@
         #endif
 
         outColor0 = vec4(color, lum);
+
+        #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
+            float depth = 1.0;
+
+            depth = textureLod(depthtex0, texcoord, 1).r;
+
+            outColor1 = depth;
+        #endif
     }
 #endif

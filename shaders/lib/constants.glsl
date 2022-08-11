@@ -51,6 +51,7 @@
 #define DEBUG_VIEW_PREV_COLOR 16
 #define DEBUG_VIEW_PREV_LUMINANCE 17
 #define DEBUG_VIEW_WATER_WAVES 18
+#define DEBUG_VIEW_DEPTH_TILES 19
 
 #define BUFFER_DEFERRED colortex2
 #define BUFFER_DEFERRED2 colortex3
@@ -58,9 +59,10 @@
 #define BUFFER_HDR_PREVIOUS colortex5
 #define BUFFER_LUMINANCE colortex6
 #define BUFFER_BLOOM colortex7
+#define BUFFER_REFRACT colortex7
 #define BUFFER_RSM_COLOR colortex8
 #define BUFFER_RSM_DEPTH colortex9
 #define BUFFER_BRDF_LUT colortex10
 #define BUFFER_WATER_WAVES colortex11
+#define BUFFER_DEPTH_PREV colortex12
 
-#define BUFFER_REFRACT colortex7
