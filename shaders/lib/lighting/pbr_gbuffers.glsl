@@ -162,9 +162,9 @@
 
         float parallaxShadow = 1.0;
 
-        //#if !defined SKY_ENABLED || !defined SHADOW_ENABLED
+        #if AO_TYPE == AO_TYPE_VANILLA
             parallaxShadow = pow2(glcolor.a);
-        //#endif
+        #endif
 
         #if defined SKY_ENABLED && defined PARALLAX_SHADOWS_ENABLED
             if (traceCoordDepth.z + EPSILON < 1.0) {

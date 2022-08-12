@@ -53,6 +53,7 @@ const bool colortex12Clear = false;
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 80 // [0 10 20 30 40 50 60 70 80 90 100]
 #define SHADOW_BRIGHTNESS 0.60 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define RAIN_DARKNESS 0.2
+#define AO_TYPE 1 // [0 1 2]
 //#define ANIM_USE_WORLDTIME
 
 
@@ -105,9 +106,9 @@ const bool colortex12Clear = false;
 // Material Options
 #define MATERIAL_FORMAT 1 // [0 1 2 3]
 #define SSS_ENABLED
-#define SSS_MAXDIST 2.8
+#define SSS_MAXDIST 3.6
 #define SSS_FILTER 2 // [0 2]
-#define SSS_PCF_SIZE 0.4 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+#define SSS_PCF_SIZE 0.8 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
 #define REFLECTION_MODE 1 // [0 1 2]
 

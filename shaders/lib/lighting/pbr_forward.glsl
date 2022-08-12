@@ -30,9 +30,9 @@
         lightData.geoNoL = geoNoL;
         lightData.occlusion = 1.0;
 
-        //#if !defined SKY_ENABLED || !defined SHADOW_ENABLED
+        #if AO_TYPE == AO_TYPE_VANILLA
             lightData.occlusion = pow2(glcolor.a);
-        //#endif
+        #endif
 
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
 

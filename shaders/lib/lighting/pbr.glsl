@@ -351,8 +351,9 @@
             float diffuseLightF = shadowFinal;
 
             #ifdef SSS_ENABLED
+                vec3 skyAmbientSSS = GetSkyAmbientLight(-viewNormal) * invPI;
                 //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
-                //vec3 ambient_sss = skyAmbient * material.scattering * material.occlusion;
+                ambient += skyAmbientSSS * ambientBrightness * material.occlusion * material.scattering;
 
                 // Transmission
                 //vec3 sss = shadowSSS * material.scattering * skyLightColorFinal;// * max(-NoL, 0.0);
