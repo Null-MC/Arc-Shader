@@ -138,9 +138,7 @@
 
     /* RENDERTARGETS: 8,9 */
     out vec3 outColor0;
-    #ifdef RSM_UPSCALE
-        out float outColor1;
-    #endif
+    out float outColor1;
 
 
 	void main() {
@@ -185,10 +183,7 @@
         }
 
         outColor0 = color;
-
-        #ifdef RSM_UPSCALE
-            outColor1 = clipDepth;
-        #endif
+        outColor1 = clipDepth;
 	}
 #endif
 

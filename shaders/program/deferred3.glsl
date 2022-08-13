@@ -1,5 +1,5 @@
 #define RENDER_DEFERRED
-#define RENDER_AO
+#define RENDER_RSM_BLUR
 
 #if defined RENDER_VERTEX
     out vec2 texcoord;
@@ -14,92 +14,36 @@
 #if defined RENDER_FRAG
     in vec2 texcoord;
 
-    uniform usampler2D BUFFER_DEFERRED;
-    uniform sampler2D depthtex0;
+    uniform sampler2D BUFFER_RSM_COLOR;
+    uniform sampler2D BUFFER_RSM_DEPTH;
 
     uniform mat4 gbufferProjectionInverse;
     uniform float viewWidth;
     uniform float viewHeight;
+    uniform float near;
+    uniform float far;
 
-    //#include "/lib/ssao.glsl"
+    #include "/lib/depth.glsl"
+    #include "/lib/sampling/bilateral_gaussian.glsl"
 
-    /* RENDERTARGETS: 3 */
-    out float outColor0;
+    /* RENDERTARGETS: 8 */
+    out vec3 outColor0;
 
-
-    #define SAMPLES 16
-    #define INTENSITY 4.4
-    #define SCALE 0.5
-    #define BIAS 0.02
-    #define SAMPLE_RAD 0.8
-    #define MAX_DISTANCE 1.6
-
-    #define MOD3 vec3(0.1031, 0.11369, 0.13787)
-
-    float hash12(vec2 p) {
-        vec3 p3  = fract(vec3(p.xyx) * MOD3);
-        p3 += dot(p3, p3.yzx + 19.19);
-        return fract((p3.x + p3.y) * p3.z);
-    }
-
-    float SampleOcclusion(const in vec2 tcoord, const in vec2 uv, const in vec3 viewPos, const in vec3 cnorm) {
-        vec2 sampleTex = tcoord + uv;
-        vec2 viewSize = vec2(viewWidth, viewHeight);
-        float sampleClipDepth = texelFetch(depthtex0, ivec2(sampleTex * viewSize), 0).r;
-        vec3 sampleClipPos = vec3(sampleTex, sampleClipDepth) * 2.0 - 1.0;
-        vec3 sampleViewPos = unproject(gbufferProjectionInverse * vec4(sampleClipPos, 1.0));
-
-        vec3 diff = sampleViewPos - viewPos;
-        float l = length(diff);
-        vec3 v = diff/l;
-        float d = l*SCALE;
-        float ao = max(dot(cnorm, v) - BIAS, 0.0) * rcp(1.0 + d);
-        return ao * smoothstep(MAX_DISTANCE, MAX_DISTANCE * 0.5, l);
-    }
-
-    float GetSpiralOcclusion(const in vec2 uv, const in vec3 viewPos, const in vec3 viewNormal, const in float rad) {
-        const float goldenAngle = 2.4;
-        const float inv = rcp(SAMPLES);
-
-        float rotatePhase = hash12(uv*100.0) * 6.28;
-        float rStep = inv * rad;
-        float radius = 0.0;
-        vec2 spiralUV;
-
-        float ao = 0.0;
-        for (int i = 0; i < SAMPLES; i++) {
-            spiralUV.x = sin(rotatePhase);
-            spiralUV.y = cos(rotatePhase);
-            radius += rStep;
-
-            ao += SampleOcclusion(uv, spiralUV * radius, viewPos, viewNormal);
-            rotatePhase += goldenAngle;
-        }
-
-        return ao * inv;
-    }
 
 	void main() {
+        const float rsmScale = rcp(exp2(RSM_SCALE));
         vec2 viewSize = vec2(viewWidth, viewHeight);
-        ivec2 itexFull = ivec2(texcoord * viewSize);
+        vec2 rsmTexSize = rsmScale * viewSize;
 
-        float clipDepth = texelFetch(depthtex0, itexFull, 0).r;
-        float occlusion = 1.0;
+        ivec2 itex = ivec2(texcoord * rsmTexSize);
+        float clipDepth = texelFetch(BUFFER_RSM_DEPTH, itex, 0).r;
+        vec3 color = vec3(0.0);
 
         if (clipDepth < 1.0) {
-            vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
-            vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
-
-            uint deferredNormal = texelFetch(BUFFER_DEFERRED, itexFull, 0).g;
-            vec3 viewNormal = unpackUnorm4x8(deferredNormal).xyz;
-            viewNormal = normalize(viewNormal * 2.0 - 1.0);
-            
-            float rad = SAMPLE_RAD / max(-viewPos.z, 1.0);
-
-            occlusion = GetSpiralOcclusion(texcoord, viewPos, viewNormal, rad);
-            occlusion = max(1.0 - occlusion * INTENSITY, 0.0);
+            float linearDepth = linearizeDepthFast(clipDepth, near, far);
+            color = BilateralGaussianDepthBlurRGB_5x(BUFFER_RSM_COLOR, rsmTexSize, BUFFER_RSM_DEPTH, rsmTexSize, linearDepth, 2.0);
         }
 
-        outColor0 = saturate(occlusion);
+        outColor0 = color;
 	}
 #endif

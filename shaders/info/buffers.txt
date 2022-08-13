@@ -9,7 +9,7 @@ colortex6		R16F		0.5   Log Luminance
 
 colortex7		RGB16F		1.0   HDR transparent / bloom tiles
 colortex8		RGB16F		*     RSM color
-colortex9		R16F		*     RSM depth
+colortex9		R32F		*     RSM depth
 colortex11		RG16F		2048  Water Waves
 colortex12		R32F		0.5   Depth Tiles
 

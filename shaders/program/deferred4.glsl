@@ -14,24 +14,69 @@
 #if defined RENDER_FRAG
     in vec2 texcoord;
 
-    uniform sampler2D BUFFER_AO;
+    uniform usampler2D BUFFER_DEFERRED;
     uniform sampler2D depthtex0;
 
     uniform mat4 gbufferProjectionInverse;
     uniform float viewWidth;
     uniform float viewHeight;
-    uniform float near;
-    uniform float far;
 
-    #include "/lib/depth.glsl"
     //#include "/lib/ssao.glsl"
 
     /* RENDERTARGETS: 3 */
     out float outColor0;
 
 
-    float Gaussian(const in float sigma, const in float x) {
-        return exp(-pow2(x) / (2.0 * pow2(sigma)));
+    #define SAMPLES 16
+    #define INTENSITY 4.4
+    #define SCALE 0.5
+    #define BIAS 0.02
+    #define SAMPLE_RAD 0.8
+    #define MAX_DISTANCE 1.6
+
+    #define MOD3 vec3(0.1031, 0.11369, 0.13787)
+
+    float hash12(vec2 p) {
+        vec3 p3  = fract(vec3(p.xyx) * MOD3);
+        p3 += dot(p3, p3.yzx + 19.19);
+        return fract((p3.x + p3.y) * p3.z);
+    }
+
+    float SampleOcclusion(const in vec2 tcoord, const in vec2 uv, const in vec3 viewPos, const in vec3 cnorm) {
+        vec2 sampleTex = tcoord + uv;
+        vec2 viewSize = vec2(viewWidth, viewHeight);
+        float sampleClipDepth = texelFetch(depthtex0, ivec2(sampleTex * viewSize), 0).r;
+        vec3 sampleClipPos = vec3(sampleTex, sampleClipDepth) * 2.0 - 1.0;
+        vec3 sampleViewPos = unproject(gbufferProjectionInverse * vec4(sampleClipPos, 1.0));
+
+        vec3 diff = sampleViewPos - viewPos;
+        float l = length(diff);
+        vec3 v = diff/l;
+        float d = l*SCALE;
+        float ao = max(dot(cnorm, v) - BIAS, 0.0) * rcp(1.0 + d);
+        return ao * smoothstep(MAX_DISTANCE, MAX_DISTANCE * 0.5, l);
+    }
+
+    float GetSpiralOcclusion(const in vec2 uv, const in vec3 viewPos, const in vec3 viewNormal, const in float rad) {
+        const float goldenAngle = 2.4;
+        const float inv = rcp(SAMPLES);
+
+        float rotatePhase = hash12(uv*100.0) * 6.28;
+        float rStep = inv * rad;
+        float radius = 0.0;
+        vec2 spiralUV;
+
+        float ao = 0.0;
+        for (int i = 0; i < SAMPLES; i++) {
+            spiralUV.x = sin(rotatePhase);
+            spiralUV.y = cos(rotatePhase);
+            radius += rStep;
+
+            ao += SampleOcclusion(uv, spiralUV * radius, viewPos, viewNormal);
+            rotatePhase += goldenAngle;
+        }
+
+        return ao * inv;
     }
 
 	void main() {
@@ -42,59 +87,19 @@
         float occlusion = 1.0;
 
         if (clipDepth < 1.0) {
-            vec2 pixelSize = rcp(0.5 * viewSize);
-            //g_pixelSize = 1.0 / iChannelResolution[0].xy;
-            //g_pixelSizeGuide = 1.0 / iChannelResolution[0].xy;
+            vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
+            vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
 
-            //g_sigmaV = M.z > 0.0
-            //    ? 0.03 * pow(clamp(M.y / R.y, 0., 1.), 2.0)
-            //    : 0.03 * smoothstep(0.3, -0.3, cos(iTime));
-            float g_sigmaV = 0.03 * pow2(0.9) + 0.001;
-
-            //float sigmaT = 2.0;
-            float g_sigmaX = 3.0;
-            float g_sigmaY = 3.0;
-            //float g_sigmaV = 1.0;
-
-            //vec2 g_pixelSize = vec2(0.001);
-            //vec2 g_pixelSizeGuide = vec2(0.001);
-
-            const float c_halfSamplesX = 4.0;
-            const float c_halfSamplesY = 4.0;
-
-            float total = 0.0;
-            float ret = 0.0;
-
-            //vec2 pivot = texture(iChannel0, uv).rg;
-            float linearDepth = linearizeDepthFast(clipDepth, near, far);
+            uint deferredNormal = texelFetch(BUFFER_DEFERRED, itexFull, 0).g;
+            vec3 viewNormal = unpackUnorm4x8(deferredNormal).xyz;
+            viewNormal = normalize(viewNormal * 2.0 - 1.0);
             
-            for (float iy = -c_halfSamplesY; iy <= c_halfSamplesY; iy++) {
-                float fy = Gaussian(g_sigmaY, iy);
-                float offsety = iy * pixelSize.y;
+            float rad = SAMPLE_RAD / max(-viewPos.z, 1.0);
 
-                for (float ix = -c_halfSamplesX; ix <= c_halfSamplesX; ix++) {
-                    float fx = Gaussian(g_sigmaX, ix);
-                    float offsetx = ix * pixelSize.x;
-                    
-                    //vec2 value = textureLod(iChannel0, uv + vec2(offsetx, offsety)).rg;
-                    vec2 sampleTex = texcoord + vec2(offsetx, offsety);
-                    ivec2 sampleITex = ivec2(sampleTex * viewSize * 0.5);
-                    ivec2 sampleITexFull = ivec2(sampleTex * viewSize);
-
-                    float sampleOcclusion = texelFetch(BUFFER_AO, sampleITex, 0).r;
-                    float sampleDepth = texelFetch(depthtex0, sampleITexFull, 0).r;
-                    float sampleLinearDepth = linearizeDepthFast(sampleDepth, near, far);
-                                
-                    float fv = Gaussian(g_sigmaV, abs(sampleLinearDepth - linearDepth));
-                    
-                    total += fx*fy*fv;
-                    ret += fx*fy*fv * sampleOcclusion;
-                }
-            }
-            
-            occlusion = ret / total;
+            occlusion = GetSpiralOcclusion(texcoord, viewPos, viewNormal, rad);
+            occlusion = max(1.0 - occlusion * INTENSITY, 0.0);
         }
 
-        outColor0 = occlusion;
+        outColor0 = saturate(occlusion);
 	}
 #endif
