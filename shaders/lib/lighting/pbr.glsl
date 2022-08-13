@@ -355,7 +355,13 @@
         #endif
 
         #if AO_TYPE == AO_TYPE_FANCY
-            ambient *= textureLod(BUFFER_AO, texcoord, 0).r;
+            vec2 aoTex = texcoord;
+
+            #ifndef IS_OPTIFINE
+                aoTex *= 0.5;
+            #endif
+
+            ambient *= textureLod(BUFFER_AO, aoTex, 0).r;
         #endif
 
         #ifdef SKY_ENABLED

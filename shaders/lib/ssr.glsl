@@ -22,6 +22,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
 
     float texDepth;
     vec3 tracePos;
+    vec2 uv;
 
     int i = 1;
     float alpha = 0.0;
@@ -35,7 +36,13 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         if (abs(tracePos.x - clipPos.x) < pixelSize.x
          && abs(tracePos.y - clipPos.y) < pixelSize.y) continue;
 
-        texDepth = textureLod(depthtex, tracePos.xy, 0).r;
+        uv = tracePos.xy;
+
+        #ifndef IS_OPTIFINE
+            uv *= 0.5;
+        #endif
+
+        texDepth = textureLod(depthtex, uv, 0).r;
         if (texDepth >= tracePos.z) continue;
 
         //float d = 0.1 * i*i;
@@ -48,14 +55,13 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
 
     vec3 color = vec3(0.0);
     if (alpha > 0.5) {
-        //if (abs(tracePos.x - clipPos.x) < pixelSize.x
-        // && abs(tracePos.y - clipPos.y) < pixelSize.y) return vec4(0.0);
+        uv = tracePos.xy;
 
         #ifndef IS_OPTIFINE
-            tracePos.xy *= 0.5;
+            uv *= 0.5;
         #endif
 
-        color = textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, lod).rgb;
+        color = textureLod(BUFFER_HDR_PREVIOUS, uv, lod).rgb;
         //vec2 mipTexSize = vec2(viewWidth, viewHeight) / exp2(lod + 1);
         //color = TextureLodLinearRGB(BUFFER_HDR_PREVIOUS, tracePos.xy, mipTexSize, lod);
     }
