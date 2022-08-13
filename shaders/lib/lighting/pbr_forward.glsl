@@ -22,9 +22,9 @@
         //vec2 waterSolidDepth = vec2(0.0);
         vec2 atlasCoord = texcoord;
         float texDepth = 1.0;
-        PbrLightData lightData;
         PbrMaterial material;
 
+        PbrLightData lightData;
         lightData.blockLight = lmcoord.x;
         lightData.skyLight = lmcoord.y;
         lightData.geoNoL = geoNoL;
@@ -217,7 +217,7 @@
             ApplyDirectionalLightmap(lightData.blockLight, material.normal);
         #endif
 
-        #if defined SKY_ENABLED && defined SHADOW_RNABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos.xyz, 1.0))).xyz;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
