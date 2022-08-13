@@ -2,7 +2,7 @@ shadowcolor0	RGBA8		1.0   light-color
 shadowcolor1	RG32UI		1.0   R: rsm-color; G: normal-XYZ, sss
 
 colortex2		RGBA32		1.0   deferred= R: color; G: normal; B: specular; A: lighting
-colortex3		RGB8		1.0   shadow-color
+colortex3		R16F		1.0	  AO
 colortex4		RGB16F		1.0   pre-exposed HDR scene
 colortex5		RGBA16F		0.5	  HDR previous frame = RGB: pre-exposed HDR, A: Log Luminance
 colortex6		R16F		0.5   Log Luminance

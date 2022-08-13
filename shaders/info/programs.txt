@@ -4,8 +4,10 @@
 
 deferred1	Water Waves
 deferred2	RSM
-deferred4	Opaque PBR: RGB1: pre-exposed color, R2: Raw Luminance
-deferred5	opaque copy
+deferred3	AO Render
+deferred4	AO Blur
+deferred5	Opaque PBR: RGB1: pre-exposed color, R2: Raw Luminance
+deferred6	opaque copy
 
 <transparent>
 <particles?>

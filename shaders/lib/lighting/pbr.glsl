@@ -347,14 +347,22 @@
             ambient += skyAmbient * ambientBrightness;
             //return vec4(ambient, 1.0);
 
+            #ifdef SSS_ENABLED
+                vec3 skyAmbientSSS = GetSkyAmbientLight(-viewNormal) * invPI;
+                //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
+                ambient += skyAmbientSSS * ambientBrightness * material.scattering;
+            #endif
+        #endif
+
+        #if AO_TYPE == AO_TYPE_FANCY
+            ambient *= textureLod(BUFFER_AO, texcoord, 0).r;
+        #endif
+
+        #ifdef SKY_ENABLED
             vec3 skyLightColorFinal = skyLightColor * shadowColor;
             float diffuseLightF = shadowFinal;
 
             #ifdef SSS_ENABLED
-                vec3 skyAmbientSSS = GetSkyAmbientLight(-viewNormal) * invPI;
-                //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
-                ambient += skyAmbientSSS * ambientBrightness * material.occlusion * material.scattering;
-
                 // Transmission
                 //vec3 sss = shadowSSS * material.scattering * skyLightColorFinal;// * max(-NoL, 0.0);
                 //diffuseLightF = mix(diffuseLightF, shadowSSS*2.0, material.scattering);
@@ -515,28 +523,14 @@
             ambient *= metalDarkF;
         #endif
 
-        //ambient += minLight;
-
-        float emissive = pow4(material.emission) * EmissionLumens;
-
-        // #ifdef RENDER_WATER
-        //     //ambient = vec3(0.0);
-        //     diffuse = vec3(0.0);
-        //     specular = vec3(0.0);
+        // #if AO_TYPE == AO_TYPE_FANCY
+        //     float occlusion = textureLod(BUFFER_AO, texcoord, 0).r;
+        //     ambient *= occlusion;
         // #endif
 
-        //return vec4(diffuse, 1.0);
+        //return vec4(final.rgb * (ambient * material.occlusion), 1.0);
 
-        //ambient *= max(1.0 - iblF, vec3(0.0));
-        //return vec4((iblSpec) * specularTint, 1.0);
-
-        #ifdef SSS_ENABLED
-            //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
-            //vec3 ambient_sss = skyAmbient * skyLight2 * material.scattering;
-            //ambient += invPI * ambient_sss;
-        #endif
-
-        //return vec4(ambient, 1.0);
+        float emissive = pow4(material.emission) * EmissionLumens;
 
         final.rgb = final.rgb * (ambient * material.occlusion + emissive)
             + diffuse * material.albedo.a

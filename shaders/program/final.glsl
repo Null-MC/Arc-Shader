@@ -143,6 +143,12 @@
     #elif DEBUG_VIEW == DEBUG_VIEW_WATER_WAVES
         // Water Waves
         uniform sampler2D BUFFER_WATER_WAVES;
+    #elif DEBUG_VIEW == DEBUG_VIEW_DEPTH_TILES
+        // Depth Tiles
+        uniform sampler2D BUFFER_DEPTH_PREV;
+    #elif DEBUG_VIEW == DEBUG_VIEW_A0
+        // Ambient Occlusion
+        uniform sampler2D BUFFER_AO;
     #else
         uniform sampler2D BUFFER_HDR;
 
@@ -319,6 +325,12 @@
         #elif DEBUG_VIEW == DEBUG_VIEW_WATER_WAVES
             // Water Waves
             color = textureLod(BUFFER_WATER_WAVES, texcoord, 0).rrr;
+        #elif DEBUG_VIEW == DEBUG_VIEW_DEPTH_TILES
+            // Prev Depth Tiles
+            color = textureLod(BUFFER_DEPTH_PREV, texcoord, 0).rrr;
+        #elif DEBUG_VIEW == DEBUG_VIEW_A0
+            // Ambient Occlusion
+            color = textureLod(BUFFER_AO, texcoord, 0).rrr;
         #else
             // None
             color = GetFinalColor();

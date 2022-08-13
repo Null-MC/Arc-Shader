@@ -243,6 +243,10 @@
         in vec4 spriteBounds;
     #endif
 
+    #if AO_TYPE == AO_TYPE_FANCY
+        uniform sampler2D BUFFER_AO;
+    #endif
+
     uniform sampler2D gtexture;
     uniform sampler2D normals;
     uniform sampler2D specular;

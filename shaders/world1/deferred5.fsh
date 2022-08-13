@@ -1,9 +1,9 @@
 #version 400 compatibility
 
 #define RENDER_FRAG
-#define WORLD_NETHER
+#define WORLD_END
 
-#include "nether.glsl"
+#include "end.glsl"
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
-#include "/program/deferred4.glsl"
+#include "/program/deferred5.glsl"

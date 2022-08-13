@@ -122,6 +122,7 @@
         #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
             float depth = 1.0;
 
+            // TODO: replace this with separate depth tiles?
             depth = textureLod(depthtex0, texcoord, 1).r;
 
             outColor1 = depth;

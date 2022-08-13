@@ -4,7 +4,8 @@
 #define BLOCK_OUTLINE_FANCY 3
 
 #define AO_TYPE_NONE 0
-#define AO_TYPE_VANILLA 1
+#define AO_TYPE_FAST 1
+#define AO_TYPE_FANCY 2
 
 #define WATER_REFRACTION_NONE 0
 #define WATER_REFRACTION_FAST 1
@@ -55,9 +56,10 @@
 #define DEBUG_VIEW_PREV_LUMINANCE 17
 #define DEBUG_VIEW_WATER_WAVES 18
 #define DEBUG_VIEW_DEPTH_TILES 19
+#define DEBUG_VIEW_A0 20
 
 #define BUFFER_DEFERRED colortex2
-#define BUFFER_DEFERRED2 colortex3
+#define BUFFER_AO colortex3
 #define BUFFER_HDR colortex4
 #define BUFFER_HDR_PREVIOUS colortex5
 #define BUFFER_LUMINANCE colortex6
@@ -68,4 +70,3 @@
 #define BUFFER_BRDF_LUT colortex10
 #define BUFFER_WATER_WAVES colortex11
 #define BUFFER_DEPTH_PREV colortex12
-

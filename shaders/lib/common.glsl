@@ -2,7 +2,7 @@ const float sunPathRotation = -30; // [-60 -50 -40 -30 -20 -15 -10 -5 0 5 10 15 
 
 /*
 const int colortex2Format = RGBA32UI;
-const int colortex3Format = RGB8;
+const int colortex3Format = R16F;
 const int colortex4Format = RGB16F;
 const int colortex5Format = RGBA16F;
 const int colortex6Format = R16F;
@@ -15,9 +15,8 @@ const int colortex12Format = R32F;
 
 const bool colortex2MipmapEnabled = false;
 
-const vec4 colortex3ClearColor = vec4(1.0, 1.0, 1.0, 1.0);
 const bool colortex3MipmapEnabled = false;
-const bool colortex3Clear = true;
+const bool colortex3Clear = false;
 
 const bool colortex4MipmapEnabled = true;
 const bool colortex4Clear = false;
@@ -53,7 +52,7 @@ const bool colortex12Clear = false;
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 80 // [0 10 20 30 40 50 60 70 80 90 100]
 #define SHADOW_BRIGHTNESS 0.60 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define RAIN_DARKNESS 0.2
-#define AO_TYPE 1 // [0 1 2]
+#define AO_TYPE 2 // [0 1 2]
 //#define ANIM_USE_WORLDTIME
 
 
@@ -165,7 +164,7 @@ const bool colortex12Clear = false;
 
 
 // Debug Options
-#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
 //#define DEBUG_EXPOSURE_METERS
 #define IS_OPTIFINE
 //#define IRIS_FEATURE_SEPARATE_HW_SAMPLERS

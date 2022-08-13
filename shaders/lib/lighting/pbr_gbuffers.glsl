@@ -162,7 +162,7 @@
 
         float parallaxShadow = 1.0;
 
-        #if AO_TYPE == AO_TYPE_VANILLA
+        #if AO_TYPE == AO_TYPE_FAST
             parallaxShadow = pow2(glcolor.a);
         #endif
 
