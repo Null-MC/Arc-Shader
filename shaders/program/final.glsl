@@ -330,7 +330,13 @@
             color = textureLod(BUFFER_DEPTH_PREV, texcoord, 0).rrr;
         #elif DEBUG_VIEW == DEBUG_VIEW_A0
             // Ambient Occlusion
-            color = textureLod(BUFFER_AO, texcoord, 0).rrr;
+            vec2 aoTex = texcoord;
+
+            #ifndef IS_OPTIFINE
+                aoTex *= 0.5;
+            #endif
+
+            color = textureLod(BUFFER_AO, aoTex, 0).rrr;
         #else
             // None
             color = GetFinalColor();

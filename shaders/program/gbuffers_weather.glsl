@@ -186,6 +186,8 @@
                 #if defined VL_ENABLED && defined VL_PARTICLES
                     uniform mat4 shadowModelView;
                     uniform mat4 gbufferModelViewInverse;
+                    uniform float viewWidth;
+                    uniform float viewHeight;
                 #endif
             #endif
         #endif

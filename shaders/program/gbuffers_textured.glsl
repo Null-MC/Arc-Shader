@@ -186,6 +186,11 @@
                 #elif SHADOW_TYPE != SHADOW_TYPE_NONE
                     uniform mat4 shadowProjection;
                 #endif
+
+                #if defined VL_ENABLED && defined VL_PARTICLES
+                    uniform float viewWidth;
+                    uniform float viewHeight;
+                #endif
             #endif
         #endif
     #endif
