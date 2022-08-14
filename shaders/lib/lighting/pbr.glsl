@@ -208,6 +208,15 @@
                     #endif
                 }
 
+                #ifdef SHADOW_CONTACT
+                    // TODO
+                    if (shadow > EPSILON) {
+                        vec3 shadowRay = viewLightDir * 0.2;
+                        float contactShadow = GetContactShadow(depthtex1, viewPos, shadowRay);
+                        shadow = min(shadow, contactShadow);
+                    }
+                #endif
+
                 #ifdef SHADOW_COLOR
                     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                         shadowColor = GetShadowColor(lightData.shadowPos, lightData.geoNoL);
@@ -252,18 +261,23 @@
         float skyLight2 = pow2(skyLight);
         float skyLight3 = pow3(skyLight);
 
-        //float reflectF = 0.0;
         vec3 reflectColor = vec3(0.0);
         #if REFLECTION_MODE != REFLECTION_MODE_NONE
             if (smoothness > EPSILON) {
                 vec3 reflectDir = reflect(-viewDir, viewNormal);
 
                 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-                    // TODO: move to vertex shader!
+                    vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
+                    vec3 viewPosPrev = (gbufferPreviousModelView * vec4(localPos - previousCameraPosition, 1.0)).xyz;
+
+                    vec3 localReflectDir = mat3(gbufferModelViewInverse) * reflectDir;
+                    vec3 reflectDirPrev = mat3(gbufferPreviousModelView) * localReflectDir;
+
+                    // TODO: move to vertex shader?
                     int maxHdrPrevLod = textureQueryLevels(BUFFER_HDR_PREVIOUS)-1;
                     int lod = int(rough * max(maxHdrPrevLod - 0.5, 0.0));
 
-                    vec4 roughReflectColor = GetReflectColor(BUFFER_DEPTH_PREV, viewPos, reflectDir, lod);
+                    vec4 roughReflectColor = GetReflectColor(BUFFER_DEPTH_PREV, viewPosPrev, reflectDirPrev, lod);
 
                     reflectColor = (roughReflectColor.rgb / exposure) * (1.0 - rough) * roughReflectColor.a;
                     //reflectColor = clamp(reflectColor, vec3(0.0), vec3(65000.0));
@@ -312,10 +326,19 @@
             vec3 specularTint = mix(vec3(1.0), material.albedo.rgb, material.f0);
         #endif
 
+        vec4 final = vec4(albedo, material.albedo.a);
         vec3 ambient = vec3(MinWorldLux + blockLightAmbient);
         vec3 diffuse = vec3(0.0);
         vec3 specular = vec3(0.0);
-        vec4 final = vec4(albedo, material.albedo.a);
+        float occlusion = material.occlusion;
+
+        #if AO_TYPE == AO_TYPE_FANCY
+            #ifdef IS_OPTIFINE
+                occlusion *= textureLod(BUFFER_AO, texcoord, 0).r;
+            #else
+                occlusion *= textureLod(BUFFER_AO, texcoord * 0.5, 0).r;
+            #endif
+        #endif
 
         vec3 iblF = vec3(0.0);
         vec3 iblSpec = vec3(0.0);
@@ -328,8 +351,8 @@
                 #endif
 
                 iblF = GetFresnel(material.albedo.rgb, f0, material.hcm, NoVm, roughL);
-                iblSpec = reflectColor * (iblF * envBRDF.x + envBRDF.y) * material.occlusion;
-                //iblSpec = reflectColor * mix(envBRDF.xxx, envBRDF.yyy, iblF) * material.occlusion;
+                iblSpec = reflectColor * (iblF * envBRDF.x + envBRDF.y) * occlusion;
+                //iblSpec = reflectColor * mix(envBRDF.xxx, envBRDF.yyy, iblF) * occlusion;
 
                 //iblSpec = min(iblSpec, 100000.0);
 
@@ -352,16 +375,6 @@
                 //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
                 ambient += skyAmbientSSS * ambientBrightness * material.scattering;
             #endif
-        #endif
-
-        #if AO_TYPE == AO_TYPE_FANCY
-            vec2 aoTex = texcoord;
-
-            #ifndef IS_OPTIFINE
-                aoTex *= 0.5;
-            #endif
-
-            ambient *= textureLod(BUFFER_AO, aoTex, 0).r;
         #endif
 
         #ifdef SKY_ENABLED
@@ -534,11 +547,11 @@
         //     ambient *= occlusion;
         // #endif
 
-        //return vec4(final.rgb * (ambient * material.occlusion), 1.0);
+        //return vec4(final.rgb * (ambient * occlusion), 1.0);
 
         float emissive = pow4(material.emission) * EmissionLumens;
 
-        final.rgb = final.rgb * (ambient * material.occlusion + emissive)
+        final.rgb = final.rgb * (ambient * occlusion + emissive)
             + diffuse * material.albedo.a
             + (specular + iblSpec) * specularTint;
 

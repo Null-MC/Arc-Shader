@@ -5,22 +5,15 @@
 
         vec3 rayDirection = rayVector / rayLength;
         float stepLength = rayLength / VL_SAMPLE_COUNT;
+        vec3 rayStep = rayDirection * stepLength;
         vec3 accumCol = vec3(0.0);
 
         #ifdef VL_DITHER
-            const mat4 DITHER_PATTERN = mat4(
-                vec4(0.0f, 0.5f, 0.125f, 0.625f),
-                vec4(0.75f, 0.22f, 0.875f, 0.375f),
-                vec4(0.1875f, 0.6875f, 0.0625f, 0.5625f),
-                vec4(0.9375f, 0.4375f, 0.8125f, 0.3125f));
-
-            int ditherX = int(gl_FragCoord.x * viewWidth) % 4;
-            int ditherY = int(gl_FragCoord.y * viewHeight) % 4;
-            vec3 ditherOffset = rayDirection * stepLength * DITHER_PATTERN[ditherX][ditherY];
+            vec3 ditherOffset = rayStep * GetScreenBayerValue();
         #endif
 
         for (int i = 1; i < VL_SAMPLE_COUNT; i++) {
-            vec3 currentShadowViewPos = shadowViewStart + i * rayDirection * stepLength;
+            vec3 currentShadowViewPos = shadowViewStart + i * rayStep;
 
             #ifdef VL_DITHER
                 currentShadowViewPos += ditherOffset;
@@ -74,8 +67,16 @@
         float stepLength = rayLength / VL_SAMPLE_COUNT;
         float accumF = 0.0;
 
+        #ifdef VL_DITHER
+            vec3 ditherOffset = rayDirection * stepLength * GetScreenBayerValue();
+        #endif
+
         for (int i = 1; i < VL_SAMPLE_COUNT; i++) {
             vec3 currentShadowViewPos = shadowViewStart + i * rayDirection * stepLength;
+
+            #ifdef VL_DITHER
+                currentShadowViewPos += ditherOffset;
+            #endif
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 vec3 shadowPos[4];

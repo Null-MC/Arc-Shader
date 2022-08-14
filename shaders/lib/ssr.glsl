@@ -1,14 +1,7 @@
 // returns: rgb=color  a=attenuation
 vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const in vec3 reflectDir, const in int lod) {
-    vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
-    localPos += cameraPosition - previousCameraPosition;
-    vec3 viewPosPrev = (gbufferPreviousModelView * vec4(localPos, 1.0)).xyz;
-
-    vec3 localReflectDir = mat3(gbufferModelViewInverse) * reflectDir;
-    vec3 reflectDirPrev = mat3(gbufferPreviousModelView) * localReflectDir;
-
-    vec3 clipPos = unproject(gbufferProjection * vec4(viewPosPrev, 1.0)) * 0.5 + 0.5;
-    vec3 reflectClipPos = unproject(gbufferProjection * vec4(viewPosPrev + reflectDirPrev, 1.0)) * 0.5 + 0.5;
+    vec3 clipPos = unproject(gbufferProjection * vec4(viewPos, 1.0)) * 0.5 + 0.5;
+    vec3 reflectClipPos = unproject(gbufferProjection * vec4(viewPos + reflectDir, 1.0)) * 0.5 + 0.5;
 
     vec2 pixelSize = rcp(0.5 * vec2(viewWidth, viewHeight));
 

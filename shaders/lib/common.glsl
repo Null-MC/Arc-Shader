@@ -174,6 +174,9 @@ const bool colortex12Clear = false;
 #define HCM_LAZANYI
 #define HCM_AMBIENT 0.16
 #define SSR_STEPS 512
+#define SHADOW_CONTACT
+#define SSS_DITHER
+//#define SHADOW_CONTACT_DITHER
 
 
 // INTERNAL

@@ -1,9 +1,6 @@
 #version 400 compatibility
 
-#define RENDER_VERTEX
 #define WORLD_OVERWORLD
 
 #include "overworld.glsl"
-#include "lib/constants.glsl"
-#include "lib/common.glsl"
-#include "program/gbuffers_skybasic.glsl"
+#include "program/gbuffers_skybasic.vsh"

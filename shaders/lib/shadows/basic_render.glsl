@@ -1,29 +1,5 @@
 #ifdef RENDER_VERTEX
-    void ApplyShadows(const in vec3 shadowViewPos, const in vec3 viewDir) {
-        // #ifndef SSS_ENABLED
-        //     if (geoNoL > 0.0) {
-        // #endif
-        //     shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
-
-        //     #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-        //         //float distortFactor = getDistortFactor(shadowPos.xy);
-        //         shadowPos.xyz = distort(shadowPos.xyz);
-        //         //shadowBias = GetShadowBias(geoNoL, distortFactor);
-        //     #elif SHADOW_TYPE == SHADOW_TYPE_BASIC
-        //         //shadowBias = GetShadowBias(geoNoL);
-        //     #endif
-
-        //     shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
-
-        //     #if defined PARALLAX_ENABLED && !defined RENDER_SHADOW && defined PARALLAX_SHADOW_FIX
-        //         // TODO: Get shadow position with max parallax offset
-        //         shadowParallaxPos = (matShadowProjections * vec4(parallaxShadowViewPos, 1.0)).xyz;
-        //         shadowParallaxPos.xyz = shadowParallaxPos.xyz * 0.5 + 0.5;
-        //     #endif
-        // #ifndef SSS_ENABLED
-        //     }
-        // #endif
-    }
+    void ApplyShadows(const in vec3 shadowViewPos, const in vec3 viewDir) {}
 #endif
 
 #ifdef RENDER_FRAG
@@ -60,38 +36,6 @@
             return textureLod(shadowcolor0, shadowPos.xy, 0).rgb;
         }
     #endif
-
-    // // returns: XYZ:color; W=[0] when depth occluded, W=[1] otherwise
-    // vec4 CompareDepthColor(const in vec4 shadowPos, const in vec2 offset, const in float shadowBias) {
-    //     vec4 result = vec4(1.0);
-
-    //     #ifdef SHADOW_ENABLE_HWCOMP
-    //         #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
-    //             result.w = textureLod(shadowtex1HW, shadowPos.xyz + vec3(offset * shadowPos.w, -shadowBias), 0);
-    //         #else
-    //             result.w = textureLod(shadowtex1, shadowPos.xyz + vec3(offset * shadowPos.w, -shadowBias), 0);
-    //         #endif
-    //     #else
-    //         float shadowDepth = textureLod(shadowtex1, shadowPos.xy + offset * shadowPos.w, 0).r;
-    //         result.w = step(shadowPos.z + EPSILON, shadowDepth + shadowBias);
-    //     #endif
-
-    //     #ifdef SHADOW_COLOR
-    //         if (result.w > EPSILON) {
-    //             #ifdef SHADOW_ENABLE_HWCOMP
-    //                 float waterShadow = 1.0 - textureLod(shadowtex0, shadowPos.xyz + vec3(offset * shadowPos.w, -shadowBias), 0);
-    //             #else
-    //                 float waterDepth = textureLod(shadowtex0, shadowPos.xyz + vec3(offset * shadowPos.w, -shadowBias), 0).r;
-    //                 float waterShadow = 1.0 - step(waterDepth, shadowPos.z);
-    //             #endif
-
-    //             if (waterShadow > EPSILON)
-    //                 result.rgb = textureLod(shadowcolor0, _shadowPos.xy, 0).rgb;
-    //         }
-    //     #endif
-
-    //     return result;
-    // }
 
     vec2 GetShadowPixelRadius(const in vec2 shadowPos, const in float blockRadius) {
         vec2 shadowProjectionSize = 2.0 / vec2(shadowProjection[0].x, shadowProjection[1].y);
@@ -194,10 +138,19 @@
 
         #if SSS_FILTER != 0
             float GetShadowing_PCF_SSS(const in vec4 shadowPos, const in float shadowBias, const in vec2 pixelRadius, const in int sampleCount) {
+                #ifdef SSS_DITHER
+                    vec2 ditherOffset = pixelRadius * GetScreenBayerValue();
+                #endif
+
                 float light = 0.0;
                 float sampleHit = 0.0;
                 for (int i = 0; i < sampleCount; i++) {
                     vec2 pixelOffset = poissonDisk[i] * pixelRadius;
+
+                    #ifdef SSS_DITHER
+                        pixelOffset += ditherOffset;
+                    #endif
+
                     float texDepth = SampleDepth(shadowPos, pixelOffset);
                     //light += step(shadowPos.z + shadowBias, texDepth + 0.001);
 
