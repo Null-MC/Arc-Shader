@@ -1,6 +1,3 @@
-#extension GL_ARB_texture_query_levels : enable
-#extension GL_EXT_gpu_shader4 : enable
-
 #define RENDER_FRAG
 #define RENDER_DEFERRED
 #define RENDER_OPAQUE_FINAL

@@ -1,5 +1,3 @@
-#extension GL_ARB_gpu_shader5 : enable
-
 #define RENDER_FRAG
 #define RENDER_GBUFFER
 #define RENDER_HAND

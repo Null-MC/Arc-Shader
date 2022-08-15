@@ -1,9 +1,3 @@
-#extension GL_ARB_gpu_shader5 : enable
-
-#if defined PARALLAX_ENABLED && defined PARALLAX_DEPTH_WRITE
-    #extension GL_ARB_conservative_depth : enable
-#endif
-
 #define RENDER_FRAG
 #define RENDER_GBUFFER
 #define RENDER_TERRAIN

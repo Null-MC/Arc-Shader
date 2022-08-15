@@ -1,6 +1,3 @@
-#extension GL_ARB_texture_query_levels : enable
-#extension GL_ARB_gpu_shader5 : enable
-
 #define RENDER_FRAG
 #define RENDER_GBUFFER
 #define RENDER_HAND_WATER

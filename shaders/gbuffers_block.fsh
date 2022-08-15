@@ -1,6 +1,6 @@
 #version 400 compatibility
 
-#define WORLD_OVERWORLD
+#extension GL_ARB_gpu_shader5 : enable
 
 #include "overworld.glsl"
 #include "program/gbuffers_block.fsh"

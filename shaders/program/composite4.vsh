@@ -1,5 +1,3 @@
-#extension GL_ARB_texture_query_levels : enable
-
 #define RENDER_VERTEX
 #define RENDER_COMPOSITE
 //#define RENDER_COMPOSITE_PREV_FRAME

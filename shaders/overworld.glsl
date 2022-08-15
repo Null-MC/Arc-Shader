@@ -1,3 +1,4 @@
+#define WORLD_OVERWORLD
 #define SHADOW_ENABLED
 #define SKY_ENABLED
 

@@ -1,6 +1,6 @@
 #version 400 compatibility
 
-#define WORLD_OVERWORLD
+#extension GL_ARB_texture_query_levels : enable
 
 #include "overworld.glsl"
 #include "program/gbuffers_skybasic.vsh"
