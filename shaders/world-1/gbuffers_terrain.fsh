@@ -6,7 +6,5 @@
     #extension GL_ARB_conservative_depth : enable
 #endif
 
-#define WORLD_NETHER
-
 #include "nether.glsl"
 #include "/program/gbuffers_terrain.fsh"
