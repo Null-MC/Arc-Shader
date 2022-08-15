@@ -29,9 +29,9 @@ out vec2 texcoord;
         vec2 eyeBrightnessLinear = saturate2(eyeBrightness / 240.0);
 
         vec2 skyLightLevels = GetSkyLightLevels();
-        float sunLightLux = GetSunLightLevel(skyLightLevels.x) * SunLux;
-        float moonLightLux = GetMoonLightLevel(skyLightLevels.y) * MoonLux;
-        float skyLightBrightness = pow3(eyeBrightnessLinear.y) * (sunLightLux + moonLightLux);
+        float sunLightLux = GetSunLightLux(skyLightLevels.x);
+        float moonLightLux = GetMoonLightLux(skyLightLevels.y);
+        float skyLightBrightness = eyeBrightnessLinear.y * (sunLightLux + moonLightLux);
 
         float blockLightBrightness = eyeBrightnessLinear.x;
 

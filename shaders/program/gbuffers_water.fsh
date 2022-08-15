@@ -162,7 +162,7 @@ uniform int fogShape;
     #include "/lib/parallax.glsl"
 #endif
 
-#if defined WATER_FANCY && !defined WORLD_NETHER
+#if defined WATER_FANCY && !defined WORLD_NETHER && !defined WORLD_END
     #include "/lib/world/wind.glsl"
     #include "/lib/world/water.glsl"
 

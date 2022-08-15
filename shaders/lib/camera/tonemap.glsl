@@ -119,7 +119,7 @@ vec3 _ChangeLuma(const in vec3 c_in, const in float l_out)
 vec3 tonemap_ReinhardExtendedLuminance(const in vec3 color, const in float maxWhiteLuma)
 {
     float luma_old = luminance(color);
-    float numerator = luma_old * (1.0 + luma_old / (maxWhiteLuma * maxWhiteLuma));
+    float numerator = luma_old * (1.0 + luma_old / pow2(maxWhiteLuma));
     float luma_new = numerator / (1.0 + luma_old);
     return _ChangeLuma(color, luma_new);
 }
@@ -160,13 +160,13 @@ vec3 ApplyTonemap(const in vec3 color, const in float whitePoint)
 #elif TONEMAP == TONEMAP_ACESFit2
     return tonemap_ACESFit2(color);
 #elif TONEMAP == TONEMAP_FilmicHejl2015
-    return tonemap_FilmicHejl2015(color, 1.0);
+    return tonemap_FilmicHejl2015(color, whitePoint);
 #elif TONEMAP == TONEMAP_Burgess
     return tonemap_Burgess(color);
 #elif TONEMAP == TONEMAP_BurgessModified
     return tonemap_BurgessModified(color);
 #elif TONEMAP == TONEMAP_ReinhardExtendedLuminance
-    return tonemap_ReinhardExtendedLuminance(color, 4.0);
+    return tonemap_ReinhardExtendedLuminance(color, whitePoint);
 #elif TONEMAP == TONEMAP_Tech
     return tonemap_Tech(color);
 #else

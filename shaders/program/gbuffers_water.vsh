@@ -122,7 +122,7 @@ uniform float blindness;
     #endif
 #endif
 
-#if WATER_WAVE_TYPE == WATER_WAVE_VERTEX && !defined WORLD_NETHER
+#if WATER_WAVE_TYPE == WATER_WAVE_VERTEX && !defined WORLD_NETHER && !defined WORLD_END
     #include "/lib/world/wind.glsl"
     #include "/lib/world/water.glsl"
 #endif

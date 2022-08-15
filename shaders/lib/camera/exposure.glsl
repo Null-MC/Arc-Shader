@@ -1,12 +1,24 @@
-float GetEV100(const in float averageLuminance) {
+float GetEV100(const in float lum, const in float S, const in float K) {
+    return log2(lum * S / K);
+}
+
+float GetEV100(const in float avgLum) {
     //return EXPOSURE_POINT / clamp(f, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
-    float avgLumClamped = clamp(averageLuminance, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
+    //float avgLumClamped = clamp(avgLum, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
 
     //float lumMax = 9.6 * avgLumClamped;
 
     const float S = 100.0;
     const float K = 12.5;
-    return log2(avgLumClamped * S / K);
+    return GetEV100(avgLum, S, K);
+
+    //float K = 1.03 - 2.0 / (2.0 + log(avgLumClamped + 1.0));
+    //return log2(avgLumClamped * S / K);
+}
+
+float GetExposureKeyValue(const in float avgLum) {
+    return 1.03 - 2.0 / (2.0 + log(avgLum + 1.0));
+    //return 0.0;
 }
 
 float GetExposure(const in float EV100) {
@@ -21,9 +33,6 @@ float GetExposure(const in float EV100) {
     return rcp(brightnessF * exp2(EV100));
 }
 
-
-// Auto
-
 #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
     int GetLuminanceLod() {
         return textureQueryLevels(BUFFER_HDR_PREVIOUS)-1;
@@ -31,7 +40,10 @@ float GetExposure(const in float EV100) {
 #endif
 
 float GetAverageLuminance() {
-    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        float lum = texelFetch(BUFFER_HDR_PREVIOUS, ivec2(0, 0), 0).a;
+        return max(exp2(lum) - EPSILON, 0.0);
+    #elif CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         int luminanceLod = GetLuminanceLod()-2;
 
         float averageLuminance = 0.0;
@@ -60,17 +72,27 @@ float GetAverageLuminance() {
     #endif
 }
 
-float GetEV100() {
-    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-        float averageLuminance = GetAverageLuminance();
-        return GetEV100(averageLuminance);
-    #else
-        return 0.0;
-    #endif
-}
+// float GetEV100() {
+//     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+//         float avgLum = GetAverageLuminance();
+//         avgLum = clamp(avgLum, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
+//         return GetEV100(avgLum);
+//     #else
+//         return 0.0;
+//     #endif
+// }
 
 float GetExposure() {
-    float EV100 = GetEV100() - CAMERA_EXPOSURE;
+    //float EV100 = GetEV100() - CAMERA_EXPOSURE;
+    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+        float avgLum = GetAverageLuminance();
+        avgLum = clamp(avgLum, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
+
+        float keyValue = GetExposureKeyValue(avgLum);
+        float EV100 = GetEV100(avgLum) - keyValue;
+    #else
+        float EV100 = 0.0;
+    #endif
 
     //EV100 += 8.0 * blindness;
 

@@ -1,5 +1,6 @@
 #define WORLD_OVERWORLD
 #define SHADOW_ENABLED
+//#define WIND_ENABLED
 #define SKY_ENABLED
 
 const float shadowDistance = 150; // [0 50 100 150 200 300 400 800]

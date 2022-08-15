@@ -365,7 +365,7 @@
         //return vec4(iblSpec, 1.0);
 
         #ifdef SKY_ENABLED
-            float ambientBrightness = mix(0.36 * skyLight2, 0.95 * skyLight, rainStrength); // SHADOW_BRIGHTNESS
+            float ambientBrightness = mix(0.36 * skyLight2, 0.85 * skyLight, rainStrength) * SHADOW_BRIGHTNESS;
             vec3 skyAmbient = GetSkyAmbientLight(viewNormal);
             ambient += skyAmbient * ambientBrightness;
             //return vec4(ambient, 1.0);
@@ -410,7 +410,7 @@
             }
         #endif
 
-        #if defined RENDER_WATER && !defined WORLD_NETHER
+        #if defined RENDER_WATER && !defined WORLD_NETHER && !defined WORLD_END
             if (materialId == 1) {
                 const float ScatteringCoeff = 0.11;
 

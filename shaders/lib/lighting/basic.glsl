@@ -32,7 +32,7 @@
                     }
                 }
 
-                #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX && !defined WORLD_NETHER
+                #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX && !defined WORLD_NETHER && !defined WORLD_END
                     #if MC_VERSION >= 11700
                         float vY = -at_midBlock.y / 64.0;
                         float posY = saturate(vY + 0.5) * (1.0 - step(0.48, vY + EPSILON));

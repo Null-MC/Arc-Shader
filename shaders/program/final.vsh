@@ -62,6 +62,7 @@ void main() {
 
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         averageLuminance = GetAverageLuminance();
-        EV100 = GetEV100(averageLuminance);
+        float keyValue = GetExposureKeyValue(averageLuminance);
+        EV100 = GetEV100(averageLuminance) - keyValue;
     #endif
 }
