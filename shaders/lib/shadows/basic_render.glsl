@@ -37,6 +37,12 @@
         }
     #endif
 
+    #ifdef SHADOW_DITHER
+        float GetShadowDitherOffset() {
+            return (2.0 * GetScreenBayerValue() - 1.0)*shadowPixelSize;
+        }
+    #endif
+
     vec2 GetShadowPixelRadius(const in vec2 shadowPos, const in float blockRadius) {
         vec2 shadowProjectionSize = 2.0 / vec2(shadowProjection[0].x, shadowProjection[1].y);
 
@@ -57,7 +63,7 @@
         // PCF
         float GetShadowing_PCF(const in vec4 shadowPos, const in float shadowBias, const in vec2 pixelRadius, const in int sampleCount) {
             #ifdef SHADOW_DITHER
-                vec2 ditherOffset = pixelRadius * GetScreenBayerValue();
+                float ditherOffset = GetShadowDitherOffset();
             #endif
 
             float shadow = 0.0;
@@ -78,6 +84,10 @@
     #if SHADOW_FILTER == 2
         // PCF + PCSS
         float FindBlockerDistance(const in vec4 shadowPos, const in vec2 pixelRadius, const in int sampleCount) {
+            #ifdef SHADOW_DITHER
+                float ditherOffset = GetShadowDitherOffset();
+            #endif
+
             //float radius = SearchWidth(uvLightSize, shadowPos.z);
             //float radius = 6.0; //SHADOW_LIGHT_SIZE * (shadowPos.z - PCSS_NEAR) / shadowPos.z;
             float avgBlockerDistance = 0.0;
@@ -85,6 +95,11 @@
 
             for (int i = 0; i < sampleCount; i++) {
                 vec2 pixelOffset = poissonDisk[i] * pixelRadius;
+
+                #ifdef SHADOW_DITHER
+                    pixelOffset += ditherOffset;
+                #endif
+
                 float texDepth = SampleDepth(shadowPos, pixelOffset);
 
                 if (texDepth < shadowPos.z) {
@@ -130,10 +145,14 @@
     #elif SHADOW_FILTER == 0
         // Unfiltered
         float GetShadowing(const in vec4 shadowPos, const in float shadowBias) {
+            #ifdef SHADOW_DITHER
+                float ditherOffset = GetShadowDitherOffset();
+            #endif
+
             #ifdef SHADOW_ENABLE_HWCOMP
-                return CompareDepth(shadowPos, vec2(0.0), shadowBias);
+                return CompareDepth(shadowPos, vec2(ditherOffset), shadowBias);
             #else
-                float texDepth = SampleDepth(shadowPos, vec2(0.0));
+                float texDepth = SampleDepth(shadowPos, vec2(ditherOffset));
                 return step(shadowPos.z - EPSILON, texDepth + shadowBias);
             #endif
         }

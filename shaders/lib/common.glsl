@@ -144,7 +144,7 @@ const bool colortex12Clear = false;
 #define RSM_ENABLED
 #define RSM_INTENSITY 8 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
 #define RSM_FILTER_SIZE 1.2 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.4 2.6 2.8 3.0]
-#define RSM_SAMPLE_COUNT 100 // [100 200 400]
+#define RSM_SAMPLE_COUNT 35 // [35 100 200 400]
 #define RSM_SCALE 2 // [0 1 2]
 //#define RSM_UPSCALE
 #define RSM_DITHER
@@ -156,10 +156,11 @@ const bool colortex12Clear = false;
 #define VL_ENABLED
 #define VL_DITHER
 #define VL_STRENGTH 50 // [10 20 30 40 50 60 70 80 90 100]
-#define VL_SAMPLE_COUNT 30 // [15 30 60 90]
+#define VL_SAMPLE_COUNT 15 // [15 30 60 90]
 //#define VL_PARTICLES
 #define G_SCATTERING_CLEAR 0.18 // 0.96
-#define G_SCATTERING_HUMID 0.72 // 0.84
+#define G_SCATTERING_NIGHT 0.64 // 0.96
+#define G_SCATTERING_HUMID 0.88 // 0.84
 #define G_SCATTERING_RAIN 0.98
 #define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
 
@@ -199,7 +200,7 @@ const float EmissionLumens = 1.0e6;
 
 const float SunLux = 64000.0;
 const float SunOvercastLux = 600.0;
-const float MoonLux = 10.0;
+const float MoonLux = 12.0;
 const float MoonOvercastLux = 2.0;
 const float BlockLightLux = 3400.0; // 9k
 const float DaySkyLux = 20000.0;

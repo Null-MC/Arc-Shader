@@ -96,7 +96,7 @@ void main() {
     #else
         vec3 viewDir = normalize(viewPos);
         vec3 sky = GetVanillaSkyLuminance(viewDir);
-        sky += GetVanillaSkyScattering(viewDir, sunColor, moonColor);
+        sky += GetVanillaSkyScattering(viewDir, sunLightLevel, sunColor, moonColor);
         lum += luminance(sky);
         color += sky;
     #endif

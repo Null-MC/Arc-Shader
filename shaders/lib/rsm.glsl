@@ -49,7 +49,7 @@ float SampleDepth(const in ivec2 itex) {
 #endif
 {
     #ifdef RSM_DITHER
-        float ditherOffset = 0.1*RSM_FILTER_SIZE * GetScreenBayerValue();
+        float ditherOffset = (GetScreenBayerValue() - 0.5) * RSM_FILTER_SIZE;
         //float ditherOffset = RSM_FILTER_SIZE * GetBayerValue(ivec2(shadowViewPos.xy));
     #endif
 

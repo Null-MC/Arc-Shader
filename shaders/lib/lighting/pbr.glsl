@@ -54,7 +54,7 @@
     #endif
 
     #ifdef SKY_ENABLED
-        vec3 GetSkyReflectionColor(const in vec3 reflectDir) {
+        vec3 GetSkyReflectionColor(const in vec3 reflectDir, const in float sunLightLevel) {
             // darken lower horizon
             vec3 downDir = normalize(-upPosition);
             float RoDm = max(dot(reflectDir, downDir), 0.0);
@@ -65,7 +65,7 @@
             //reflectF *= 1.0 - pow(NoRm, 0.5);
 
             vec3 skyLumen = GetVanillaSkyLuminance(reflectDir);
-            vec3 skyScatter = GetVanillaSkyScattering(reflectDir, sunColor, moonColor);
+            vec3 skyScatter = GetVanillaSkyScattering(reflectDir, sunLightLevel, sunColor, moonColor);
 
             // TODO: clamp skyScatter?
             //skyScatter = min(skyScatter, 65554.0);
@@ -189,6 +189,9 @@
         float shadowSSS = 0.0;
 
         #ifdef SKY_ENABLED
+            vec2 skyLightLevels = GetSkyLightLevels();
+            float sunLightLevel = GetSunLightLevel(skyLightLevels.x);
+
             shadow *= step(EPSILON, lightData.geoNoL);
             shadow *= step(EPSILON, NoL);
 
@@ -284,13 +287,13 @@
 
                     #ifdef SKY_ENABLED
                         if (roughReflectColor.a + EPSILON < 1.0) {
-                            vec3 skyReflectColor = GetSkyReflectionColor(reflectDir) * skyLight3;
+                            vec3 skyReflectColor = GetSkyReflectionColor(reflectDir, sunLightLevel) * skyLight3;
                             reflectColor += skyReflectColor * (1.0 - roughReflectColor.a);
                         }
                     #endif
 
                 #elif REFLECTION_MODE == REFLECTION_MODE_SKY && defined SKY_ENABLED
-                    reflectColor = GetSkyReflectionColor(reflectDir) * skyLight3;
+                    reflectColor = GetSkyReflectionColor(reflectDir, sunLightLevel) * skyLight3;
                 #endif
             }
         #endif
@@ -621,7 +624,7 @@
             vec3 shadowViewStart = (matViewToShadowView * vec4(vec3(0.0, 0.0, -near), 1.0)).xyz;
             vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
 
-            float vlScatter = GetScatteringFactor();
+            float vlScatter = GetScatteringFactor(sunLightLevel);
 
             #ifdef SHADOW_COLOR
                 vec3 volScatter = GetVolumetricLightingColor(lightData, shadowViewStart, shadowViewEnd, vlScatter);

@@ -242,5 +242,6 @@ void main() {
     outColor1 = outLum;
 
     color.rgb = clamp(color.rgb * exposure, vec3(0.0), vec3(65000));
+
     outColor0 = color;
 }
