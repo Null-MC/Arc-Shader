@@ -48,10 +48,20 @@ float SampleDepth(const in ivec2 itex) {
     vec3 GetIndirectLighting_RSM(const in vec3 shadowViewPos, const in vec3 shadowViewNormal)
 #endif
 {
+    #ifdef RSM_DITHER
+        float ditherOffset = 0.1*RSM_FILTER_SIZE * GetScreenBayerValue();
+        //float ditherOffset = RSM_FILTER_SIZE * GetBayerValue(ivec2(shadowViewPos.xy));
+    #endif
+
     vec3 shading = vec3(0.0);
 
     for (int i = 0; i < RSM_SAMPLE_COUNT; i++) {
         vec3 offsetShadowViewPos = shadowViewPos;
+
+        #ifdef RSM_DITHER
+            offsetShadowViewPos += ditherOffset;
+        #endif
+
         offsetShadowViewPos.xy += rsmPoissonDisk[i] * RSM_FILTER_SIZE;
 
         vec2 uv;

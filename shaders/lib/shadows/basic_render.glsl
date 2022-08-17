@@ -56,9 +56,18 @@
     #if SHADOW_FILTER != 0
         // PCF
         float GetShadowing_PCF(const in vec4 shadowPos, const in float shadowBias, const in vec2 pixelRadius, const in int sampleCount) {
+            #ifdef SHADOW_DITHER
+                vec2 ditherOffset = pixelRadius * GetScreenBayerValue();
+            #endif
+
             float shadow = 0.0;
             for (int i = 0; i < sampleCount; i++) {
                 vec2 pixelOffset = poissonDisk[i] * pixelRadius;
+
+                #ifdef SHADOW_DITHER
+                    pixelOffset += ditherOffset;
+                #endif
+
                 shadow += 1.0 - CompareDepth(shadowPos, pixelOffset, shadowBias);
             }
 
@@ -95,8 +104,8 @@
             int blockerSampleCount = POISSON_SAMPLES;
             if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) blockerSampleCount = 1;
             float blockerDistance = FindBlockerDistance(shadowPos, pixelRadius, blockerSampleCount);
-            if (blockerDistance < 0.0) return 1.0;
-            if (blockerDistance == 1.0) return 0.0;
+            if (blockerDistance <= 0.0) return 1.0;
+            //if (blockerDistance == 1.0) return 0.0;
 
             // penumbra estimation
             float penumbraWidth = (shadowPos.z - blockerDistance) / blockerDistance;

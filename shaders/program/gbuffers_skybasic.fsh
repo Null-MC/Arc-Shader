@@ -34,11 +34,14 @@ uniform int moonPhase;
 #endif
 
 #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FANCY
+    uniform sampler2D noisetex;
+
     uniform mat4 gbufferModelViewInverse;
+    uniform float frameTimeCounter;
     uniform float eyeAltitude;
-    uniform float near;
 
     #include "/lib/world/atmosphere.glsl"
+    //#include "/lib/world/sky_robobo.glsl"
 #endif
 
 #include "/lib/lighting/blackbody.glsl"
@@ -62,6 +65,7 @@ void main() {
         vec3 localSunDir = normalize(localSunPos);
 
         vec3 localViewPos = mat3(gbufferModelViewInverse) * viewPos;
+        vec3 localViewDir = normalize(localViewPos);
 
         ScatteringParams setting;
         setting.sunRadius = 3000.0;
@@ -74,7 +78,6 @@ void main() {
         setting.earthCenter = vec3(0.0, -6360000.0, 0.0);
         setting.waveLambdaMie = vec3(2e-7);
 
-        vec3 localViewDir = normalize(localViewPos);
         
         // wavelength with 680nm, 550nm, 450nm
         setting.waveLambdaRayleigh = ComputeWaveLambdaRayleigh(vec3(680e-9, 550e-9, 450e-9));
@@ -84,10 +87,12 @@ void main() {
 
         vec3 eye = vec3(0.0, 200.0 * eyeAltitude, 0.0);
 
-        vec4 sky = ComputeSkyInscattering(setting, eye, localViewDir, localSunDir);
+        vec3 sky = ComputeSkyInscattering(setting, eye, localViewDir, localSunDir).rgb;
 
-        color += sky.rgb;
-        lum += luminance(sky.rgb);
+        //vec3 sky = GetSkyColor(localViewDir, localSunDir) * 1000.0;
+
+        color += sky;
+        lum += luminance(sky);
     #else
         vec3 viewDir = normalize(viewPos);
         vec3 sky = GetVanillaSkyLuminance(viewDir);

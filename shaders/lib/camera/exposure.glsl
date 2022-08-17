@@ -3,27 +3,16 @@ float GetEV100(const in float lum, const in float S, const in float K) {
 }
 
 float GetEV100(const in float avgLum) {
-    //return EXPOSURE_POINT / clamp(f, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
-    //float avgLumClamped = clamp(avgLum, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
-
-    //float lumMax = 9.6 * avgLumClamped;
-
     const float S = 100.0;
     const float K = 12.5;
     return GetEV100(avgLum, S, K);
-
-    //float K = 1.03 - 2.0 / (2.0 + log(avgLumClamped + 1.0));
-    //return log2(avgLumClamped * S / K);
 }
 
 float GetExposureKeyValue(const in float avgLum) {
     return 1.03 - 2.0 / (2.0 + log(avgLum + 1.0));
-    //return 0.0;
 }
 
 float GetExposure(const in float EV100) {
-    //return 1.0 / exp2(EV100 - 3.0);
-
     float brightnessF = 2.0 - screenBrightness;
 
     #if MC_VERSION >= 11900
@@ -96,5 +85,5 @@ float GetExposure() {
 
     //EV100 += 8.0 * blindness;
 
-    return GetExposure(EV100);
+    return GetExposure(EV100 - CAMERA_EXPOSURE);
 }

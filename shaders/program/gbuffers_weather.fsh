@@ -147,7 +147,7 @@ void main() {
     color.a *= WEATHER_OPACITY * 0.01;
 
     vec4 outLuminance = vec4(0.0);
-    outLuminance.r = log2(luminance(color.rgb) * color.a + EPSILON);
+    outLuminance.r = log2(luminance(color.rgb) + EPSILON);
     outLuminance.a = color.a;
     outColor1 = outLuminance;
 
