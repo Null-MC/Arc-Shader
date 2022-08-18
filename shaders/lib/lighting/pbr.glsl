@@ -340,7 +340,7 @@
 
                 iblF = GetFresnel(material.albedo.rgb, f0, material.hcm, NoVm, rough);
                 vec3 iblV = iblF * envBRDF.r + envBRDF.g;
-                iblSpec = reflectColor * (iblV * (1.0 - sqrt(rough))) * occlusion;
+                iblSpec = reflectColor * (iblV * (1.0 - sqrt(max(rough, EPSILON)))) * occlusion;
                 //iblSpec = reflectColor * mix(envBRDF.xxx, envBRDF.yyy, iblF) * occlusion;
 
                 //iblSpec = min(iblSpec, 100000.0);
