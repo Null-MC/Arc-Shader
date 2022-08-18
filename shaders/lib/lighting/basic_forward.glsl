@@ -5,6 +5,7 @@
 #ifdef RENDER_FRAG
     vec4 BasicLighting() {
         vec4 albedo = texture(gtexture, texcoord);
+        if (albedo.a < (0.5/255.0)) discard;
 
         //#if !defined RENDER_TEXTURED && !defined RENDER_WEATHER
         //    if (albedo.a < alphaTestRef) discard;
@@ -97,7 +98,9 @@
             PbrLightData lightData;
             // TODO: add CSM projections
 
-            float vlScatter = GetScatteringFactor();
+            vec2 skyLightLevels = GetSkyLightLevels();
+            float sunLightLevel = GetSunLightLevel(skyLightLevels.x);
+            float vlScatter = GetScatteringFactor(sunLightLevel);
 
             #ifdef SHADOW_COLOR
                 vec3 volScatter = GetVolumetricLightingColor(lightData, shadowViewStart, shadowViewEnd, vlScatter);
@@ -105,7 +108,7 @@
                 float volScatter = GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd, vlScatter);
             #endif
 
-            final.rgb += volScatter * (sunColor + moonColor);
+            final.rgb += volScatter * 0.2*(sunColor + moonColor);
         #endif
 
         return final;

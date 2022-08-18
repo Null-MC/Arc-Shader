@@ -20,7 +20,7 @@ alpha
 	lightmap-block
 	lightmap-sky
 	geoNoL
-	AO
+	shadow [was AO]
 
 
 

@@ -38,7 +38,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         texDepth = textureLod(depthtex, uv, 0).r;
         if (texDepth >= tracePos.z) continue;
 
-        //float d = 0.1 * i*i;
+        //float d = 0.00004 * i*i;
         //if (linearizeDepthFast(texDepth, near, far) + d > linearizeDepthFast(tracePos.z, near, far)) {
             //if (i > 1) alpha = 1.0;
             alpha = 1.0;

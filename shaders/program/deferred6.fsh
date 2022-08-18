@@ -235,13 +235,18 @@ void main() {
         vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
 
         PbrLightData lightData;
+        lightData.occlusion = normalMap.a;
         lightData.blockLight = lightingMap.x;
         lightData.skyLight = lightingMap.y;
-        lightData.geoNoL = lightingMap.z;
-        lightData.occlusion = lightingMap.w;
+        lightData.geoNoL = lightingMap.z * 2.0 - 1.0;
+        lightData.parallaxShadow = lightingMap.w;
 
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
+
+            #ifdef SHADOW_DITHER
+                float ditherOffset = (GetScreenBayerValue() - 0.5) * shadowPixelSize;
+            #endif
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 for (int i = 0; i < 4; i++) {
@@ -250,15 +255,30 @@ void main() {
                     
                     vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
                     lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + shadowCascadePos;
+
+                    #ifdef SHADOW_DITHER
+                        lightData.shadowPos[i].xy += ditherOffset;
+                    #endif
+
+                    lightData.shadowTilePos[i] = GetShadowCascadeClipPos(i);
+                    lightData.shadowBias[i] = GetCascadeBias(lightData.geoNoL, i);
                 }
-            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+            #else
                 lightData.shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
 
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                    lightData.shadowPos.xyz = distort(lightData.shadowPos.xyz);
+                    float distortFactor = getDistortFactor(lightData.shadowPos.xy);
+                    lightData.shadowPos.xyz = distort(lightData.shadowPos.xyz, distortFactor);
+                    lightData.shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
+                #else
+                    lightData.shadowBias = GetShadowBias(lightData.geoNoL);
                 #endif
 
                 lightData.shadowPos.xyz = lightData.shadowPos.xyz * 0.5 + 0.5;
+
+                #ifdef SHADOW_DITHER
+                    lightData.shadowPos.xy += ditherOffset;
+                #endif
             #endif
         #endif
 

@@ -184,7 +184,7 @@
 
 
 
-        float shadow = lightData.occlusion;
+        float shadow = lightData.parallaxShadow;
         vec3 shadowColor = vec3(1.0);
         float shadowSSS = 0.0;
 
@@ -196,20 +196,15 @@
             shadow *= step(EPSILON, NoL);
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                    float distortFactor = getDistortFactor(lightData.shadowPos.xy * 2.0 - 1.0);
-                    float shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
-                #elif SHADOW_TYPE == SHADOW_TYPE_BASIC
-                    float shadowBias = GetShadowBias(lightData.geoNoL);
-                #endif
+                // #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                //     float distortFactor = getDistortFactor(lightData.shadowPos.xy * 2.0 - 1.0);
+                //     float shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
+                // #elif SHADOW_TYPE == SHADOW_TYPE_BASIC
+                //     float shadowBias = GetShadowBias(lightData.geoNoL);
+                // #endif
 
-                if (shadow > EPSILON) {
-                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        shadow *= GetShadowing(lightData.shadowPos, lightData.geoNoL);
-                    #else
-                        shadow *= GetShadowing(lightData.shadowPos, shadowBias);
-                    #endif
-                }
+                if (shadow > EPSILON)
+                    shadow *= GetShadowing(lightData);
 
                 #ifdef SHADOW_CONTACT
                     // TODO
@@ -221,23 +216,13 @@
                 #endif
 
                 #ifdef SHADOW_COLOR
-                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        shadowColor = GetShadowColor(lightData.shadowPos, lightData.geoNoL);
-                    #else
-                        shadowColor = GetShadowColor(lightData.shadowPos.xyz, shadowBias);
-                    #endif
-                    
+                    shadowColor = GetShadowColor(lightData);
                     shadowColor = RGBToLinear(shadowColor);
                 #endif
 
                 #ifdef SSS_ENABLED
-                    if (material.scattering > EPSILON) {
-                        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                            shadowSSS = GetShadowSSS(lightData.shadowPos, lightData.geoNoL);
-                        #else
-                            shadowSSS = GetShadowSSS(lightData.shadowPos, shadowBias);
-                        #endif
-                    }
+                    if (material.scattering > EPSILON)
+                        shadowSSS = GetShadowSSS(lightData);
                 #endif
             #else
                 shadowSSS = material.scattering;
@@ -282,7 +267,7 @@
 
                     vec4 roughReflectColor = GetReflectColor(BUFFER_DEPTH_PREV, viewPosPrev, reflectDirPrev, lod);
 
-                    reflectColor = (roughReflectColor.rgb / exposure) * (1.0 - rough) * roughReflectColor.a;
+                    reflectColor = (roughReflectColor.rgb / exposure) * roughReflectColor.a;
                     //reflectColor = clamp(reflectColor, vec3(0.0), vec3(65000.0));
 
                     #ifdef SKY_ENABLED
@@ -353,8 +338,9 @@
                     envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
                 #endif
 
-                iblF = GetFresnel(material.albedo.rgb, f0, material.hcm, NoVm, roughL);
-                iblSpec = reflectColor * (iblF * envBRDF.x + envBRDF.y) * occlusion;
+                iblF = GetFresnel(material.albedo.rgb, f0, material.hcm, NoVm, rough);
+                vec3 iblV = iblF * envBRDF.r + envBRDF.g;
+                iblSpec = reflectColor * (iblV * (1.0 - sqrt(rough))) * occlusion;
                 //iblSpec = reflectColor * mix(envBRDF.xxx, envBRDF.yyy, iblF) * occlusion;
 
                 //iblSpec = min(iblSpec, 100000.0);
@@ -382,25 +368,28 @@
 
         #ifdef SKY_ENABLED
             vec3 skyLightColorFinal = skyLightColor * shadowColor;
-            float diffuseLightF = shadowFinal;
+            //float diffuseLightF = shadowFinal;
+
+            vec3 sunF = GetFresnel(material.albedo.rgb, f0, material.hcm, LoHm, roughL);
+            vec3 diffuseLight = skyLightColorFinal * skyLight2;
+
+            vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * diffuseLight * shadowFinal;
 
             #ifdef SSS_ENABLED
                 // Transmission
                 //vec3 sss = shadowSSS * material.scattering * skyLightColorFinal;// * max(-NoL, 0.0);
                 //diffuseLightF = mix(diffuseLightF, shadowSSS*2.0, material.scattering);
-                diffuseLightF = max(diffuseLightF, min(shadowSSS, 1.0));
+                float diffuseLightF = max(shadowFinal, min(shadowSSS, 1.0));
+                vec3 sssDiffuseLight = diffuseLightF * diffuseLight;
+                sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo * sssDiffuseLight, material.scattering, NoVm, NoL, LoHm, roughL);
             #endif
 
-            vec3 diffuseLight = diffuseLightF * skyLightColorFinal * skyLight2;
 
             //#if defined RSM_ENABLED && defined RENDER_DEFERRED
             //    diffuseLight += 20.0 * rsmColor * skyLightColorFinal * material.scattering;
             //#endif
 
-            vec3 sunF = GetFresnel(material.albedo.rgb, f0, material.hcm, LoHm, roughL);
-            vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * max(1.0 - sunF, 0.0);
-            sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo, material.scattering, NoVm, NoL, LoHm, roughL) * diffuseLight;
-            diffuse += sunDiffuse * material.albedo.a;
+            diffuse += sunDiffuse * max(1.0 - sunF, 0.0) * material.albedo.a;
 
             if (NoLm > EPSILON) {
                 float NoHm = max(dot(viewNormal, halfDir), 0.0);

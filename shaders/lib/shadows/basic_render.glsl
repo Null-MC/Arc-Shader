@@ -28,18 +28,12 @@
     }
 
     #ifdef SHADOW_COLOR
-        vec3 GetShadowColor(const in vec3 shadowPos, const in float shadowBias) {
+        vec3 GetShadowColor(const in PbrLightData lightData) {
             // TODO: enable HW-comp on Iris
-            float waterDepth = textureLod(shadowtex0, shadowPos.xy, 0).r;
-            if (shadowPos.z - shadowBias < waterDepth) return vec3(1.0);
+            float waterDepth = textureLod(shadowtex0, lightData.shadowPos.xy, 0).r;
+            if (lightData.shadowPos.z - lightData.shadowBias < waterDepth) return vec3(1.0);
 
-            return textureLod(shadowcolor0, shadowPos.xy, 0).rgb;
-        }
-    #endif
-
-    #ifdef SHADOW_DITHER
-        float GetShadowDitherOffset() {
-            return (2.0 * GetScreenBayerValue() - 1.0)*shadowPixelSize;
+            return textureLod(shadowcolor0, lightData.shadowPos.xy, 0).rgb;
         }
     #endif
 
@@ -61,9 +55,9 @@
 
     #if SHADOW_FILTER != 0
         // PCF
-        float GetShadowing_PCF(const in vec4 shadowPos, const in float shadowBias, const in vec2 pixelRadius, const in int sampleCount) {
+        float GetShadowing_PCF(const in PbrLightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
             #ifdef SHADOW_DITHER
-                float ditherOffset = GetShadowDitherOffset();
+                float dither = 0.5 + 0.5*GetScreenBayerValue();
             #endif
 
             float shadow = 0.0;
@@ -71,10 +65,10 @@
                 vec2 pixelOffset = poissonDisk[i] * pixelRadius;
 
                 #ifdef SHADOW_DITHER
-                    pixelOffset += ditherOffset;
+                    pixelOffset *= dither;
                 #endif
-
-                shadow += 1.0 - CompareDepth(shadowPos, pixelOffset, shadowBias);
+                
+                shadow += 1.0 - CompareDepth(lightData.shadowPos, pixelOffset, lightData.shadowBias);
             }
 
             return shadow / sampleCount;
@@ -84,10 +78,6 @@
     #if SHADOW_FILTER == 2
         // PCF + PCSS
         float FindBlockerDistance(const in vec4 shadowPos, const in vec2 pixelRadius, const in int sampleCount) {
-            #ifdef SHADOW_DITHER
-                float ditherOffset = GetShadowDitherOffset();
-            #endif
-
             //float radius = SearchWidth(uvLightSize, shadowPos.z);
             //float radius = 6.0; //SHADOW_LIGHT_SIZE * (shadowPos.z - PCSS_NEAR) / shadowPos.z;
             float avgBlockerDistance = 0.0;
@@ -95,11 +85,6 @@
 
             for (int i = 0; i < sampleCount; i++) {
                 vec2 pixelOffset = poissonDisk[i] * pixelRadius;
-
-                #ifdef SHADOW_DITHER
-                    pixelOffset += ditherOffset;
-                #endif
-
                 float texDepth = SampleDepth(shadowPos, pixelOffset);
 
                 if (texDepth < shadowPos.z) {
@@ -112,48 +97,44 @@
             return blockers > 0 ? avgBlockerDistance / blockers : -1.0;
         }
 
-        float GetShadowing(const in vec4 shadowPos, const in float shadowBias) {
-            vec2 pixelRadius = GetShadowPixelRadius(shadowPos.xy, SHADOW_PCF_SIZE);
+        float GetShadowing(const in PbrLightData lightData) {
+            vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, SHADOW_PCF_SIZE);
 
             // blocker search
             int blockerSampleCount = POISSON_SAMPLES;
             if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) blockerSampleCount = 1;
-            float blockerDistance = FindBlockerDistance(shadowPos, pixelRadius, blockerSampleCount);
+            float blockerDistance = FindBlockerDistance(lightData.shadowPos, pixelRadius, blockerSampleCount);
             if (blockerDistance <= 0.0) return 1.0;
             //if (blockerDistance == 1.0) return 0.0;
 
             // penumbra estimation
-            float penumbraWidth = (shadowPos.z - blockerDistance) / blockerDistance;
+            float penumbraWidth = (lightData.shadowPos.z - blockerDistance) / blockerDistance;
 
             // percentage-close filtering
             pixelRadius *= min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0); // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
 
             int pcfSampleCount = POISSON_SAMPLES;
             if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) pcfSampleCount = 1;
-            return 1.0 - GetShadowing_PCF(shadowPos, shadowBias, pixelRadius, pcfSampleCount);
+            return 1.0 - GetShadowing_PCF(lightData, pixelRadius, pcfSampleCount);
         }
     #elif SHADOW_FILTER == 1
         // PCF
-        float GetShadowing(const in vec4 shadowPos, const in float shadowBias) {
+        float GetShadowing(const in PbrLightData lightData) {
             int sampleCount = POISSON_SAMPLES;
-            vec2 pixelRadius = GetShadowPixelRadius(shadowPos.xy, SHADOW_PCF_SIZE);
+            vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, SHADOW_PCF_SIZE);
             if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
             //float biasMax = shadowBias * (max(pixelRadius.x, pixelRadius.y) / shadowPixelSize);
-            return 1.0 - GetShadowing_PCF(shadowPos, shadowBias, pixelRadius, sampleCount);
+            return 1.0 - GetShadowing_PCF(lightData, pixelRadius, sampleCount);
         }
     #elif SHADOW_FILTER == 0
         // Unfiltered
-        float GetShadowing(const in vec4 shadowPos, const in float shadowBias) {
-            #ifdef SHADOW_DITHER
-                float ditherOffset = GetShadowDitherOffset();
-            #endif
-
+        float GetShadowing(const in PbrLightData lightData) {
             #ifdef SHADOW_ENABLE_HWCOMP
-                return CompareDepth(shadowPos, vec2(ditherOffset), shadowBias);
+                return CompareDepth(lightData.shadowPos, vec2(0.0), lightData.shadowBias);
             #else
-                float texDepth = SampleDepth(shadowPos, vec2(ditherOffset));
-                return step(shadowPos.z - EPSILON, texDepth + shadowBias);
+                float texDepth = SampleDepth(lightData.shadowPos, vec2(0.0));
+                return step(lightData.shadowPos.z - EPSILON, texDepth + lightData.shadowBias);
             #endif
         }
     #endif
@@ -165,9 +146,9 @@
         }
 
         #if SSS_FILTER != 0
-            float GetShadowing_PCF_SSS(const in vec4 shadowPos, const in float shadowBias, const in vec2 pixelRadius, const in int sampleCount) {
+            float GetShadowing_PCF_SSS(const in PbrLightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
                 #ifdef SSS_DITHER
-                    vec2 ditherOffset = pixelRadius * GetScreenBayerValue();
+                    float dither = 0.5 + 0.5*GetScreenBayerValue();
                 #endif
 
                 float light = 0.0;
@@ -176,16 +157,16 @@
                     vec2 pixelOffset = poissonDisk[i] * pixelRadius;
 
                     #ifdef SSS_DITHER
-                        pixelOffset += ditherOffset;
+                        pixelOffset *= dither;
                     #endif
 
-                    float texDepth = SampleDepth(shadowPos, pixelOffset);
+                    float texDepth = SampleDepth(lightData.shadowPos, pixelOffset);
                     //light += step(shadowPos.z + shadowBias, texDepth + 0.001);
 
-                    if (texDepth < shadowPos.z + shadowBias) {
-                        float shadow_sss = SampleShadowSSS(shadowPos.xy + pixelOffset);
+                    if (texDepth < lightData.shadowPos.z + lightData.shadowBias) {
+                        float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy + pixelOffset);
 
-                        float dist = max(shadowPos.z + shadowBias - texDepth, 0.0) * 2.0 * far;
+                        float dist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * 2.0 * far;
                         light += max(shadow_sss - dist / SSS_MAXDIST, 0.0);
                         //light++;
                         sampleHit++;
@@ -201,33 +182,33 @@
 
         #if SSS_FILTER == 2
             // PCF + PCSS
-            float GetShadowSSS(const in vec4 shadowPos, const in float shadowBias) {
-                float texDepth = SampleDepth(shadowPos, vec2(0.0));
-                float dist = max(shadowPos.z + shadowBias - texDepth, 0.0) * 2.0 * far;
-                float distF = 0.1 + saturate(dist / SSS_MAXDIST);
+            float GetShadowSSS(const in PbrLightData lightData) {
+                float texDepth = SampleDepth(lightData.shadowPos, vec2(0.0));
+                float dist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * 2.0 * far;
+                float distF = saturate(dist / SSS_MAXDIST);
 
                 int sampleCount = SSS_PCF_SAMPLES;
-                vec2 pixelRadius = GetShadowPixelRadius(shadowPos.xy, SSS_PCF_SIZE * distF);
+                vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, SSS_PCF_SIZE * distF);
                 if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
-                return GetShadowing_PCF_SSS(shadowPos, shadowBias, pixelRadius, sampleCount);
+                return GetShadowing_PCF_SSS(lightData, pixelRadius, sampleCount);
             }
         #elif SSS_FILTER == 1
             // PCF
-            float GetShadowSSS(const in vec4 shadowPos, const in float shadowBias) {
+            float GetShadowSSS(const in PbrLightData lightData) {
                 int sampleCount = SSS_PCF_SAMPLES;
-                vec2 pixelRadius = GetShadowPixelRadius(shadowPos.xy, SSS_PCF_SIZE);
+                vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, SSS_PCF_SIZE);
                 if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
-                return GetShadowing_PCF_SSS(shadowPos, shadowBias, pixelRadius, sampleCount);
+                return GetShadowing_PCF_SSS(lightData, pixelRadius, sampleCount);
             }
         #elif SSS_FILTER == 0
             // Unfiltered
-            float GetShadowSSS(const in vec4 shadowPos, const in float shadowBias) {
-                float texDepth = SampleDepth(shadowPos, vec2(0.0));
-                float dist = max(shadowPos.z - texDepth, 0.0) * 2.0 * far;
+            float GetShadowSSS(const in PbrLightData lightData) {
+                float texDepth = SampleDepth(lightData.shadowPos, vec2(0.0));
+                float dist = max(lightData.shadowPos.z - texDepth, 0.0) * 2.0 * far;
 
-                float shadow_sss = SampleShadowSSS(shadowPos.xy);
+                float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy);
                 return max(shadow_sss - dist / SSS_MAXDIST, 0.0);
             }
         #endif

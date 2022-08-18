@@ -58,6 +58,8 @@
         #endif
 
         vec3 normal = vec3(0.0, 0.0, 1.0);
+        normalMap.a = 1.0;
+        
         #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
             #ifdef PARALLAX_SMOOTH_NORMALS
                 ////normalMap.rgb = TexelFetchLinearRGB(normals, atlasCoord * atlasSize);
@@ -88,7 +90,7 @@
 
             specularMap = textureGrad(specular, atlasCoord, dFdXY[0], dFdXY[1]);
 
-            normalMap.a = 1.0;
+            //normalMap.a = 1.0;
             if (normalMap.x + normalMap.y > EPSILON) {
                 #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
                     normal = RestoreNormalZ(normalMap.xy);
@@ -160,11 +162,11 @@
             #endif
         #endif
 
-        float parallaxShadow = 1.0;
-
         #if AO_TYPE == AO_TYPE_FAST
-            parallaxShadow = pow2(glcolor.a);
+            normalMap.a *= pow2(glcolor.a);
         #endif
+
+        float parallaxShadow = 1.0;
 
         #if defined SKY_ENABLED && defined PARALLAX_SHADOWS_ENABLED
             if (traceCoordDepth.z + EPSILON < 1.0) {
@@ -193,6 +195,6 @@
 
         normalMap.xyz = texViewNormal * 0.5 + 0.5;
 
-        lightingMap = vec4(lm, geoNoL, parallaxShadow);
+        lightingMap = vec4(lm, geoNoL * 0.5 + 0.5, parallaxShadow);
     }
 #endif

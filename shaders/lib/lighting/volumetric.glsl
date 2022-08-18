@@ -1,5 +1,5 @@
 #ifdef SHADOW_COLOR
-    vec3 GetVolumetricColor(const in PbrLightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd) {
+    vec3 GetVolumetricColor(PbrLightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd) {
         vec3 rayVector = shadowViewEnd - shadowViewStart;
         float rayLength = length(rayVector);
 
@@ -20,46 +20,42 @@
             #endif
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                vec3 shadowPos[4];
+                //vec3 shadowPos[4];
                 for (int i = 0; i < 4; i++) {
-                    shadowPos[i] = (lightData.matShadowProjection[i] * vec4(currentShadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                    lightData.shadowPos[i] = (lightData.matShadowProjection[i] * vec4(currentShadowViewPos, 1.0)).xyz * 0.5 + 0.5;
 
                     vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
-                    shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
+                    lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + shadowCascadePos;
                 }
 
                 // WARN: The lightData.geoNoL is only for the current pixel, not the VL sample!
-                const float geoNoL = 1.0; //lightData.geoNoL;
-                float depthSample = CompareNearestDepth(shadowPos, vec2(0.0), geoNoL);
-
-                if (depthSample > EPSILON) {
-                    vec3 shadowColor = GetShadowColor(shadowPos, geoNoL);
-                    accumCol += RGBToLinear(shadowColor) * depthSample;
-                }
+                //const float geoNoL = 1.0; //lightData.geoNoL;
+                float depthSample = CompareNearestDepth(lightData, vec2(0.0));
             #else
-                vec4 shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
+                lightData.shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
 
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                    shadowPos.xyz = distort(shadowPos.xyz);
+                    lightData.shadowPos.xyz = distort(lightData.shadowPos.xyz);
                 #endif
 
-                shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
+                lightData.shadowPos.xyz = lightData.shadowPos.xyz * 0.5 + 0.5;
 
                 // WARN: The lightData.shadowBias is only for the current pixel, not the VL sample!
-                const float shadowBias = 0.0; //lightData.shadowBias;
-                float depthSample = CompareDepth(shadowPos, vec2(0.0), shadowBias);
+                lightData.shadowBias = 0.0;
 
-                if (depthSample > EPSILON) {
-                    vec3 shadowColor = GetShadowColor(shadowPos.xyz, -shadowBias);
-                    accumCol += RGBToLinear(shadowColor) * depthSample;
-                }
+                float depthSample = CompareDepth(lightData.shadowPos, vec2(0.0), lightData.shadowBias);
             #endif
+
+            if (depthSample > EPSILON) {
+                vec3 shadowColor = GetShadowColor(lightData);
+                accumCol += RGBToLinear(shadowColor) * depthSample;
+            }
         }
 
         return accumCol / VL_SAMPLE_COUNT;
     }
 #else
-    float GetVolumetricFactor(const in PbrLightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd) {
+    float GetVolumetricFactor(PbrLightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd) {
         vec3 rayVector = shadowViewEnd - shadowViewStart;
         float rayLength = length(rayVector);
 
@@ -79,29 +75,30 @@
             #endif
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                vec3 shadowPos[4];
+                //vec3 shadowPos[4];
                 for (int i = 0; i < 4; i++) {
-                    shadowPos[i] = (lightData.matShadowProjection[i] * vec4(currentShadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                    lightData.shadowPos[i] = (lightData.matShadowProjection[i] * vec4(currentShadowViewPos, 1.0)).xyz * 0.5 + 0.5;
 
-                    vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
-                    shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
+                    //vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
+                    lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + lightData.shadowTilePos[i];
                 }
 
                 // WARN: The lightData.geoNoL is only for the current pixel, not the VL sample!
-                const float geoNoL = 1.0; //lightData.geoNoL;
-                accumF += CompareNearestDepth(shadowPos, vec2(0.0), geoNoL);
+                //const float geoNoL = 1.0; //lightData.geoNoL;
+                accumF += CompareNearestDepth(lightData, vec2(0.0));
             #else
-                vec4 shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
+                lightData.shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
 
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                    shadowPos.xyz = distort(shadowPos.xyz);
+                    lightData.shadowPos.xyz = distort(lightData.shadowPos.xyz);
                 #endif
 
-                shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
+                lightData.shadowPos.xyz = lightData.shadowPos.xyz * 0.5 + 0.5;
 
                 // WARN: The lightData.shadowBias is only for the current pixel, not the VL sample!
-                const float shadowBias = 0.0; //lightData.shadowBias;
-                accumF += CompareDepth(shadowPos, vec2(0.0), shadowBias);
+                lightData.shadowBias = 0.0;
+
+                accumF += CompareDepth(lightData, vec2(0.0));
             #endif
         }
 

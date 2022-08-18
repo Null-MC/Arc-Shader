@@ -30,6 +30,9 @@ uniform float viewHeight;
     // Deferred Normal
     uniform usampler2D BUFFER_DEFERRED;
     uniform mat4 gbufferModelViewInverse;
+#elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_OCCLUSION
+    // Deferred Occlusion
+    uniform usampler2D BUFFER_DEFERRED;
 #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SPECULAR
     // Deferred Specular
     uniform usampler2D BUFFER_DEFERRED;
@@ -180,6 +183,10 @@ void main() {
         uint deferredDataG = texelFetch(BUFFER_DEFERRED, iuv, 0).g;
         vec3 normal = unpackUnorm4x8(deferredDataG).rgb * 2.0 - 1.0;
         color = (mat3(gbufferModelViewInverse) * normal) * 0.5 + 0.5;
+    #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_OCCLUSION
+        // Deferred Occlusion
+        uint deferredDataG = texelFetch(BUFFER_DEFERRED, iuv, 0).g;
+        color = unpackUnorm4x8(deferredDataG).aaa;
     #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SPECULAR
         // Deferred Specular
         uint deferredDataB = texelFetch(BUFFER_DEFERRED, iuv, 0).b;
