@@ -7,6 +7,7 @@
 
 in vec2 texcoord;
 in vec4 glcolor;
+in vec3 viewPos;
 flat in float exposure;
 
 uniform sampler2D gtexture;
@@ -33,7 +34,7 @@ uniform int moonPhase;
 
 /* RENDERTARGETS: 4,6 */
 out vec4 outColor0;
-out float outColor1;
+out vec4 outColor1;
 
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/world/scattering.glsl"
@@ -45,13 +46,19 @@ void main() {
     colorMap.rgb = RGBToLinear(colorMap.rgb * glcolor.rgb);
 
     if (colorMap.a < alphaTestRef) discard;
-    colorMap.a = 1.0;
+
+    float viewDist = length(viewPos);
+    float distF = saturate(viewDist * 0.02);
+    colorMap.a = 0.2 + 0.7 * smoothstep(0.0, 1.0, distF);
 
     vec2 skyLightLevels = GetSkyLightLevels();
     float darkness = 0.7 - 0.3 * rainStrength;
     colorMap.rgb *= GetSkyLightLuminance(skyLightLevels) * darkness;
 
-    outColor1 = log2(luminance(colorMap.rgb) + EPSILON);
+    vec4 lum = vec4(0.0);
+    lum.r = log2(luminance(colorMap.rgb) + EPSILON);
+    lum.a = colorMap.a;
+    outColor1 = lum;
 
     colorMap.rgb = clamp(colorMap.rgb * exposure, vec3(0.0), vec3(65000));
     outColor0 = colorMap;

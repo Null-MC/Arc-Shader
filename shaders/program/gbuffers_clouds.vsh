@@ -7,8 +7,11 @@
 
 out vec2 texcoord;
 out vec4 glcolor;
+out vec3 viewPos;
 flat out float exposure;
 
+//uniform mat4 gbufferModelView;
+uniform mat4 gbufferProjectionInverse;
 uniform float screenBrightness;
 uniform float blindness;
 
@@ -41,9 +44,13 @@ uniform float blindness;
 
 
 void main() {
-    gl_Position = ftransform();
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     glcolor = gl_Color;
+
+    //viewPos = (gbufferModelView * gl_Vertex).xyz;
+    //gl_Position = gbufferProjection * vec4(viewPos, 1.0);
+    gl_Position = ftransform();
+    viewPos = (gbufferProjectionInverse * gl_Position).xyz;
 
     exposure = GetExposure();
 }

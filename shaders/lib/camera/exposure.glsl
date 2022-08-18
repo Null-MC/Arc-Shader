@@ -77,8 +77,8 @@ float GetExposure() {
         float avgLum = GetAverageLuminance();
         avgLum = clamp(avgLum, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
 
-        float keyValue = GetExposureKeyValue(avgLum);
-        float EV100 = GetEV100(avgLum) - keyValue;
+        //float keyValue = GetExposureKeyValue(avgLum);
+        float EV100 = GetEV100(avgLum);// - keyValue;
     #else
         float EV100 = 0.0;
     #endif

@@ -122,8 +122,6 @@
 
         vec2 screenUV = gl_FragCoord.xy / viewSize;
 
-        //return vec4((material.normal * 0.5 + 0.5) * 500.0, 1.0);
-
         #ifdef SHADOW_ENABLED
             vec3 viewLightDir = normalize(shadowLightPosition);
             float NoL = dot(viewNormal, viewLightDir);
@@ -139,9 +137,6 @@
         float NoVm = max(dot(viewNormal, viewDir), 0.0);
         vec3 viewUpDir = normalize(upPosition);
 
-        //vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
-        //return vec4(localNormal * 1000.0, 1.0);
-
         float blockLight = saturate((lightData.blockLight - (1.0/16.0 + EPSILON)) / (15.0/16.0));
         float skyLight = saturate((lightData.skyLight - (1.0/16.0 + EPSILON)) / (15.0/16.0));
 
@@ -150,9 +145,6 @@
         float f0 = material.f0;
 
         #if defined SKY_ENABLED
-            // float wetness_NoU = dot(viewNormal, viewUpDir) * 0.4 + 0.6;
-            // float wetness_skyLight = max((skyLight - (14.0/16.0)) * 16.0, 0.0);
-            // float wetnessFinal = wetness * wetness_skyLight * wetness_NoU;
             float wetnessFinal = GetDirectionalWetness(viewNormal, skyLight);
 
             #ifdef RENDER_WATER
@@ -181,9 +173,6 @@
         float rough = 1.0 - smoothness;
         float roughL = max(rough * rough, 0.005);
 
-
-
-
         float shadow = lightData.parallaxShadow;
         vec3 shadowColor = vec3(1.0);
         float shadowSSS = 0.0;
@@ -196,18 +185,10 @@
             shadow *= step(EPSILON, NoL);
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                // #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                //     float distortFactor = getDistortFactor(lightData.shadowPos.xy * 2.0 - 1.0);
-                //     float shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
-                // #elif SHADOW_TYPE == SHADOW_TYPE_BASIC
-                //     float shadowBias = GetShadowBias(lightData.geoNoL);
-                // #endif
-
                 if (shadow > EPSILON)
                     shadow *= GetShadowing(lightData);
 
                 #ifdef SHADOW_CONTACT
-                    // TODO
                     if (shadow > EPSILON) {
                         vec3 shadowRay = viewLightDir * 0.2;
                         float contactShadow = GetContactShadow(depthtex1, viewPos, shadowRay);
@@ -229,11 +210,7 @@
             #endif
         #endif
 
-
-
-
         float shadowFinal = shadow;
-        //return vec4(vec3(shadow * 800.0), 1.0);
 
         #ifdef LIGHTLEAK_FIX
             // Make areas without skylight fully shadowed (light leak fix)
@@ -282,8 +259,6 @@
                 #endif
             }
         #endif
-
-        //return vec4(reflectColor, 1.0);
 
         #if defined SKY_ENABLED && defined RSM_ENABLED && defined RENDER_DEFERRED
             vec2 tex = screenUV;
@@ -339,19 +314,13 @@
                 #endif
 
                 iblF = GetFresnel(material.albedo.rgb, f0, material.hcm, NoVm, rough);
-                vec3 iblV = iblF * envBRDF.r + envBRDF.g;
-                iblSpec = reflectColor * (iblV * (1.0 - sqrt(max(rough, EPSILON)))) * occlusion;
-                //iblSpec = reflectColor * mix(envBRDF.xxx, envBRDF.yyy, iblF) * occlusion;
-
-                //iblSpec = min(iblSpec, 100000.0);
+                iblSpec = iblF * envBRDF.r + envBRDF.g;
+                iblSpec *= (1.0 - rough) * reflectColor * occlusion;
 
                 float iblFmax = max(max(iblF.x, iblF.y), iblF.z);
                 final.a += iblFmax * max(1.0 - final.a, 0.0);
             }
         #endif
-
-        //return vec4(vec3(NoVm * 1000.0), 1.0);
-        //return vec4(iblSpec, 1.0);
 
         #ifdef SKY_ENABLED
             float ambientBrightness = mix(0.36 * skyLight2, 0.85 * skyLight, rainStrength) * SHADOW_BRIGHTNESS;
@@ -383,11 +352,6 @@
                 vec3 sssDiffuseLight = diffuseLightF * diffuseLight;
                 sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo * sssDiffuseLight, material.scattering, NoVm, NoL, LoHm, roughL);
             #endif
-
-
-            //#if defined RSM_ENABLED && defined RENDER_DEFERRED
-            //    diffuseLight += 20.0 * rsmColor * skyLightColorFinal * material.scattering;
-            //#endif
 
             diffuse += sunDiffuse * max(1.0 - sunF, 0.0) * material.albedo.a;
 
@@ -534,13 +498,6 @@
             ambient *= metalDarkF;
         #endif
 
-        // #if AO_TYPE == AO_TYPE_FANCY
-        //     float occlusion = textureLod(BUFFER_AO, texcoord, 0).r;
-        //     ambient *= occlusion;
-        // #endif
-
-        //return vec4(final.rgb * (ambient * occlusion), 1.0);
-
         float emissive = pow4(material.emission) * EmissionLumens;
 
         final.rgb = final.rgb * (ambient * occlusion + emissive)
@@ -575,9 +532,6 @@
                 //final.rgb = mix(final.rgb, RGBToLinear(fogColor), vanillaWaterFogF);
             }
         #endif
-
-        //float waterDepth = textureLod(shadowtex0, shadowPos, 0);
-        //waterDepth = (waterDepth * 2.0 - 1.0) * far * 2.0;
 
         if (isEyeInWater == 1) {
             float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
