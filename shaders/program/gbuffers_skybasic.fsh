@@ -44,6 +44,7 @@ uniform int moonPhase;
     //#include "/lib/world/sky_robobo.glsl"
 #endif
 
+#include "/lib/sampling/bayer.glsl"
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/world/scattering.glsl"
@@ -99,6 +100,13 @@ void main() {
         sky += GetVanillaSkyScattering(viewDir, sunLightLevel, sunColor, moonColor);
         lum += luminance(sky);
         color += sky;
+    #endif
+
+    #ifdef SKY_DITHER
+        float offset = 0.1;//lum / (lum + 1.0);
+        float b = GetScreenBayerValue();
+        color *= (1.0 - offset) + offset * b;
+        //lum -= b;
     #endif
 
     outColor1 = log2(lum + EPSILON);

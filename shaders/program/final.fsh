@@ -96,6 +96,7 @@ uniform float viewHeight;
         #include "/lib/camera/bloom.glsl"
     #endif
 
+    #include "/lib/sampling/bayer.glsl"
     #include "/lib/camera/tonemap.glsl"
 #endif
 
@@ -164,6 +165,9 @@ out vec3 outColor0;
         #if defined DEBUG_EXPOSURE_METERS && CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
             RenderLuminanceMeters(color, averageLuminance, EV100);
         #endif
+
+        float b = GetScreenBayerValue();
+        color *= (254.0/255.0) + b * (2.0/255.0);
 
         return color;
     }

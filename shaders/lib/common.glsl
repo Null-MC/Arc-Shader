@@ -178,6 +178,7 @@ const bool colortex12Clear = false;
 #define SSR_STEPS 512
 //#define SHADOW_CONTACT
 //#define SHADOW_CONTACT_DITHER
+#define SKY_DITHER
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
 
