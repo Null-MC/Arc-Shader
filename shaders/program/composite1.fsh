@@ -110,7 +110,7 @@ void main() {
         //final *= (lumNew / max(lum, EPSILON));
 
         lum *= exposure;
-        lum /= 4.0 * exp2(tile);
+        lum /= 1.2 * exp2(0.2*tile);
         //lum = clamp(lum, 0.0, 65554.0);
         lum = lum / (lum + 1.0);
         lum = pow3(lum);
