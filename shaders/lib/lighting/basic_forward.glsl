@@ -108,7 +108,7 @@
                 float volScatter = GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd, vlScatter);
             #endif
 
-            final.rgb += volScatter * 0.2*(sunColor + moonColor);
+            final.rgb += volScatter * (sunColor + moonColor);
         #endif
 
         return final;

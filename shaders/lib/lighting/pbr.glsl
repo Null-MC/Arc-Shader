@@ -462,8 +462,8 @@
                     //diffuse = (diffuse + scatterColor * scatterAmount);// * absorption;
                     diffuse = scatterColor * scatterAmount + absorption;
                     
-                    float alphaF = 1.0 - exp(2.0 * -waterDepth);
-                    final.a += alphaF * max(1.0 - final.a, 0.0);
+                    float alphaF = exp(0.5 * -waterDepth);
+                    final.a = 1.0 - saturate(alphaF);// * max(1.0 - final.a, 0.0);
                     //final.a = 1.0;
                 #endif
             }

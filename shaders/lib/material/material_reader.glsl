@@ -32,6 +32,8 @@ float GetLabPbr_Emission(const in float specularA) {
             material.hcm = GetLabPbr_HCM(specularMap.g);
             material.occlusion = normalMap.a;
             material.porosity = GetLabPbr_Porosity(specularMap.b);
+
+            if (material.f0 < EPSILON) material.f0 = 0.04;
         #else
             material.occlusion = 1.0;
             material.f0 = specularMap.g;
