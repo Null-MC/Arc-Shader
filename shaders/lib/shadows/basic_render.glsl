@@ -165,6 +165,7 @@
 
                     if (texDepth < lightData.shadowPos.z + lightData.shadowBias) {
                         float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy + pixelOffset);
+                        shadow_sss = sqrt(max(shadow_sss, EPSILON));
 
                         float dist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * 2.0 * far;
                         light += max(shadow_sss - dist / SSS_MAXDIST, 0.0);
@@ -197,9 +198,10 @@
             // Unfiltered
             float GetShadowSSS(const in PbrLightData lightData, out float traceDist) {
                 float texDepth = SampleDepth(lightData.shadowPos, vec2(0.0));
-                traceDist = max(lightData.shadowPos.z - texDepth, 0.0) * 2.0 * far;
+                traceDist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * 2.0 * far;
 
                 float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy);
+                shadow_sss = sqrt(max(shadow_sss, EPSILON));
                 return max(shadow_sss - traceDist / SSS_MAXDIST, 0.0);
             }
         #endif

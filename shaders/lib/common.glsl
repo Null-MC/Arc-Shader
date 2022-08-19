@@ -106,7 +106,7 @@ const bool colortex12Clear = false;
 // Material Options
 #define MATERIAL_FORMAT 1 // [0 1 2 3]
 #define SSS_ENABLED
-#define SSS_MAXDIST 3.6
+#define SSS_MAXDIST 4.2
 #define SSS_SCATTER
 #define SSS_PCF_SIZE 0.8 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]

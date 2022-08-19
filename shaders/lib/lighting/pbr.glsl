@@ -348,8 +348,8 @@
             #ifdef SSS_ENABLED
                 // Transmission
                 float diffuseLightF = max(shadowFinal, min(shadowSSS, 1.0));
-                vec3 sssDiffuseLight = diffuseLightF * diffuseLight;
-                sssDiffuseLight *= exp(-sssDist * (1.0 - albedo));
+                vec3 sssDiffuseLight = diffuseLightF * diffuseLight * 1.6; // TODO: this 1.6 is bullshit
+                sssDiffuseLight *= exp(-sssDist * (1.0 - material.albedo.rgb));
 
                 sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo * sssDiffuseLight, material.scattering, NoVm, NoL, LoHm, roughL);
             #endif
