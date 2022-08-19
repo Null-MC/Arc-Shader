@@ -90,10 +90,8 @@ screen.MATERIAL_SSS_OPTIONS.comment=Allows light to scatter thorugh surfaces.
 option.SSS_ENABLED=Enabled
 option.SSS_ENABLED.comment=When enabled, surfaces with SSS will allow light to scatter through.
 
-option.SSS_FILTER=Filtering
-option.SSS_FILTER=Filtering
-value.SSS_FILTER.0=None
-value.SSS_FILTER.2=PCF+PCSS
+option.SSS_SCATTER=Scattering
+option.SSS_SCATTER.comment=When enabled, multiple shadowmap samples will be used to simulate the internal scattering of light.
 
 option.SSS_PCF_SIZE=PCF Size
 option.SSS_PCF_SIZE.comment=The maximum radius of the PCF blur filter, in blocks.

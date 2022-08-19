@@ -8,17 +8,13 @@
 out vec2 lmcoord;
 out vec2 texcoord;
 out vec4 glcolor;
-//out vec3 localPos;
+flat out uint materialId;
 
 #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
     flat out float matSmooth;
     flat out float matSSS;
     flat out float matF0;
     flat out float matEmissive;
-#endif
-
-#ifdef SSS_ENABLED
-    out vec3 viewPosTan;
 #endif
 
 #if defined RSM_ENABLED
@@ -110,7 +106,6 @@ void main() {
 
             return;
         }
-        //else {
     #endif
 
     vec4 pos = gl_Vertex;
@@ -127,8 +122,11 @@ void main() {
         }
     #endif
 
-    #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
-        if (mc_Entity.x == 100.0) {
+    materialId = 0;
+    if (mc_Entity.x == 100.0) {
+        materialId = 1;
+
+        #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
             float windSpeed = GetWindSpeed();
             float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
             
@@ -148,8 +146,8 @@ void main() {
 
                 normal = normalize(cross(pX, pY)).xzy;
             #endif
-        }
-    #endif
+        #endif
+    }
 
     //vec4 viewPos = shadowModelView * pos;
     vec4 viewPos = gl_ModelViewMatrix * pos;
@@ -181,25 +179,15 @@ void main() {
         #endif
     #endif
 
-    // #ifdef SHADOW_EXCLUDE_FOLIAGE
-    //     }
-    // #endif
-
-    #if defined SSS_ENABLED || defined RSM_ENABLED
+    #ifdef RSM_ENABLED
         vec3 viewNormal = normalize(gl_NormalMatrix * normal);
         vec3 viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
         vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
 
-        #if !defined RSM_ENABLED //&& DEBUG_VIEW != 2
-            mat3 matViewTBN;
-        #endif
-
         matViewTBN = mat3(viewTangent, viewBinormal, viewNormal);
+    #endif
 
-        #ifdef SSS_ENABLED
-            viewPosTan = viewPos.xyz * matViewTBN;
-        #endif
-
+    #if defined SSS_ENABLED || defined RSM_ENABLED
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
             ApplyHardCodedMaterials();
         #endif

@@ -30,6 +30,7 @@ const bool shadowHardwareFiltering1 = true;
 in vec2 lmcoord;
 in vec2 texcoord;
 in vec4 glcolor;
+flat in uint materialId;
 
 #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
     flat in float matSmooth;
@@ -38,11 +39,7 @@ in vec4 glcolor;
     flat in float matEmissive;
 #endif
 
-#ifdef SSS_ENABLED
-    in vec3 viewPosTan;
-#endif
-
-#if defined RSM_ENABLED
+#ifdef RSM_ENABLED
     flat in mat3 matViewTBN;
 #endif
 
@@ -64,7 +61,7 @@ uniform int renderStage;
     uniform sampler2D normals;
 #endif
 
-#if defined SSS_ENABLED // || defined RSM_ENABLED
+#ifdef SSS_ENABLED
     uniform sampler2D specular;
 #endif
 
@@ -73,7 +70,7 @@ uniform int renderStage;
 #include "/lib/material/material_reader.glsl"
 
 /* RENDERTARGETS: 0,1 */
-#if defined RSM_ENABLED || defined SHADOW_COLOR
+#if defined SHADOW_COLOR //|| defined RSM_ENABLED
     out vec4 outColor0;
 #endif
 #if defined RSM_ENABLED || defined SSS_ENABLED
@@ -90,13 +87,18 @@ void main() {
          || screenCascadePos.y < 0 || screenCascadePos.y >= 0.5) discard;
     #endif
 
-    vec4 sampleColor = vec4(0.0);
-
-    #if defined RSM_ENABLED || defined SHADOW_COLOR
+    vec4 sampleColor;
+    if (materialId == 1) {
+        sampleColor = vec4(1.0);
+    }
+    else {
         sampleColor = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]);
         sampleColor.rgb = RGBToLinear(sampleColor.rgb * glcolor.rgb);
+    }
 
+    #if defined SHADOW_COLOR //|| defined RSM_ENABLED
         vec4 lightColor = sampleColor;
+
         if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
             lightColor.rgb = vec3(1.0);
         }
@@ -107,8 +109,8 @@ void main() {
 
         lightColor.rgb = LinearToRGB(lightColor.rgb);
         outColor0 = lightColor;
-    #else
-        sampleColor.a = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]).a;
+    //#else
+        //sampleColor.a = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]).a;
         //sampleColor.a *= glcolor.a;
     #endif
 
@@ -127,13 +129,11 @@ void main() {
 
     float sss = 0.0;
     #ifdef SSS_ENABLED
-        //vec3 viewDirT = normalize(viewPosTan);
-
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-            sss = matSSS;// * abs(viewDirT.z);
+            sss = matSSS;
         #else
             float specularMapB = textureGrad(specular, texcoord, dFdXY[0], dFdXY[1]).b;
-            sss = GetLabPbr_SSS(specularMapB);// * abs(viewDirT.z);
+            sss = GetLabPbr_SSS(specularMapB);
         #endif
     #endif
 

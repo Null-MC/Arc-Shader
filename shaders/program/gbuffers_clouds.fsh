@@ -19,6 +19,7 @@ uniform float near;
 uniform float far;
 
 uniform float rainStrength;
+uniform int isEyeInWater;
 uniform float wetness;
 uniform vec3 skyColor;
 uniform vec3 fogColor;

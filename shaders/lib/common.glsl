@@ -107,7 +107,7 @@ const bool colortex12Clear = false;
 #define MATERIAL_FORMAT 1 // [0 1 2 3]
 #define SSS_ENABLED
 #define SSS_MAXDIST 3.6
-#define SSS_FILTER 2 // [0 2]
+#define SSS_SCATTER
 #define SSS_PCF_SIZE 0.8 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
 #define SSS_DITHER
@@ -162,6 +162,7 @@ const bool colortex12Clear = false;
 #define G_SCATTERING_NIGHT 0.64 // 0.96
 #define G_SCATTERING_HUMID 0.88 // 0.84
 #define G_SCATTERING_RAIN 0.98
+#define G_SCATTERING_WATER 0.85
 #define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
 
 

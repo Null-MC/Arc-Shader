@@ -86,6 +86,7 @@ uniform sampler2D gtexture;
 uniform sampler2D lightmap;
 
 uniform ivec2 eyeBrightnessSmooth;
+uniform int isEyeInWater;
 uniform float near;
 uniform float far;
 

@@ -180,6 +180,7 @@
         #ifdef SKY_ENABLED
             vec2 skyLightLevels = GetSkyLightLevels();
             float sunLightLevel = GetSunLightLevel(skyLightLevels.x);
+            float sssDist = 0.0;
 
             shadow *= step(EPSILON, lightData.geoNoL);
             shadow *= step(EPSILON, NoL);
@@ -202,8 +203,10 @@
                 #endif
 
                 #ifdef SSS_ENABLED
-                    if (material.scattering > EPSILON)
-                        shadowSSS = GetShadowSSS(lightData);
+                    if (material.scattering > EPSILON) {
+                        shadowSSS = GetShadowSSS(lightData, sssDist);
+                        // TODO: use depth for extinction
+                    }
                 #endif
             #else
                 shadowSSS = material.scattering;
@@ -333,9 +336,7 @@
                 //float ambientShadowBrightness = 1.0 - 0.5 * (1.0 - SHADOW_BRIGHTNESS);
                 ambient += skyAmbientSSS * ambientBrightness * material.scattering;
             #endif
-        #endif
 
-        #ifdef SKY_ENABLED
             vec3 skyLightColorFinal = skyLightColor * shadowColor;
             //float diffuseLightF = shadowFinal;
 
@@ -346,10 +347,10 @@
 
             #ifdef SSS_ENABLED
                 // Transmission
-                //vec3 sss = shadowSSS * material.scattering * skyLightColorFinal;// * max(-NoL, 0.0);
-                //diffuseLightF = mix(diffuseLightF, shadowSSS*2.0, material.scattering);
                 float diffuseLightF = max(shadowFinal, min(shadowSSS, 1.0));
                 vec3 sssDiffuseLight = diffuseLightF * diffuseLight;
+                sssDiffuseLight *= exp(-sssDist * (1.0 - albedo));
+
                 sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo * sssDiffuseLight, material.scattering, NoVm, NoL, LoHm, roughL);
             #endif
 
@@ -575,7 +576,11 @@
                 float volScatter = GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd, vlScatter);
             #endif
 
-            final.rgb += volScatter * (sunColor + moonColor);
+            vec3 vlColor = sunColor + moonColor;
+
+            if (isEyeInWater == 1) vlColor *= vec3(0.1, 0.7, 1.0);
+            
+            final.rgb += volScatter * vlColor;
         #endif
 
         return final;

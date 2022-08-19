@@ -311,7 +311,7 @@
             return unpackUnorm4x8(data).a;
         }
 
-        #if SSS_FILTER != 0
+        #ifdef SSS_SCATTER
             float GetShadowing_PCF_SSS(const in PbrLightData lightData, const in float blockRadius, const in int sampleCount) {
                 #ifdef SSS_DITHER
                     float dither = 0.5 + 0.5*GetScreenBayerValue();
@@ -342,9 +342,9 @@
             }
         #endif
 
-        #if SSS_FILTER == 2
+        #ifdef SSS_SCATTER
             // PCF + PCSS
-            float GetShadowSSS(const in PbrLightData lightData) {
+            float GetShadowSSS(const in PbrLightData lightData, out float traceDist) {
                 int cascade;
                 float texDepth = GetNearestDepth(lightData, vec2(0.0), cascade);
                 float dist = max(lightData.shadowPos[cascade].z - texDepth, 0.0) * 4.0 * far;
@@ -357,18 +357,9 @@
 
                 return GetShadowing_PCF_SSS(lightData, blockRadius, sampleCount);
             }
-        #elif SSS_FILTER == 1
-            // PCF
-            float GetShadowSSS(const in PbrLightData lightData) {
-                int sampleCount = POISSON_SAMPLES;
-                //vec2 pixelRadius = GetPixelRadius(cascade, SHADOW_PCF_SIZE);
-                //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
-
-                return GetShadowing_PCF_SSS(lightData, SHADOW_PCF_SIZE, sampleCount);
-            }
-        #elif SSS_FILTER == 0
+        #else
             // Unfiltered
-            float GetShadowSSS(const in PbrLightData lightData) {
+            float GetShadowSSS(const in PbrLightData lightData, out float traceDist) {
                 int cascade;
                 float texDepth = GetNearestDepth(lightData, vec2(0.0), cascade);
                 //float bias = GetCascadeBias(geoNoL, cascade);

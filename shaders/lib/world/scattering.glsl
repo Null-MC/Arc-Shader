@@ -5,6 +5,8 @@ float ComputeVolumetricScattering(const in float VoL, const in float G_scatterin
 }
 
 float GetScatteringFactor(const in float sunLightLevel) {
+    if (isEyeInWater == 1) return G_SCATTERING_WATER;
+
     float scattering = mix(G_SCATTERING_NIGHT, G_SCATTERING_CLEAR, sunLightLevel);
 
     #ifdef IS_OPTIFINE
@@ -14,13 +16,22 @@ float GetScatteringFactor(const in float sunLightLevel) {
     scattering = mix(scattering, G_SCATTERING_RAIN, wetness); // rainStrength
 
     //scattering = min(scattering + G_SCATTERING_NIGHT, 1.0);
-    
+
     return scattering;
 }
 
 vec3 GetVanillaSkyScattering(const in vec3 viewDir, const in float sunLightLevel, const in vec3 sunColor, const in vec3 moonColor) {
     float scattering = GetScatteringFactor(sunLightLevel);
-    float scatterDistF = min((far - near) / (101.0 - VL_STRENGTH), 1.0);
+
+    float scatterDistF = far - near;
+    if (isEyeInWater == 1) {
+        //scatterDistF /= 1.0;
+    }
+    else {
+        scatterDistF /= 101.0 - VL_STRENGTH;
+    }
+
+    scatterDistF = min(scatterDistF, 1.0);
 
     #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED)
         vec3 sunLightDir = GetFixedSunPosition();
@@ -35,5 +46,9 @@ vec3 GetVanillaSkyScattering(const in vec3 viewDir, const in float sunLightLevel
     float moon_VoL = dot(viewDir, moonLightDir);
     float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering);
 
-    return (sunScattering * sunColor + moonScattering * moonColor) * scatterDistF;
+    vec3 vlColor = (sunScattering * sunColor + moonScattering * moonColor) * scatterDistF;
+
+    if (isEyeInWater == 1) vlColor *= vec3(0.1, 0.7, 1.0);
+
+    return vlColor;
 }

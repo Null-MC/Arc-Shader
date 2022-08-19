@@ -145,7 +145,7 @@
             return unpackUnorm4x8(data).a;
         }
 
-        #if SSS_FILTER != 0
+        #ifdef SSS_SCATTER
             float GetShadowing_PCF_SSS(const in PbrLightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
                 #ifdef SSS_DITHER
                     float dither = 0.5 + 0.5*GetScreenBayerValue();
@@ -180,12 +180,12 @@
             }
         #endif
 
-        #if SSS_FILTER == 2
+        #ifdef SSS_SCATTER
             // PCF + PCSS
-            float GetShadowSSS(const in PbrLightData lightData) {
+            float GetShadowSSS(const in PbrLightData lightData, out float traceDist) {
                 float texDepth = SampleDepth(lightData.shadowPos, vec2(0.0));
-                float dist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * 2.0 * far;
-                float distF = saturate(dist / SSS_MAXDIST);
+                traceDist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * 2.0 * far;
+                float distF = saturate(traceDist / SSS_MAXDIST);
 
                 int sampleCount = SSS_PCF_SAMPLES;
                 vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, SSS_PCF_SIZE * distF);
@@ -193,23 +193,14 @@
 
                 return GetShadowing_PCF_SSS(lightData, pixelRadius, sampleCount);
             }
-        #elif SSS_FILTER == 1
-            // PCF
-            float GetShadowSSS(const in PbrLightData lightData) {
-                int sampleCount = SSS_PCF_SAMPLES;
-                vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, SSS_PCF_SIZE);
-                if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
-
-                return GetShadowing_PCF_SSS(lightData, pixelRadius, sampleCount);
-            }
-        #elif SSS_FILTER == 0
+        #else
             // Unfiltered
-            float GetShadowSSS(const in PbrLightData lightData) {
+            float GetShadowSSS(const in PbrLightData lightData, out float traceDist) {
                 float texDepth = SampleDepth(lightData.shadowPos, vec2(0.0));
-                float dist = max(lightData.shadowPos.z - texDepth, 0.0) * 2.0 * far;
+                traceDist = max(lightData.shadowPos.z - texDepth, 0.0) * 2.0 * far;
 
                 float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy);
-                return max(shadow_sss - dist / SSS_MAXDIST, 0.0);
+                return max(shadow_sss - traceDist / SSS_MAXDIST, 0.0);
             }
         #endif
     #endif

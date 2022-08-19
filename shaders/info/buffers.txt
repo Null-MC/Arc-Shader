@@ -7,7 +7,7 @@ colortex4		RGB16F		1.0   pre-exposed HDR scene
 colortex5		RGBA16F		0.5	  HDR previous frame = RGB: pre-exposed HDR, A: Log Luminance
 colortex6		R16F		0.5   Log Luminance
 
-colortex7		RGB16F		1.0   HDR transparent / bloom tiles
+colortex7		RGB16F		1.0   HDR transparent / VL / bloom tiles
 colortex8		RGB16F		*     RSM color
 colortex9		R32F		*     RSM depth
 colortex11		RG16F		2048  Water Waves
