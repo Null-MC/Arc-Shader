@@ -101,8 +101,8 @@ void main() {
             lightColor.rgb = vec3(1.0);
         }
         else {
-            //lightColor.rgb = mix(vec3(1.0), lightColor.rgb, lightColor.a);
-            lightColor.rgb = mix(lightColor.rgb, vec3(0.0), lightColor.a);
+            lightColor.rgb = mix(vec3(1.0), lightColor.rgb, sqrt(lightColor.a));
+            lightColor.rgb = mix(lightColor.rgb, vec3(0.0), pow2(lightColor.a));
         }
 
         lightColor.rgb = LinearToRGB(lightColor.rgb);
