@@ -98,7 +98,7 @@
                 // WARN: The lightData.shadowBias is only for the current pixel, not the VL sample!
                 lightData.shadowBias = 0.0;
 
-                accumF += CompareDepth(lightData, vec2(0.0));
+                accumF += CompareDepth(lightData.shadowPos, vec2(0.0), lightData.shadowBias);
             #endif
         }
 
@@ -106,15 +106,15 @@
     }
 #endif
 
+float _GetShadowLightScattering(const in vec3 ray, const in float G_scattering) {
+    const vec3 sunDir = vec3(0.0, 0.0, 1.0);
+    float VoL = dot(normalize(ray), sunDir);
+
+    float rayLen = min(length(ray) / (101.0 - VL_STRENGTH), 1.0);
+    return ComputeVolumetricScattering(VoL, G_scattering) * rayLen;
+}
+
 #ifdef SHADOW_COLOR
-    float _GetShadowLightScattering(const in vec3 ray, const in float G_scattering) {
-        const vec3 sunDir = vec3(0.0, 0.0, 1.0);
-        float VoL = dot(normalize(ray), sunDir);
-
-        float rayLen = min(length(ray) / (101.0 - VL_STRENGTH), 1.0);
-        return ComputeVolumetricScattering(VoL, G_scattering) * rayLen;
-    }
-
     vec3 GetVolumetricLightingColor(const in PbrLightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float G_scattering) {
         vec3 ray = shadowViewEnd - shadowViewStart;
         float scattering = _GetShadowLightScattering(ray, G_scattering);

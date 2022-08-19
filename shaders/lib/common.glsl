@@ -193,7 +193,7 @@ const bool colortex12Clear = false;
 #define EPSILON 1e-7
 #define GAMMA 2.2
 
-const float sunLumen = 100000000;//16e6; 1,600,000,000
+const float sunLumen = 20e6;
 const float moonLumen = 4000.0;
 const float StarLumen = 1200.0;
 //const float BlockLightLumen = 2000;
