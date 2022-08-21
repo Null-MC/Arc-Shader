@@ -20,10 +20,10 @@
                 }
                 else if (gl_Normal.y < -0.01) {
                     //sneaky back face of top needs weird checks.
-                    // if (at_midBlock.y < 30.75) {
-                    //    gl_Position = vec4(10.0);
-                    //    return;
-                    // }
+                    if (at_midBlock.y < 30.75 && isEyeInWater == 0) {
+                        gl_Position = vec4(10.0);
+                        return;
+                    }
                 }
                 else {
                     if (dot(gl_Normal, at_midBlock) > 0.0) {

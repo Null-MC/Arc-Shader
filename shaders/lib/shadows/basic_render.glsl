@@ -3,37 +3,36 @@
 #endif
 
 #ifdef RENDER_FRAG
-    float SampleDepth(const in vec4 shadowPos, const in vec2 offset) {
-        #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
-            return textureLod(shadowtex1, shadowPos.xy + offset * shadowPos.w, 0).r;
-        #elif defined SHADOW_ENABLE_HWCOMP
-            return textureLod(shadowtex0, shadowPos.xy + offset * shadowPos.w, 0).r;
-        #else
-            return textureLod(shadowtex1, shadowPos.xy + offset * shadowPos.w, 0).r;
-        #endif
+    float SampleOpaqueDepth(const in vec4 shadowPos, const in vec2 offset) {
+        return textureLod(shadowtex1, shadowPos.xy + offset * shadowPos.w, 0).r;
+    }
+
+    float SampleTransparentDepth(const in vec4 shadowPos, const in vec2 offset) {
+        return textureLod(shadowtex0, shadowPos.xy + offset * shadowPos.w, 0).r;
     }
 
     // returns: [0] when depth occluded, [1] otherwise
-    float CompareDepth(const in vec4 shadowPos, const in vec2 offset, const in float shadowBias) {
-        #ifdef SHADOW_ENABLE_HWCOMP
-            #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
-                return textureLod(shadowtex1HW, shadowPos.xyz + vec3(offset * shadowPos.w, -shadowBias), 0);
-            #else
-                return textureLod(shadowtex1, shadowPos.xyz + vec3(offset * shadowPos.w, -shadowBias), 0);
-            #endif
+    float CompareOpaqueDepth(const in vec4 shadowPos, const in vec2 offset, const in float shadowBias) {
+        #if defined SHADOW_ENABLE_HWCOMP && defined IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+            return textureLod(shadowtex1HW, shadowPos.xyz + vec3(offset * shadowPos.w, -shadowBias), 0);
         #else
             float shadowDepth = textureLod(shadowtex1, shadowPos.xy + offset * shadowPos.w, 0).r;
             return step(shadowPos.z + EPSILON, shadowDepth + shadowBias);
         #endif
     }
 
+    // float GetWaterShadowDepth(const in PbrLightData lightData) {
+    //     float waterTexDepth = textureLod(shadowtex0, lightData.shadowPos.xy, 0).r;
+    //     float waterDepth = lightData.shadowPos.z - lightData.shadowBias - waterTexDepth;
+    //     return waterDepth * 3.0 * far;
+    // }
+
     #ifdef SHADOW_COLOR
         vec3 GetShadowColor(const in PbrLightData lightData) {
-            // TODO: enable HW-comp on Iris
-            float waterDepth = textureLod(shadowtex0, lightData.shadowPos.xy, 0).r;
-            if (lightData.shadowPos.z - lightData.shadowBias < waterDepth) return vec3(1.0);
+            if (lightData.transparentShadowDepth < 0.0) return vec3(1.0);
 
-            return textureLod(shadowcolor0, lightData.shadowPos.xy, 0).rgb;
+            vec3 color = textureLod(shadowcolor0, lightData.shadowPos.xy, 0).rgb;
+            return RGBToLinear(color);
         }
     #endif
 
@@ -68,7 +67,7 @@
                     pixelOffset *= dither;
                 #endif
                 
-                shadow += 1.0 - CompareDepth(lightData.shadowPos, pixelOffset, lightData.shadowBias);
+                shadow += 1.0 - CompareOpaqueDepth(lightData.shadowPos, pixelOffset, lightData.shadowBias);
             }
 
             return shadow / sampleCount;
@@ -85,7 +84,7 @@
 
             for (int i = 0; i < sampleCount; i++) {
                 vec2 pixelOffset = poissonDisk[i] * pixelRadius;
-                float texDepth = SampleDepth(shadowPos, pixelOffset);
+                float texDepth = SampleOpaqueDepth(shadowPos, pixelOffset);
 
                 if (texDepth < shadowPos.z) {
                     avgBlockerDistance += texDepth;
@@ -130,12 +129,16 @@
     #elif SHADOW_FILTER == 0
         // Unfiltered
         float GetShadowing(const in PbrLightData lightData) {
-            #ifdef SHADOW_ENABLE_HWCOMP
-                return CompareDepth(lightData.shadowPos, vec2(0.0), lightData.shadowBias);
-            #else
-                float texDepth = SampleDepth(lightData.shadowPos, vec2(0.0));
-                return step(lightData.shadowPos.z - EPSILON, texDepth + lightData.shadowBias);
-            #endif
+            //#ifdef SHADOW_ENABLE_HWCOMP
+            //    return CompareOpaqueDepth(lightData.shadowPos, vec2(0.0), lightData.shadowBias);
+            //#else
+            //float texDepth = SampleDepth(lightData.shadowPos, vec2(0.0));
+            //opaqueDepth = texDepth * far * 3.0;
+
+            float surfaceDepth = lightData.shadowPos.z - lightData.shadowBias;
+            float texDepth = lightData.opaqueShadowDepth + EPSILON;
+            return step(surfaceDepth, texDepth);
+            //#endif
         }
     #endif
 
@@ -160,20 +163,21 @@
                         pixelOffset *= dither;
                     #endif
 
-                    float texDepth = SampleDepth(lightData.shadowPos, pixelOffset);
+                    float texDepth = SampleOpaqueDepth(lightData.shadowPos, pixelOffset);
                     //light += step(shadowPos.z + shadowBias, texDepth + 0.001);
 
                     if (texDepth < lightData.shadowPos.z + lightData.shadowBias) {
                         float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy + pixelOffset);
                         shadow_sss = sqrt(max(shadow_sss, EPSILON));
 
-                        float dist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * 2.0 * far;
+                        float dist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * 3.0 * far;
                         light += max(shadow_sss - dist / SSS_MAXDIST, 0.0);
                         //light++;
                         sampleHit++;
                     }
                     else {
                         light++;
+                        sampleHit++;
                     }
                 }
 
@@ -183,25 +187,26 @@
 
         #ifdef SSS_SCATTER
             // PCF + PCSS
-            float GetShadowSSS(const in PbrLightData lightData, out float traceDist) {
-                float texDepth = SampleDepth(lightData.shadowPos, vec2(0.0));
-                traceDist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * 2.0 * far;
-                float distF = saturate(traceDist / SSS_MAXDIST);
+            float GetShadowSSS(const in PbrLightData lightData, const in float materialSSS, out float traceDist) {
+                float texDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
+                traceDist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * 3.0 * far;
+                float blockRadius = SSS_PCF_SIZE * saturate(traceDist / SSS_MAXDIST) * (1.0 - 0.9*materialSSS);
 
                 int sampleCount = SSS_PCF_SAMPLES;
-                vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, SSS_PCF_SIZE * distF);
+                vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, blockRadius);
                 if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
                 return GetShadowing_PCF_SSS(lightData, pixelRadius, sampleCount);
             }
         #else
             // Unfiltered
-            float GetShadowSSS(const in PbrLightData lightData, out float traceDist) {
-                float texDepth = SampleDepth(lightData.shadowPos, vec2(0.0));
-                traceDist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * 2.0 * far;
+            float GetShadowSSS(const in PbrLightData lightData, const in float materialSSS, out float traceDist) {
+                float texDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
+                traceDist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * 3.0 * far;
 
                 float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy);
                 shadow_sss = sqrt(max(shadow_sss, EPSILON));
+
                 return max(shadow_sss - traceDist / SSS_MAXDIST, 0.0);
             }
         #endif

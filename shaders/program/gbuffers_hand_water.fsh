@@ -54,6 +54,11 @@ flat in mat2 atlasBounds;
 
         #if SHADOW_TYPE != SHADOW_TYPE_NONE
             uniform sampler2D shadowtex0;
+            uniform sampler2D shadowtex1;
+        
+            #if defined SHADOW_ENABLE_HWCOMP && defined IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+                uniform sampler2DShadow shadowtex1HW;
+            #endif
 
             #ifdef SHADOW_COLOR
                 uniform sampler2D shadowcolor0;
@@ -62,27 +67,12 @@ flat in mat2 atlasBounds;
             #ifdef SSS_ENABLED
                 uniform usampler2D shadowcolor1;
             #endif
-        
-            #ifdef SHADOW_ENABLE_HWCOMP
-                #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
-                    uniform sampler2DShadow shadowtex1HW;
-                    uniform sampler2D shadowtex1;
-                #else
-                    uniform sampler2DShadow shadowtex1;
-                #endif
-            #else
-                uniform sampler2D shadowtex1;
-            #endif
         #endif
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             flat in float cascadeSizes[4];
             flat in vec3 matShadowProjections_scale[4];
             flat in vec3 matShadowProjections_translation[4];
-        #endif
-
-        #ifdef SHADOW_CONTACT
-            uniform sampler2D depthtex1;
         #endif
     #endif
 #endif
@@ -101,6 +91,8 @@ uniform sampler2D specular;
 uniform sampler2D lightmap;
 uniform sampler2D noisetex;
 uniform sampler2D colortex10;
+uniform sampler2D depthtex0;
+uniform sampler2D depthtex1;
 
 uniform ivec2 atlasSize;
 

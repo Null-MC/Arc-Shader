@@ -127,7 +127,7 @@ vec3 GetSubsurface(const in vec3 albedo, const in float NoVm, const in float NoL
 
     // TODO: modified this to prevent NaN's!
     //return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (1.0 / (NoVm + NoLm) - 0.5) + 0.5) * abs(NoL);
-    vec3 result = (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (min(1.0 / max(NoVm + NoLm, 0.0001), 1.0) - 0.5) + 0.5);// * abs(NoL);
+    vec3 result = (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (min(1.0 / max(NoVm + NoLm, 0.0001), 1.0) - 0.5) + 0.5) * max(NoL, 0.0);
     //return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (rcp(1.0 + (NoV + NoL)) - 0.5) + 0.5);
 
     #ifndef SHADOW_ENABLED
@@ -148,4 +148,9 @@ vec3 GetDiffuseBSDF(const in vec3 diffuse, const in vec3 albedo, const in float 
     #else
         return diffuse;
     #endif
+}
+
+float BiLambertianPlatePhaseFunction(in float kd, in float cosTheta) {
+    float phase = 2.0 * (-PI * kd * cosTheta + sqrt(1.0 - pow2(cosTheta)) + cosTheta * acos(-cosTheta));
+    return phase / (3.0 * pow2(PI));
 }

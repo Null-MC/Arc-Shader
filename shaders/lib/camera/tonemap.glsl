@@ -40,7 +40,7 @@ vec3 tonemap_AcesFilm(const in vec3 color)
 
 vec3 tonemap_Reinhard(const in vec3 color)
 {
-    return color / (1.0 + color);
+    return color / (color + 1.0);
 }
 
 vec3 tonemap_ReinhardJodie(const in vec3 color)
@@ -133,9 +133,9 @@ vec3 tonemap_BurgessModified(const in vec3 color)
 }
 
 // My custom tonemap, feel free to use, make sure to give credit though :D
-vec3 tonemap_Tech(const in vec3 color)
+vec3 tonemap_Tech(const in vec3 color, const in float contrast)
 {
-    vec3 a = color * min(vec3(1.0), 1.0 - exp(-1.0 / 0.038 * color));
+    vec3 a = color * min(vec3(1.0), 1.0 - exp(-1.0 / contrast * color));
     a = mix(a, color, color * color);
     return a / (a + 0.6);
 }
@@ -168,7 +168,7 @@ vec3 ApplyTonemap(const in vec3 color, const in float whitePoint)
 #elif TONEMAP == TONEMAP_ReinhardExtendedLuminance
     return tonemap_ReinhardExtendedLuminance(color, whitePoint);
 #elif TONEMAP == TONEMAP_Tech
-    return tonemap_Tech(color);
+    return tonemap_Tech(color, 0.038);
 #else
     return color;
 #endif
@@ -183,23 +183,23 @@ vec3 TonemapLinearToRGB(const in vec3 color)
 #elif TONEMAP == TONEMAP_Reinhard
     return LinearToRGB(color);
 #elif TONEMAP == TONEMAP_ReinhardJodie
-    return color; // ???
+    return LinearToRGB(color);
 #elif TONEMAP == TONEMAP_Uncharted2
     return LinearToRGB(color);
 #elif TONEMAP == TONEMAP_ACESFit
     return LinearToRGB(color);
 #elif TONEMAP == TONEMAP_ACESFit2
-    return color; // ???
+    return color;
 #elif TONEMAP == TONEMAP_FilmicHejl2015
-    return color; // ???
+    return color;
 #elif TONEMAP == TONEMAP_Burgess
-    return color; // ???
+    return color;
 #elif TONEMAP == TONEMAP_BurgessModified
-    return color; // ???
+    return color;
 #elif TONEMAP == TONEMAP_ReinhardExtendedLuminance
-    return color; // ???
+    return LinearToRGB(color);
 #elif TONEMAP == TONEMAP_Tech
-    return color; // ???
+    return LinearToRGB(color);
 #else
     return LinearToRGB(color);
 #endif

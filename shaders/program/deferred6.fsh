@@ -36,7 +36,7 @@ uniform sampler2D BUFFER_LUMINANCE;
 uniform sampler2D BUFFER_HDR;
 uniform sampler2D colortex10;
 uniform sampler2D lightmap;
-//uniform sampler2D depthtex0;
+uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
 
@@ -82,17 +82,15 @@ uniform float fogEnd;
     uniform int moonPhase;
 
     #ifdef SHADOW_ENABLED
+        uniform sampler2D shadowtex0;
+        uniform sampler2D shadowtex1;
+
         uniform vec3 shadowLightPosition;
         uniform mat4 shadowProjection;
         uniform mat4 shadowModelView;
 
-        #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+        #if defined SHADOW_ENABLE_HWCOMP && defined IRIS_FEATURE_SEPARATE_HW_SAMPLERS
             uniform sampler2DShadow shadowtex1HW;
-        #elif defined SHADOW_ENABLE_HWCOMP
-            uniform sampler2D shadowtex0;
-            uniform sampler2DShadow shadowtex1;
-        #else
-            uniform sampler2D shadowtex1;
         #endif
 
         #if defined SSS_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE)
@@ -241,6 +239,13 @@ void main() {
         lightData.geoNoL = lightingMap.z * 2.0 - 1.0;
         lightData.parallaxShadow = lightingMap.w;
 
+        //float waterViewDepth = texelFetch(depthtex0, iTex, 0).r;
+        //lightData.waterScreenDepth = linearizeDepthFast(waterViewDepth, near, far);
+        lightData.transparentScreenDepth = 1.0; // This doesn't work here!
+
+        float opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
+        lightData.opaqueScreenDepth = linearizeDepthFast(opaqueScreenDepth, near, far);
+        
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
 
@@ -255,14 +260,19 @@ void main() {
                     
                     vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
                     lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + shadowCascadePos;
+                    lightData.shadowTilePos[i] = GetShadowCascadeClipPos(i);
+                    lightData.shadowBias[i] = GetCascadeBias(lightData.geoNoL, i);
 
                     #ifdef SHADOW_DITHER
                         lightData.shadowPos[i].xy += ditherOffset;
                     #endif
-
-                    lightData.shadowTilePos[i] = GetShadowCascadeClipPos(i);
-                    lightData.shadowBias[i] = GetCascadeBias(lightData.geoNoL, i);
                 }
+
+                lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData, vec2(0.0), lightData.shadowCascade);
+                lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData.shadowPos, vec2(0.0));
+
+                float minOpaqueDepth = min(lightData.shadowPos[lightData.shadowCascade].z, lightData.opaqueShadowDepth);
+                lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 4.0 * far;
             #else
                 lightData.shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
 
@@ -279,7 +289,16 @@ void main() {
                 #ifdef SHADOW_DITHER
                     lightData.shadowPos.xy += ditherOffset;
                 #endif
+
+                lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
+                lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos, vec2(0.0));
+
+                float minOpaqueDepth = min(lightData.shadowPos.z, lightData.opaqueShadowDepth);
+                lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 3.0 * far;
             #endif
+
+            //float waterDepth = min(lightData.shadowPos.z, lightData.opaqueShadowDepth) - lightData.shadowBias - waterTexDepth;
+            //float waterDepth = (min(lightData.shadowPos.z, lightData.opaqueShadowDepth) - waterTexDepth) * 3.0 * far;
         #endif
 
         PbrMaterial material;

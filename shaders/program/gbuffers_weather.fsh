@@ -41,6 +41,11 @@ flat in float exposure;
 
         #if SHADOW_TYPE != SHADOW_TYPE_NONE
             uniform sampler2D shadowtex0;
+            uniform sampler2D shadowtex1;
+
+            #if defined SHADOW_ENABLE_HWCOMP && defined IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+                uniform sampler2DShadow shadowtex1HW;
+            #endif
 
             #ifdef SHADOW_COLOR
                 uniform sampler2D shadowcolor0;
@@ -48,17 +53,6 @@ flat in float exposure;
 
             #ifdef SSS_ENABLED
                 uniform usampler2D shadowcolor1;
-            #endif
-
-            #ifdef SHADOW_ENABLE_HWCOMP
-                #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
-                    uniform sampler2DShadow shadowtex1HW;
-                    uniform sampler2D shadowtex1;
-                #else
-                    uniform sampler2DShadow shadowtex1;
-                #endif
-            #else
-                uniform sampler2D shadowtex1;
             #endif
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED

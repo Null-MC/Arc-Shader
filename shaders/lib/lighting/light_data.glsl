@@ -1,12 +1,18 @@
 struct PbrLightData {
+    float parallaxShadow;
     float occlusion;
     float blockLight;
     float skyLight;
     float geoNoL;
 
-    float parallaxShadow;
-    float solidShadowDepth;
+    float opaqueScreenDepth;
+    float transparentScreenDepth;
+    //float waterScreenDepth;
+
+    float opaqueShadowDepth;
+    float transparentShadowDepth;
     float waterShadowDepth;
+
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         mat4 matShadowProjection[4];

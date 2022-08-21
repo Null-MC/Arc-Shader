@@ -20,16 +20,11 @@
             #endif
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                //vec3 shadowPos[4];
                 for (int i = 0; i < 4; i++) {
                     lightData.shadowPos[i] = (lightData.matShadowProjection[i] * vec4(currentShadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-
-                    vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
-                    lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + shadowCascadePos;
+                    lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + lightData.shadowTilePos[i];
                 }
 
-                // WARN: The lightData.geoNoL is only for the current pixel, not the VL sample!
-                //const float geoNoL = 1.0; //lightData.geoNoL;
                 float depthSample = CompareNearestDepth(lightData, vec2(0.0));
             #else
                 lightData.shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
@@ -40,10 +35,7 @@
 
                 lightData.shadowPos.xyz = lightData.shadowPos.xyz * 0.5 + 0.5;
 
-                // WARN: The lightData.shadowBias is only for the current pixel, not the VL sample!
-                lightData.shadowBias = 0.0;
-
-                float depthSample = CompareDepth(lightData.shadowPos, vec2(0.0), lightData.shadowBias);
+                float depthSample = CompareOpaqueDepth(lightData.shadowPos, vec2(0.0), 0.0);
             #endif
 
             if (depthSample > EPSILON) {
@@ -61,14 +53,15 @@
 
         vec3 rayDirection = rayVector / rayLength;
         float stepLength = rayLength / VL_SAMPLE_COUNT;
+        vec3 rayStep = rayDirection * stepLength;
         float accumF = 0.0;
 
         #ifdef VL_DITHER
-            vec3 ditherOffset = rayDirection * stepLength * GetScreenBayerValue();
+            vec3 ditherOffset = rayStep * GetScreenBayerValue();
         #endif
 
         for (int i = 1; i < VL_SAMPLE_COUNT; i++) {
-            vec3 currentShadowViewPos = shadowViewStart + i * rayDirection * stepLength;
+            vec3 currentShadowViewPos = shadowViewStart + i * rayStep;
 
             #ifdef VL_DITHER
                 currentShadowViewPos += ditherOffset;
@@ -78,13 +71,9 @@
                 //vec3 shadowPos[4];
                 for (int i = 0; i < 4; i++) {
                     lightData.shadowPos[i] = (lightData.matShadowProjection[i] * vec4(currentShadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-
-                    //vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
                     lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + lightData.shadowTilePos[i];
                 }
 
-                // WARN: The lightData.geoNoL is only for the current pixel, not the VL sample!
-                //const float geoNoL = 1.0; //lightData.geoNoL;
                 accumF += CompareNearestDepth(lightData, vec2(0.0));
             #else
                 lightData.shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
@@ -95,10 +84,7 @@
 
                 lightData.shadowPos.xyz = lightData.shadowPos.xyz * 0.5 + 0.5;
 
-                // WARN: The lightData.shadowBias is only for the current pixel, not the VL sample!
-                lightData.shadowBias = 0.0;
-
-                accumF += CompareDepth(lightData.shadowPos, vec2(0.0), lightData.shadowBias);
+                accumF += CompareOpaqueDepth(lightData.shadowPos, vec2(0.0), 0.0);
             #endif
         }
 

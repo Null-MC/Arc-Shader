@@ -60,7 +60,7 @@ const bool colortex12Clear = false;
 #define WATER_FANCY
 #define WATER_REFRACTION 0 // [0 1 2]
 #define WATER_WAVE_TYPE 1 // [0 1 2]
-#define WATER_SCALE 16.0
+#define WATER_SCALE 38.0
 #define WATER_RADIUS 32
 #define WATER_OCTAVES_NEAR 48
 #define WATER_OCTAVES_FAR 16
@@ -106,11 +106,11 @@ const bool colortex12Clear = false;
 // Material Options
 #define MATERIAL_FORMAT 1 // [0 1 2 3]
 #define SSS_ENABLED
-#define SSS_MAXDIST 4.2
+#define SSS_MAXDIST 8.0
 #define SSS_SCATTER
-#define SSS_PCF_SIZE 0.8 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+#define SSS_PCF_SIZE 2.0 // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
-#define SSS_DITHER
+//#define SSS_DITHER
 #define REFLECTION_MODE 2 // [0 1 2]
 
 
@@ -186,7 +186,7 @@ const bool colortex12Clear = false;
 
 // INTERNAL
 #define TITLE
-#define WATER_SMOOTH 0.92
+#define WATER_SMOOTH 0.98
 #define IOR_AIR 1.000293
 #define IOR_WATER 1.333
 #define PI 3.1415926538
@@ -214,6 +214,8 @@ const float DaySkyOvercastLumen = 10000.0;
 const float NightSkyLumen = 1200.0;
 const float NightSkyOvercastLumen = 60.0;
 
+const vec4 WATER_COLOR = vec4(0.269, 0.892, 0.955, 0.1)*0.2;
+//const vec4 WATER_COLOR = vec4(0.6, 0.0, 0.0, 0.12);
 const vec3 WaterAbsorbtionExtinction = vec3(0.28, 0.34, 0.42); //0.54, 0.91, 0.93
 
 const vec3 minLight = vec3(0.01);
@@ -355,16 +357,25 @@ vec3 unproject(const in vec4 pos) {
     return pos.xyz / pos.w;
 }
 
-float RGBToLinear(const in float color) {
-    return pow(color, GAMMA);
+float RGBToLinear(const in float x) {
+    //return pow(color, GAMMA);
+    float linearLo = x / 12.92;
+    float linearHi = pow((x + 0.055) / 1.055, 2.4);
+    return mix(linearLo, linearHi, step(x, 0.04045));
 }
 
-vec3 RGBToLinear(const in vec3 color) {
-	return pow(color, vec3(GAMMA));
+vec3 RGBToLinear(const in vec3 x) {
+	//return pow(color, vec3(GAMMA));
+    vec3 linearLo = x / 12.92;
+    vec3 linearHi = pow((x + 0.055) / 1.055, vec3(2.4));
+    return mix(linearHi, linearLo, step(x, vec3(0.04045)));
 }
 
-vec3 LinearToRGB(const in vec3 color) {
-	return pow(color, vec3(1.0 / GAMMA));
+vec3 LinearToRGB(const in vec3 x) {
+	//return pow(color, vec3(1.0 / GAMMA));
+    vec3 sRGBLo = x * 12.92;
+    vec3 sRGBHi = pow(abs(x), vec3(1.0 / 2.4)) * 1.055 - 0.055;
+    return mix(sRGBHi, sRGBLo, step(x, vec3(0.0031308)));
 }
 
 float luminance(const in vec3 color) {
