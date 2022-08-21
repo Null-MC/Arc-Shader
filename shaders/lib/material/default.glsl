@@ -1,7 +1,7 @@
 void ApplyHardCodedMaterials() {
     matF0 = 0.04;
     matSSS = 0.0;
-    matSmooth = 0.02;
+    matSmooth = 0.0;
     matEmissive = 0.0;
 
     if (mc_Entity.x == 100.0 || mc_Entity.x == 101.0) {
@@ -15,7 +15,7 @@ void ApplyHardCodedMaterials() {
     }
     else if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0) {
         // Foliage
-        matSmooth = 0.16;
+        matSmooth = 0.08;
         matSSS = 0.85;
         matF0 = 0.03;
     }

@@ -374,7 +374,7 @@
             #ifdef SSS_ENABLED
                 if (material.scattering > 0.0 && NoL < 0.0) {
                     // Transmission
-                    vec3 sssDiffuseLight = material.albedo.rgb * pow(shadowSSS, 0.5) * diffuseLight;
+                    vec3 sssDiffuseLight = 1.25 * material.albedo.rgb * pow(shadowSSS, 0.5) * diffuseLight;
 
                     //sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo * sssDiffuseLight, material.scattering, NoVm, NoL, LoHm, roughL);
 

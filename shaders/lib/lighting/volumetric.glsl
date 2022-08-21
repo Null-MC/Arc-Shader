@@ -74,7 +74,7 @@
                     lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + lightData.shadowTilePos[i];
                 }
 
-                accumF += CompareNearestDepth(lightData, vec2(0.0));
+                accumF += CompareNearestOpaqueDepth(lightData, vec2(0.0));
             #else
                 lightData.shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
 

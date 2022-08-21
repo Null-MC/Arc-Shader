@@ -110,7 +110,7 @@ const bool colortex12Clear = false;
 #define SSS_SCATTER
 #define SSS_PCF_SIZE 2.0 // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
-//#define SSS_DITHER
+#define SSS_DITHER
 #define REFLECTION_MODE 2 // [0 1 2]
 
 

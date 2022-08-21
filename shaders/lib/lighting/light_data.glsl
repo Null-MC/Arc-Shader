@@ -20,6 +20,8 @@ struct PbrLightData {
 
         float shadowBias[4];
         vec2 shadowTilePos[4];
+        int opaqueShadowCascade;
+        int transparentShadowCascade;
     #else
         vec4 shadowPos;
         float shadowBias;
