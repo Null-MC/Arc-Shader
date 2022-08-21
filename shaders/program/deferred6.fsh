@@ -293,6 +293,8 @@ void main() {
                 lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
                 lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos, vec2(0.0));
 
+                //if (lightData.opaqueShadowDepth < lightData.shadowPos.z) lightData.waterShadowDepth
+
                 float minOpaqueDepth = min(lightData.shadowPos.z, lightData.opaqueShadowDepth);
                 lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 3.0 * far;
             #endif

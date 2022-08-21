@@ -500,7 +500,8 @@
                     //diffuse = (diffuse + scatterColor * scatterAmount);// * absorption;
                     diffuse = scatterColor * scatterAmount + absorption;
                     
-                    float alphaF = exp(-(waterViewDepth + lightData.waterShadowDepth));
+                    //float alphaF = exp(-(waterViewDepth + lightData.waterShadowDepth));
+                    float alphaF = exp(-waterViewDepth);
                     final.a = 1.0 - saturate(alphaF) * (1.0 - material.albedo.a);// * max(1.0 - final.a, 0.0);
                     //final.a = 1.0;
                 #endif
@@ -587,7 +588,7 @@
             float waterFogEnd = min(40.0, fogEnd);
             float waterFogF = GetFogFactor(viewDist, near, waterFogEnd, 0.8);
             vec3 waterFogColor = WATER_COLOR.rgb * 0.1 * skyLightLuxColor * (0.02 + 0.98*eyeLight);
-            final.rgb = mix(final.rgb, waterFogColor, waterFogF);
+            //final.rgb = mix(final.rgb, waterFogColor, waterFogF);
         }
         else {
             #ifdef RENDER_DEFERRED
@@ -616,7 +617,7 @@
 
             vec3 vlColor = sunColor + moonColor;
 
-            if (isEyeInWater == 1) vlColor *= WATER_COLOR.rgb;
+            //if (isEyeInWater == 1) vlColor *= WATER_COLOR.rgb;
             
             final.rgb += volScatter * vlColor;
         #endif
