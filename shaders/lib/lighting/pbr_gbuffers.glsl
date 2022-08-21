@@ -162,7 +162,7 @@
             #endif
         #endif
 
-        #if AO_TYPE == AO_TYPE_FAST
+        #ifdef AO_ENABLED
             normalMap.a *= pow2(glcolor.a);
         #endif
 

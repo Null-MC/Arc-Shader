@@ -8,25 +8,24 @@ deferred3	RSM Blur
 deferred4	AO Render
 deferred5	AO Blur
 deferred6	Opaque PBR: RGB1: pre-exposed color, R2: Raw Luminance
-deferred7	opaque copy
+---deferred7	opaque copy
 
 <transparent>
 <particles?>
 
 
-composite1	depth tiles
-composite2	VL
-composite3	VL Blur
-composite4	copy previous-frame = RGB: pre-exposed color; depth-tiles
-composite5	Bloom threshold/downsampling
-composite6	Bloom Blur H
-composite7	Bloom Blur V
+composite1	transparent blend
+composite2	depth tiles
+composite3	VL
+composite4	VL Blur
+composite5	copy previous-frame = RGB: pre-exposed color; depth-tiles
+composite6	Bloom threshold/downsampling
+composite7	Bloom Blur H
+composite8	Bloom Blur V
 
-
-
-composite1	Bloom threshold/downsampling
-composite2	Bloom Blur H
-composite3	Bloom Blur V
-composite4	copy previous-frame = RGB: pre-exposed color; depth-tiles
+---composite1	Bloom threshold/downsampling
+---composite2	Bloom Blur H
+---composite3	Bloom Blur V
+---composite4	copy previous-frame = RGB: pre-exposed color; depth-tiles
 
 final		Bloom combine; tonemap; Debug view

@@ -25,7 +25,7 @@
                     lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + lightData.shadowTilePos[i];
                 }
 
-                float depthSample = CompareNearestDepth(lightData, vec2(0.0));
+                float depthSample = CompareNearestOpaqueDepth(lightData, vec2(0.0));
             #else
                 lightData.shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
 

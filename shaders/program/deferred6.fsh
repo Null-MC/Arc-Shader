@@ -27,7 +27,7 @@ flat in vec3 blockLightColor;
     #endif
 #endif
 
-#if AO_TYPE == AO_TYPE_FANCY
+#ifdef SSAO_ENABLED
     uniform sampler2D BUFFER_AO;
 #endif
 

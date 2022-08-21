@@ -308,7 +308,7 @@
         vec3 specular = vec3(0.0);
         float occlusion = material.occlusion;
 
-        #if AO_TYPE == AO_TYPE_FANCY
+        #ifdef SSAO_ENABLED
             #ifdef IS_OPTIFINE
                 occlusion *= textureLod(BUFFER_AO, texcoord, 0).r;
             #else
@@ -339,9 +339,9 @@
             float ambientBrightness = mix(0.36 * skyLight2, 0.85 * skyLight, rainStrength) * SHADOW_BRIGHTNESS;
             vec3 skyAmbient = GetSkyAmbientLight(viewNormal);
 
-            #ifdef SSS_ENABLED
-                vec3 skyAmbientSSS = GetSkyAmbientLight(-viewNormal) * invPI;
-            #endif
+            //#ifdef SSS_ENABLED
+            //    vec3 skyAmbientSSS = GetSkyAmbientLight(-viewNormal) * invPI;
+            //#endif
 
             vec3 skyLightColorFinal = skyLightColor * shadowColor;
             //float diffuseLightF = shadowFinal;
@@ -365,16 +365,16 @@
             //#endif
 
             vec3 sunF = GetFresnel(material.albedo.rgb, f0, material.hcm, LoHm, roughL);
-            vec3 diffuseLight = skyLightColorFinal * skyLight2;
+            //vec3 diffuseLight = skyLightColorFinal * skyLight2;
 
             vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL);
             sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo, material.scattering, NoVm, NoLm, LoHm, roughL);
-            sunDiffuse *= diffuseLight * shadowFinal * max(1.0 - sunF, 0.0);
+            sunDiffuse *= skyLightColorFinal * max(1.0 - sunF, 0.0) * shadowFinal * skyLight2;
 
             #ifdef SSS_ENABLED
                 if (material.scattering > 0.0 && NoL < 0.0) {
                     // Transmission
-                    vec3 sssDiffuseLight = 1.25 * material.albedo.rgb * pow(shadowSSS, 0.5) * diffuseLight;
+                    vec3 sssDiffuseLight = 1.25 * material.albedo.rgb * pow(shadowSSS, 0.5) * skyLightColorFinal;// * skyLight;
 
                     //sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo * sssDiffuseLight, material.scattering, NoVm, NoL, LoHm, roughL);
 

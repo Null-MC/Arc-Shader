@@ -29,7 +29,7 @@
 
     #ifdef SHADOW_COLOR
         vec3 GetShadowColor(const in PbrLightData lightData) {
-            if (lightData.transparentShadowDepth < 0.0) return vec3(1.0);
+            if (lightData.shadowPos.z - lightData.transparentShadowDepth < EPSILON) return vec3(1.0);
 
             vec3 color = textureLod(shadowcolor0, lightData.shadowPos.xy, 0).rgb;
             return RGBToLinear(color);
@@ -190,7 +190,7 @@
             float GetShadowSSS(const in PbrLightData lightData, const in float materialSSS, out float traceDist) {
                 float texDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
                 traceDist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * 3.0 * far;
-                float blockRadius = SSS_PCF_SIZE * saturate(traceDist / SSS_MAXDIST) * (1.0 - 0.9*materialSSS);
+                float blockRadius = SSS_PCF_SIZE * saturate(traceDist / SSS_MAXDIST) * (1.0 - 0.85*materialSSS);
 
                 int sampleCount = SSS_PCF_SAMPLES;
                 vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, blockRadius);

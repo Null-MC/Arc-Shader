@@ -14,18 +14,9 @@ uniform mat4 gbufferProjectionInverse;
 uniform float viewWidth;
 uniform float viewHeight;
 
-//#include "/lib/ssao.glsl"
-
 /* RENDERTARGETS: 3 */
 out float outColor0;
 
-
-#define SAMPLES 16
-#define INTENSITY 7.0
-#define SCALE 0.5
-#define BIAS 0.02
-#define SAMPLE_RAD 0.8
-#define MAX_DISTANCE 1.6
 
 #define MOD3 vec3(0.1031, 0.11369, 0.13787)
 
@@ -44,15 +35,15 @@ float SampleOcclusion(const in vec2 tcoord, const in vec2 uv, const in vec3 view
 
     vec3 diff = sampleViewPos - viewPos;
     float l = length(diff);
-    vec3 v = diff/(l+1.0);
-    float d = l*SCALE;
-    float ao = max(dot(cnorm, v) - BIAS, 0.0) * rcp(1.0 + d);
-    return ao * smoothstep(MAX_DISTANCE, MAX_DISTANCE * 0.5, l);
+    vec3 v = diff / (l+1.0);
+    float d = l * SSAO_SCALE;
+    float ao = max(dot(cnorm, v) - SSAO_BIAS, 0.0) * rcp(1.0 + d);
+    return ao * smoothstep(SSAO_MAX_DIST, SSAO_MAX_DIST * 0.5, l);
 }
 
 float GetSpiralOcclusion(const in vec2 uv, const in vec3 viewPos, const in vec3 viewNormal, const in float rad) {
     const float goldenAngle = 2.4;
-    const float inv = rcp(SAMPLES);
+    const float inv = rcp(SSAO_SAMPLES);
 
     float rotatePhase = hash12(uv*100.0) * 6.28;
     float rStep = inv * rad;
@@ -60,7 +51,7 @@ float GetSpiralOcclusion(const in vec2 uv, const in vec3 viewPos, const in vec3 
     vec2 spiralUV;
 
     float ao = 0.0;
-    for (int i = 0; i < SAMPLES; i++) {
+    for (int i = 0; i < SSAO_SAMPLES; i++) {
         spiralUV.x = sin(rotatePhase);
         spiralUV.y = cos(rotatePhase);
         radius += rStep;
@@ -87,11 +78,11 @@ void main() {
         vec3 viewNormal = unpackUnorm4x8(deferredNormal).xyz;
         viewNormal = normalize(viewNormal * 2.0 - 1.0);
         
-        //float rad = SAMPLE_RAD / max(-viewPos.z, 1.0);
-        float rad = SAMPLE_RAD / (length(viewPos) + 1.0);
+        //float rad = SSAO_RADIUS / max(-viewPos.z, 1.0);
+        float rad = SSAO_RADIUS / (length(viewPos) + 1.0);
 
         occlusion = GetSpiralOcclusion(texcoord, viewPos, viewNormal, rad);
-        occlusion = max(1.0 - occlusion * INTENSITY, 0.0);
+        occlusion = max(1.0 - occlusion * SSAO_INTENSITY, 0.0);
     }
 
     outColor0 = saturate(occlusion);

@@ -85,7 +85,7 @@ flat in mat2 atlasBounds;
     uniform int heldBlockLightValue2;
 #endif
 
-#if AO_TYPE == AO_TYPE_FANCY
+#ifdef SSAO_ENABLED
     uniform sampler2D BUFFER_AO;
 #endif
 

@@ -52,7 +52,7 @@ const bool colortex12Clear = false;
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 80 // [0 10 20 30 40 50 60 70 80 90 100]
 #define SHADOW_BRIGHTNESS 0.25 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define RAIN_DARKNESS 0.2
-#define AO_TYPE 2 // [0 1 2]
+#define AO_ENABLED
 //#define ANIM_USE_WORLDTIME
 
 
@@ -105,13 +105,13 @@ const bool colortex12Clear = false;
 
 // Material Options
 #define MATERIAL_FORMAT 1 // [0 1 2 3]
+#define REFLECTION_MODE 2 // [0 1 2]
 #define SSS_ENABLED
-#define SSS_MAXDIST 8.0
 #define SSS_SCATTER
+#define SSS_DITHER
 #define SSS_PCF_SIZE 2.0 // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
-#define SSS_DITHER
-#define REFLECTION_MODE 2 // [0 1 2]
+#define SSS_MAXDIST 8 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
 
 
 // Material Parallax Options
@@ -138,6 +138,7 @@ const bool colortex12Clear = false;
 #define EXPOSURE_POINT 0.2
 #define EXPOSURE_SPEED_UP 0.08
 #define EXPOSURE_SPEED_DOWN 0.05
+#define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
 
 
 // Effect Options
@@ -163,7 +164,13 @@ const bool colortex12Clear = false;
 #define G_SCATTERING_HUMID 0.88 // 0.84
 #define G_SCATTERING_RAIN 0.98
 #define G_SCATTERING_WATER 0.85
-#define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
+#define SSAO_ENABLED
+#define SSAO_SAMPLES 16 // [8 16 24 32]
+#define SSAO_INTENSITY 8.0 // [1.0 2.0 4.0 6.0 8.0 12.0 16.0]
+#define SSAO_SCALE 0.5
+#define SSAO_BIAS 0.02
+#define SSAO_RADIUS 0.6 // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6]
+#define SSAO_MAX_DIST 1.6
 
 
 // Debug Options
@@ -333,6 +340,8 @@ const float drynessHalflife = 10.0;
 #ifdef VL_PARTICLES
 #endif
 #ifdef VL_DITHER
+#endif
+#ifdef SSAO_ENABLED
 #endif
 
 

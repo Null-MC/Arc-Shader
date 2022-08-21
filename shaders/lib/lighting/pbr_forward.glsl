@@ -34,7 +34,7 @@
         lightData.opaqueScreenDepth = linearizeDepthFast(opaqueScreenDepth, near, far);
         lightData.transparentScreenDepth = linearizeDepthFast(gl_FragCoord.z, near, far);
 
-        #if AO_TYPE == AO_TYPE_FAST
+        #ifdef AO_ENABLED
             lightData.occlusion = pow2(glcolor.a);
         #endif
 
@@ -236,8 +236,10 @@
                 lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData, vec2(0.0), lightData.opaqueShadowCascade);
                 lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData, vec2(0.0), lightData.transparentShadowCascade);
 
-                float minOpaqueDepth = min(lightData.shadowPos[lightData.opaqueShadowCascade].z, lightData.opaqueShadowDepth);
-                lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 4.0 * far;
+                //float minOpaqueDepth = min(lightData.shadowPos[lightData.opaqueShadowCascade].z, lightData.opaqueShadowDepth);
+                //lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 4.0 * far;
+                float minTransparentDepth = min(lightData.shadowPos[lightData.transparentShadowCascade].z, lightData.transparentShadowDepth);
+                lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - minTransparentDepth, 0.0) * 3.0 * far;
             #elif SHADOW_TYPE != SHADOW_TYPE_NONE
                 lightData.shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
 
@@ -258,8 +260,10 @@
                 lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
                 lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos, vec2(0.0));
 
-                float minOpaqueDepth = min(lightData.shadowPos.z, lightData.opaqueShadowDepth);
-                lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 3.0 * far;
+                //float minOpaqueDepth = min(lightData.shadowPos.z, lightData.opaqueShadowDepth);
+                //lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 3.0 * far;
+                //float minTransparentDepth = min(lightData.shadowPos.z, lightData.transparentShadowDepth);
+                lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.shadowPos.z, 0.0) * 3.0 * far;
             #endif
         #endif
 

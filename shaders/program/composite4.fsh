@@ -52,7 +52,10 @@ void main() {
 
         ivec2 iuv = ivec2(texcoord * 0.5 * vec2(viewWidth, viewHeight));
         float lumPrev = texelFetch(BUFFER_HDR_PREVIOUS, iuv, 0).a;
+
         lumPrev = max(exp2(lumPrev) - EPSILON, 0.0);
+        //if (lumPrev < 1.0) lumPrev = lum;
+        //else lumPrev = max(exp2(lumPrev) - EPSILON, 0.0);
 
         lum = clamp(lum, 0.0, 1.0e6);
         lumPrev = clamp(lumPrev, 0.0, 1.0e6);
