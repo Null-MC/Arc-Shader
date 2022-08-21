@@ -1,4 +1,4 @@
 #version 400 compatibility
 
 #include "nether.glsl"
-#include "/program/composite2.fsh"
+#include "/program/composite6.fsh"

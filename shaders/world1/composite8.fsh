@@ -1,4 +1,4 @@
 #version 400 compatibility
 
 #include "end.glsl"
-#include "/program/composite4.fsh"
+#include "/program/composite8.fsh"

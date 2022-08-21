@@ -4,4 +4,4 @@
 
 #include "end.glsl"
 #include "/lib/compatibility/texture_query_levels.glsl"
-#include "/program/composite4.vsh"
+#include "/program/composite8.vsh"

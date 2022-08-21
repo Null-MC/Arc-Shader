@@ -2,6 +2,6 @@
 
 #extension GL_ARB_texture_query_levels : enable
 
-#include "nether.glsl"
+#include "end.glsl"
 #include "/lib/compatibility/texture_query_levels.glsl"
-#include "/program/composite2.vsh"
+#include "/program/composite5.vsh"

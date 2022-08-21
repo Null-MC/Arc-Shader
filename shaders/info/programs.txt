@@ -18,7 +18,7 @@ composite1	transparent blend
 composite2	depth tiles
 composite3	VL
 composite4	VL Blur
-composite5	copy previous-frame = RGB: pre-exposed color; depth-tiles
+composite5	copy previous-frame = RGB: pre-exposed color
 composite6	Bloom threshold/downsampling
 composite7	Bloom Blur H
 composite8	Bloom Blur V

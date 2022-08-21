@@ -4,4 +4,4 @@
 
 #include "nether.glsl"
 #include "/lib/compatibility/texture_query_levels.glsl"
-#include "/program/composite1.vsh"
+#include "/program/composite5.vsh"

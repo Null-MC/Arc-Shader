@@ -22,6 +22,13 @@ void _ApplyHandLighting(out vec3 diffuse, out vec3 specular, const in vec3 albed
 
     vec3 handLightColor = blockLightColor * attenuation;
 
+    if (isEyeInWater == 1) {
+        float viewDist = length(viewPos);
+        vec3 extinctionInv = 1.0 - WATER_COLOR.rgb;
+        vec3 absorption = exp(-(lightDist + viewDist) * extinctionInv);
+        handLightColor *= absorption;
+    }
+
     vec3 F = GetFresnel(albedo, f0, hcm, LoHm, roughL);
     vec3 handDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * max(1.0 - F, 0.0);
     diffuse = GetDiffuseBSDF(handDiffuse, albedo, scattering, NoVm, NoL, LoHm, roughL) * handLightColor;
