@@ -5,6 +5,9 @@ struct PbrLightData {
     float skyLight;
     float geoNoL;
 
+    vec2 skyLightLevels;
+    vec3 sunTransmittance;
+
     float opaqueScreenDepth;
     float transparentScreenDepth;
     //float waterScreenDepth;

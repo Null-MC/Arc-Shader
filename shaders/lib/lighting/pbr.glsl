@@ -54,7 +54,7 @@
     #endif
 
     #ifdef SKY_ENABLED
-        vec3 GetSkyReflectionColor(const in vec3 reflectDir, const in float sunLightLevel) {
+        vec3 GetSkyReflectionColor(const in PbrLightData lightData, const in vec3 reflectDir) {
             if (isEyeInWater == 1) return WATER_COLOR.rgb;
 
             // darken lower horizon
@@ -66,8 +66,10 @@
             //float NoRm = max(dot(reflectDir, -viewNormal), 0.0);
             //reflectF *= 1.0 - pow(NoRm, 0.5);
 
+            vec3 sunColor = lightData.sunTransmittance * GetSunLux();
+
             vec3 skyLumen = GetVanillaSkyLuminance(reflectDir);
-            vec3 skyScatter = GetVanillaSkyScattering(reflectDir, sunLightLevel, sunColor, moonColor);
+            vec3 skyScatter = GetVanillaSkyScattering(reflectDir, lightData.skyLightLevels.x, sunColor, moonColor);
 
             // TODO: clamp skyScatter?
             //skyScatter = min(skyScatter, 65554.0);
@@ -262,13 +264,13 @@
 
                     #ifdef SKY_ENABLED
                         if (roughReflectColor.a + EPSILON < 1.0) {
-                            vec3 skyReflectColor = GetSkyReflectionColor(reflectDir, sunLightLevel) * skyLight3;
+                            vec3 skyReflectColor = GetSkyReflectionColor(lightData, reflectDir) * skyLight3;
                             reflectColor += skyReflectColor * (1.0 - roughReflectColor.a);
                         }
                     #endif
 
                 #elif REFLECTION_MODE == REFLECTION_MODE_SKY && defined SKY_ENABLED
-                    reflectColor = GetSkyReflectionColor(reflectDir, sunLightLevel) * skyLight3;
+                    reflectColor = GetSkyReflectionColor(lightData, reflectDir) * skyLight3;
                 #endif
             }
         #endif
@@ -337,13 +339,15 @@
 
         #ifdef SKY_ENABLED
             float ambientBrightness = mix(0.36 * skyLight2, 0.85 * skyLight, rainStrength) * SHADOW_BRIGHTNESS;
-            vec3 skyAmbient = GetSkyAmbientLight(viewNormal);
+            vec3 skyAmbient = GetSkyAmbientLight(lightData, viewNormal);
 
             //#ifdef SSS_ENABLED
             //    vec3 skyAmbientSSS = GetSkyAmbientLight(-viewNormal) * invPI;
             //#endif
 
-            vec3 skyLightColorFinal = skyLightColor * shadowColor;
+            vec3 sunColor = lightData.sunTransmittance * GetSunLux();
+
+            vec3 skyLightColorFinal = (sunColor + moonColor) * shadowColor;
             //float diffuseLightF = shadowFinal;
 
             #ifdef RENDER_DEFERRED
@@ -368,7 +372,7 @@
                     skyLightColorFinal *= absorption;
 
                     vec3 ambientAbsorption = exp(-lightData.opaqueScreenDepth * extinctionInv);
-                    skyAmbient *= ambientAbsorption;
+                    skyAmbient *= ambientAbsorption * skyLight3;
 
                     //#ifdef SSS_ENABLED
                     //    skyAmbientSSS *= absorption;
@@ -386,9 +390,9 @@
             vec3 sunF = GetFresnel(material.albedo.rgb, f0, material.hcm, LoHm, roughL);
             //vec3 diffuseLight = skyLightColorFinal * skyLight2;
 
-            vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL);
+            vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * max(1.0 - sunF, 0.0);
             sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo, material.scattering, NoVm, NoLm, LoHm, roughL);
-            sunDiffuse *= skyLightColorFinal * max(1.0 - sunF, 0.0) * shadowFinal * skyLight2;
+            sunDiffuse *= skyLightColorFinal * shadowFinal * skyLight2;
 
             #ifdef SSS_ENABLED
                 if (material.scattering > 0.0 && NoL < 0.0) {

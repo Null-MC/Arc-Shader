@@ -10,12 +10,15 @@ flat in float exposure;
 flat in vec3 blockLightColor;
 
 #ifdef SKY_ENABLED
-    flat in vec3 sunColor;
+    flat in vec2 skyLightLevels;
+    //flat in vec3 sunColor;
     flat in vec3 moonColor;
 
-    #ifdef SHADOW_ENABLED
-        flat in vec3 skyLightColor;
-    #endif
+    uniform sampler2D colortex7;
+
+    //#ifdef SHADOW_ENABLED
+    //    flat in vec3 skyLightColor;
+    //#endif
 
     #ifdef SHADOW_COLOR
         uniform sampler2D BUFFER_DEFERRED2;
@@ -74,6 +77,8 @@ uniform float fogEnd;
 #endif
 
 #ifdef SKY_ENABLED
+    uniform float eyeAltitude;
+
     uniform vec3 skyColor;
     uniform float rainStrength;
     uniform float wetness;
@@ -132,6 +137,7 @@ uniform float fogEnd;
 #ifdef SKY_ENABLED
     #include "/lib/world/scattering.glsl"
     #include "/lib/world/porosity.glsl"
+    #include "/lib/world/sun.glsl"
     #include "/lib/world/sky.glsl"
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -231,6 +237,7 @@ void main() {
         vec2 viewSize = vec2(viewWidth, viewHeight);
         vec3 clipPos = vec3(gl_FragCoord.xy / viewSize, screenDepth) * 2.0 - 1.0;
         vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
+        vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 
         PbrLightData lightData;
         lightData.occlusion = normalMap.a;
@@ -238,6 +245,11 @@ void main() {
         lightData.skyLight = lightingMap.y;
         lightData.geoNoL = lightingMap.z * 2.0 - 1.0;
         lightData.parallaxShadow = lightingMap.w;
+
+        float worldY = localPos.y + cameraPosition.y;
+        lightData.skyLightLevels = skyLightLevels;
+        lightData.sunTransmittance = GetSunTransmittance(colortex7, worldY, skyLightLevels.x);
+        //lightData.sunTransmittance = sunTransmittance * GetSunLux();
 
         //float waterViewDepth = texelFetch(depthtex0, iTex, 0).r;
         //lightData.waterScreenDepth = linearizeDepthFast(waterViewDepth, near, far);
@@ -295,8 +307,8 @@ void main() {
 
                 //if (lightData.opaqueShadowDepth < lightData.shadowPos.z) lightData.waterShadowDepth
 
-                float minOpaqueDepth = min(lightData.shadowPos.z, lightData.opaqueShadowDepth);
-                lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 3.0 * far;
+                //float minOpaqueDepth = min(lightData.shadowPos.z, lightData.opaqueShadowDepth);
+                lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.transparentShadowDepth, 0.0) * 3.0 * far;
             #endif
 
             //float waterDepth = min(lightData.shadowPos.z, lightData.opaqueShadowDepth) - lightData.shadowBias - waterTexDepth;

@@ -41,6 +41,15 @@ vec2 GetSkyLightLevels() {
         dot(upDir, moonLightDir));
 }
 
+// #ifdef RENDER_SKYTEXTURED
+//     vec3 GetSunTransmittance(const in float height, const in float skyLightLevel) {
+//         vec2 uv;
+//         uv.x = saturate(skyLightLevel * 0.5 + 0.5);
+//         uv.y = saturate((height - SEA_LEVEL) / (CLOUD_LEVEL - SEA_LEVEL));
+//         return texture(BUFFER_SUN_TRANSMITTANCE, uv).rgb;
+//     }
+// #endif
+
 float GetSunLightLevel(const in float skyLightLevel) {
     //float rainLevel = 1.0 - 0.85 * rainStrength;
 
@@ -49,6 +58,8 @@ float GetSunLightLevel(const in float skyLightLevel) {
 
     // TODO: This angle is wrong and sucks
     return pow(max(skyLightLevel, 0.0), 0.4);
+
+    //return pow4(max(cos(clamp(pow4(x), -PI, PI)), 0));
 }
 
 float GetMoonLightLevel(const in float skyLightLevel) {
@@ -60,6 +71,8 @@ float GetMoonLightLevel(const in float skyLightLevel) {
 
     // TODO: This angle is wrong and sucks
     return pow(max(skyLightLevel, 0.0), 0.4) * moonPhaseLevel;
+
+    //return pow4(max(cos(clamp(pow4(x), -PI, PI)), 0)) * moonPhaseLevel;
 }
 
 // returns: x:sun y:moon temp in kelvin
@@ -84,9 +97,12 @@ vec3 GetMoonLightColor(const in float temp, const in float skyLightLevel) {
     return blackbody(temp) * GetMoonLightLevel(skyLightLevel);
 }
 
+float GetSunLux() {
+    return mix(SunLux, SunOvercastLux, rainStrength);
+}
+
 float GetSunLightLux(const in float skyLightLevel) {
-    float lux = mix(SunLux, SunOvercastLux, rainStrength);
-    return GetSunLightLevel(skyLightLevel) * lux;
+    return GetSunLightLevel(skyLightLevel) * GetSunLux();
 }
 
 vec3 GetSunLightLuxColor(const in float temp, const in float skyLightLevel) {

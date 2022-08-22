@@ -7,9 +7,11 @@
 
 in vec2 texcoord;
 in vec4 glcolor;
+//flat in vec2 skyLightLevels;
+flat in vec3 sunTransmittanceLum;
 flat in float sunLightLevel;
 flat in float moonLightLevel;
-flat in vec3 sunLightLumColor;
+//flat in vec3 sunLightLumColor;
 flat in vec3 moonLightLumColor;
 flat in float exposure;
 
@@ -25,16 +27,16 @@ out vec4 outColor1;
 void main() {
     vec3 color = textureLod(gtexture, texcoord, 0).rgb;
     color = RGBToLinear(color * glcolor.rgb);
-    //if (color.a < 0.5) discard;
 
     float lum = saturate(luminance(color));
+    if (lum < EPSILON) discard;
+
     float lumF = 0.0;
 
     if (renderStage == MC_RENDER_STAGE_SUN) {
-        color *= sunLightLumColor * sunLightLevel;
+        lumF += luminance(sunTransmittanceLum);
+        color *= sunTransmittanceLum;
         lum *= sunLightLevel;
-
-        lumF += sunLumen;
     }
     else if (renderStage == MC_RENDER_STAGE_MOON) {
         color *= moonLightLumColor * moonLightLevel;

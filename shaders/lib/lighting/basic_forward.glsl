@@ -27,7 +27,7 @@
         #ifdef SKY_ENABLED
             float skyLight2 = pow2(skyLight);
             float ambientBrightness = mix(0.36 * skyLight2, 0.95 * skyLight, rainStrength); // SHADOW_BRIGHTNESS
-            skyAmbient *= GetSkyAmbientLight(viewNormal) * ambientBrightness;
+            skyAmbient *= GetSkyAmbientLight(lightData, viewNormal) * ambientBrightness;
         #endif
 
         float blockAmbient = pow(blockLight, 5.0) * BlockLightLux;

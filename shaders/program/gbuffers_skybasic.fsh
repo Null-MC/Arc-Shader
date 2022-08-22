@@ -6,8 +6,9 @@
 #include "/lib/common.glsl"
 
 in vec3 starData;
+flat in vec3 sunTransmittanceLux;
 flat in float sunLightLevel;
-flat in vec3 sunColor;
+//flat in vec3 sunColor;
 flat in vec3 moonColor;
 flat in float exposure;
 
@@ -97,7 +98,7 @@ void main() {
     #else
         vec3 viewDir = normalize(viewPos);
         vec3 sky = GetVanillaSkyLuminance(viewDir);
-        sky += GetVanillaSkyScattering(viewDir, sunLightLevel, sunColor, moonColor);
+        sky += GetVanillaSkyScattering(viewDir, sunLightLevel, sunTransmittanceLux, moonColor);
         lum += luminance(sky);
         color += sky;
     #endif

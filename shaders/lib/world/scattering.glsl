@@ -48,7 +48,8 @@ vec3 GetVanillaSkyScattering(const in vec3 viewDir, const in float sunLightLevel
 
     vec3 vlColor = (sunScattering * sunColor + moonScattering * moonColor) * scatterDistF;
 
-    if (isEyeInWater == 1) vlColor *= vec3(0.1, 0.7, 1.0);
+    //if (isEyeInWater == 1) vlColor *= vec3(0.1, 0.7, 1.0);
+    if (isEyeInWater == 1) vlColor *= WATER_COLOR.rgb;
 
     return vlColor;
 }

@@ -7,13 +7,18 @@
 
 out vec2 texcoord;
 out vec4 glcolor;
+//flat out vec2 skyLightLevels;
+flat out vec3 sunTransmittanceLum;
 flat out float sunLightLevel;
 flat out float moonLightLevel;
-flat out vec3 sunLightLumColor;
+//flat out vec3 sunLightLumColor;
 flat out vec3 moonLightLumColor;
 flat out float exposure;
 
+uniform sampler2D colortex9;
+
 uniform float screenBrightness;
+uniform float eyeAltitude;
 uniform float blindness;
 
 #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
@@ -44,6 +49,7 @@ uniform int moonPhase;
 #endif
 
 #include "/lib/lighting/blackbody.glsl"
+#include "/lib/world/sun.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/camera/exposure.glsl"
 
@@ -56,9 +62,14 @@ void main() {
     exposure = GetExposure();
 
     vec2 skyLightLevels = GetSkyLightLevels();
+
+    vec3 sunTransmittance = GetSunTransmittance(colortex9, skyLightLevels.x);
+    sunTransmittanceLum = sunTransmittance * sunLumen;
+    sunLightLevel = luminance(sunTransmittance);
+
     vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
-    sunLightLevel = GetSunLightLevel(skyLightLevels.x);
+    //sunLightLevel = GetSunLightLevel(skyLightLevels.x);
     moonLightLevel = GetMoonLightLevel(skyLightLevels.y);
-    sunLightLumColor = GetSunLightColor(skyLightTemp.x, skyLightLevels.x) * sunLumen;
+    //sunLightLumColor = GetSunLightColor(skyLightTemp.x, skyLightLevels.x) * sunLumen;
     moonLightLumColor = GetMoonLightColor(skyLightTemp.y, skyLightLevels.y) * moonLumen;
 }

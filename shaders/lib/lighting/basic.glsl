@@ -123,7 +123,7 @@
 
 #ifdef RENDER_FRAG
     #ifdef SKY_ENABLED
-        vec3 GetSkyAmbientLight(const in vec3 normal) {
+        vec3 GetSkyAmbientLight(const in PbrLightData lightData, const in vec3 normal) {
             vec3 upDir = normalize(upPosition);
             vec3 sunLightDir = normalize(sunPosition);
             vec3 moonLightDir = normalize(moonPosition);
@@ -134,7 +134,8 @@
 
             vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
 
-            vec3 sunLightLux = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
+            //vec3 sunLightLux = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
+            vec3 sunLightLux = lightData.sunTransmittance * GetSunLux();
             sunLightLux *= dot(normal, sunLightDir) * 0.2 + 0.4;
 
             vec3 moonLightLux = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);

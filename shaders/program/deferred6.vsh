@@ -21,13 +21,16 @@ flat out vec3 blockLightColor;
 #endif
 
 #ifdef SKY_ENABLED
-    flat out vec3 sunColor;
+    flat out vec2 skyLightLevels;
+    //flat out vec3 sunColor;
     flat out vec3 moonColor;
+
+    //uniform sampler2D colortex7;
 
     uniform vec3 skyColor;
 
     #ifdef SHADOW_ENABLED
-        flat out vec3 skyLightColor;
+        //flat out vec3 skyLightColor;
 
         uniform vec3 shadowLightPosition;
 
@@ -76,6 +79,7 @@ uniform int moonPhase;
 #endif
 
 #include "/lib/lighting/blackbody.glsl"
+//#include "/lib/world/sun.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/camera/exposure.glsl"
 
@@ -85,12 +89,17 @@ void main() {
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
     #ifdef SKY_ENABLED
-        vec2 skyLightLevels = GetSkyLightLevels();
+        skyLightLevels = GetSkyLightLevels();
+        //vec3 sunTransmittance = GetSunTransmittance(colortex7, skyLightLevels.x);
+
+        //sunColor = sunTransmittance * GetSunLux();
+
         vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
-        sunColor = GetSunLightLuxColor(skyLightTemps.x, skyLightLevels.x);
+        //sunColor = GetSunLightLuxColor(skyLightTemps.x, skyLightLevels.x);
         moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
+
         //skyLightColor = GetSkyLightLuxColor(skyLightLevels);
-        skyLightColor = sunColor + moonColor; // TODO: get rid of this variable
+        //skyLightColor = sunColor + moonColor; // TODO: get rid of this variable
 
         // TODO: add lightning check
         // if (rainStrength > 0.5) {
