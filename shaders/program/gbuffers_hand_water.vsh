@@ -12,6 +12,7 @@ out float geoNoL;
 out vec3 viewPos;
 out vec3 viewNormal;
 out vec3 viewTangent;
+out vec3 localPos;
 flat out float tangentW;
 flat out float exposure;
 flat out int materialId;
@@ -35,9 +36,8 @@ flat out mat2 atlasBounds;
 #endif
 
 #ifdef SKY_ENABLED
-    flat out vec3 sunColor;
+    flat out vec2 skyLightLevels;
     flat out vec3 moonColor;
-    flat out vec3 skyLightColor;
 
     uniform vec3 upPosition;
     uniform vec3 sunPosition;
@@ -137,7 +137,7 @@ void main() {
     //else materialId = 0;
     materialId = 0;
 
-    vec3 localPos = gl_Vertex.xyz;
+    localPos = gl_Vertex.xyz;
     BasicVertex(localPos);
     PbrVertex(viewPos);
 
@@ -147,11 +147,9 @@ void main() {
     #endif
 
     #ifdef SKY_ENABLED
-        vec2 skyLightLevels = GetSkyLightLevels();
+        skyLightLevels = GetSkyLightLevels();
         vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
-        sunColor = GetSunLightLuxColor(skyLightTemps.x, skyLightLevels.x);
         moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
-        skyLightColor = GetSkyLightLuxColor(skyLightLevels);
     #endif
 
     blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;

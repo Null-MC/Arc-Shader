@@ -25,10 +25,15 @@
         PbrMaterial material;
 
         LightData lightData;
+        lightData.occlusion = 1.0;
         lightData.blockLight = lmcoord.x;
         lightData.skyLight = lmcoord.y;
         lightData.geoNoL = geoNoL;
-        lightData.occlusion = 1.0;
+        lightData.parallaxShadow = 1.0;
+
+        float worldY = localPos.y + cameraPosition.y;
+        lightData.skyLightLevels = skyLightLevels;
+        lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
 
         float opaqueScreenDepth = texelFetch(depthtex1, ivec2(gl_FragCoord.xy), 0).r;
         lightData.opaqueScreenDepth = linearizeDepthFast(opaqueScreenDepth, near, far);

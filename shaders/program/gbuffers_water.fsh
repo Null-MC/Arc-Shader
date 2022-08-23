@@ -36,10 +36,12 @@ flat in mat2 atlasBounds;
 #endif
 
 #ifdef SKY_ENABLED
-    flat in vec3 sunColor;
+    flat in vec2 skyLightLevels;
     flat in vec3 moonColor;
-    flat in vec3 skyLightColor;
 
+    uniform sampler2D colortex9;
+
+    //uniform float eyeAltitude;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
     uniform float rainStrength;
@@ -172,6 +174,7 @@ uniform int fogShape;
 #ifdef SKY_ENABLED
     #include "/lib/world/scattering.glsl"
     #include "/lib/world/porosity.glsl"
+    #include "/lib/world/sun.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/lighting/basic.glsl"
 

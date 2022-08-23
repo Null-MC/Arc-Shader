@@ -8,10 +8,14 @@
 in vec2 texcoord;
 in vec4 glcolor;
 in vec3 viewPos;
+in vec3 localPos;
 flat in float exposure;
+flat in vec2 skyLightLevels;
 
 uniform sampler2D gtexture;
+uniform sampler2D colortex9;
 
+uniform vec3 cameraPosition;
 uniform vec3 upPosition;
 uniform vec3 sunPosition;
 uniform vec3 moonPosition;
@@ -39,6 +43,7 @@ out vec4 outColor1;
 
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/world/scattering.glsl"
+#include "/lib/world/sun.glsl"
 #include "/lib/world/sky.glsl"
 
 
@@ -52,9 +57,13 @@ void main() {
     float distF = saturate(viewDist * 0.02);
     colorMap.a = 0.2 + 0.7 * smoothstep(0.0, 1.0, distF);
 
-    vec2 skyLightLevels = GetSkyLightLevels();
+    //vec2 skyLightLevels = GetSkyLightLevels();
+    float worldY = localPos.y + cameraPosition.y;
+    vec3 sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
+
     float darkness = 0.7 - 0.3 * rainStrength;
-    colorMap.rgb *= GetSkyLightLuminance(skyLightLevels) * darkness;
+    //colorMap.rgb *= GetSkyLightLuminance(skyLightLevels) * darkness;
+    colorMap.rgb *= sunTransmittance * darkness * GetSunLux();
 
     vec4 lum = vec4(0.0);
     lum.r = log2(luminance(colorMap.rgb) + EPSILON);

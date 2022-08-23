@@ -63,7 +63,7 @@ void main() {
 
     vec2 skyLightLevels = GetSkyLightLevels();
 
-    vec3 sunTransmittance = GetSunTransmittance(colortex9, skyLightLevels.x);
+    vec3 sunTransmittance = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
     sunTransmittanceLum = sunTransmittance * sunLumen;
     sunLightLevel = luminance(sunTransmittance);
 

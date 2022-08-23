@@ -36,9 +36,8 @@ flat out mat2 atlasBounds;
 #endif
 
 #ifdef SKY_ENABLED
-    flat out vec3 sunColor;
+    flat out vec2 skyLightLevels;
     flat out vec3 moonColor;
-    flat out vec3 skyLightColor;
 
     uniform vec3 upPosition;
     uniform vec3 sunPosition;
@@ -165,11 +164,9 @@ void main() {
     #endif
 
     #ifdef SKY_ENABLED
-        vec2 skyLightLevels = GetSkyLightLevels();
+        skyLightLevels = GetSkyLightLevels();
         vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
-        sunColor = GetSunLightLuxColor(skyLightTemps.x, skyLightLevels.x);
         moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
-        skyLightColor = GetSkyLightLuxColor(skyLightLevels);
     #endif
 
     blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;

@@ -89,7 +89,7 @@ void main() {
 
     vec4 sampleColor;
     if (materialId == 1) {
-        sampleColor = vec4(1.0);
+        sampleColor = WATER_COLOR;
     }
     else {
         sampleColor = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]);
@@ -103,15 +103,12 @@ void main() {
             lightColor.rgb = vec3(1.0);
         }
         else {
-            lightColor.rgb = mix(vec3(1.0), lightColor.rgb, sqrt(lightColor.a));
+            lightColor.rgb = mix(vec3(1.0), lightColor.rgb, sqrt(max(lightColor.a, EPSILON)));
             lightColor.rgb = mix(lightColor.rgb, vec3(0.0), pow2(lightColor.a));
         }
 
         lightColor.rgb = LinearToRGB(lightColor.rgb);
         outColor0 = lightColor;
-    //#else
-        //sampleColor.a = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]).a;
-        //sampleColor.a *= glcolor.a;
     #endif
 
     if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {

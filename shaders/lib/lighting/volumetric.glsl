@@ -39,6 +39,12 @@
             #endif
 
             if (depthSample > EPSILON) {
+                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                    lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData, vec2(0.0), lightData.transparentShadowCascade);
+                #else
+                    lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos, vec2(0.0));
+                #endif
+
                 vec3 shadowColor = GetShadowColor(lightData);
                 accumCol += RGBToLinear(shadowColor) * depthSample;
             }

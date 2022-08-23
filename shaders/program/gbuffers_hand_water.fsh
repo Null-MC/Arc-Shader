@@ -12,6 +12,7 @@ in float geoNoL;
 in vec3 viewPos;
 in vec3 viewNormal;
 in vec3 viewTangent;
+in vec3 localPos;
 flat in float tangentW;
 flat in float exposure;
 flat in int materialId;
@@ -35,9 +36,12 @@ flat in mat2 atlasBounds;
 #endif
 
 #ifdef SKY_ENABLED
-    flat in vec3 sunColor;
+    flat in vec2 skyLightLevels;
     flat in vec3 moonColor;
 
+    uniform sampler2D colortex9;
+
+    //uniform float eyeAltitude;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
     uniform float rainStrength;
@@ -96,7 +100,6 @@ uniform sampler2D depthtex1;
 
 uniform ivec2 atlasSize;
 
-//uniform mat4 shadowProjection;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
 uniform ivec2 eyeBrightnessSmooth;
@@ -128,13 +131,10 @@ uniform int fogShape;
     uniform sampler2D BUFFER_HDR_PREVIOUS;
     uniform sampler2D BUFFER_DEPTH_PREV;
 
-    //uniform mat4 gbufferModelViewInverse;
-    //uniform mat4 gbufferProjection;
     uniform mat4 gbufferProjectionInverse;
     uniform mat4 gbufferPreviousModelView;
     uniform mat4 gbufferPreviousProjection;
     uniform vec3 previousCameraPosition;
-    //uniform vec3 cameraPosition;
 #endif
 
 #include "/lib/atlas.glsl"
@@ -154,6 +154,7 @@ uniform int fogShape;
 #ifdef SKY_ENABLED
     #include "/lib/world/scattering.glsl"
     #include "/lib/world/porosity.glsl"
+    #include "/lib/world/sun.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/lighting/basic.glsl"
 

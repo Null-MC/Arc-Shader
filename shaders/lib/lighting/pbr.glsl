@@ -485,10 +485,9 @@
                         #else
                             if (waterSolidDepthFinal.y < waterSolidDepthFinal.x) {
                                 // refracted vector returned an invalid hit
-                                waterSolidDepthFinal.x = lightData.waterScreenDepth;
-                                waterSolidDepthFinal.y = lightData.solidScreenDepth;
+                                waterSolidDepthFinal.x = lightData.transparentScreenDepth;
+                                waterSolidDepthFinal.y = lightData.opaqueScreenDepth;
                                 refractUV = screenUV;
-
                             }
                         #endif
 
@@ -587,7 +586,7 @@
             float waterFogEnd = min(40.0, fogEnd);
             float waterFogF = GetFogFactor(viewDist, near, waterFogEnd, 0.8);
             vec3 waterFogColor = WATER_COLOR.rgb * 0.02 * skyLightLuxColor * (0.02 + 0.98*eyeLight);
-            //final.rgb = mix(final.rgb, waterFogColor, waterFogF);
+            final.rgb = mix(final.rgb, waterFogColor, waterFogF);
         }
         else {
             #ifdef RENDER_DEFERRED
@@ -607,17 +606,13 @@
             vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
 
             float vlScatter = GetScatteringFactor(sunLightLevel);
+            vec3 vlColor = sunColor + moonColor;
+            if (isEyeInWater == 1) vlColor *= WATER_COLOR.rgb;
 
             #ifdef SHADOW_COLOR
                 vec3 volScatter = GetVolumetricLightingColor(lightData, shadowViewStart, shadowViewEnd, vlScatter);
             #else
                 float volScatter = GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd, vlScatter);
-            #endif
-
-            vec3 vlColor = sunColor + moonColor;
-
-            #ifndef SHADOW_COLOR
-                if (isEyeInWater == 1) vlColor *= WATER_COLOR.rgb;
             #endif
             
             final.rgb += volScatter * vlColor;

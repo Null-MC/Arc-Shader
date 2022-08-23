@@ -11,7 +11,6 @@ flat in vec3 blockLightColor;
 
 #ifdef SKY_ENABLED
     flat in vec2 skyLightLevels;
-    //flat in vec3 sunColor;
     flat in vec3 moonColor;
 
     uniform sampler2D colortex7;
@@ -46,7 +45,6 @@ uniform sampler2D noisetex;
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     uniform mat4 gbufferPreviousModelView;
     uniform mat4 gbufferPreviousProjection;
-    //uniform mat4 gbufferProjection;
     uniform vec3 previousCameraPosition;
 
     uniform sampler2D BUFFER_HDR_PREVIOUS;
@@ -77,8 +75,6 @@ uniform float fogEnd;
 #endif
 
 #ifdef SKY_ENABLED
-    uniform float eyeAltitude;
-
     uniform vec3 skyColor;
     uniform float rainStrength;
     uniform float wetness;
@@ -249,7 +245,6 @@ void main() {
         float worldY = localPos.y + cameraPosition.y;
         lightData.skyLightLevels = skyLightLevels;
         lightData.sunTransmittance = GetSunTransmittance(colortex7, worldY, skyLightLevels.x);
-        //lightData.sunTransmittance = sunTransmittance * GetSunLux();
 
         //float waterViewDepth = texelFetch(depthtex0, iTex, 0).r;
         //lightData.waterScreenDepth = linearizeDepthFast(waterViewDepth, near, far);

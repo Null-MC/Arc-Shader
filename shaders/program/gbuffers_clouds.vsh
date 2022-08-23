@@ -8,10 +8,13 @@
 out vec2 texcoord;
 out vec4 glcolor;
 out vec3 viewPos;
+out vec3 localPos;
 flat out float exposure;
+flat out vec2 skyLightLevels;
 
 //uniform mat4 gbufferModelView;
 uniform mat4 gbufferProjectionInverse;
+uniform mat4 gbufferModelViewInverse;
 uniform float screenBrightness;
 uniform float blindness;
 
@@ -29,17 +32,16 @@ uniform float blindness;
 #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
     uniform ivec2 eyeBrightness;
     uniform int heldBlockLightValue;
-
-    uniform float rainStrength;
-    uniform vec3 upPosition;
-    uniform vec3 sunPosition;
-    uniform vec3 moonPosition;
-    uniform int moonPhase;
-
-    #include "/lib/lighting/blackbody.glsl"
-    #include "/lib/world/sky.glsl"
 #endif
 
+uniform float rainStrength;
+uniform vec3 upPosition;
+uniform vec3 sunPosition;
+uniform vec3 moonPosition;
+uniform int moonPhase;
+
+#include "/lib/lighting/blackbody.glsl"
+#include "/lib/world/sky.glsl"
 #include "/lib/camera/exposure.glsl"
 
 
@@ -51,6 +53,9 @@ void main() {
     //gl_Position = gbufferProjection * vec4(viewPos, 1.0);
     gl_Position = ftransform();
     viewPos = (gbufferProjectionInverse * gl_Position).xyz;
+    localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+
+    skyLightLevels = GetSkyLightLevels();
 
     exposure = GetExposure();
 }
