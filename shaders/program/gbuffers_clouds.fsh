@@ -55,15 +55,20 @@ void main() {
 
     float viewDist = length(viewPos);
     float distF = saturate(viewDist * 0.02);
-    colorMap.a = 0.2 + 0.7 * smoothstep(0.0, 1.0, distF);
+    colorMap.a = 0.1 + 0.9 * smoothstep(0.0, 1.0, distF);
 
-    //vec2 skyLightLevels = GetSkyLightLevels();
+    //float darkness = 0.7 - 0.55 * rainStrength;
     float worldY = localPos.y + cameraPosition.y;
-    vec3 sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
+    vec3 sunTransmittanceLux = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
+    sunTransmittanceLux *= GetSunLux();// * darkness;
+    colorMap.rgb *= sunTransmittanceLux;
 
-    float darkness = 0.7 - 0.3 * rainStrength;
-    //colorMap.rgb *= GetSkyLightLuminance(skyLightLevels) * darkness;
-    colorMap.rgb *= sunTransmittance * darkness * GetSunLux();
+    vec3 viewDir = normalize(viewPos);
+    vec3 moonColor = vec3(0.0); // TODO: assign in vertex
+    float rayLen = min(viewDist / (101.0 - VL_STRENGTH), 1.0);
+    colorMap.rgb += GetVanillaSkyScattering(viewDir, skyLightLevels.x, sunTransmittanceLux, moonColor) * rayLen;
+
+    //colorMap.a = pow(colorMap.a, 0.2);
 
     vec4 lum = vec4(0.0);
     lum.r = log2(luminance(colorMap.rgb) + EPSILON);

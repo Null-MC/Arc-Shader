@@ -211,7 +211,7 @@ const float StarLumen = 1200.0;
 const float EmissionLumens = 1.0e6;
 
 const float SunLux = 64000.0;
-const float SunOvercastLux = 12000; //600.0;
+const float SunOvercastLux = 6000; //600.0;
 const float MoonLux = 12.0;
 const float MoonOvercastLux = 2.0;
 const float BlockLightLux = 3400.0; // 9k
