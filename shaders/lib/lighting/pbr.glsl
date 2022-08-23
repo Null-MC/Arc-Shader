@@ -54,7 +54,7 @@
     #endif
 
     #ifdef SKY_ENABLED
-        vec3 GetSkyReflectionColor(const in PbrLightData lightData, const in vec3 reflectDir) {
+        vec3 GetSkyReflectionColor(const in LightData lightData, const in vec3 reflectDir) {
             if (isEyeInWater == 1) return WATER_COLOR.rgb;
 
             // darken lower horizon
@@ -80,7 +80,7 @@
     #endif
 
     #if defined SKY_ENABLED && defined RSM_ENABLED && defined RSM_UPSCALE && defined RENDER_DEFERRED
-        vec3 GetUpscaledRSM(const in PbrLightData lightData, const in vec3 shadowViewPos, const in vec3 shadowViewNormal, const in float depthLinear, const in vec2 screenUV) {
+        vec3 GetUpscaledRSM(const in LightData lightData, const in vec3 shadowViewPos, const in vec3 shadowViewNormal, const in float depthLinear, const in vec2 screenUV) {
             vec4 rsmDepths = textureGather(BUFFER_RSM_DEPTH, screenUV, 0);
             float rsmDepthMin = min(min(rsmDepths.x, rsmDepths.y), min(rsmDepths.z, rsmDepths.w));
             float rsmDepthMax = max(max(rsmDepths.x, rsmDepths.y), max(rsmDepths.z, rsmDepths.w));
@@ -118,7 +118,7 @@
         }
     #endif
 
-    vec4 PbrLighting2(const in PbrMaterial material, const in PbrLightData lightData, const in vec3 viewPos) {
+    vec4 PbrLighting2(const in PbrMaterial material, const in LightData lightData, const in vec3 viewPos) {
         vec2 viewSize = vec2(viewWidth, viewHeight);
         vec3 viewNormal = normalize(material.normal);
         vec3 viewDir = -normalize(viewPos);
@@ -390,20 +390,24 @@
             vec3 sunF = GetFresnel(material.albedo.rgb, f0, material.hcm, LoHm, roughL);
             //vec3 diffuseLight = skyLightColorFinal * skyLight2;
 
+            #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+                float diffuseNoL = NoLm;
+            #else
+                float diffuseNoL = abs(NoL);
+            #endif
+
             vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * max(1.0 - sunF, 0.0);
-            sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo, material.scattering, NoVm, NoLm, LoHm, roughL);
-            sunDiffuse *= skyLightColorFinal * shadowFinal * skyLight2;
+            sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo, material.scattering, NoVm, diffuseNoL, LoHm, roughL);
+            sunDiffuse *= skyLightColorFinal * shadowFinal;// * skyLight2;
 
             #ifdef SSS_ENABLED
                 if (material.scattering > 0.0 && NoL < 0.0) {
                     // Transmission
-                    vec3 sssDiffuseLight = 1.25 * material.albedo.rgb * pow(shadowSSS, 0.5) * skyLightColorFinal;// * skyLight;
+                    vec3 sssDiffuseLight = material.albedo.rgb * shadowSSS * skyLightColorFinal;// * skyLight;
 
-                    //sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo * sssDiffuseLight, material.scattering, NoVm, NoL, LoHm, roughL);
-
-                    float VoL = dot(-viewDir, viewLightDir);
+                    float VoL = dot(viewDir, viewLightDir);
                     //sssDiffuseLight *= ComputeVolumetricScattering(VoL, 0.6);
-                    sssDiffuseLight *= BiLambertianPlatePhaseFunction(0.1, VoL);
+                    sssDiffuseLight *= 6.0 * BiLambertianPlatePhaseFunction(0.6, VoL);
 
                     float extDistF = (1.6 - material.scattering) * sssDist;
                     sssDiffuseLight *= exp(-extDistF * (1.0 - material.albedo.rgb));

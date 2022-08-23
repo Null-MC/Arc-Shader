@@ -51,7 +51,7 @@
         return textureLod(shadowtex0, shadowPos + offset, 0).r;
     }
 
-    float GetNearestOpaqueDepth(const in PbrLightData lightData, const in vec2 blockOffset, out int cascade) {
+    float GetNearestOpaqueDepth(const in LightData lightData, const in vec2 blockOffset, out int cascade) {
         float shadowResScale = tile_dist_bias_factor * shadowPixelSize;
 
         cascade = -1;
@@ -80,7 +80,7 @@
         return depthNearest;
     }
 
-    float GetNearestTransparentDepth(const in PbrLightData lightData, const in vec2 blockOffset, out int cascade) {
+    float GetNearestTransparentDepth(const in LightData lightData, const in vec2 blockOffset, out int cascade) {
         cascade = -1;
         float depthNearest = 1.0;
         for (int i = 0; i < 4; i++) {
@@ -136,7 +136,7 @@
     }
 
     // returns: [0] when depth occluded, [1] otherwise
-    float CompareNearestOpaqueDepth(const in PbrLightData lightData, const in vec2 blockOffset) {
+    float CompareNearestOpaqueDepth(const in LightData lightData, const in vec2 blockOffset) {
         float texComp = 1.0;
         for (int i = 3; i >= 0 && texComp > 0.0; i--) {
             vec2 shadowTilePos = lightData.shadowTilePos[i];//GetShadowCascadeClipPos(i);
@@ -158,13 +158,13 @@
         return max(texComp, 0.0);
     }
 
-    float GetWaterShadowDepth(const in PbrLightData lightData, const in int cascade) {
+    float GetWaterShadowDepth(const in LightData lightData, const in int cascade) {
         float waterTexDepth = textureLod(shadowtex0, lightData.shadowPos[cascade].xy, 0).r;
         return lightData.shadowPos[cascade].z - lightData.shadowBias[cascade] - waterTexDepth;
     }
 
     #ifdef SHADOW_COLOR
-        vec3 GetShadowColor(const in PbrLightData lightData) {
+        vec3 GetShadowColor(const in LightData lightData) {
             if (lightData.shadowPos[lightData.transparentShadowCascade].z - lightData.transparentShadowDepth < EPSILON) return vec3(1.0);
 
             vec3 color = textureLod(shadowcolor0, lightData.shadowPos[lightData.transparentShadowCascade].xy, 0).rgb;
@@ -179,7 +179,7 @@
     }
 
     #if SHADOW_FILTER != 0
-        float GetShadowing_PCF(const in PbrLightData lightData, const in float blockRadius, const in int sampleCount) {
+        float GetShadowing_PCF(const in LightData lightData, const in float blockRadius, const in int sampleCount) {
             #ifdef SHADOW_DITHER
                 float dither = 0.5 + 0.5*GetScreenBayerValue();
             #endif
@@ -201,7 +201,7 @@
 
     #if SHADOW_FILTER == 2
         // PCF + PCSS
-        float FindBlockerDistance(const in PbrLightData lightData, const in float blockRadius, const in int sampleCount, out int cascade) {
+        float FindBlockerDistance(const in LightData lightData, const in float blockRadius, const in int sampleCount, out int cascade) {
             //float blockRadius = SearchWidth(uvLightSize, shadowPos.z);
             //float blockRadius = 6.0; //SHADOW_LIGHT_SIZE * (shadowPos.z - PCSS_NEAR) / shadowPos.z;
             float avgBlockerDistance = 0.0;
@@ -224,7 +224,7 @@
             return blockers > 0 ? avgBlockerDistance / blockers : -1.0;
         }
 
-        float GetShadowing(const in PbrLightData lightData) {
+        float GetShadowing(const in LightData lightData) {
             // blocker search
             int cascade;
             int blockerSampleCount = POISSON_SAMPLES;
@@ -246,7 +246,7 @@
         }
     #elif SHADOW_FILTER == 1
         // PCF
-        float GetShadowing(const in PbrLightData lightData) {
+        float GetShadowing(const in LightData lightData) {
             int sampleCount = POISSON_SAMPLES;
             //vec2 pixelRadius = GetPixelRadius(cascade, SHADOW_PCF_SIZE);
             //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
@@ -255,7 +255,7 @@
         }
     #elif SHADOW_FILTER == 0
         // Unfiltered
-        float GetShadowing(const in PbrLightData lightData) {
+        float GetShadowing(const in LightData lightData) {
             float surfaceDepth = lightData.shadowPos[lightData.opaqueShadowCascade].z - EPSILON;
             float texDepth = lightData.opaqueShadowDepth + lightData.shadowBias[lightData.opaqueShadowCascade];
             return step(surfaceDepth, texDepth);
@@ -269,7 +269,7 @@
         }
 
         #ifdef SSS_SCATTER
-            float GetShadowing_PCF_SSS(const in PbrLightData lightData, const in float blockRadius, const in int sampleCount) {
+            float GetShadowing_PCF_SSS(const in LightData lightData, const in float blockRadius, const in int sampleCount) {
                 #ifdef SSS_DITHER
                     float dither = 0.5 + 0.5*GetScreenBayerValue();
                 #endif
@@ -303,7 +303,7 @@
 
         #ifdef SSS_SCATTER
             // PCF + PCSS
-            float GetShadowSSS(const in PbrLightData lightData, const in float materialSSS, out float traceDist) {
+            float GetShadowSSS(const in LightData lightData, const in float materialSSS, out float traceDist) {
                 int cascade;
                 float texDepth = GetNearestOpaqueDepth(lightData, vec2(0.0), cascade);
                 traceDist = max(lightData.shadowPos[cascade].z + lightData.shadowBias[cascade] - texDepth, 0.0) * 3.0 * far;
@@ -317,7 +317,7 @@
             }
         #else
             // Unfiltered
-            float GetShadowSSS(const in PbrLightData lightData, const in float materialSSS, out float traceDist) {
+            float GetShadowSSS(const in LightData lightData, const in float materialSSS, out float traceDist) {
                 int cascade;
                 float texDepth = GetNearestOpaqueDepth(lightData, vec2(0.0), cascade);
                 traceDist = max(lightData.shadowPos[cascade].z + lightData.shadowBias[cascade] - texDepth, 0.0) * far * 3.0;

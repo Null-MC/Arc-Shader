@@ -1,4 +1,4 @@
-struct PbrLightData {
+struct LightData {
     float parallaxShadow;
     float occlusion;
     float blockLight;

@@ -118,21 +118,15 @@ vec3 GetDiffuse_Burley(const in vec3 albedo, const in float NoV, const in float 
     return (albedo * invPI) * light_scatter * view_scatter * NoL;
 }
 
-vec3 GetSubsurface(const in vec3 albedo, const in float NoVm, const in float NoL, const in float LoHm, const in float roughL) {
-    float NoLm = max(NoL, 0.0);
-
-    float sssF90 = roughL * pow2(LoHm);
-    float sssF_In = F_schlick(NoVm, 1.0, sssF90);
-    float sssF_Out = F_schlick(NoLm, 1.0, sssF90);
+vec3 GetSubsurface(const in vec3 albedo, const in float NoV, const in float NoL, const in float LoH, const in float roughL) {
+    float sssF90 = roughL * pow2(LoH);
+    float sssF_In = F_schlick(NoV, 1.0, sssF90);
+    float sssF_Out = F_schlick(NoL, 1.0, sssF90);
 
     // TODO: modified this to prevent NaN's!
-    //return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (1.0 / (NoVm + NoLm) - 0.5) + 0.5) * abs(NoL);
-    vec3 result = (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (min(1.0 / max(NoVm + NoLm, 0.0001), 1.0) - 0.5) + 0.5) * max(NoL, 0.0);
+    //return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (1.0 / (NoV + NoL) - 0.5) + 0.5) * abs(NoL);
+    vec3 result = (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (min(1.0 / max(NoV + NoL, 0.0001), 1.0) - 0.5) + 0.5) * NoL;
     //return (1.25 * albedo * invPI) * (sssF_In * sssF_Out * (rcp(1.0 + (NoV + NoL)) - 0.5) + 0.5);
-
-    #ifndef SHADOW_ENABLED
-        result *= abs(NoL);
-    #endif
 
     return result;
 }
@@ -150,6 +144,7 @@ vec3 GetDiffuseBSDF(const in vec3 diffuse, const in vec3 albedo, const in float 
     #endif
 }
 
+// https://www.desmos.com/calculator/c4xl06b2ww
 float BiLambertianPlatePhaseFunction(in float kd, in float cosTheta) {
     float phase = 2.0 * (-PI * kd * cosTheta + sqrt(1.0 - pow2(cosTheta)) + cosTheta * acos(-cosTheta));
     return phase / (3.0 * pow2(PI));

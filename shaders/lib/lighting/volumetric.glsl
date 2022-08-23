@@ -1,5 +1,5 @@
 #ifdef SHADOW_COLOR
-    vec3 GetVolumetricColor(PbrLightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd) {
+    vec3 GetVolumetricColor(LightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd) {
         vec3 rayVector = shadowViewEnd - shadowViewStart;
         float rayLength = length(rayVector);
 
@@ -47,7 +47,7 @@
         return accumCol / VL_SAMPLE_COUNT;
     }
 #else
-    float GetVolumetricFactor(PbrLightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd) {
+    float GetVolumetricFactor(LightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd) {
         vec3 rayVector = shadowViewEnd - shadowViewStart;
         float rayLength = length(rayVector);
 
@@ -101,7 +101,7 @@ float _GetShadowLightScattering(const in vec3 ray, const in float G_scattering) 
 }
 
 #ifdef SHADOW_COLOR
-    vec3 GetVolumetricLightingColor(const in PbrLightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float G_scattering) {
+    vec3 GetVolumetricLightingColor(const in LightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float G_scattering) {
         vec3 ray = shadowViewEnd - shadowViewStart;
         float scattering = _GetShadowLightScattering(ray, G_scattering);
         if (scattering < EPSILON) return vec3(0.0);
@@ -113,7 +113,7 @@ float _GetShadowLightScattering(const in vec3 ray, const in float G_scattering) 
         #endif
     }
 #else
-    float GetVolumetricLighting(const in PbrLightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float G_scattering) {
+    float GetVolumetricLighting(const in LightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float G_scattering) {
         vec3 ray = shadowViewEnd - shadowViewStart;
         float scattering = _GetShadowLightScattering(ray, G_scattering);
         if (scattering < EPSILON) return 0.0;

@@ -21,14 +21,14 @@
         #endif
     }
 
-    // float GetWaterShadowDepth(const in PbrLightData lightData) {
+    // float GetWaterShadowDepth(const in LightData lightData) {
     //     float waterTexDepth = textureLod(shadowtex0, lightData.shadowPos.xy, 0).r;
     //     float waterDepth = lightData.shadowPos.z - lightData.shadowBias - waterTexDepth;
     //     return waterDepth * 3.0 * far;
     // }
 
     #ifdef SHADOW_COLOR
-        vec3 GetShadowColor(const in PbrLightData lightData) {
+        vec3 GetShadowColor(const in LightData lightData) {
             if (lightData.shadowPos.z - lightData.transparentShadowDepth < EPSILON) return vec3(1.0);
 
             vec3 color = textureLod(shadowcolor0, lightData.shadowPos.xy, 0).rgb;
@@ -54,7 +54,7 @@
 
     #if SHADOW_FILTER != 0
         // PCF
-        float GetShadowing_PCF(const in PbrLightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
+        float GetShadowing_PCF(const in LightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
             #ifdef SHADOW_DITHER
                 float dither = 0.5 + 0.5*GetScreenBayerValue();
             #endif
@@ -96,7 +96,7 @@
             return blockers > 0 ? avgBlockerDistance / blockers : -1.0;
         }
 
-        float GetShadowing(const in PbrLightData lightData) {
+        float GetShadowing(const in LightData lightData) {
             vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, SHADOW_PCF_SIZE);
 
             // blocker search
@@ -118,7 +118,7 @@
         }
     #elif SHADOW_FILTER == 1
         // PCF
-        float GetShadowing(const in PbrLightData lightData) {
+        float GetShadowing(const in LightData lightData) {
             int sampleCount = POISSON_SAMPLES;
             vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, SHADOW_PCF_SIZE);
             if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
@@ -128,7 +128,7 @@
         }
     #elif SHADOW_FILTER == 0
         // Unfiltered
-        float GetShadowing(const in PbrLightData lightData) {
+        float GetShadowing(const in LightData lightData) {
             //#ifdef SHADOW_ENABLE_HWCOMP
             //    return CompareOpaqueDepth(lightData.shadowPos, vec2(0.0), lightData.shadowBias);
             //#else
@@ -149,7 +149,7 @@
         }
 
         #ifdef SSS_SCATTER
-            float GetShadowing_PCF_SSS(const in PbrLightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
+            float GetShadowing_PCF_SSS(const in LightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
                 #ifdef SSS_DITHER
                     float dither = 0.5 + 0.5*GetScreenBayerValue();
                 #endif
@@ -166,18 +166,21 @@
                     float texDepth = SampleOpaqueDepth(lightData.shadowPos, pixelOffset);
                     //light += step(shadowPos.z + shadowBias, texDepth + 0.001);
 
+                    float sampleWeight = max(1.0 - length(poissonDisk[i]), EPSILON);
+                    sampleHit += sampleWeight;
+
                     if (texDepth < lightData.shadowPos.z + lightData.shadowBias) {
                         float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy + pixelOffset);
                         shadow_sss = sqrt(max(shadow_sss, EPSILON));
 
-                        float dist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * 3.0 * far;
-                        light += max(shadow_sss - dist / SSS_MAXDIST, 0.0);
+                        float dist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * 2.0 * far;
+                        light += sampleWeight * max(shadow_sss - dist / SSS_MAXDIST, 0.0);
                         //light++;
-                        sampleHit++;
+                        //sampleHit++;
                     }
                     else {
-                        light++;
-                        sampleHit++;
+                        light += sampleWeight;
+                        //sampleHit++;
                     }
                 }
 
@@ -187,9 +190,9 @@
 
         #ifdef SSS_SCATTER
             // PCF + PCSS
-            float GetShadowSSS(const in PbrLightData lightData, const in float materialSSS, out float traceDist) {
-                float texDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
-                traceDist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * 3.0 * far;
+            float GetShadowSSS(const in LightData lightData, const in float materialSSS, out float traceDist) {
+                //float texDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
+                traceDist = max(lightData.shadowPos.z + lightData.shadowBias - lightData.opaqueShadowDepth, 0.0) * 2.0 * far;
                 float blockRadius = SSS_PCF_SIZE * saturate(traceDist / SSS_MAXDIST) * (1.0 - 0.85*materialSSS);
 
                 int sampleCount = SSS_PCF_SAMPLES;
@@ -200,9 +203,9 @@
             }
         #else
             // Unfiltered
-            float GetShadowSSS(const in PbrLightData lightData, const in float materialSSS, out float traceDist) {
-                float texDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
-                traceDist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * 3.0 * far;
+            float GetShadowSSS(const in LightData lightData, const in float materialSSS, out float traceDist) {
+                //float texDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
+                traceDist = max(lightData.shadowPos.z + lightData.shadowBias - lightData.opaqueShadowDepth, 0.0) * 2.0 * far;
 
                 float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy);
                 shadow_sss = sqrt(max(shadow_sss, EPSILON));

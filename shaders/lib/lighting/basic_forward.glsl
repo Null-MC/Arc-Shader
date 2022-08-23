@@ -3,7 +3,7 @@
 #endif
 
 #ifdef RENDER_FRAG
-    vec4 BasicLighting() {
+    vec4 BasicLighting(const in LightData lightData) {
         vec4 albedo = texture(gtexture, texcoord);
         if (albedo.a < (0.5/255.0)) discard;
 
@@ -94,9 +94,6 @@
             mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
             vec3 shadowViewStart = (matViewToShadowView * vec4(vec3(0.0, 0.0, -near), 1.0)).xyz;
             vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
-
-            PbrLightData lightData;
-            // TODO: add CSM projections
 
             vec2 skyLightLevels = GetSkyLightLevels();
             float sunLightLevel = GetSunLightLevel(skyLightLevels.x);

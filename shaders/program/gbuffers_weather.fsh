@@ -138,7 +138,10 @@ out vec4 outColor1;
 
 
 void main() {
-    vec4 color = BasicLighting();
+    LightData lightData;
+    // TODO
+
+    vec4 color = BasicLighting(lightData);
     color.a *= WEATHER_OPACITY * 0.01;
 
     vec4 outLuminance = vec4(0.0);

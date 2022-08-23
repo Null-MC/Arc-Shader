@@ -31,7 +31,7 @@ void _ApplyHandLighting(out vec3 diffuse, out vec3 specular, const in vec3 albed
 
     vec3 F = GetFresnel(albedo, f0, hcm, LoHm, roughL);
     vec3 handDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * max(1.0 - F, 0.0);
-    diffuse = GetDiffuseBSDF(handDiffuse, albedo, scattering, NoVm, NoL, LoHm, roughL) * handLightColor;
+    diffuse = GetDiffuseBSDF(handDiffuse, albedo, scattering, NoVm, abs(NoL), LoHm, roughL) * handLightColor;
 
     if (NoLm < EPSILON) {
         specular = vec3(0.0);

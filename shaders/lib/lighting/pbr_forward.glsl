@@ -24,7 +24,7 @@
         float texDepth = 1.0;
         PbrMaterial material;
 
-        PbrLightData lightData;
+        LightData lightData;
         lightData.blockLight = lmcoord.x;
         lightData.skyLight = lmcoord.y;
         lightData.geoNoL = geoNoL;

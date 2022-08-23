@@ -239,7 +239,7 @@ void main() {
         vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
         vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 
-        PbrLightData lightData;
+        LightData lightData;
         lightData.occlusion = normalMap.a;
         lightData.blockLight = lightingMap.x;
         lightData.skyLight = lightingMap.y;

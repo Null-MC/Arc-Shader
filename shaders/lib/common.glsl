@@ -161,8 +161,8 @@ const bool colortex12Clear = false;
 //#define VL_PARTICLES
 #define G_SCATTERING_CLEAR 0.18 // 0.96
 #define G_SCATTERING_NIGHT 0.64 // 0.96
-#define G_SCATTERING_HUMID 0.88 // 0.84
-#define G_SCATTERING_RAIN 0.98
+#define G_SCATTERING_HUMID 0.80 // 0.84
+#define G_SCATTERING_RAIN 0.85
 #define G_SCATTERING_WATER 0.85
 #define SSAO_ENABLED
 #define SSAO_SAMPLES 16 // [8 16 24 32]
@@ -211,7 +211,7 @@ const float StarLumen = 1200.0;
 const float EmissionLumens = 1.0e6;
 
 const float SunLux = 64000.0;
-const float SunOvercastLux = 600.0;
+const float SunOvercastLux = 12000; //600.0;
 const float MoonLux = 12.0;
 const float MoonOvercastLux = 2.0;
 const float BlockLightLux = 3400.0; // 9k
@@ -224,7 +224,7 @@ const float DaySkyOvercastLumen = 10000.0;
 const float NightSkyLumen = 1200.0;
 const float NightSkyOvercastLumen = 60.0;
 
-const vec4 WATER_COLOR = vec4(0.269, 0.892, 0.955, 0.1)*0.2;
+const vec4 WATER_COLOR = vec4(0.269, 0.892, 0.955, 0.1)*0.5;
 //const vec4 WATER_COLOR = vec4(0.6, 0.0, 0.0, 0.12);
 const vec3 WaterAbsorbtionExtinction = vec3(0.28, 0.34, 0.42); //0.54, 0.91, 0.93
 

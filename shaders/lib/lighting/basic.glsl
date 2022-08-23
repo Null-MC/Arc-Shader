@@ -123,7 +123,7 @@
 
 #ifdef RENDER_FRAG
     #ifdef SKY_ENABLED
-        vec3 GetSkyAmbientLight(const in PbrLightData lightData, const in vec3 normal) {
+        vec3 GetSkyAmbientLight(const in LightData lightData, const in vec3 normal) {
             vec3 upDir = normalize(upPosition);
             vec3 sunLightDir = normalize(sunPosition);
             vec3 moonLightDir = normalize(moonPosition);

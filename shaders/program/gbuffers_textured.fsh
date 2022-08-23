@@ -150,7 +150,10 @@ uniform int fogMode;
 
 
 void main() {
-    vec4 color = BasicLighting();
+    LightData lightData;
+    // TODO
+
+    vec4 color = BasicLighting(lightData);
 
     vec4 outLuminance = vec4(0.0);
     outLuminance.r = log2(luminance(color.rgb) + EPSILON);
