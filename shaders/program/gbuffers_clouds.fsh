@@ -85,7 +85,7 @@ void main() {
 
     float skyLux = mix(NightSkyLux, DaySkyLux, saturate(skyLightLevels.x));
 
-    colorMap.rgb *= (skyLux + vlColorLux) * (1.0 - 0.9*rainStrength);
+    colorMap.rgb *= (skyLux + vlColorLux) * (1.0 - 0.96*rainStrength);
 
     //colorMap.a = pow(colorMap.a, 0.2);
 

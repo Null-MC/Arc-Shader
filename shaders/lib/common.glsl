@@ -60,7 +60,7 @@ const bool colortex12Clear = false;
 #define WATER_FANCY
 #define WATER_REFRACTION 0 // [0 1 2]
 #define WATER_WAVE_TYPE 1 // [0 1 2]
-#define WATER_SCALE 38.0
+#define WATER_SCALE 24.0
 #define WATER_RADIUS 32
 #define WATER_OCTAVES_NEAR 48
 #define WATER_OCTAVES_FAR 16
