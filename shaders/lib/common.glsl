@@ -164,6 +164,7 @@ const bool colortex12Clear = false;
 #define G_SCATTERING_HUMID 0.80 // 0.84
 #define G_SCATTERING_RAIN 0.85
 #define G_SCATTERING_WATER 0.85
+#define G_SCATTERING_CLOUDS 0.6
 #define SSAO_ENABLED
 #define SSAO_SAMPLES 16 // [8 16 24 32]
 #define SSAO_INTENSITY 8.0 // [1.0 2.0 4.0 6.0 8.0 12.0 16.0]

@@ -40,6 +40,11 @@ uniform vec3 sunPosition;
 uniform vec3 moonPosition;
 uniform int moonPhase;
 
+#ifdef IS_OPTIFINE
+    uniform mat4 gbufferModelView;
+    uniform int worldTime;
+#endif
+
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/camera/exposure.glsl"

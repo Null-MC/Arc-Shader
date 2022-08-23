@@ -151,7 +151,8 @@ out vec3 outColor0;
                 bloom += textureLod(BUFFER_BLOOM, tileTex, 0).rgb;
             }
 
-            color += bloom * (0.01 * BLOOM_STRENGTH);
+            bloom *= (0.01 * BLOOM_STRENGTH);
+            color += bloom;
         #endif
 
         float whitePoint = 1.0;

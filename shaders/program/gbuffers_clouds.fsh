@@ -30,7 +30,9 @@ uniform vec3 fogColor;
 uniform int moonPhase;
 
 #ifdef IS_OPTIFINE
+    uniform mat4 gbufferModelView;
     uniform float eyeHumidity;
+    uniform int worldTime;
 
     #if MC_VERSION >= 11700
         uniform float alphaTestRef;
@@ -49,7 +51,7 @@ out vec4 outColor1;
 
 void main() {
     vec4 colorMap = texture(gtexture, texcoord);
-    colorMap.rgb = RGBToLinear(colorMap.rgb * glcolor.rgb);
+    colorMap.rgb = RGBToLinear(colorMap.rgb);// * glcolor.rgb);
 
     if (colorMap.a < alphaTestRef) discard;
 
@@ -61,12 +63,29 @@ void main() {
     float worldY = localPos.y + cameraPosition.y;
     vec3 sunTransmittanceLux = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
     sunTransmittanceLux *= GetSunLux();// * darkness;
-    colorMap.rgb *= sunTransmittanceLux;
+    //colorMap.rgb *= sunTransmittanceLux;
+
+    //vec3 moonColor = vec3(0.0); // TODO: assign in vertex
+    //float rayLen = min(viewDist / (101.0 - VL_STRENGTH), 1.0);
+
+    //colorMap.rgb *= GetVanillaSkyScattering(viewDir, skyLightLevels.x, sunTransmittanceLux, moonColor) * rayLen;
+    #ifdef IS_OPTIFINE
+        vec3 sunLightDir = GetFixedSunPosition();
+    #else
+        vec3 sunLightDir = normalize(sunPosition);
+    #endif
 
     vec3 viewDir = normalize(viewPos);
-    vec3 moonColor = vec3(0.0); // TODO: assign in vertex
-    float rayLen = min(viewDist / (101.0 - VL_STRENGTH), 1.0);
-    colorMap.rgb += GetVanillaSkyScattering(viewDir, skyLightLevels.x, sunTransmittanceLux, moonColor) * rayLen;
+    float sun_VoL = dot(viewDir, sunLightDir);
+    float sunScattering = ComputeVolumetricScattering(sun_VoL, G_SCATTERING_CLOUDS);
+    //colorMap.rgb *= GetVanillaSkyScattering(viewDir, skyLightLevels.x, sunTransmittanceLux, moonColor) * rayLen;
+    //vec3 vlColor = (sunScattering * sunColor + moonScattering * moonColor) * scatterDistF;
+    //float scatterDistF = min(viewDist / (101.0 - VL_STRENGTH), 1.0);
+    vec3 vlColorLux = sunScattering * sunTransmittanceLux * 0.2;
+
+    float skyLux = mix(NightSkyLux, DaySkyLux, saturate(skyLightLevels.x));
+
+    colorMap.rgb *= (skyLux + vlColorLux);
 
     //colorMap.a = pow(colorMap.a, 0.2);
 

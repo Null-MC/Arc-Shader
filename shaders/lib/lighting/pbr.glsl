@@ -409,7 +409,7 @@
                     //sssDiffuseLight *= ComputeVolumetricScattering(VoL, 0.6);
                     sssDiffuseLight *= 6.0 * BiLambertianPlatePhaseFunction(0.6, VoL);
 
-                    float extDistF = (1.6 - material.scattering) * sssDist;
+                    float extDistF = (1.0 - 0.9*material.scattering) * sssDist;
                     sssDiffuseLight *= exp(-extDistF * (1.0 - material.albedo.rgb));
 
                     sunDiffuse += sssDiffuseLight * max(-NoL, 0.0);

@@ -1,26 +1,14 @@
 const float[5] moonPhaseLevels = float[](0.08, 0.25, 0.50, 0.75, 1.0);
 
-// float GetSolidAngle(const in float angularDiameter) {
-//     return 2.0 * PI * (1.0 - cos(0.5 * angularDiameter * PI * 180.0));
-// }
-
-#if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED)
+#if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
     // by BuilderBoy
     vec3 GetFixedSunPosition() {
-        //inline radians() as * PI / 180.0, because radians() doesn't count as a constant function on some drivers.
         const vec2 sunRotationData = vec2(cos(sunPathRotation * 0.01745329251994), -sin(sunPathRotation * 0.01745329251994));
 
-        //minecraft's native calculateCelestialAngle() function, ported to GLSL.
         float ang = fract(worldTime / 24000.0 - 0.25);
         ang = (ang + (cos(ang * PI) * -0.5 + 0.5 - ang) / 3.0) * (2.0*PI); //0-2pi, rolls over from 2pi to 0 at noon.
 
-        //this one tracks optifine's sunPosition uniform.
         return mat3(gbufferModelView) * vec3(-sin(ang), cos(ang) * sunRotationData);
-        //this one tracks the center of the *actual* sun, which is ever-so-slightly different.
-        //return normalize((gbufferModelView * vec4(sin(ang) * -100.0, (cos(ang) * 100.0) * sunRotationData, 1.0)).xyz);
-        //I choose to use the sunPosition one for 2 reasons:
-        //1: it's simpler.
-        //2: it's consistent with the actual uniform value in other programs.
     }
 #endif
 
@@ -40,15 +28,6 @@ vec2 GetSkyLightLevels() {
         dot(upDir, sunLightDir),
         dot(upDir, moonLightDir));
 }
-
-// #ifdef RENDER_SKYTEXTURED
-//     vec3 GetSunTransmittance(const in float height, const in float skyLightLevel) {
-//         vec2 uv;
-//         uv.x = saturate(skyLightLevel * 0.5 + 0.5);
-//         uv.y = saturate((height - SEA_LEVEL) / (CLOUD_LEVEL - SEA_LEVEL));
-//         return texture(BUFFER_SUN_TRANSMITTANCE, uv).rgb;
-//     }
-// #endif
 
 float GetSunLightLevel(const in float skyLightLevel) {
     //float rainLevel = 1.0 - 0.85 * rainStrength;
