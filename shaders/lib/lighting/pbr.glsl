@@ -337,15 +337,17 @@
             }
         #endif
 
+        float sunLux = 0.0;
         #ifdef SKY_ENABLED
-            float ambientBrightness = mix(0.36 * skyLight2, 0.85 * skyLight, rainStrength) * SHADOW_BRIGHTNESS;
+            float ambientBrightness = mix(0.6 * skyLight2, 0.95 * skyLight, rainStrength) * SHADOW_BRIGHTNESS;
             vec3 skyAmbient = GetSkyAmbientLight(lightData, viewNormal);
 
             //#ifdef SSS_ENABLED
             //    vec3 skyAmbientSSS = GetSkyAmbientLight(-viewNormal) * invPI;
             //#endif
 
-            vec3 sunColor = lightData.sunTransmittance * GetSunLux();
+            sunLux = GetSunLux();
+            vec3 sunColor = lightData.sunTransmittance * sunLux;
 
             vec3 skyLightColorFinal = (sunColor + moonColor) * shadowColor;
             //float diffuseLightF = shadowFinal;
@@ -397,22 +399,23 @@
             #endif
 
             vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * max(1.0 - sunF, 0.0);
-            sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo, material.scattering, NoVm, diffuseNoL, LoHm, roughL);
+            //sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo, material.scattering, NoVm, diffuseNoL, LoHm, roughL);
             sunDiffuse *= skyLightColorFinal * shadowFinal;// * skyLight2;
 
             #ifdef SSS_ENABLED
-                if (material.scattering > 0.0 && NoL < 0.0) {
+                if (material.scattering > 0.0) {
                     // Transmission
                     vec3 sssDiffuseLight = material.albedo.rgb * shadowSSS * skyLightColorFinal;// * skyLight;
 
                     float VoL = dot(viewDir, viewLightDir);
                     //sssDiffuseLight *= ComputeVolumetricScattering(VoL, 0.6);
-                    sssDiffuseLight *= 6.0 * BiLambertianPlatePhaseFunction(0.6, VoL);
+                    sssDiffuseLight *= BiLambertianPlatePhaseFunction(0.8, VoL);
 
                     float extDistF = (1.0 - 0.9*material.scattering) * sssDist;
-                    sssDiffuseLight *= exp(-extDistF * (1.0 - material.albedo.rgb));
+                    //sssDiffuseLight *= exp(-0.1*extDistF * (1.0 - material.albedo.rgb));
+                    sssDiffuseLight *= exp(-0.1*extDistF);
 
-                    sunDiffuse += sssDiffuseLight * max(-NoL, 0.0);
+                    sunDiffuse += sssDiffuseLight;// * max(NoL, 0.0);
                 }
             #endif
 
@@ -589,13 +592,15 @@
             final.rgb = mix(final.rgb, waterFogColor, waterFogF);
         }
         else {
+            //vec3 sunTransmittanceLux = lightData.sunTransmittance * sunLux;
+
             #ifdef RENDER_DEFERRED
-                ApplyFog(final.rgb, viewPos, skyLight);
+                ApplyFog(final.rgb, viewPos, lightData);
             #elif defined RENDER_GBUFFER
                 #if defined RENDER_WATER || defined RENDER_HAND_WATER
-                    ApplyFog(final, viewPos, skyLight, EPSILON);
+                    ApplyFog(final, viewPos, lightData, EPSILON);
                 #else
-                    ApplyFog(final, viewPos, skyLight, alphaTestRef);
+                    ApplyFog(final, viewPos, lightData, alphaTestRef);
                 #endif
             #endif
         }

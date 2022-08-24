@@ -88,7 +88,7 @@
         final.rgb *= ambient;
         final.rgb += diffuse;
 
-        ApplyFog(final, viewPos, skyLight, EPSILON);
+        ApplyFog(final, viewPos, lightData, EPSILON);
 
         #if defined SKY_ENABLED && defined VL_ENABLED && (defined VL_PARTICLES || (!defined RENDER_TEXTURED && !defined RENDER_WEATHER))
             mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;

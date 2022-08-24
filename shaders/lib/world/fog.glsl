@@ -40,24 +40,10 @@ float GetVanillaFogFactor(const in float viewDist) {
     return GetFogFactor(viewDist, fogStart, fogEnd, 1.0);
 }
 
-float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightLevel) {
+float ApplyFog(inout vec3 color, const in vec3 viewPos, const in LightData lightData) {
     #ifdef SKY_ENABLED
         vec3 viewDir = normalize(viewPos);
         vec3 atmosphereColor = GetVanillaSkyLuminance(viewDir);
-
-        // #ifndef VL_ENABLED
-        //     float scattering = GetScatteringFactor();
-
-        //     vec3 sunDir = normalize(sunPosition);
-        //     float sun_VoL = dot(viewDir, sunDir);
-        //     float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering);
-        //     atmosphereColor += sunScattering * sunColor;
-
-        //     vec3 moonDir = normalize(moonPosition);
-        //     float moon_VoL = dot(viewDir, moonDir);
-        //     float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering);
-        //     atmosphereColor += moonScattering * moonColor;
-        // #endif
     #else
         vec3 atmosphereColor = RGBToLinear(fogColor) * 100.0;
     #endif
@@ -69,7 +55,7 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
     float viewDist = length(viewPos);// - near;
     float maxFactor = 0.0;
 
-    float caveLightFactor = saturate(2.0 * skyLightLevel);
+    float caveLightFactor = saturate(2.0 * lightData.skyLight);
     #if defined CAVEFOG_ENABLED && defined SHADOW_ENABLED
         vec3 caveFogColor = 0.001 * RGBToLinear(vec3(0.3294, 0.1961, 0.6588));
         vec3 caveFogColorBlend = mix(caveFogColor, atmosphereColor, caveLightFactor);
@@ -83,8 +69,9 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
     //     caveFogColor *= exposure;
     // #endif
 
+    vec2 skyLightLevels = GetSkyLightLevels();
+
     #if defined SKY_ENABLED && defined ATMOSFOG_ENABLED
-        vec2 skyLightLevels = GetSkyLightLevels();
         float sunLightLevel = GetSunLightLevel(skyLightLevels.x);
 
         float customFogFactor = GetCustomFogFactor(viewDist, sunLightLevel);
@@ -120,11 +107,28 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in float skyLightL
         color = mix(color, caveFogColorBlend, caveFogFactor);
     #endif
 
+    // #if defined SKY_ENABLED && defined VL_ENABLED
+    //     float scattering = GetScatteringFactor(lightData.skyLightLevels.x);
+    //     vec3 vlColor = vec3(0.0);
+
+    //     vec3 sunDir = normalize(sunPosition);
+    //     float sun_VoL = dot(viewDir, sunDir);
+    //     float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering);
+    //     vlColor += sunScattering * lightData.sunTransmittance * GetSunLux();
+
+    //     vec3 moonDir = normalize(moonPosition);
+    //     float moon_VoL = dot(viewDir, moonDir);
+    //     float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering);
+    //     vlColor += moonScattering * moonColor;
+
+    //     color += saturate(maxFactor) * vlColor;
+    // #endif
+
     return maxFactor;
 }
 
-void ApplyFog(inout vec4 color, const in vec3 viewPos, const in float skyLightLevel, const in float alphaTestRef) {
-    float fogFactor = ApplyFog(color.rgb, viewPos, skyLightLevel);
+void ApplyFog(inout vec4 color, const in vec3 viewPos, const in LightData lightData, const in float alphaTestRef) {
+    float fogFactor = ApplyFog(color.rgb, viewPos, lightData);
 
     if (color.a > alphaTestRef)
         color.a = mix(color.a, 1.0, fogFactor);

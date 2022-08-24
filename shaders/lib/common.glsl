@@ -50,7 +50,7 @@ const bool colortex12Clear = false;
 #define BLOCK_OUTLINE 3 // [0 1 2 3]
 #define BLOCKLIGHT_TEMP 3500 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 80 // [0 10 20 30 40 50 60 70 80 90 100]
-#define SHADOW_BRIGHTNESS 0.25 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
+#define SHADOW_BRIGHTNESS 0.40 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define RAIN_DARKNESS 0.2
 #define AO_ENABLED
 //#define ANIM_USE_WORLDTIME
@@ -159,19 +159,19 @@ const bool colortex12Clear = false;
 #define VL_STRENGTH 20 // [10 20 30 40 50 60 70 80 90 100]
 #define VL_SAMPLE_COUNT 15 // [15 30 60 90]
 //#define VL_PARTICLES
-#define G_SCATTERING_CLEAR 0.18 // 0.96
+#define G_SCATTERING_CLEAR 0.28 // 0.96
 #define G_SCATTERING_NIGHT 0.36 // 0.96
-#define G_SCATTERING_HUMID 0.80 // 0.84
+#define G_SCATTERING_HUMID 0.68 // 0.84
 #define G_SCATTERING_RAIN 0.85
 #define G_SCATTERING_WATER 0.85
 #define G_SCATTERING_CLOUDS 0.6
 #define G_SCATTERING_RAIN_CLOUDS 0.94
 #define SSAO_ENABLED
 #define SSAO_SAMPLES 16 // [8 16 24 32]
-#define SSAO_INTENSITY 8.0 // [1.0 2.0 4.0 6.0 8.0 12.0 16.0]
+#define SSAO_INTENSITY 8.0 // [1.0 2.0 4.0 6.0 8.0 10.0 12.0 14.0 16.0]
 #define SSAO_SCALE 0.5
 #define SSAO_BIAS 0.02
-#define SSAO_RADIUS 0.6 // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6]
+#define SSAO_RADIUS 0.5 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
 #define SSAO_MAX_DIST 1.6
 
 
@@ -213,13 +213,13 @@ const float StarLumen = 1200.0;
 const float EmissionLumens = 1.0e6;
 
 const float SunLux = 64000.0;
-const float SunOvercastLux = 6000; //600.0;
-const float MoonLux = 12.0;
+const float SunOvercastLux = 1600; //600.0;
+const float MoonLux = 36.0;
 const float MoonOvercastLux = 2.0;
 const float BlockLightLux = 3400.0; // 9k
 const float DaySkyLux = 20000.0;
 const float NightSkyLux = 1.0;
-const float MinWorldLux = 2.0;
+const float MinWorldLux = 8.0;
 
 const float DaySkyLumen = 14000.0;
 const float DaySkyOvercastLumen = 10000.0;
