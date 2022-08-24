@@ -141,11 +141,11 @@
             vec3 moonLightLux = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);
             moonLightLux *= dot(normal, moonLightDir) * 0.2 + 0.4;
 
-            float skyLux = skyLightLevels.x * DaySkyLux + skyLightLevels.y * NightSkyLux;
-            vec3 skyLightColorLux = RGBToLinear(skyColor) * skyLux;
-            skyLightColorLux *= saturate(dot(normal, upDir) * 0.3 + 0.6);
+            // float skyLux = skyLightLevels.x * DaySkyLux + skyLightLevels.y * NightSkyLux;
+            // vec3 skyLightColorLux = RGBToLinear(skyColor) * skyLux;
+            // skyLightColorLux *= saturate(dot(normal, upDir) * 0.3 + 0.6);
 
-            return skyLightColorLux + sunLightLux + moonLightLux;
+            return MinWorldLux + sunLightLux + moonLightLux;
         }
     #endif
 #endif

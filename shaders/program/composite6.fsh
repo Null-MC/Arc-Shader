@@ -111,10 +111,10 @@ void main() {
 
         lum *= exposure;
         //lum /= 1.0 + 0.1*(exp2(0.1*tile) - 1.0);
-        lum /= exp2(tile);
+        lum /= 6.0 * exp2(tile);
         //lum = clamp(lum, 0.0, 65554.0);
-        lum = lum / (lum + 1.0);
-        lum = pow3(lum);
+        //lum = pow2(lum);
+        lum = lum / (lum + 3.0);
         lum *= exp2(tile);
         //lum /= 0.0004*exp2(12.0 + 0.6*tile);
         //lum = pow(lum, tile);
