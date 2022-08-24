@@ -107,22 +107,22 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in LightData light
         color = mix(color, caveFogColorBlend, caveFogFactor);
     #endif
 
-    // #if defined SKY_ENABLED && defined VL_ENABLED
-    //     float scattering = GetScatteringFactor(lightData.skyLightLevels.x);
-    //     vec3 vlColor = vec3(0.0);
+    #if defined SKY_ENABLED && !defined VL_ENABLED
+        float scattering = GetScatteringFactor(lightData.skyLightLevels.x);
+        vec3 vlColor = vec3(0.0);
 
-    //     vec3 sunDir = normalize(sunPosition);
-    //     float sun_VoL = dot(viewDir, sunDir);
-    //     float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering);
-    //     vlColor += sunScattering * lightData.sunTransmittance * GetSunLux();
+        vec3 sunDir = normalize(sunPosition);
+        float sun_VoL = dot(viewDir, sunDir);
+        float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering);
+        vlColor += sunScattering * lightData.sunTransmittance * GetSunLux();
 
-    //     vec3 moonDir = normalize(moonPosition);
-    //     float moon_VoL = dot(viewDir, moonDir);
-    //     float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering);
-    //     vlColor += moonScattering * moonColor;
+        vec3 moonDir = normalize(moonPosition);
+        float moon_VoL = dot(viewDir, moonDir);
+        float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering);
+        vlColor += moonScattering * moonColor;
 
-    //     color += saturate(maxFactor) * vlColor;
-    // #endif
+        color += saturate(maxFactor) * vlColor;
+    #endif
 
     return maxFactor;
 }

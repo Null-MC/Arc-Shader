@@ -148,7 +148,7 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
             }
         #endif
 
-        fogColorLinear = mix(fogColorLinear, 0.06*vec3(0.839, 0.843, 0.824), rainStrength);
+        fogColorLinear = mix(fogColorLinear, FOG_RAIN_COLOR, rainStrength);
 
         #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED)
             vec3 upDir = gbufferModelView[1].xyz;
@@ -167,8 +167,17 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
         float moonLightLux = GetMoonLightLux(skyLightLevels.y);
         float skyLux = sunLightLux + moonLightLux;
 
-        vec3 skyColorLinear = RGBToLinear(skyColor) * skyLux;
-        vec3 fogColorLinear = RGBToLinear(fogColor) * skyLux;
+        vec3 skyColorLinear = RGBToLinear(skyColor);
+        vec3 fogColorLinear = RGBToLinear(fogColor);
+
+        #ifdef RENDER_SKYBASIC
+            if (isEyeInWater == 1) {
+                // TODO: change fogColor to water
+                fogColorLinear = vec3(0.0178, 0.0566, 0.0754);
+            }
+        #endif
+
+        fogColorLinear = mix(fogColorLinear, FOG_RAIN_COLOR, rainStrength);
 
         #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED)
             vec3 upDir = gbufferModelView[1].xyz;
@@ -178,6 +187,6 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
         
         float VoUm = max(dot(viewDir, upDir), 0.0);
         float skyFogFactor = GetVanillaSkyFog(VoUm, 0.25);
-        return mix(skyColorLinear, fogColorLinear, skyFogFactor);
+        return mix(skyColorLinear, fogColorLinear, skyFogFactor) * skyLux;
     }
 #endif

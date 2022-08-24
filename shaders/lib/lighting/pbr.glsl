@@ -221,7 +221,8 @@
                     }
                 #endif
             #else
-                shadowSSS = material.scattering;
+                shadow = pow2(skyLight) * lightData.occlusion;
+                shadowSSS = pow2(skyLight) * material.scattering;
             #endif
         #endif
 
@@ -308,7 +309,7 @@
         vec3 ambient = vec3(MinWorldLux + blockLightAmbient);
         vec3 diffuse = vec3(0.0);
         vec3 specular = vec3(0.0);
-        float occlusion = material.occlusion;
+        float occlusion = material.occlusion * lightData.occlusion;
 
         #ifdef SSAO_ENABLED
             #ifdef IS_OPTIFINE
@@ -573,6 +574,8 @@
         final.rgb = final.rgb * (ambient * occlusion + emissive)
             + diffuse * material.albedo.a
             + (specular + iblSpec) * specularTint;
+
+        final *= exp(-0.006 * viewDist);
 
         if (isEyeInWater == 1) {
             float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
