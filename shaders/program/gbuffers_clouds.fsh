@@ -77,13 +77,14 @@ void main() {
 
     vec3 viewDir = normalize(viewPos);
     float sun_VoL = dot(viewDir, sunLightDir);
-    float sunScattering = ComputeVolumetricScattering(sun_VoL, G_SCATTERING_CLOUDS);
+    float sun_G = mix(G_SCATTERING_CLOUDS, G_SCATTERING_RAIN_CLOUDS, rainStrength);
+    float sunScattering = ComputeVolumetricScattering(sun_VoL, sun_G);
     //colorMap.rgb *= GetVanillaSkyScattering(viewDir, skyLightLevels.x, sunTransmittanceLux, moonColor) * rayLen;
     //vec3 vlColor = (sunScattering * sunColor + moonScattering * moonColor) * scatterDistF;
     //float scatterDistF = min(viewDist / (101.0 - VL_STRENGTH), 1.0);
-    vec3 vlColorLux = sunScattering * sunTransmittanceLux * 0.2;
+    vec3 vlColorLux = sunScattering * sunTransmittanceLux;
 
-    float skyLux = mix(NightSkyLux, DaySkyLux, saturate(skyLightLevels.x));
+    float skyLux = mix(2.0*NightSkyLux, 0.75*DaySkyLux, saturate(skyLightLevels.x));
 
     colorMap.rgb *= (skyLux + vlColorLux) * (1.0 - 0.96*rainStrength);
 

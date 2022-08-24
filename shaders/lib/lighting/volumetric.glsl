@@ -102,7 +102,8 @@ float _GetShadowLightScattering(const in vec3 ray, const in float G_scattering) 
     const vec3 sunDir = vec3(0.0, 0.0, 1.0);
     float VoL = dot(normalize(ray), sunDir);
 
-    float rayLen = min(length(ray) / (101.0 - VL_STRENGTH), 1.0);
+    //float rayLen = min(length(ray) / (101.0 - VL_STRENGTH), 1.0);
+    float rayLen = min(length(ray) / far, 1.0);
     return ComputeVolumetricScattering(VoL, G_scattering) * rayLen;
 }
 
