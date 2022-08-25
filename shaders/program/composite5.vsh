@@ -41,7 +41,7 @@ out vec2 texcoord;
 
         blockLightBrightness = pow3(blockLightBrightness) * BlockLightLux;
 
-        return 10.0 + 0.1 * max(blockLightBrightness, skyLightBrightness);
+        return 10.0 + 0.05 * max(blockLightBrightness, skyLightBrightness);
     }
 #endif
 

@@ -37,7 +37,7 @@ out vec4 outColor0;
 
 
 void main() {
-    vec3 color = textureLod(BUFFER_HDR, texcoord, 0).rgb;
+    vec3 color = texelFetch(BUFFER_HDR, ivec2(gl_FragCoord.xy), 1).rgb;
     float lum = 0.0;
 
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL

@@ -98,7 +98,26 @@ void main() {
     #else
         vec3 viewDir = normalize(viewPos);
         vec3 sky = GetVanillaSkyLuminance(viewDir);
-        sky += GetVanillaSkyScattering(viewDir, sunLightLevel, sunTransmittanceLux, moonColor);
+
+        #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined VL_ENABLED
+            //sky += GetVanillaSkyScattering(viewDir, sunLightLevel, sunTransmittanceLux, moonColor);
+            vec2 skyLightLevels = GetSkyLightLevels();
+            float scattering = GetScatteringFactor(skyLightLevels.x);
+            vec3 vlColor = vec3(0.0);
+
+            vec3 sunDir = normalize(sunPosition);
+            float sun_VoL = dot(viewDir, sunDir);
+            float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering);
+            vlColor += sunScattering * sunTransmittanceLux;
+
+            vec3 moonDir = normalize(moonPosition);
+            float moon_VoL = dot(viewDir, moonDir);
+            float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering);
+            vlColor += moonScattering * moonColor;
+
+            sky += vlColor;
+        #endif
+        
         lum += luminance(sky);
         color += sky;
     #endif

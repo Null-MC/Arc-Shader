@@ -13,7 +13,7 @@ float GetExposureKeyValue(const in float avgLum) {
 }
 
 float GetExposure(const in float EV100) {
-    float brightnessF = 2.0 - screenBrightness;
+    float brightnessF = 3.0 - 2.0*screenBrightness;
 
     #if MC_VERSION >= 11900
         brightnessF *= 1.0 - 0.9*darknessFactor;

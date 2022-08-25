@@ -317,7 +317,12 @@ void main() {
 
         outColor1 = log2(luminance(color) + EPSILON);
 
-        color = clamp(color * exposure, vec3(0.0), vec3(65554.0));
+        #ifdef IS_OPTIFINE
+            color = clamp(color * exposure, vec3(0.0), vec3(65000.0));
+        #else
+            // Getting weird bug on Iris where screen top/right edges have INF pixels when above 1.0
+            color = clamp(color * exposure, vec3(0.0), vec3(1.0));
+        #endif
     }
 
     outColor0 = vec4(color, 1.0);

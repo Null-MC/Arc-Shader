@@ -126,6 +126,9 @@ option.PARALLAX_SAMPLES.comment=The maximum number of depth samples to trace whe
 option.PARALLAX_SHADOW_SAMPLES=Shadow Samples
 option.PARALLAX_SHADOW_SAMPLES.comment=The maximum number of depth samples to trace when determining shadowing for displaced surfaces.
 
+option.PARALLAX_DEPTH_WRITE=Depth-Write
+option.PARALLAX_DEPTH_WRITE.comment=When enabled, the surface depth will also be displaced by POM; allowing more accurate shadows and intersections.
+
 
 screen.ATMOSPHERE_OPTIONS=Atmosphere
 
@@ -271,6 +274,9 @@ suffix.BLOOM_STRENGTH=%
 
 option.BLOOM_SMOOTH=Smooth
 option.BLOOM_SMOOTH.comment=Makes bloom smoother at a slight performance cost.
+
+option.BLOOM_POWER=Power
+option.BLOOM_POWER.comment=Adjusts the exposure curve of the incoming light.
 
 
 screen.EFFECT_RSM_OPTIONS=Global Illumination

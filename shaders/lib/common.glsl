@@ -151,9 +151,9 @@ const bool colortex12Clear = false;
 #define RSM_DITHER
 #define BLOOM_ENABLED
 #define BLOOM_SMOOTH
-#define BLOOM_POWER 8.0
 #define BLOOM_SCALE 60.0
 #define BLOOM_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
+#define BLOOM_POWER 5 // [1 2 3 4 5 6 7 8 9 10]
 #define VL_ENABLED
 #define VL_DITHER
 #define VL_STRENGTH 20 // [10 20 30 40 50 60 70 80 90 100]
@@ -207,7 +207,7 @@ const bool colortex12Clear = false;
 #define GAMMA 2.2
 
 const float sunLumen = 200e6;
-const float moonLumen = 4000.0;
+const float moonLumen = 8000.0;
 const float StarLumen = 1200.0;
 //const float BlockLightLumen = 2000;
 const float EmissionLumens = 1.0e6;
@@ -218,8 +218,8 @@ const float MoonLux = 36.0;
 const float MoonOvercastLux = 2.0;
 const float BlockLightLux = 3400.0; // 9k
 const float DaySkyLux = 20000.0;
-const float NightSkyLux = 1.0;
-const float MinWorldLux = 8.0;
+const float NightSkyLux = 2.0;
+const float MinWorldLux = 6.0;
 
 const float DaySkyLumen = 14000.0;
 const float DaySkyOvercastLumen = 10000.0;

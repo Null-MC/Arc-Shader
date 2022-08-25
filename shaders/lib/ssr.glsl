@@ -22,12 +22,12 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     for (; i <= SSR_STEPS && alpha < 0.5; i++) {
         tracePos = clipPos + i*screenRay;
 
+        if (abs(tracePos.x - clipPos.x) < pixelSize.x
+         && abs(tracePos.y - clipPos.y) < pixelSize.y) continue;
+
         if (tracePos.x <= 0.0 || tracePos.x >= 1.0
          || tracePos.y <= 0.0 || tracePos.y >= 1.0
          || tracePos.z <= 0.0 || tracePos.z >= 1.0) break;
-
-        if (abs(tracePos.x - clipPos.x) < pixelSize.x
-         && abs(tracePos.y - clipPos.y) < pixelSize.y) continue;
 
         uv = tracePos.xy;
 

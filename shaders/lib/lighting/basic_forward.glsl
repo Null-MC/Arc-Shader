@@ -88,25 +88,25 @@
         final.rgb *= ambient;
         final.rgb += diffuse;
 
-        ApplyFog(final, viewPos, lightData, EPSILON);
+        //ApplyFog(final, viewPos, lightData, EPSILON);
 
-        #if defined SKY_ENABLED && defined VL_ENABLED && (defined VL_PARTICLES || (!defined RENDER_TEXTURED && !defined RENDER_WEATHER))
-            mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
-            vec3 shadowViewStart = (matViewToShadowView * vec4(vec3(0.0, 0.0, -near), 1.0)).xyz;
-            vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
+        // #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined VL_ENABLED && (defined VL_PARTICLES || (!defined RENDER_TEXTURED && !defined RENDER_WEATHER))
+        //     mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
+        //     vec3 shadowViewStart = (matViewToShadowView * vec4(vec3(0.0, 0.0, -near), 1.0)).xyz;
+        //     vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
 
-            vec2 skyLightLevels = GetSkyLightLevels();
-            float sunLightLevel = GetSunLightLevel(skyLightLevels.x);
-            float vlScatter = GetScatteringFactor(sunLightLevel);
+        //     vec2 skyLightLevels = GetSkyLightLevels();
+        //     float sunLightLevel = GetSunLightLevel(skyLightLevels.x);
+        //     //float vlScatter = GetScatteringFactor(sunLightLevel);
 
-            #ifdef SHADOW_COLOR
-                vec3 volScatter = GetVolumetricLightingColor(lightData, shadowViewStart, shadowViewEnd, vlScatter);
-            #else
-                float volScatter = GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd, vlScatter);
-            #endif
+        //     #ifdef SHADOW_COLOR
+        //         vec3 volScatter = GetVolumetricLightingColor(lightData, shadowViewStart, shadowViewEnd, 0.6);
+        //     #else
+        //         float volScatter = GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd, 0.6);
+        //     #endif
 
-            final.rgb += volScatter * (sunColor + moonColor);
-        #endif
+        //     final.rgb += volScatter * (sunColor + moonColor);
+        // #endif
 
         return final;
     }
