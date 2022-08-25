@@ -174,7 +174,7 @@
 
                 //#if MATERIAL_FORMAT != MATERIAL_FORMAT_LABPBR
                     if (materialId == 1) {
-                        //material.albedo.r = 1.0;
+                        material.albedo.a = 0.1;
                         material.f0 = 0.02;
                         material.smoothness += 0.96 * step(material.smoothness, EPSILON);
 

@@ -529,12 +529,13 @@
 
                     vec3 scatterColor = material.albedo.rgb * skyLightColorFinal * skyLight2;// * shadowFinal;
 
-                    //diffuse = (diffuse + scatterColor * scatterAmount);// * absorption;
-                    diffuse = scatterColor * scatterAmount + absorption;
+                    //diffuse = (diffuse + scatterColor * scatterAmount) * absorption;
+                    //diffuse = scatterColor * scatterAmount * absorption;
+                    diffuse *= absorption;
                     
                     //float alphaF = exp(-(waterViewDepth + lightData.waterShadowDepth));
                     float alphaF = exp(-waterViewDepth);
-                    final.a = 1.0 - saturate(alphaF) * (1.0 - material.albedo.a);// * max(1.0 - final.a, 0.0);
+                    final.a = min(final.a + (1.0 - saturate(alphaF)), 1.0);// * (1.0 - material.albedo.a);// * max(1.0 - final.a, 0.0);
                     //final.a = 1.0;
                 #endif
             }
