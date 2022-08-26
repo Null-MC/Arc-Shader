@@ -78,7 +78,7 @@
 
                         if (viewDist < WATER_RADIUS) {
                             //float waterDepth = max(waterSolidDepth.y - waterSolidDepth.x, 0.0);
-                            float waterDepth = max(lightData.solidScreenDepth - lightData.waterScreenDepth, 0.0);
+                            float waterDepth = max(lightData.opaqueScreenDepth - lightData.transparentScreenDepth, 0.0);
                             waterTex = GetWaterParallaxCoord(waterTex, water_dFdXY, tanViewDir, viewDist, waterDepth);
 
                             // TODO: depth-write
