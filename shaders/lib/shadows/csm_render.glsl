@@ -51,12 +51,49 @@
         return textureLod(shadowtex0, shadowPos + offset, 0).r;
     }
 
+    void SetNearestDepths(inout LightData lightData) {
+        float shadowResScale = tile_dist_bias_factor * shadowPixelSize;
+
+        lightData.opaqueShadowDepth = 1.0;
+        lightData.opaqueShadowCascade = -1;
+        lightData.transparentShadowDepth = 1.0;
+        lightData.transparentShadowCascade = -1;
+
+        for (int i = 3; i >= 0; i--) {
+            vec2 clipMin = lightData.shadowTilePos[i] + 2.0 * shadowPixelSize;
+            vec2 clipMax = lightData.shadowTilePos[i] + 0.5 - 4.0 * shadowPixelSize;
+
+            if (lightData.shadowPos[i].x < clipMin.x || lightData.shadowPos[i].x >= clipMax.x
+             || lightData.shadowPos[i].y < clipMin.y || lightData.shadowPos[i].y >= clipMax.y) continue;
+
+            //vec2 shadowProjectionSize = 2.0 / matShadowProjections_scale[i].xy;
+            //vec2 pixelPerBlockScale = cascadeTexSize / shadowProjectionSize;
+            //vec2 finalPixelOffset = blockOffset * pixelPerBlockScale * shadowPixelSize;
+
+            float texOpaqueDepth = SampleOpaqueDepth(lightData.shadowPos[i].xy, vec2(0.0));
+
+            // TODO: ADD BIAS?
+
+            if (texOpaqueDepth < lightData.opaqueShadowDepth) {
+                lightData.opaqueShadowDepth = texOpaqueDepth;
+                lightData.opaqueShadowCascade = i;
+            }
+
+            float texTransparentDepth = SampleTransparentDepth(lightData.shadowPos[i].xy, vec2(0.0));
+            
+            if (texTransparentDepth < lightData.transparentShadowDepth) {
+                lightData.transparentShadowDepth = texTransparentDepth;
+                lightData.transparentShadowCascade = i;
+            }
+        }
+    }
+
     float GetNearestOpaqueDepth(const in LightData lightData, const in vec2 blockOffset, out int cascade) {
         float shadowResScale = tile_dist_bias_factor * shadowPixelSize;
 
         cascade = -1;
         float depthNearest = 1.0;
-        for (int i = 0; i < 4; i++) {
+        for (int i = 3; i >= 0; i--) {
             vec2 clipMin = lightData.shadowTilePos[i] + 2.0 * shadowPixelSize;
             vec2 clipMax = lightData.shadowTilePos[i] + 0.5 - 4.0 * shadowPixelSize;
 

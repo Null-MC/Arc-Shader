@@ -254,32 +254,66 @@ void main() {
         lightData.opaqueScreenDepth = linearizeDepthFast(opaqueScreenDepth, near, far);
         
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-            vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
+            vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
 
             #ifdef SHADOW_DITHER
                 float ditherOffset = (GetScreenBayerValue() - 0.5) * shadowPixelSize;
             #endif
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                for (int i = 0; i < 4; i++) {
-                    lightData.matShadowProjection[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
-                    lightData.shadowPos[i] = (lightData.matShadowProjection[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                // for (int i = 0; i < 4; i++) {
+                //     lightData.matShadowProjection[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
+                //     lightData.shadowPos[i] = (lightData.matShadowProjection[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
                     
-                    vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
-                    lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + shadowCascadePos;
-                    lightData.shadowTilePos[i] = GetShadowCascadeClipPos(i);
-                    lightData.shadowBias[i] = GetCascadeBias(lightData.geoNoL, i);
+                //     lightData.shadowTilePos[i] = GetShadowCascadeClipPos(i);
+                //     lightData.shadowBias[i] = GetCascadeBias(lightData.geoNoL, i);
+                //     lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + lightData.shadowTilePos[i];
 
-                    #ifdef SHADOW_DITHER
-                        lightData.shadowPos[i].xy += ditherOffset;
-                    #endif
+                //     #ifdef SHADOW_DITHER
+                //         lightData.shadowPos[i].xy += ditherOffset;
+                //     #endif
+                // }
+
+                lightData.matShadowProjection[0] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[0], matShadowProjections_translation[0]);
+                lightData.matShadowProjection[1] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[1], matShadowProjections_translation[1]);
+                lightData.matShadowProjection[2] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[2], matShadowProjections_translation[2]);
+                lightData.matShadowProjection[3] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[3], matShadowProjections_translation[3]);
+                
+                lightData.shadowPos[0] = (lightData.matShadowProjection[0] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                lightData.shadowPos[1] = (lightData.matShadowProjection[1] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                lightData.shadowPos[2] = (lightData.matShadowProjection[2] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                lightData.shadowPos[3] = (lightData.matShadowProjection[3] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                
+                lightData.shadowTilePos[0] = GetShadowCascadeClipPos(0);
+                lightData.shadowTilePos[1] = GetShadowCascadeClipPos(1);
+                lightData.shadowTilePos[2] = GetShadowCascadeClipPos(2);
+                lightData.shadowTilePos[3] = GetShadowCascadeClipPos(3);
+                
+                lightData.shadowPos[0].xy = lightData.shadowPos[0].xy * 0.5 + lightData.shadowTilePos[0];
+                lightData.shadowPos[1].xy = lightData.shadowPos[1].xy * 0.5 + lightData.shadowTilePos[1];
+                lightData.shadowPos[2].xy = lightData.shadowPos[2].xy * 0.5 + lightData.shadowTilePos[2];
+                lightData.shadowPos[3].xy = lightData.shadowPos[3].xy * 0.5 + lightData.shadowTilePos[3];
+                
+                lightData.shadowBias[0] = GetCascadeBias(lightData.geoNoL, 0);
+                lightData.shadowBias[1] = GetCascadeBias(lightData.geoNoL, 1);
+                lightData.shadowBias[2] = GetCascadeBias(lightData.geoNoL, 2);
+                lightData.shadowBias[3] = GetCascadeBias(lightData.geoNoL, 3);
+
+                #ifdef SHADOW_DITHER
+                    lightData.shadowPos[0].xy += ditherOffset;
+                    lightData.shadowPos[1].xy += ditherOffset;
+                    lightData.shadowPos[2].xy += ditherOffset;
+                    lightData.shadowPos[3].xy += ditherOffset;
+                #endif
+
+                //lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData, vec2(0.0), lightData.opaqueShadowCascade);
+                //lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData, vec2(0.0), lightData.transparentShadowCascade);
+                SetNearestDepths(lightData);
+
+                if (lightData.opaqueShadowCascade >= 0 && lightData.transparentShadowCascade >= 0) {
+                    float minOpaqueDepth = min(lightData.shadowPos[lightData.opaqueShadowCascade].z, lightData.opaqueShadowDepth);
+                    lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 4.0 * far;
                 }
-
-                lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData, vec2(0.0), lightData.opaqueShadowCascade);
-                lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData, vec2(0.0), lightData.transparentShadowCascade);
-
-                float minOpaqueDepth = min(lightData.shadowPos[lightData.opaqueShadowCascade].z, lightData.opaqueShadowDepth);
-                lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 4.0 * far;
             #else
                 lightData.shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
 
@@ -317,11 +351,13 @@ void main() {
 
         outColor1 = log2(luminance(color) + EPSILON);
 
+        color *= exposure;
+
         #ifdef IS_OPTIFINE
-            color = clamp(color * exposure, vec3(0.0), vec3(65000.0));
+            color = clamp(color, vec3(0.0), vec3(65000.0));
         #else
             // Getting weird bug on Iris where screen top/right edges have INF pixels when above 1.0
-            color = clamp(color * exposure, vec3(0.0), vec3(1.0));
+            //color = clamp(color, vec3(0.0), vec3(1.1));
         #endif
     }
 
