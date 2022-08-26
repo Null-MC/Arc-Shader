@@ -31,10 +31,6 @@
         lightData.geoNoL = geoNoL;
         lightData.parallaxShadow = 1.0;
 
-        float worldY = localPos.y + cameraPosition.y;
-        lightData.skyLightLevels = skyLightLevels;
-        lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
-
         float opaqueScreenDepth = texelFetch(depthtex1, ivec2(gl_FragCoord.xy), 0).r;
         lightData.opaqueScreenDepth = linearizeDepthFast(opaqueScreenDepth, near, far);
         lightData.transparentScreenDepth = linearizeDepthFast(gl_FragCoord.z, near, far);
@@ -43,11 +39,17 @@
             lightData.occlusion = pow2(glcolor.a);
         #endif
 
-        mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
+        #ifdef SKY_ENABLED
+            float worldY = localPos.y + cameraPosition.y;
+            lightData.skyLightLevels = skyLightLevels;
+            lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
+        #endif
 
         #ifdef PARALLAX_ENABLED
             vec3 tanViewDir = normalize(tanViewPos);
         #endif
+
+        mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
 
         #if defined RENDER_WATER && defined WATER_FANCY && !defined WORLD_NETHER && !defined WORLD_END
             if (materialId == 1) {

@@ -242,16 +242,15 @@ void main() {
         lightData.geoNoL = lightingMap.z * 2.0 - 1.0;
         lightData.parallaxShadow = lightingMap.w;
 
-        float worldY = localPos.y + cameraPosition.y;
-        lightData.skyLightLevels = skyLightLevels;
-        lightData.sunTransmittance = GetSunTransmittance(colortex7, worldY, skyLightLevels.x);
-
-        //float waterViewDepth = texelFetch(depthtex0, iTex, 0).r;
-        //lightData.waterScreenDepth = linearizeDepthFast(waterViewDepth, near, far);
-        lightData.transparentScreenDepth = 1.0; // This doesn't work here!
-
         float opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
         lightData.opaqueScreenDepth = linearizeDepthFast(opaqueScreenDepth, near, far);
+        lightData.transparentScreenDepth = 1.0; // This doesn't work here!
+
+        #ifdef SKY_ENABLED
+            float worldY = localPos.y + cameraPosition.y;
+            lightData.skyLightLevels = skyLightLevels;
+            lightData.sunTransmittance = GetSunTransmittance(colortex7, worldY, skyLightLevels.x);
+        #endif
         
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;

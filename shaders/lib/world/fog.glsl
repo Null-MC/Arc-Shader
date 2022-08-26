@@ -44,6 +44,7 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in LightData light
     #ifdef SKY_ENABLED
         vec3 viewDir = normalize(viewPos);
         vec3 atmosphereColor = GetVanillaSkyLuminance(viewDir);
+        vec2 skyLightLevels = GetSkyLightLevels();
     #else
         vec3 atmosphereColor = RGBToLinear(fogColor) * 100.0;
     #endif
@@ -68,8 +69,6 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in LightData light
     //     atmosphereColor *= exposure;
     //     caveFogColor *= exposure;
     // #endif
-
-    vec2 skyLightLevels = GetSkyLightLevels();
 
     #if defined SKY_ENABLED && defined ATMOSFOG_ENABLED
         float sunLightLevel = GetSunLightLevel(skyLightLevels.x);
