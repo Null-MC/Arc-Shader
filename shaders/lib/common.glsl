@@ -52,7 +52,7 @@ const bool colortex12Clear = false;
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 80 // [0 10 20 30 40 50 60 70 80 90 100]
 #define SHADOW_BRIGHTNESS 0.40 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define RAIN_DARKNESS 0.2
-#define AO_ENABLED
+//#define AO_ENABLED
 //#define ANIM_USE_WORLDTIME
 
 
@@ -286,6 +286,10 @@ const float drynessHalflife = 10.0;
     #undef VL_ENABLED
 #endif
 
+#ifdef SSAO_ENABLED
+    #undef AO_ENABLED
+#endif
+
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     #define SHADOW_POS_TYPE vec3 shadowPos[4]
 #else
@@ -346,6 +350,8 @@ const float drynessHalflife = 10.0;
 #ifdef VL_PARTICLES
 #endif
 #ifdef VL_DITHER
+#endif
+#ifdef AO_ENABLED
 #endif
 #ifdef SSAO_ENABLED
 #endif
