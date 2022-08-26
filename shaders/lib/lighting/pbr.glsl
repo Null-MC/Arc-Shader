@@ -410,7 +410,7 @@
 
                     float VoL = dot(viewDir, viewLightDir);
                     //sssDiffuseLight *= ComputeVolumetricScattering(VoL, 0.6);
-                    sssDiffuseLight *= BiLambertianPlatePhaseFunction(0.8, VoL);
+                    sssDiffuseLight *= 2.0*BiLambertianPlatePhaseFunction(0.8, VoL);
 
                     float extDistF = (1.0 - 0.9*material.scattering) * sssDist;
                     //sssDiffuseLight *= exp(-0.1*extDistF * (1.0 - material.albedo.rgb));
