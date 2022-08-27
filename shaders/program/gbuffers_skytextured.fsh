@@ -45,9 +45,11 @@ void main() {
         lumF += moonLumen;
     }
 
+    float alpha = saturate(lum);
+
     color = clamp(color * exposure, vec3(0.0), vec3(65000));
-    outColor0 = vec4(color, lum);
+    outColor0 = vec4(color, alpha);
 
     float lumFinal = log2(lum * lumF + EPSILON);
-    outColor1 = vec4(lumFinal, 0.0, 0.0, lum);
+    outColor1 = vec4(lumFinal, 0.0, 0.0, alpha);
 }
