@@ -21,12 +21,3 @@ alpha
 	lightmap-sky
 	geoNoL
 	shadow [was AO]
-
-
-
-
-shadow2
-	light-red
-	light-green
-	light-blue
-	<empty>

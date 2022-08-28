@@ -1,30 +1,36 @@
 #ifdef RENDER_VERTEX
+    //flat out bool isMissingTangent;
+
     void PbrVertex(const in vec3 viewPos) {
-        //vec3 viewNormal = normalize(gl_NormalMatrix * gl_Normal);
-        viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
-        vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
-        tangentW = at_tangent.w;
+        //bool isMissingTangent = any(isnan(at_tangent));
 
-        mat3 matTBN = mat3(
-            viewTangent.x, viewBinormal.x, viewNormal.x,
-            viewTangent.y, viewBinormal.y, viewNormal.y,
-            viewTangent.z, viewBinormal.z, viewNormal.z);
+        //if (!isMissingTangent) {
+            //vec3 viewNormal = normalize(gl_NormalMatrix * gl_Normal);
+            viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
+            vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
+            tangentW = at_tangent.w;
 
-        #ifdef PARALLAX_ENABLED
-            vec2 coordMid = (gl_TextureMatrix[0] * mc_midTexCoord).xy;
-            vec2 coordNMid = texcoord - coordMid;
+            mat3 matTBN = mat3(viewTangent, viewBinormal, viewNormal);
 
-            atlasBounds[0] = min(texcoord, coordMid - coordNMid);
-            atlasBounds[1] = abs(coordNMid) * 2.0;
- 
-            localCoord = sign(coordNMid) * 0.5 + 0.5;
+            #ifdef PARALLAX_ENABLED
+                vec2 coordMid = (gl_TextureMatrix[0] * mc_midTexCoord).xy;
+                vec2 coordNMid = texcoord - coordMid;
 
-            #if defined SHADOW_ENABLED
-                tanLightPos = matTBN * shadowLightPosition;
+                atlasBounds[0] = min(texcoord, coordMid - coordNMid);
+                atlasBounds[1] = abs(coordNMid) * 2.0;
+     
+                localCoord = sign(coordNMid) * 0.5 + 0.5;
+
+                #if defined SHADOW_ENABLED
+                    tanLightPos = shadowLightPosition * matTBN;
+                #endif
+
+                tanViewPos = viewPos * matTBN;
             #endif
-
-            tanViewPos = matTBN * viewPos;
-        #endif
+        //}
+        //else {
+        //    viewTangent = vec3(0.0);
+        //}
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && (defined RENDER_TERRAIN || defined RENDER_WATER)
             ApplyHardCodedMaterials();
@@ -68,7 +74,7 @@
 
             vec3 sunColor = lightData.sunTransmittance * GetSunLux();
 
-            vec3 skyLumen = GetVanillaSkyLuminance(reflectDir);
+            vec3 skyLumen = GetVanillaSkyLuminance(reflectDir, lightData.sunTransmittance);
             vec3 skyScatter = GetVanillaSkyScattering(reflectDir, lightData.skyLightLevels.x, sunColor, moonColor);
 
             // TODO: clamp skyScatter?
@@ -391,32 +397,25 @@
             //#endif
 
             vec3 sunF = GetFresnel(material.albedo.rgb, f0, material.hcm, LoHm, roughL);
-            //vec3 diffuseLight = skyLightColorFinal * skyLight2;
-
-            #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                float diffuseNoL = NoLm;
-            #else
-                float diffuseNoL = abs(NoL);
-            #endif
 
             vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * max(1.0 - sunF, 0.0);
             //sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo, material.scattering, NoVm, diffuseNoL, LoHm, roughL);
             sunDiffuse *= skyLightColorFinal * shadowFinal;// * skyLight2;
 
             #ifdef SSS_ENABLED
-                if (material.scattering > 0.0) {
+                if (material.scattering > 0.0 && shadowSSS > 0.0) {
                     // Transmission
-                    vec3 sssDiffuseLight = pow2(material.albedo.rgb) * shadowSSS * skyLightColorFinal;// * skyLight;
+                    vec3 sssDiffuseLight = material.albedo.rgb * shadowSSS * skyLightColorFinal;// * skyLight;
 
-                    float VoL = dot(viewDir, viewLightDir);
-                    //sssDiffuseLight *= ComputeVolumetricScattering(VoL, 0.6);
-                    sssDiffuseLight *= 2.0*BiLambertianPlatePhaseFunction(0.8, VoL);
+                    float VoL = dot(-viewDir, viewLightDir);
+                    sssDiffuseLight *= ComputeVolumetricScattering(VoL, 0.4);
+                    //sssDiffuseLight *= BiLambertianPlatePhaseFunction(0.9, VoL);
 
                     float extDistF = (1.0 - 0.9*material.scattering) * sssDist;
-                    //sssDiffuseLight *= exp(-0.1*extDistF * (1.0 - material.albedo.rgb));
-                    sssDiffuseLight *= exp(-0.1*extDistF);
+                    sssDiffuseLight *= exp(-extDistF * (1.0 - material.albedo.rgb));
+                    //sssDiffuseLight *= exp(-extDistF);
 
-                    sunDiffuse += sssDiffuseLight;// * max(NoL, 0.0);
+                    sunDiffuse += sssDiffuseLight * SSS_STRENGTH;// * max(NoL, 0.0);
                 }
             #endif
 

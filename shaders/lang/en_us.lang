@@ -90,14 +90,17 @@ option.SSS_ENABLED.comment=When enabled, surfaces with SSS will allow light to s
 option.SSS_SCATTER=Scattering
 option.SSS_SCATTER.comment=When enabled, multiple shadowmap samples will be used to simulate the internal scattering of light.
 
+option.SSS_STRENGTH=Strength
+option.SSS_STRENGTH.comment=A multiplier for how strong subsurface scattered light will be.
+
+option.SSS_MAXDIST=Distance
+option.SSS_MAXDIST.comment=The maximum distance subsurface light can penetrate through a medium.
+
 option.SSS_PCF_SIZE=Radius
 option.SSS_PCF_SIZE.comment=The maximum radius of the PCF blur filter, in blocks.
 
 option.SSS_PCF_SAMPLES=Sample Count
 option.SSS_PCF_SAMPLES.comment=The number of depth samples to use when applying PCF blur.
-
-option.SSS_MAXDIST=Distance
-option.SSS_MAXDIST.comment=The maximum distance subsurface light can penetrate through a medium.
 
 
 screen.MATERIAL_PARALLAX_OPTIONS=Parallax

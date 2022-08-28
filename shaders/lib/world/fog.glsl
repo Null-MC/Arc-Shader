@@ -43,7 +43,7 @@ float GetVanillaFogFactor(const in float viewDist) {
 float ApplyFog(inout vec3 color, const in vec3 viewPos, const in LightData lightData) {
     #ifdef SKY_ENABLED
         vec3 viewDir = normalize(viewPos);
-        vec3 atmosphereColor = GetVanillaSkyLuminance(viewDir);
+        vec3 atmosphereColor = GetVanillaSkyLuminance(viewDir, lightData.sunTransmittance);
         vec2 skyLightLevels = GetSkyLightLevels();
     #else
         vec3 atmosphereColor = RGBToLinear(fogColor) * 100.0;

@@ -109,9 +109,10 @@ const bool colortex12Clear = false;
 #define SSS_ENABLED
 #define SSS_SCATTER
 #define SSS_DITHER
-#define SSS_PCF_SIZE 2.0 // [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0]
-#define SSS_PCF_SAMPLES 12 // [12 24 36]
+#define SSS_STRENGTH 8 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
 #define SSS_MAXDIST 8 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
+#define SSS_PCF_SIZE 2.5 // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0]
+#define SSS_PCF_SAMPLES 12 // [12 24 36]
 
 
 // Material Parallax Options
@@ -226,7 +227,7 @@ const float DaySkyOvercastLumen = 10000.0;
 const float NightSkyLumen = 1200.0;
 const float NightSkyOvercastLumen = 60.0;
 
-const vec3 FOG_RAIN_COLOR = vec3(0.269, 0.892, 0.955)*0.06;
+const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.06;
 const vec4 WATER_COLOR = vec4(vec3(0.269, 0.892, 0.955)*0.2, 0.1);
 //const vec4 WATER_COLOR = vec4(0.6, 0.0, 0.0, 0.12);
 const vec3 WaterAbsorbtionExtinction = vec3(0.28, 0.34, 0.42); //0.54, 0.91, 0.93

@@ -6,8 +6,8 @@
 #include "/lib/common.glsl"
 
 in vec3 starData;
-flat in vec3 sunTransmittanceLux;
-flat in float sunLightLevel;
+flat in vec3 sunTransmittance;
+//flat in float sunLightLevel;
 //flat in vec3 sunColor;
 flat in vec3 moonColor;
 flat in float exposure;
@@ -63,6 +63,8 @@ void main() {
     vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
 
     #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FANCY
+        vec2 skyLightLevels = GetSkyLightLevels();
+
         vec3 localSunPos = mat3(gbufferModelViewInverse) * sunPosition;
         vec3 localSunDir = normalize(localSunPos);
 
@@ -71,7 +73,7 @@ void main() {
 
         ScatteringParams setting;
         setting.sunRadius = 3000.0;
-        setting.sunRadiance = sunLightLevel * sunLumen;
+        setting.sunRadiance = 0.1 * skyLightLevels.x * sunLumen;
         setting.mieG = 0.96;
         setting.mieHeight = 1200.0;
         setting.rayleighHeight = 8000.0;
@@ -97,7 +99,7 @@ void main() {
         lum += luminance(sky);
     #else
         vec3 viewDir = normalize(viewPos);
-        vec3 sky = GetVanillaSkyLuminance(viewDir);
+        vec3 sky = GetVanillaSkyLuminance(viewDir, sunTransmittance);
 
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined VL_ENABLED
             //sky += GetVanillaSkyScattering(viewDir, sunLightLevel, sunTransmittanceLux, moonColor);
@@ -108,7 +110,7 @@ void main() {
             vec3 sunDir = normalize(sunPosition);
             float sun_VoL = dot(viewDir, sunDir);
             float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering);
-            vlColor += sunScattering * sunTransmittanceLux;
+            vlColor += sunScattering * sunTransmittance * GetSunLux();
 
             vec3 moonDir = normalize(moonPosition);
             float moon_VoL = dot(viewDir, moonDir);

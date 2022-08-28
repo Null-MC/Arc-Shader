@@ -68,24 +68,16 @@ uniform ivec2 atlasSize;
 #include "/lib/lighting/basic_gbuffers.glsl"
 #include "/lib/lighting/pbr_gbuffers.glsl"
 
-/* RENDERTARGETS: 2,3 */
+/* RENDERTARGETS: 2 */
 out uvec4 outColor0;
-#if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined SHADOW_COLOR
-    out vec3 outColor1;
-#endif
 
 
 void main() {
-    vec3 shadowColorMap;
     vec4 colorMap, normalMap, specularMap, lightingMap;
-    PbrLighting(colorMap, normalMap, specularMap, lightingMap, shadowColorMap);
+    PbrLighting(colorMap, normalMap, specularMap, lightingMap);
 
     outColor0.r = packUnorm4x8(colorMap);
     outColor0.g = packUnorm4x8(normalMap);
     outColor0.b = packUnorm4x8(specularMap);
     outColor0.a = packUnorm4x8(lightingMap);
-
-    #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined SHADOW_COLOR
-        outColor1 = shadowColorMap;
-    #endif
 }

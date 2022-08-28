@@ -65,25 +65,20 @@ uniform int entityId;
 #include "/lib/lighting/basic_gbuffers.glsl"
 #include "/lib/lighting/pbr_gbuffers.glsl"
 
-/* RENDERTARGETS: 2,3 */
+/* RENDERTARGETS: 2 */
 out uvec4 outColor0;
-#if defined SHADOW_ENABLED && defined SHADOW_COLOR
-    out vec3 outColor1;
-#endif
 
 
 void main() {
-    vec3 shadowColorMap;
     vec4 colorMap, normalMap, specularMap, lightingMap;
 
     if (entityId != 100.0)
-        PbrLighting(colorMap, normalMap, specularMap, lightingMap, shadowColorMap);
+        PbrLighting(colorMap, normalMap, specularMap, lightingMap);
     else {
         colorMap = vec4(1.0);
         normalMap = vec4(0.0);
         specularMap = vec4(0.0, 0.0, 0.0, 254.0/255.0);
         lightingMap = vec4(1.0, 1.0, 1.0, 0.0);
-        shadowColorMap = vec3(1.0);
     }
 
     uvec4 data;
@@ -92,8 +87,4 @@ void main() {
     data.b = packUnorm4x8(specularMap);
     data.a = packUnorm4x8(lightingMap);
     outColor0 = data;
-
-    #if defined SHADOW_ENABLED && defined SHADOW_COLOR
-        outColor1 = shadowColorMap;
-    #endif
 }

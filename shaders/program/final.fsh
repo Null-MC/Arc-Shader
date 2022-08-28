@@ -186,8 +186,13 @@ void main() {
     #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_NORMAL
         // Deferred Normal
         uint deferredDataG = texelFetch(BUFFER_DEFERRED, iuv, 0).g;
-        vec3 normal = unpackUnorm4x8(deferredDataG).rgb * 2.0 - 1.0;
-        color = (mat3(gbufferModelViewInverse) * normal) * 0.5 + 0.5;
+        vec3 normal = unpackUnorm4x8(deferredDataG).rgb;
+        if (all(greaterThan(normal, vec3(0.0)))) {
+            normal = normal * 2.0 - 1.0;
+            normal = mat3(gbufferModelViewInverse) * normal;
+            normal = normal * 0.5 + 0.5;
+        }
+        color = normal;
     #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_OCCLUSION
         // Deferred Occlusion
         uint deferredDataG = texelFetch(BUFFER_DEFERRED, iuv, 0).g;

@@ -6,8 +6,8 @@
 #include "/lib/common.glsl"
 
 out vec3 starData;
-flat out vec3 sunTransmittanceLux;
-flat out float sunLightLevel;
+flat out vec3 sunTransmittance;
+//flat out float sunLightLevel;
 //flat out vec3 sunColor;
 flat out vec3 moonColor;
 flat out float exposure;
@@ -61,9 +61,8 @@ void main() {
 
     vec2 skyLightLevels = GetSkyLightLevels();
 
-    vec3 sunTransmittance = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
-    sunTransmittanceLux = sunTransmittance * GetSunLux();
-    sunLightLevel = luminance(sunTransmittance);
+    sunTransmittance = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
+    //sunLightLevel = luminance(sunTransmittance);
 
     vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
     //sunColor = GetSunLightLuxColor(skyLightTemps.x, skyLightLevels.x);
