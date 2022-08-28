@@ -6,14 +6,12 @@
     void PbrLighting(out vec4 colorMapOut, out vec4 normalMapOut, out vec4 specularMapOut, out vec4 lightingMapOut) {
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
         vec2 atlasCoord = texcoord;
-        vec4 normalMap;
+
+        vec4 normalMap = textureGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]);
+        bool isMissingNormal = dot(normalMap.rg, normalMap.rg) < EPSILON;
+        bool isMissingTangent = any(isnan(viewTangent));
 
         #ifdef PARALLAX_ENABLED
-            normalMap = textureGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]);
-            bool isMissingNormal = dot(normalMap.rg, normalMap.rg) < EPSILON;
-            bool isMissingTangent = any(isnan(viewTangent));
-            //bool isMissingTangent = dot(viewTangent.rg, viewTangent.rg) < EPSILON;
-
             float texDepth = 1.0;
             vec3 traceCoordDepth = vec3(1.0);
             vec3 tanViewDir = normalize(tanViewPos);
@@ -21,6 +19,8 @@
             float viewDist = length(viewPos);
             if (viewDist < PARALLAX_DISTANCE && !isMissingNormal && !isMissingTangent) {
                 atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, viewDist, texDepth, traceCoordDepth);
+
+                normalMap = textureGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]);
 
                 #ifdef PARALLAX_DEPTH_WRITE
                     float pomDist = (1.0 - traceCoordDepth.z) / max(-tanViewDir.z, 0.00001);
@@ -61,7 +61,6 @@
             // TODO: fix lightning?
         #endif
 
-        normalMap = textureGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]);
         float occlusion = normalMap.b;
         vec3 normal = vec3(0.0, 0.0, 1.0);
         float parallaxShadow = 1.0;
@@ -77,12 +76,12 @@
         //     vec3 dY = dFdy(viewPos);
         //     normal = vec3(1.0);//normalize(cross(dX, dY));
         // }
-        if (dot(normalMap.rg, normalMap.rg) < EPSILON) {
-            // ignore sign text
-            normal = normalize(viewNormal);
-            occlusion = 1.0;
-        }
-        else {
+        //if (isMissingNormal) {
+        //    // ignore sign text
+        //    normal = normalize(viewNormal);
+        //    occlusion = 1.0;
+        //}
+        if (!isMissingNormal && !isMissingTangent) {
             #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
                 #ifdef PARALLAX_SMOOTH_NORMALS
                     ////normalMap.rgb = TexelFetchLinearRGB(normals, atlasCoord * atlasSize);
@@ -203,17 +202,16 @@
 
             normal = normalize(matTBN * normal);
 
-            if (any(isnan(normal))) {
-                // fix map normals
-                vec3 dX = dFdx(viewPos);
-                vec3 dY = dFdy(viewPos);
-                normal = normalize(cross(dX, dY));
-                occlusion = 1.0;
-            }
-
             #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
                 ApplyDirectionalLightmap(lm.x, normal);
             #endif
+        }
+        else {
+            // fix map normals
+            vec3 dX = dFdx(viewPos);
+            vec3 dY = dFdy(viewPos);
+            normal = normalize(cross(dX, dY));
+            occlusion = 1.0;
         }
 
         colorMapOut = vec4(colorMap.rgb, 1.0);
