@@ -262,6 +262,9 @@ value.TONEMAP.10=Burgess Modified
 value.TONEMAP.11=Reinhard Extended Luminance
 value.TONEMAP.12=Tech
 
+option.CAMERA_SATURATION=Saturation
+suffix.CAMERA_SATURATION=%
+
 
 screen.EFFECT_OPTIONS=Effects
 

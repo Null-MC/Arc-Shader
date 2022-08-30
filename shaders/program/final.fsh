@@ -158,8 +158,10 @@ out vec3 outColor0;
         float whitePoint = 1.0;
         color = ApplyTonemap(color, whitePoint);
 
-        //mat4 matSaturation = GetSaturationMatrix(1.5);
-        //color = mat3(matSaturation) * color;
+        #if CAMERA_SATURATION != 100
+            mat4 matSaturation = GetSaturationMatrix(CAMERA_SATURATION*0.01);
+            color = mat3(matSaturation) * color;
+        #endif
 
         color = TonemapLinearToRGB(color);
 
