@@ -109,9 +109,9 @@ const bool colortex12Clear = false;
 #define SSS_ENABLED
 #define SSS_SCATTER
 #define SSS_DITHER
-#define SSS_STRENGTH 8 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
-#define SSS_MAXDIST 8 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
-#define SSS_PCF_SIZE 2.5 // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0]
+#define SSS_STRENGTH 6 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
+#define SSS_MAXDIST 2 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
+#define SSS_PCF_SIZE 2.0 // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
 
 
