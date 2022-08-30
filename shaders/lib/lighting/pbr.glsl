@@ -7,12 +7,12 @@
         //if (!isMissingTangent) {
             //vec3 viewNormal = normalize(gl_NormalMatrix * gl_Normal);
             viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
-            vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
             tangentW = at_tangent.w;
 
-            mat3 matTBN = mat3(viewTangent, viewBinormal, viewNormal);
-
             #ifdef PARALLAX_ENABLED
+                vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
+                mat3 matTBN = mat3(viewTangent, viewBinormal, viewNormal);
+
                 vec2 coordMid = (gl_TextureMatrix[0] * mc_midTexCoord).xy;
                 vec2 coordNMid = texcoord - coordMid;
 

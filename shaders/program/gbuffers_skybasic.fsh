@@ -7,8 +7,6 @@
 
 in vec3 starData;
 flat in vec3 sunTransmittance;
-//flat in float sunLightLevel;
-//flat in vec3 sunColor;
 flat in vec3 moonColor;
 flat in float exposure;
 
@@ -42,7 +40,6 @@ uniform int moonPhase;
     uniform float eyeAltitude;
 
     #include "/lib/world/atmosphere.glsl"
-    //#include "/lib/world/sky_robobo.glsl"
 #endif
 
 #include "/lib/sampling/bayer.glsl"
@@ -81,7 +78,6 @@ void main() {
         setting.earthAtmTopRadius = 6420000.0;
         setting.earthCenter = vec3(0.0, -6360000.0, 0.0);
         setting.waveLambdaMie = vec3(2e-7);
-
         
         // wavelength with 680nm, 550nm, 450nm
         setting.waveLambdaRayleigh = ComputeWaveLambdaRayleigh(vec3(680e-9, 550e-9, 450e-9));

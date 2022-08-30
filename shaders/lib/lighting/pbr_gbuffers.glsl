@@ -5,11 +5,17 @@
 #ifdef RENDER_FRAG
     void PbrLighting(out vec4 colorMapOut, out vec4 normalMapOut, out vec4 specularMapOut, out vec4 lightingMapOut) {
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
-        vec2 atlasCoord = texcoord;
 
-        vec4 normalMap = textureGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]);
+        vec4 normalMap = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]);
         bool isMissingNormal = dot(normalMap.rg, normalMap.rg) < EPSILON;
         bool isMissingTangent = any(isnan(viewTangent));
+        bool skipParallax = isMissingTangent || isMissingNormal;
+
+        #ifdef RENDER_ENTITIES
+            if (entityId == 101) skipParallax = true;
+        #endif
+
+        vec2 atlasCoord = texcoord;
 
         #ifdef PARALLAX_ENABLED
             float texDepth = 1.0;
@@ -17,9 +23,8 @@
             vec3 tanViewDir = normalize(tanViewPos);
 
             float viewDist = length(viewPos);
-            if (viewDist < PARALLAX_DISTANCE && !isMissingNormal && !isMissingTangent) {
+            if (!skipParallax && viewDist < PARALLAX_DISTANCE) {
                 atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, viewDist, texDepth, traceCoordDepth);
-
                 normalMap = textureGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]);
 
                 #ifdef PARALLAX_DEPTH_WRITE
@@ -61,6 +66,9 @@
             // TODO: fix lightning?
         #endif
 
+        //if (dot(viewNormal, viewNormal) < 0.1)
+        //    colorMap.rgb = vec3(1.0, 0.0, 0.0);
+
         float occlusion = normalMap.b;
         vec3 normal = vec3(0.0, 0.0, 1.0);
         float parallaxShadow = 1.0;
@@ -71,16 +79,6 @@
             specularMap = textureGrad(specular, atlasCoord, dFdXY[0], dFdXY[1]);
         #endif
 
-        // if (dot(viewTangent.xyz, viewTangent.xyz) < EPSILON) {
-        //     vec3 dX = dFdx(viewPos);
-        //     vec3 dY = dFdy(viewPos);
-        //     normal = vec3(1.0);//normalize(cross(dX, dY));
-        // }
-        //if (isMissingNormal) {
-        //    // ignore sign text
-        //    normal = normalize(viewNormal);
-        //    occlusion = 1.0;
-        //}
         if (!isMissingNormal && !isMissingTangent) {
             #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
                 #ifdef PARALLAX_SMOOTH_NORMALS
@@ -195,24 +193,30 @@
                 }
             #endif
 
-            vec3 _viewNormal = normalize(viewNormal);
+            #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
+                ApplyDirectionalLightmap(lm.x, normal);
+            #endif
+        }
+
+        vec3 _viewNormal = normalize(viewNormal);
+        if ((isMissingNormal || isMissingTangent) && dot(viewNormal, viewNormal) > 0.1) {
+            normal = _viewNormal;
+        }
+        else {
             vec3 _viewTangent = normalize(viewTangent);
             vec3 _viewBinormal = normalize(cross(_viewTangent, _viewNormal) * tangentW);
             mat3 matTBN = mat3(_viewTangent, _viewBinormal, _viewNormal);
 
             normal = normalize(matTBN * normal);
+        }
 
-            #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
-                ApplyDirectionalLightmap(lm.x, normal);
-            #endif
-        }
-        else {
-            // fix map normals
-            vec3 dX = dFdx(viewPos);
-            vec3 dY = dFdy(viewPos);
-            normal = normalize(cross(dX, dY));
-            occlusion = 1.0;
-        }
+        // else {
+        //     // fix sign, map, nametag normals
+        //     vec3 dX = dFdx(viewPos);
+        //     vec3 dY = dFdy(viewPos);
+        //     normal = normalize(cross(dX, dY));
+        //     occlusion = 1.0;
+        // }
 
         colorMapOut = vec4(colorMap.rgb, 1.0);
         normalMapOut = vec4(normal * 0.5 + 0.5, occlusion);

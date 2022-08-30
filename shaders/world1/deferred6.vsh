@@ -4,4 +4,4 @@
 
 #include "end.glsl"
 #include "/lib/compatibility/texture_query_levels.glsl"
-#include "/program/deferred5.vsh"
+#include "/program/deferred6.vsh"

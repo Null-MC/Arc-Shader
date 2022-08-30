@@ -7,8 +7,6 @@
 
 out vec3 starData;
 flat out vec3 sunTransmittance;
-//flat out float sunLightLevel;
-//flat out vec3 sunColor;
 flat out vec3 moonColor;
 flat out float exposure;
 
@@ -55,19 +53,15 @@ void main() {
     gl_Position = ftransform();
 
     float starFactor = pow(gl_Color.r, GAMMA) * float(gl_Color.r == gl_Color.g && gl_Color.g == gl_Color.b && gl_Color.r > 0.0);
-
+    
     float starTemp = mix(5300, 6000, starFactor);
     starData = blackbody(starTemp) * starFactor * StarLumen;
 
     vec2 skyLightLevels = GetSkyLightLevels();
+    vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
+    moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
 
     sunTransmittance = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
-    //sunLightLevel = luminance(sunTransmittance);
-
-    vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
-    //sunColor = GetSunLightLuxColor(skyLightTemps.x, skyLightLevels.x);
-    moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
-    //sunLightLevel = GetSunLightLevel(skyLightLevels.x);
 
     exposure = GetExposure();
 }
