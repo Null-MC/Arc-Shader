@@ -155,11 +155,15 @@ out vec3 outColor0;
             color += bloom;
         #endif
 
+        #if CAMERA_BRIGHTNESS != 100
+            color *= CAMERA_BRIGHTNESS * 0.01;
+        #endif
+
         float whitePoint = 1.0;
         color = ApplyTonemap(color, whitePoint);
 
         #if CAMERA_SATURATION != 100
-            mat4 matSaturation = GetSaturationMatrix(CAMERA_SATURATION*0.01);
+            mat4 matSaturation = GetSaturationMatrix(CAMERA_SATURATION * 0.01);
             color = mat3(matSaturation) * color;
         #endif
 

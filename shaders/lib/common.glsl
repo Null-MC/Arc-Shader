@@ -109,7 +109,7 @@ const bool colortex12Clear = false;
 #define SSS_ENABLED
 #define SSS_SCATTER
 #define SSS_DITHER
-#define SSS_STRENGTH 6 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
+#define SSS_STRENGTH 3 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
 #define SSS_MAXDIST 2 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
 #define SSS_PCF_SIZE 2.0 // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
@@ -141,7 +141,8 @@ const bool colortex12Clear = false;
 #define EXPOSURE_SPEED_DOWN 0.05
 #define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
 
-#define CAMERA_SATURATION 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
+#define CAMERA_BRIGHTNESS 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
+#define CAMERA_SATURATION 110 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 
 
 // Effect Options
@@ -159,7 +160,7 @@ const bool colortex12Clear = false;
 #define BLOOM_POWER 5 // [1 2 3 4 5 6 7 8 9 10]
 #define VL_ENABLED
 #define VL_DITHER
-#define VL_STRENGTH 20 // [10 20 30 40 50 60 70 80 90 100]
+#define VL_STRENGTH 50 // [10 20 30 40 50 60 70 80 90 100]
 #define VL_SAMPLE_COUNT 15 // [15 30 60 90]
 //#define VL_PARTICLES
 #define G_SCATTERING_CLEAR 0.28 // 0.96
