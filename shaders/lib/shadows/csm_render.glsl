@@ -328,7 +328,7 @@
 
                     //float bias = GetCascadeBias(geoNoL, cascade);
                     float shadow_sss = SampleShadowSSS(lightData.shadowPos[cascade].xy + pixelOffset);
-                    shadow_sss = sqrt(max(shadow_sss, EPSILON));
+                    //shadow_sss = sqrt(max(shadow_sss, EPSILON));
 
                     float dist = max(lightData.shadowPos[cascade].z + lightData.shadowBias[cascade] - texDepth, 0.0) * far * 3.0;
                     light += max(shadow_sss - dist / SSS_MAXDIST, 0.0);
@@ -360,7 +360,7 @@
                 traceDist = max(lightData.shadowPos[cascade].z + lightData.shadowBias[cascade] - texDepth, 0.0) * far * 3.0;
 
                 float shadow_sss = SampleShadowSSS(lightData.shadowPos[cascade].xy);
-                shadow_sss = sqrt(max(shadow_sss, EPSILON));
+                //shadow_sss = sqrt(max(shadow_sss, EPSILON));
 
                 return max(shadow_sss - traceDist / SSS_MAXDIST, 0.0);
             }
