@@ -346,7 +346,7 @@
 
         float sunLux = 0.0;
         #ifdef SKY_ENABLED
-            float ambientBrightness = mix(0.6 * skyLight2, 0.95 * skyLight, rainStrength) * SHADOW_BRIGHTNESS;
+            float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength) * SHADOW_BRIGHTNESS;
             vec3 skyAmbient = GetSkyAmbientLight(lightData, viewNormal);
 
             //#ifdef SSS_ENABLED

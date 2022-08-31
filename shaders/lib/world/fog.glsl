@@ -18,14 +18,14 @@ float GetCaveFogFactor(const in float viewDist) {
         const float nightFogStrength = 0.3;
         const float rainFogStrength = 0.8;
 
-        float density = mix(nightFogDensity, dayFogDensity, sunLightLevel);
-        float strength = mix(nightFogStrength, dayFogStrength, sunLightLevel);
+        float density = mix(nightFogDensity, dayFogDensity, saturate(sunLightLevel));
+        float strength = mix(nightFogStrength, dayFogStrength, saturate(sunLightLevel));
 
-        #ifdef IS_OPTIFINE
-            //density = mix(density, rainFogDensity, rainStrength);
-            density = max(density - 0.2 * eyeHumidity, 0.0);
-            strength = min(strength + 0.4 * eyeHumidity, 1.0);
-        #endif
+        // #ifdef IS_OPTIFINE
+        //     //density = mix(density, rainFogDensity, rainStrength);
+        //     density = max(density - 0.2 * eyeHumidity, 0.0);
+        //     strength = min(strength + 0.4 * eyeHumidity, 1.0);
+        // #endif
 
         density = mix(density, rainFogDensity, rainStrength);
         strength = mix(strength, rainFogStrength, rainStrength);

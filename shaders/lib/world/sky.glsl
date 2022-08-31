@@ -133,13 +133,14 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
     }
 
     vec3 GetVanillaSkyLuminance(const in vec3 viewDir, const in vec3 sunTransmittance) {
-        //vec2 skyLightLevels = GetSkyLightLevels();
+        vec2 skyLightLevels = GetSkyLightLevels();
         //vec3 sunSkyLumen = 0.001*sunTransmittance * sunLumen;//GetSunLightLuminance(skyLightLevels.x);
         //float moonSkyLumen = GetMoonLightLuminance(skyLightLevels.y);
-        float skyLumen = 8000;// sunSkyLumen + moonSkyLumen;
+        //float skyLumen = 8000;// sunSkyLumen + moonSkyLumen;
 
-        vec3 skyColorLinear = RGBToLinear(skyColor);
-        vec3 fogColorLinear = RGBToLinear(fogColor);
+        float lightLevel = smoothstep(0.0, 1.0, saturate(skyLightLevels.x)) * 4000.0 + 500.0;
+        vec3 skyColorLinear = RGBToLinear(skyColor) * lightLevel;
+        vec3 fogColorLinear = RGBToLinear(fogColor) * lightLevel * 0.8;
 
         #ifdef RENDER_SKYBASIC
             if (isEyeInWater == 1) {
@@ -158,7 +159,7 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
 
         float VoUm = max(dot(viewDir, upDir), 0.0);
         float skyFogFactor = GetVanillaSkyFog(VoUm, 0.25);
-        return mix(skyColorLinear, fogColorLinear, skyFogFactor) * skyLumen;
+        return mix(skyColorLinear, fogColorLinear, skyFogFactor);
     }
 
     vec3 GetVanillaSkyLux(const in vec3 viewDir) {

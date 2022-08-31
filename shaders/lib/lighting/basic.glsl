@@ -136,10 +136,10 @@
 
             //vec3 sunLightLux = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
             vec3 sunLightLux = lightData.sunTransmittance * GetSunLux();
-            sunLightLux *= dot(normal, sunLightDir) * 0.2 + 0.4;
+            sunLightLux *= dot(normal, sunLightDir) * 0.2 + 0.8;
 
             vec3 moonLightLux = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);
-            moonLightLux *= dot(normal, moonLightDir) * 0.2 + 0.4;
+            moonLightLux *= dot(normal, moonLightDir) * 0.2 + 0.8;
 
             // float skyLux = skyLightLevels.x * DaySkyLux + skyLightLevels.y * NightSkyLux;
             // vec3 skyLightColorLux = RGBToLinear(skyColor) * skyLux;
