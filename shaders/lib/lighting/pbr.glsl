@@ -405,7 +405,7 @@
             #ifdef SSS_ENABLED
                 if (material.scattering > 0.0 && shadowSSS > 0.0) {
                     // Transmission
-                    vec3 sssDiffuseLight = material.albedo.rgb * shadowSSS * skyLightColorFinal;// * skyLight;
+                    vec3 sssDiffuseLight = material.albedo.rgb * pow2(shadowSSS) * skyLightColorFinal;// * skyLight;
 
                     float VoL = dot(-viewDir, viewLightDir);
                     sssDiffuseLight *= ComputeVolumetricScattering(VoL, 0.4);

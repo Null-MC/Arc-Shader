@@ -188,7 +188,7 @@ const bool colortex12Clear = false;
 #define PARTICLE_OPACITY 0.8
 //#define WETNESS_SMOOTH_NORMAL
 #define HCM_LAZANYI
-#define HCM_AMBIENT 0.16
+#define HCM_AMBIENT 0.08
 #define SSR_STEPS 512
 //#define SHADOW_CONTACT
 //#define SHADOW_CONTACT_DITHER
