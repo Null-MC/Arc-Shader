@@ -147,7 +147,7 @@ const bool colortex12Clear = false;
 
 // Effect Options
 #define RSM_ENABLED
-#define RSM_INTENSITY 8 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
+#define RSM_INTENSITY 6 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
 #define RSM_FILTER_SIZE 1.2 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.4 2.6 2.8 3.0]
 #define RSM_SAMPLE_COUNT 35 // [35 100 200]
 #define RSM_SCALE 2 // [0 1 2]

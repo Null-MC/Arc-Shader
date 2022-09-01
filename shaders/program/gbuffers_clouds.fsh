@@ -84,7 +84,8 @@ void main() {
     //float scatterDistF = min(viewDist / (101.0 - VL_STRENGTH), 1.0);
     vec3 vlColorLux = sunScattering * sunTransmittanceLux;
 
-    float skyLux = mix(2.0*NightSkyLux, 0.75*DaySkyLux, saturate(skyLightLevels.x));
+    //float skyLux = mix(2.0*NightSkyLux, 0.75*DaySkyLux, saturate(skyLightLevels.x));
+    float skyLux = smoothstep(0.0, 1.0, saturate(skyLightLevels.x)) * 3000.0 + 8.0;
 
     colorMap.rgb *= (skyLux + vlColorLux) * (1.0 - 0.96*rainStrength);
 

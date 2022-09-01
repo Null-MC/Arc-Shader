@@ -74,7 +74,7 @@
 
             vec3 sunColor = lightData.sunTransmittance * GetSunLux();
 
-            vec3 skyLumen = GetVanillaSkyLuminance(reflectDir, lightData.sunTransmittance);
+            vec3 skyLumen = GetVanillaSkyLuminance(reflectDir);
             vec3 skyScatter = GetVanillaSkyScattering(reflectDir, lightData.skyLightLevels.x, sunColor, moonColor);
 
             // TODO: clamp skyScatter?

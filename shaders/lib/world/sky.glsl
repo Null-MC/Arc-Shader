@@ -91,12 +91,12 @@ vec3 GetSunLightLuxColor(const in float temp, const in float skyLightLevel) {
 
 float GetMoonLightLux(const in float skyLightLevel) {
     float lux = mix(MoonLux, MoonOvercastLux, rainStrength);
-    return GetSunLightLevel(skyLightLevel) * lux;
+    return GetMoonLightLevel(skyLightLevel) * lux;
 }
 
 vec3 GetMoonLightLuxColor(const in float temp, const in float skyLightLevel) {
     float lux = mix(MoonLux, MoonOvercastLux, rainStrength);
-    return GetSunLightColor(temp, skyLightLevel) * lux;
+    return GetMoonLightColor(temp, skyLightLevel) * lux;
 }
 
 vec3 GetSkyLightLuxColor(const in vec2 skyLightLevels) {
@@ -132,13 +132,15 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
         return w / (x * x + w);
     }
 
-    vec3 GetVanillaSkyLuminance(const in vec3 viewDir, const in vec3 sunTransmittance) {
+    vec3 GetVanillaSkyLuminance(const in vec3 viewDir) {//, const in vec3 sunTransmittance, const in vec3 moonTransmittance) {
         vec2 skyLightLevels = GetSkyLightLevels();
         //vec3 sunSkyLumen = 0.001*sunTransmittance * sunLumen;//GetSunLightLuminance(skyLightLevels.x);
         //float moonSkyLumen = GetMoonLightLuminance(skyLightLevels.y);
         //float skyLumen = 8000;// sunSkyLumen + moonSkyLumen;
 
-        float lightLevel = smoothstep(0.0, 1.0, saturate(skyLightLevels.x)) * 4000.0 + 500.0;
+        float lightLevel = saturate(skyLightLevels.x * 0.5 + 0.5);
+        lightLevel = smoothstep(0.0, 1.0, lightLevel) * 4000.0 + 500.0;
+        
         vec3 skyColorLinear = RGBToLinear(skyColor) * lightLevel;
         vec3 fogColorLinear = RGBToLinear(fogColor) * lightLevel * 0.8;
 

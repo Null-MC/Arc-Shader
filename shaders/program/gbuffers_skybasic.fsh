@@ -95,7 +95,7 @@ void main() {
         lum += luminance(sky);
     #else
         vec3 viewDir = normalize(viewPos);
-        vec3 sky = GetVanillaSkyLuminance(viewDir, sunTransmittance);
+        vec3 sky = GetVanillaSkyLuminance(viewDir);
 
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined VL_ENABLED
             //sky += GetVanillaSkyScattering(viewDir, sunLightLevel, sunTransmittanceLux, moonColor);
