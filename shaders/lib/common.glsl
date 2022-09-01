@@ -136,7 +136,7 @@ const bool colortex12Clear = false;
 #define CAMERA_EXPOSURE 0 // [-17 -16 -15 -14 -13 -12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6]
 #define CAMERA_LUM_MIN 60.0
 #define CAMERA_LUM_MAX 64000.0
-#define EXPOSURE_POINT 0.2
+//#define EXPOSURE_POINT 0.2
 #define EXPOSURE_SPEED_UP 0.08
 #define EXPOSURE_SPEED_DOWN 0.05
 #define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
@@ -218,12 +218,12 @@ const float EmissionLumens = 1.0e6;
 
 const float SunLux = 64000.0;
 const float SunOvercastLux = 1600; //600.0;
-const float MoonLux = 36.0;
+const float MoonLux = 48.0;
 const float MoonOvercastLux = 2.0;
 const float BlockLightLux = 3400.0; // 9k
 const float DaySkyLux = 20000.0;
 const float NightSkyLux = 2.0;
-const float MinWorldLux = 6.0;
+const float MinWorldLux = 8.0;
 
 const float DaySkyLumen = 14000.0;
 const float DaySkyOvercastLumen = 10000.0;
