@@ -12,6 +12,7 @@ in vec2 lmcoord;
 in vec2 texcoord;
 in vec4 glcolor;
 in float geoNoL;
+in vec3 localPos;
 in vec3 viewPos;
 in vec3 viewNormal;
 flat in float exposure;
@@ -28,7 +29,10 @@ flat in float exposure;
 #ifdef SKY_ENABLED
     flat in vec3 sunColor;
     flat in vec3 moonColor;
+    flat in vec2 skyLightLevels;
     flat in vec3 skyLightColor;
+
+    uniform sampler2D colortex9;
 
     uniform vec3 upPosition;
     uniform vec3 sunPosition;
@@ -80,6 +84,7 @@ uniform sampler2D gtexture;
 uniform sampler2D lightmap;
 
 uniform ivec2 eyeBrightnessSmooth;
+uniform vec3 cameraPosition;
 uniform int isEyeInWater;
 uniform float near;
 uniform float far;
@@ -141,6 +146,7 @@ uniform int fogMode;
 #endif
 
 #include "/lib/world/fog.glsl"
+#include "/lib/world/sun.glsl"
 #include "/lib/lighting/basic.glsl"
 #include "/lib/lighting/basic_forward.glsl"
 
@@ -151,7 +157,21 @@ uniform int fogMode;
 
 void main() {
     LightData lightData;
-    // TODO
+    lightData.occlusion = 1.0;
+    lightData.blockLight = lmcoord.x;
+    lightData.skyLight = lmcoord.y;
+    lightData.geoNoL = geoNoL;
+    lightData.parallaxShadow = 1.0;
+
+    // TODO: screen depths
+
+    #ifdef SKY_ENABLED
+        float worldY = localPos.y + cameraPosition.y;
+        lightData.skyLightLevels = skyLightLevels;
+        lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
+    #endif
+
+    // TODO: shadow data
 
     vec4 color = BasicLighting(lightData);
 

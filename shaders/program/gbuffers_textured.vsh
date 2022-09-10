@@ -12,6 +12,7 @@ out vec2 lmcoord;
 out vec2 texcoord;
 out vec4 glcolor;
 out float geoNoL;
+out vec3 localPos;
 out vec3 viewPos;
 out vec3 viewNormal;
 flat out float exposure;
@@ -23,6 +24,7 @@ flat out float exposure;
 #ifdef SKY_ENABLED
     flat out vec3 sunColor;
     flat out vec3 moonColor;
+    flat out vec2 skyLightLevels;
     flat out vec3 skyLightColor;
 
     uniform vec3 sunPosition;
@@ -98,7 +100,7 @@ void main() {
     lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     glcolor = gl_Color;
 
-    vec3 localPos = gl_Vertex.xyz;
+    localPos = gl_Vertex.xyz;
     BasicVertex(localPos);
     
     #ifdef HANDLIGHT_ENABLED
@@ -106,7 +108,7 @@ void main() {
     #endif
 
     #ifdef SKY_ENABLED
-        vec2 skyLightLevels = GetSkyLightLevels();
+        skyLightLevels = GetSkyLightLevels();
         vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
         //sunColor = GetSunLightColor(skyLightTemps.x, skyLightLevels.x) * sunLumen;
         //moonColor = GetMoonLightColor(skyLightTemps.y, skyLightLevels.y) * moonLumen;
