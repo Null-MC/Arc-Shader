@@ -174,7 +174,7 @@
                     float texDepth = SampleOpaqueDepth(lightData.shadowPos, pixelOffset);
                     //light += step(shadowPos.z + shadowBias, texDepth + 0.001);
 
-                    float sampleWeight = max(1.0 - length(poissonDisk[i]), EPSILON);
+                    float sampleWeight = 1.0; //max(1.0 - length(poissonDisk[i]), EPSILON);
                     sampleHit += sampleWeight;
 
                     if (texDepth < lightData.shadowPos.z + lightData.shadowBias) {

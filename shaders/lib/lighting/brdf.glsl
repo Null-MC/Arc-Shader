@@ -111,8 +111,33 @@ vec3 GetSpecularBRDF(const in vec3 F, const in float NoV, const in float NoL, co
     return D * F * G;
 }
 
+// modified by Jessie-LC
+// vec3 GetDiffuse_HammonDiffuse(const in vec3 albedo, const in float n, const in float nDotV, const in float nDotL, in float nDotH, const in float lDotV, const in float roughness) {
+//     //My modified Hammon diffuse model.
+//     nDotH = abs(nDotH) + 1e-5;
+//     float facing = 0.5 + 0.5 * lDotV;
+//     float rough = nDotH <= 0.0 ? 0.0 : facing * (0.9 - 0.4 * facing) * ((1.0 + nDotH) * rcp(max(nDotH, 0.15)));
+//     float fresnel_v = 1.0 - FresnelNonPolarized_R(nDotV, 1.00028, n);
+//     float fresnel_l = 1.0 - FresnelNonPolarized_R(nDotL, 1.00028, n);
+//     float energyConservationFactor = 1.0 - HemisphericalAlbedo(n / 1.00028);
+//     float smooth_v = (fresnel_l * fresnel_v) * rcp(energyConservationFactor);
+//     float single = mix(smooth_v, rough * 0.6, roughness) * rcp(pi);
+//     float multi = 0.1159 * roughness;
+
+//     return max(albedo * (single + albedo * multi) * nDotL, 0.0);
+// }
+
+// float HemisphericalAlbedo(const in float n) {
+//     float n2 = square(n);
+//     float T_1 = (4.0 * (2.0 * n + 1.0)) / (3.0 * square(n + 1.0));
+//     float T_2 = ((4.0 * cube(n) * (n2 + 2.0 * n - 1.0)) / (square(n2 + 1.0) * (n2 - 1.0))) - 
+//             ((2.0 * n2 * (n2 + 1.0) * log(n)) / square(n2 - 1.0)) +
+//             ((2.0 * n2 * square(n2 - 1.0) * log((n * (n+1.0)) / (n-1.0))) / cube(n2 + 1.0));
+//     return saturate(1.0 - 0.5 * (T_1 + T_2));
+// }
+
 vec3 GetDiffuse_Burley(const in vec3 albedo, const in float NoV, const in float NoL, const in float LoH, const in float roughL) {
-    float f90 = 0.5 + 2.0 * roughL * pow2(LoH);
+    float f90 = 0.5 + roughL * pow2(LoH);
     float light_scatter = F_schlick(NoL, 1.0, f90);
     float view_scatter = F_schlick(NoV, 1.0, f90);
     return (albedo * invPI) * light_scatter * view_scatter * NoL;

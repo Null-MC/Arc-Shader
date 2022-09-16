@@ -82,6 +82,7 @@ flat in float exposure;
 
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
+uniform sampler2D depthtex1;
 
 uniform ivec2 eyeBrightnessSmooth;
 uniform vec3 cameraPosition;
@@ -107,6 +108,7 @@ uniform int fogMode;
     uniform float eyeHumidity;
 #endif
 
+#include "/lib/depth.glsl"
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/lighting/light_data.glsl"
 
@@ -163,7 +165,9 @@ void main() {
     lightData.geoNoL = geoNoL;
     lightData.parallaxShadow = 1.0;
 
-    // TODO: screen depths
+    float opaqueScreenDepth = texelFetch(depthtex1, ivec2(gl_FragCoord.xy), 0).r;
+    lightData.opaqueScreenDepth = linearizeDepthFast(opaqueScreenDepth, near, far);
+    lightData.transparentScreenDepth = linearizeDepthFast(gl_FragCoord.z, near, far);
 
     #ifdef SKY_ENABLED
         float worldY = localPos.y + cameraPosition.y;
@@ -171,7 +175,61 @@ void main() {
         lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
     #endif
 
-    // TODO: shadow data
+    #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos.xyz, 1.0))).xyz;
+
+        #ifdef SHADOW_DITHER
+            float ditherOffset = (GetScreenBayerValue() - 0.5) * shadowPixelSize;
+        #endif
+
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+            for (int i = 0; i < 4; i++) {
+                lightData.matShadowProjection[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
+                lightData.shadowPos[i] = (lightData.matShadowProjection[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                
+                vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
+                lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + shadowCascadePos;
+                lightData.shadowTilePos[i] = GetShadowCascadeClipPos(i);
+                lightData.shadowBias[i] = GetCascadeBias(lightData.geoNoL, i);
+
+                #ifdef SHADOW_DITHER
+                    lightData.shadowPos[i].xy += ditherOffset;
+                #endif
+            }
+
+            lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData, vec2(0.0), lightData.opaqueShadowCascade);
+            lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData, vec2(0.0), lightData.transparentShadowCascade);
+
+            //float minOpaqueDepth = min(lightData.shadowPos[lightData.opaqueShadowCascade].z, lightData.opaqueShadowDepth);
+            //lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 4.0 * far;
+            float minTransparentDepth = min(lightData.shadowPos[lightData.transparentShadowCascade].z, lightData.transparentShadowDepth);
+            lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - minTransparentDepth, 0.0) * 3.0 * far;
+        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+            lightData.shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
+
+            #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                float distortFactor = getDistortFactor(lightData.shadowPos.xy);
+                lightData.shadowPos.xyz = distort(lightData.shadowPos.xyz, distortFactor);
+                lightData.shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
+            #else
+                lightData.shadowBias = GetShadowBias(lightData.geoNoL);
+            #endif
+
+            lightData.shadowPos.xyz = lightData.shadowPos.xyz * 0.5 + 0.5;
+
+            #ifdef SHADOW_DITHER
+                lightData.shadowPos.xy += ditherOffset;
+            #endif
+
+            lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
+            lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos, vec2(0.0));
+
+            //float minOpaqueDepth = min(lightData.shadowPos.z, lightData.opaqueShadowDepth);
+            //lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 3.0 * far;
+            //float minTransparentDepth = min(lightData.shadowPos.z, lightData.transparentShadowDepth);
+            lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.shadowPos.z, 0.0) * 3.0 * far;
+        #endif
+    #endif
 
     vec4 color = BasicLighting(lightData);
 
