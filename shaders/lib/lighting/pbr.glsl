@@ -455,18 +455,21 @@
                         vec2 refractOffset = refractDir.xy;
 
                         // scale down contact point to avoid tearing
-                        refractOffset *= min(0.05*refractDist, 0.2);
+                        refractOffset = min(0.1 * refractOffset * refractDist, vec2(0.2));
 
                         // scale down with distance
-                        float distF = 1.0 - saturate((viewDist - near) / (far - near));
-                        refractOffset *= pow2(distF);
+                        //float distF = 1.0 - saturate((viewDist - near) / (far - near));
+                        //refractOffset *= pow2(distF);
                         
                         vec2 refractUV = screenUV + refractOffset;
 
-                        // update water depth
-                        waterSolidDepthFinal = GetWaterSolidDepth(refractUV);
+                        waterSolidDepthFinal.y = lightData.opaqueScreenDepth;
+                        waterSolidDepthFinal.x = lightData.transparentScreenDepth;
 
                         #if WATER_REFRACTION == WATER_REFRACTION_FANCY
+                            // update water depth
+                            waterSolidDepthFinal = GetWaterSolidDepth(refractUV);
+
                             vec2 startUV = refractUV;
                             vec2 d = screenUV - startUV;
                             vec2 dp = d * viewSize;
@@ -488,8 +491,8 @@
                         #else
                             if (waterSolidDepthFinal.y < waterSolidDepthFinal.x) {
                                 // refracted vector returned an invalid hit
-                                waterSolidDepthFinal.x = lightData.transparentScreenDepth;
-                                waterSolidDepthFinal.y = lightData.opaqueScreenDepth;
+                                //waterSolidDepthFinal.x = lightData.transparentScreenDepth;
+                                //waterSolidDepthFinal.y = lightData.opaqueScreenDepth;
                                 refractUV = screenUV;
                             }
                         #endif
@@ -507,11 +510,13 @@
 
                     vec3 scatterColor = material.albedo.rgb * skyLightColorFinal * skyLight2;// * shadowFinal;
 
-                    float verticalDepth = waterDepthFinal * max(dot(viewLightDir, viewUpDir), 0.0);
-                    vec3 absorption = exp(-0.5 * (verticalDepth + waterDepthFinal) * extinctionInv);
+                    float verticalDepth = 0.0;//waterDepthFinal * max(dot(viewLightDir, viewUpDir), 0.0);
+                    vec3 absorption = exp(-1.0 * (verticalDepth + waterDepthFinal) * extinctionInv);
                     float inverseScatterAmount = 1.0 - exp(0.06 * -waterDepthFinal);
 
-                    diffuse = (refractColor + scatterColor * inverseScatterAmount) * absorption;
+                    //diffuse = (refractColor + scatterColor * inverseScatterAmount) * absorption;
+                    //diffuse = refractColor * mix(vec3(1.0), scatterColor, inverseScatterAmount) * absorption;
+                    diffuse = refractColor * absorption;
                     final.a = 1.0;
                 #else
                     //float waterSurfaceDepth = textureLod(shadowtex0);
@@ -572,10 +577,10 @@
         float emissive = pow4(material.emission) * EmissionLumens;
 
         final.rgb = final.rgb * (ambient * occlusion + emissive)
-            + diffuse * material.albedo.a
+            + diffuse
             + (specular + iblSpec) * specularTint;
 
-        final *= exp(-0.006 * viewDist);
+        final.rgb *= exp(-0.006 * viewDist);
 
         if (isEyeInWater == 1) {
             float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
