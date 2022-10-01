@@ -517,6 +517,7 @@
                     //diffuse = (refractColor + scatterColor * inverseScatterAmount) * absorption;
                     //diffuse = refractColor * mix(vec3(1.0), scatterColor, inverseScatterAmount) * absorption;
                     diffuse = refractColor * absorption;
+                    //final.rgb = WATER_COLOR.rgb;
                     final.a = 1.0;
                 #else
                     //float waterSurfaceDepth = textureLod(shadowtex0);
@@ -565,8 +566,8 @@
             if (material.hcm >= 0) {
                 //if (material.hcm < 8) specular *= material.albedo.rgb;
 
-                diffuse *= HCM_AMBIENT;
-                ambient *= HCM_AMBIENT;
+                diffuse *= roughL * HCM_AMBIENT;
+                ambient *= roughL * HCM_AMBIENT;
             }
         #else
             float metalDarkF = 1.0 - material.f0 * (1.0 - HCM_AMBIENT);
