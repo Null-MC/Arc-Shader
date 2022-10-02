@@ -22,7 +22,7 @@ out uvec4 outColor0;
 void main() {
     vec4 colorMap, normalMap, specularMap, lightingMap;
     //PbrLighting(colorMap, normalMap, specularMap, lightingMap);
-    colorMap = vec4(1000.0, 0.0, 0.0, 0.0);
+    colorMap = vec4(0.0, 0.0, 0.0, 0.0);
     normalMap = vec4(0.0, 0.0, 1.0, 0.0);
     specularMap = vec4(0.0, 0.0, 0.0, 0.0);
     lightingMap = vec4(0.0, 0.0, 1.0, 1.0);

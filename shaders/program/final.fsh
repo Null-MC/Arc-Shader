@@ -87,6 +87,12 @@ uniform float viewHeight;
 #elif DEBUG_VIEW == DEBUG_VIEW_A0
     // Ambient Occlusion
     uniform sampler2D BUFFER_AO;
+#elif DEBUG_VIEW == DEBUG_VIEW_LUT_BRDF
+    // BRDF LUT
+    uniform sampler2D colortex15;
+#elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
+    // Sun Transmission LUT
+    uniform sampler2D colortex15;
 #else
     uniform sampler2D BUFFER_HDR;
 
@@ -295,6 +301,13 @@ void main() {
         #endif
 
         color = textureLod(BUFFER_AO, aoTex, 0).rrr;
+    #elif DEBUG_VIEW == DEBUG_VIEW_LUT_BRDF
+        // BRDF LUT
+        color.rg = textureLod(colortex15, texcoord, 0).rg;
+        color.b = 0.0;
+    #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
+        // Sun Transmission LUT
+        color = textureLod(colortex15, texcoord, 0).rgb;
     #else
         // None
         color = GetFinalColor();

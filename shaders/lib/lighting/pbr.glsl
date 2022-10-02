@@ -346,7 +346,7 @@
 
         float sunLux = 0.0;
         #ifdef SKY_ENABLED
-            float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength) * SHADOW_BRIGHTNESS;
+            float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength);// * SHADOW_BRIGHTNESS;
             vec3 skyAmbient = GetSkyAmbientLight(lightData, viewNormal);
 
             //#ifdef SSS_ENABLED
@@ -576,6 +576,10 @@
         #endif
 
         float emissive = pow4(material.emission) * EmissionLumens;
+
+        //occlusion = 1.0 - SHADOW_BRIGHTNESS * (1.0 - occlusion);
+        //occlusion = SHADOW_BRIGHTNESS + occlusion * (1.0 - SHADOW_BRIGHTNESS);
+        occlusion *= SHADOW_BRIGHTNESS;
 
         final.rgb = final.rgb * (ambient * occlusion + emissive)
             + diffuse

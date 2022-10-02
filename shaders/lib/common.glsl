@@ -180,7 +180,7 @@ const bool colortex12Clear = false;
 
 
 // Debug Options
-#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
 //#define DEBUG_EXPOSURE_METERS
 #define IS_OPTIFINE
 //#define IRIS_FEATURE_SEPARATE_HW_SAMPLERS

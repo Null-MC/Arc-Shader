@@ -35,5 +35,5 @@ void main() {
         occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, 0.5 * viewSize, depthtex0, viewSize, linearDepth, 0.9);
     }
 
-    outColor0 = occlusion;
+    outColor0 = saturate(occlusion);
 }
