@@ -150,6 +150,7 @@ uniform int fogShape;
 
 #include "/lib/atlas.glsl"
 #include "/lib/depth.glsl"
+#include "/lib/sampling/bayer.glsl"
 #include "/lib/sampling/linear.glsl"
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/lighting/light_data.glsl"
@@ -179,8 +180,6 @@ uniform int fogShape;
     #include "/lib/lighting/basic.glsl"
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-        #include "/lib/sampling/bayer.glsl"
-
         #if SHADOW_PCF_SAMPLES == 12
             #include "/lib/sampling/poisson_12.glsl"
         #elif SHADOW_PCF_SAMPLES == 24
@@ -197,13 +196,13 @@ uniform int fogShape;
             #include "/lib/shadows/basic_render.glsl"
         #endif
 
-        #ifdef SHADOW_CONTACT
-            #include "/lib/shadows/contact.glsl"
-        #endif
-
         #ifdef VL_ENABLED
             #include "/lib/lighting/volumetric.glsl"
         #endif
+    #endif
+
+    #ifdef SHADOW_CONTACT
+        #include "/lib/shadows/contact.glsl"
     #endif
 #endif
 

@@ -256,11 +256,7 @@ void main() {
         color = RestoreNormalZ(normalXY) * 0.5 + 0.5;
     #elif DEBUG_VIEW == DEBUG_VIEW_RSM_FINAL
         // RSM Final
-        #ifdef IS_OPTIFINE
-            color = textureLod(BUFFER_RSM_COLOR, texcoord, 0).rgb;
-        #else
-            color = textureLod(BUFFER_RSM_COLOR, texcoord / exp2(RSM_SCALE), 0).rgb;
-        #endif
+        color = textureLod(BUFFER_RSM_COLOR, texcoord, 0).rgb;
     #elif DEBUG_VIEW == DEBUG_VIEW_BLOOM
         // Bloom Tiles
         color = textureLod(BUFFER_BLOOM, texcoord, 0).rgb;
@@ -276,11 +272,7 @@ void main() {
             if (texcoord.x >= 0.5) lod = luminanceLod-2;
         #endif
 
-        vec2 tex = texcoord;
-        #ifndef IS_OPTIFINE
-            tex *= 0.5;
-        #endif
-        float logLum = textureLod(BUFFER_HDR_PREVIOUS, tex, lod).a;
+        float logLum = textureLod(BUFFER_HDR_PREVIOUS, texcoord, lod).a;
         color = vec3(exp2(logLum) - EPSILON) * 1e-5;
 
         #if defined DEBUG_EXPOSURE_METERS && CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
@@ -294,13 +286,7 @@ void main() {
         color = textureLod(BUFFER_DEPTH_PREV, texcoord, 0).rrr;
     #elif DEBUG_VIEW == DEBUG_VIEW_A0
         // Ambient Occlusion
-        vec2 aoTex = texcoord;
-
-        #ifndef IS_OPTIFINE
-            aoTex *= 0.5;
-        #endif
-
-        color = textureLod(BUFFER_AO, aoTex, 0).rrr;
+        color = textureLod(BUFFER_AO, texcoord, 0).rrr;
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_BRDF
         // BRDF LUT
         color.rg = textureLod(colortex15, texcoord, 0).rg;

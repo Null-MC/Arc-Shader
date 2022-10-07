@@ -15,7 +15,6 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
 
     float texDepth;
     vec3 tracePos;
-    vec2 uv;
 
     int i = 1;
     float alpha = 0.0;
@@ -29,13 +28,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
          || tracePos.y <= 0.0 || tracePos.y >= 1.0
          || tracePos.z <= 0.0 || tracePos.z >= 1.0) break;
 
-        uv = tracePos.xy;
-
-        #ifndef IS_OPTIFINE
-            uv *= 0.5;
-        #endif
-
-        texDepth = textureLod(depthtex, uv, 0).r;
+        texDepth = textureLod(depthtex, tracePos.xy, 0).r;
         if (texDepth >= tracePos.z) continue;
 
         //float d = 0.00004 * i*i;
@@ -48,13 +41,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
 
     vec3 color = vec3(0.0);
     if (alpha > 0.5) {
-        uv = tracePos.xy;
-
-        #ifndef IS_OPTIFINE
-            uv *= 0.5;
-        #endif
-
-        color = textureLod(BUFFER_HDR_PREVIOUS, uv, lod).rgb;
+        color = textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, lod).rgb;
         //vec2 mipTexSize = vec2(viewWidth, viewHeight) / exp2(lod + 1);
         //color = TextureLodLinearRGB(BUFFER_HDR_PREVIOUS, tracePos.xy, mipTexSize, lod);
     }

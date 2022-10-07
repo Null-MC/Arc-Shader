@@ -207,14 +207,6 @@
                 if (shadow > EPSILON)
                     shadow *= GetShadowing(lightData);
 
-                #ifdef SHADOW_CONTACT
-                    if (shadow > EPSILON) {
-                        vec3 shadowRay = viewLightDir * 0.2;
-                        float contactShadow = GetContactShadow(depthtex1, viewPos, shadowRay);
-                        shadow = min(shadow, contactShadow);
-                    }
-                #endif
-
                 #ifdef SHADOW_COLOR
                     shadowColor = GetShadowColor(lightData);
                     shadowColor = RGBToLinear(shadowColor);
@@ -229,6 +221,14 @@
             #else
                 shadow = pow2(skyLight) * lightData.occlusion;
                 shadowSSS = pow2(skyLight) * material.scattering;
+            #endif
+
+            #ifdef SHADOW_CONTACT
+                if (shadow > EPSILON) {
+                    vec3 shadowRay = viewLightDir * 10.0;
+                    float contactShadow = GetContactShadow(depthtex1, viewPos, shadowRay);
+                    shadow = min(shadow, contactShadow);
+                }
             #endif
         #endif
 
@@ -285,10 +285,6 @@
         #if defined SKY_ENABLED && defined RSM_ENABLED && defined RENDER_DEFERRED
             vec2 tex = screenUV;
 
-            #ifndef IS_OPTIFINE
-                tex /= exp2(RSM_SCALE);
-            #endif
-
             #ifdef RSM_UPSCALE
                 vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
                 vec3 shadowViewNormal = mat3(shadowModelView) * (mat3(gbufferModelViewInverse) * viewNormal);
@@ -318,11 +314,7 @@
         float occlusion = material.occlusion * lightData.occlusion;
 
         #ifdef SSAO_ENABLED
-            #ifdef IS_OPTIFINE
-                occlusion *= textureLod(BUFFER_AO, texcoord, 0).r;
-            #else
-                occlusion *= textureLod(BUFFER_AO, texcoord * 0.5, 0).r;
-            #endif
+            occlusion *= textureLod(BUFFER_AO, texcoord, 0).r;
         #endif
 
         vec3 iblF = vec3(0.0);
@@ -585,7 +577,7 @@
             + diffuse
             + (specular + iblSpec) * specularTint;
 
-        final.rgb *= exp(-0.006 * viewDist);
+        final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
 
         if (isEyeInWater == 1) {
             float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
