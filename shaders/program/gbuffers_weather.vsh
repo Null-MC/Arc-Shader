@@ -42,6 +42,7 @@ flat out float exposure;
         uniform vec3 shadowLightPosition;
         uniform mat4 shadowModelView;
         uniform mat4 shadowProjection;
+        uniform float far;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             attribute vec3 at_midBlock;
@@ -57,7 +58,6 @@ flat out float exposure;
 
             uniform mat4 gbufferProjection;
             uniform float near;
-            uniform float far;
         #endif
     #endif
 #endif

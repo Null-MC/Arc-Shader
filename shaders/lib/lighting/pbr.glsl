@@ -196,6 +196,14 @@
             shadow *= step(EPSILON, lightData.geoNoL);
             shadow *= step(EPSILON, NoL);
 
+            float contactShadow = 1.0;
+            #ifdef SHADOW_CONTACT
+                if (shadow > EPSILON) {
+                    vec3 shadowRay = viewLightDir * 10.0;
+                    contactShadow = GetContactShadow(depthtex1, viewPos, shadowRay);
+                }
+            #endif
+
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 // #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 //     int shadowCascade;
@@ -204,31 +212,37 @@
                 //     float opaqueShadowDepth = SampleDepth(lightData.shadowPos, vec2(0.0));
                 // #endif
 
-                if (shadow > EPSILON)
-                    shadow *= GetShadowing(lightData);
+                if (
+                    lightData.shadowPos.x > 0.0 && lightData.shadowPos.x < 1.0 &&
+                    lightData.shadowPos.y > 0.0 && lightData.shadowPos.y < 1.0
+                ) {
+                    if (shadow > EPSILON)
+                        shadow *= GetShadowing(lightData);
 
-                #ifdef SHADOW_COLOR
-                    shadowColor = GetShadowColor(lightData);
-                    shadowColor = RGBToLinear(shadowColor);
-                #endif
+                    #ifdef SHADOW_COLOR
+                        shadowColor = GetShadowColor(lightData);
+                        shadowColor = RGBToLinear(shadowColor);
+                    #endif
 
-                #ifdef SSS_ENABLED
-                    if (material.scattering > EPSILON) {
-                        shadowSSS = GetShadowSSS(lightData, material.scattering, sssDist);
-                        // TODO: use depth for extinction
-                    }
-                #endif
+                    #ifdef SSS_ENABLED
+                        if (material.scattering > EPSILON) {
+                            shadowSSS = GetShadowSSS(lightData, material.scattering, sssDist);
+                            // TODO: use depth for extinction
+                        }
+                    #endif
+                }
+                else {
+                    //shadow = 0.0;
+                    shadowSSS *= contactShadow;
+                    //shadowColor = vec3(1.0, 0.0, 0.0);
+                }
             #else
                 shadow = pow2(skyLight) * lightData.occlusion;
                 shadowSSS = pow2(skyLight) * material.scattering;
             #endif
 
             #ifdef SHADOW_CONTACT
-                if (shadow > EPSILON) {
-                    vec3 shadowRay = viewLightDir * 10.0;
-                    float contactShadow = GetContactShadow(depthtex1, viewPos, shadowRay);
-                    shadow = min(shadow, contactShadow);
-                }
+                shadow = min(shadow, contactShadow);
             #endif
         #endif
 

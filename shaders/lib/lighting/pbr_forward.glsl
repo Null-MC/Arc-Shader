@@ -115,7 +115,7 @@
                     depth = GetWaves(waterWorldPos, waveSpeed, octaves);
                     depthX = GetWaves(waterWorldPosX, waveSpeed, octaves);
                     depthY = GetWaves(waterWorldPosY, waveSpeed, octaves);
-                    zScale *= WATER_SCALE;
+                    zScale *= 0.2*WATER_SCALE;
 
                 #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
                     }

@@ -11,6 +11,7 @@ flat in vec3 blockLightColor;
 
 #ifdef SKY_ENABLED
     flat in vec2 skyLightLevels;
+    flat in vec3 sunColor;
     flat in vec3 moonColor;
 
     uniform sampler2D colortex7;
@@ -147,6 +148,7 @@ uniform float fogEnd;
         #endif
 
         #if SHADOW_TYPE == SHADOW_TYPE_BASIC
+            #include "/lib/shadows/basic.glsl"
             #include "/lib/shadows/basic_render.glsl"
         #elif SHADOW_TYPE == SHADOW_TYPE_DISTORTED
             #include "/lib/shadows/basic.glsl"
@@ -248,7 +250,7 @@ void main() {
         #ifdef SKY_ENABLED
             float worldY = localPos.y + cameraPosition.y;
             lightData.skyLightLevels = skyLightLevels;
-            lightData.sunTransmittance = GetSunTransmittance(colortex7, worldY, skyLightLevels.x);
+            lightData.sunTransmittance = GetSunTransmittance(colortex7, worldY, skyLightLevels.x) * sunColor;
         #endif
         
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE

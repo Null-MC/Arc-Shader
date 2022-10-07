@@ -22,7 +22,7 @@ flat out vec3 blockLightColor;
 
 #ifdef SKY_ENABLED
     flat out vec2 skyLightLevels;
-    //flat out vec3 sunColor;
+    flat out vec3 sunColor;
     flat out vec3 moonColor;
 
     //uniform sampler2D colortex7;
@@ -97,6 +97,8 @@ void main() {
         vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
         //sunColor = GetSunLightLuxColor(skyLightTemps.x, skyLightLevels.x);
         moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
+
+        sunColor = blackbody(5500.0);
 
         //skyLightColor = GetSkyLightLuxColor(skyLightLevels);
         //skyLightColor = sunColor + moonColor; // TODO: get rid of this variable
