@@ -37,7 +37,8 @@ out vec4 outColor0;
 
 
 void main() {
-    vec3 color = texelFetch(BUFFER_HDR, ivec2(gl_FragCoord.xy), 1).rgb;
+    const int scaleLod = int(log2(SSR_SCALE));
+    vec3 color = texelFetch(BUFFER_HDR, ivec2(gl_FragCoord.xy), scaleLod).rgb;
     float lum = 0.0;
 
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
@@ -50,8 +51,9 @@ void main() {
             lum = 0.0;
         #endif
 
-        ivec2 iuv = ivec2(texcoord * 0.5 * vec2(viewWidth, viewHeight));
-        float lumPrev = texelFetch(BUFFER_HDR_PREVIOUS, iuv, 0).a;
+        //vec2 pixelSize = SSR_SCALE * rcp(vec2(viewWidth, viewHeight));
+        //ivec2 iuv = ivec2(texcoord * pixelSize);
+        float lumPrev = texelFetch(BUFFER_HDR_PREVIOUS, ivec2(gl_FragCoord.xy), 0).a;
 
         lumPrev = max(exp2(lumPrev) - EPSILON, 0.0);
         //if (lumPrev < 1.0) lumPrev = lum;
@@ -62,9 +64,9 @@ void main() {
 
         float dir = step(lumPrev, lum);
         float speed = (1.0 - dir) * EXPOSURE_SPEED_DOWN + dir * EXPOSURE_SPEED_UP;
-        float timeF = exp(-frameTime * TAU * speed);
+        //float timeF = 0.01;//exp(-frameTime * TAU * speed);
 
-        lum = lumPrev + (lum - lumPrev) * clamp(1.0 - timeF, 1e-3, 1.0);
+        lum = lumPrev + (lum - lumPrev) * (1.0 - exp(-frameTime * speed));
         //lum = clamp(lum, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
         lum = log2(lum + EPSILON);
     #endif
@@ -75,7 +77,7 @@ void main() {
         float depth = 1.0;
 
         // TODO: replace this with separate depth tiles?
-        depth = textureLod(depthtex0, texcoord, 1).r;
+        depth = textureLod(depthtex0, texcoord, scaleLod).r;
 
         outColor1 = depth;
     #endif

@@ -49,17 +49,17 @@ const bool colortex12Clear = false;
 #define HANDLIGHT_ENABLED
 #define BLOCK_OUTLINE 3 // [0 1 2 3]
 #define BLOCKLIGHT_TEMP 3500 // [2500 2700 3000 3500 4000 5700 7000]
-#define DIRECTIONAL_LIGHTMAP_STRENGTH 80 // [0 10 20 30 40 50 60 70 80 90 100]
-#define SHADOW_BRIGHTNESS 0.40 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
-#define RAIN_DARKNESS 0.2
+#define DIRECTIONAL_LIGHTMAP_STRENGTH 0 // [0 10 20 30 40 50 60 70 80 90 100]
+#define SHADOW_BRIGHTNESS 0.20 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
+#define RAIN_DARKNESS 0.4
 //#define AO_ENABLED
 //#define ANIM_USE_WORLDTIME
 
 
 // Water Options
 #define WATER_FANCY
-#define WATER_REFRACTION 0 // [0 1 2]
-#define WATER_WAVE_TYPE 1 // [0 1 2]
+#define WATER_REFRACTION 1 // [0 1 2]
+#define WATER_WAVE_TYPE 2 // [0 1 2]
 #define WATER_SCALE 16.0
 #define WATER_RADIUS 50
 #define WATER_OCTAVES_NEAR 64
@@ -81,8 +81,8 @@ const bool colortex12Clear = false;
 
 // Shadow Options
 #define SHADOW_TYPE 2 // [0 1 2 3]
-#define SHADOW_FILTER 0 // [0 1 2]
-#define SHADOW_PCF_SIZE 0.040 // [0.010 0.020 0.030 0.040 0.050 0.060 0.070 0.080 0.090 0.100 0.110 0.120 0.130 0.140 0.150 0.160 0.170 0.180 0.190 0.200]
+#define SHADOW_FILTER 1 // [0 1 2]
+#define SHADOW_PCF_SIZE 0.080 // [0.010 0.020 0.030 0.040 0.050 0.060 0.070 0.080 0.090 0.100 0.110 0.120 0.130 0.140 0.150 0.160 0.170 0.180 0.190 0.200]
 #define SHADOW_PCF_SAMPLES 12 // [12 24 36]
 //#define SHADOW_EXCLUDE_ENTITIES
 //#define SHADOW_EXCLUDE_FOLIAGE
@@ -109,9 +109,9 @@ const bool colortex12Clear = false;
 #define SSS_ENABLED
 #define SSS_SCATTER
 #define SSS_DITHER
-#define SSS_STRENGTH 3 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
-#define SSS_MAXDIST 2 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
-#define SSS_PCF_SIZE 2.0 // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0]
+#define SSS_STRENGTH 1 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
+#define SSS_MAXDIST 6 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
+#define SSS_PCF_SIZE 4.0 // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
 
 
@@ -137,9 +137,9 @@ const bool colortex12Clear = false;
 #define CAMERA_LUM_MIN 60.0
 #define CAMERA_LUM_MAX 64000.0
 //#define EXPOSURE_POINT 0.2
-#define EXPOSURE_SPEED_UP 0.08
-#define EXPOSURE_SPEED_DOWN 0.05
-#define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
+#define EXPOSURE_SPEED_UP 0.8
+#define EXPOSURE_SPEED_DOWN 0.5
+#define TONEMAP 10 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
 
 #define CAMERA_BRIGHTNESS 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define CAMERA_SATURATION 110 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
@@ -147,8 +147,8 @@ const bool colortex12Clear = false;
 
 // Effect Options
 #define RSM_ENABLED
-#define RSM_INTENSITY 6 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
-#define RSM_FILTER_SIZE 1.2 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.4 2.6 2.8 3.0]
+#define RSM_INTENSITY 14 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
+#define RSM_FILTER_SIZE 1.8 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.4 2.6 2.8 3.0]
 #define RSM_SAMPLE_COUNT 35 // [35 100 200]
 #define RSM_SCALE 2 // [0 1 2]
 //#define RSM_UPSCALE
@@ -160,7 +160,7 @@ const bool colortex12Clear = false;
 #define BLOOM_POWER 5 // [1 2 3 4 5 6 7 8 9 10]
 #define VL_ENABLED
 #define VL_DITHER
-#define VL_STRENGTH 50 // [10 20 30 40 50 60 70 80 90 100]
+#define VL_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define VL_SAMPLE_COUNT 15 // [15 30 60 90]
 //#define VL_PARTICLES
 #define G_SCATTERING_CLEAR 0.28 // 0.96
@@ -189,7 +189,8 @@ const bool colortex12Clear = false;
 //#define WETNESS_SMOOTH_NORMAL
 #define HCM_LAZANYI
 #define HCM_AMBIENT 0.5
-#define SSR_STEPS 512
+#define SSR_SCALE 4 // [1 2 4]
+#define SSR_STEPS 256 // [128 256 512]
 //#define SHADOW_CONTACT
 //#define SHADOW_CONTACT_DITHER
 #define SKY_DITHER
@@ -232,7 +233,7 @@ const float NightSkyLumen = 1200.0;
 const float NightSkyOvercastLumen = 60.0;
 
 const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.06;
-const vec4 WATER_COLOR = vec4(vec3(0.0205, 0.0545, 0.0860)*2.0, 0.1);
+const vec4 WATER_COLOR = vec4(vec3(0.0205, 0.0545, 0.0860)*4.0, 0.1);
 const vec3 WATER_SCATTER_COLOR = vec3(0.105, 0.645, 0.960);
 //const vec3 WATER_SCATTER_COLOR = vec3(0.8, 0.0, 0.0);
 //const vec3 WATER_ABSORPTION = vec3(0.695, 0.555, 0.540)*2.0;

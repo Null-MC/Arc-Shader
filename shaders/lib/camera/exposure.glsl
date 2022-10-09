@@ -36,8 +36,7 @@ float GetAverageLuminance() {
         int luminanceLod = GetLuminanceLod()-2;
 
         float averageLuminance = 0.0;
-        vec2 viewSize = vec2(viewWidth, viewHeight);
-        vec2 texSize = 0.5 * viewSize;
+        vec2 texSize = SSR_SCALE * vec2(viewWidth, viewHeight);
 
         ivec2 lodSize = ivec2(ceil(texSize / exp2(luminanceLod)));
         lodSize = min(lodSize, ivec2(12, 8));

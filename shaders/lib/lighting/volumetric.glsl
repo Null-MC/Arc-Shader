@@ -46,7 +46,8 @@
                 #endif
 
                 vec3 shadowColor = GetShadowColor(lightData);
-                accumCol += RGBToLinear(shadowColor) * depthSample;
+                shadowColor = RGBToLinear(shadowColor);
+                accumCol += normalize(shadowColor) * depthSample;
             }
         }
 

@@ -273,7 +273,7 @@ void main() {
         #endif
 
         float logLum = textureLod(BUFFER_HDR_PREVIOUS, texcoord, lod).a;
-        color = vec3(exp2(logLum) - EPSILON) * 1e-5;
+        color = vec3(exp2(logLum) - EPSILON) * 1e-4;
 
         #if defined DEBUG_EXPOSURE_METERS && CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
             RenderLuminanceMeters(color, averageLuminance, EV100);

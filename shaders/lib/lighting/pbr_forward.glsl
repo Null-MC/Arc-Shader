@@ -75,24 +75,42 @@
                         waterLocalPos.y > -0.5 && waterLocalPos.y < 0.5
                     ) {
                         float viewDist = length(viewPos);
-                        vec2 waterTex = waterLocalPos + 0.5;
+                        vec3 waterTex = vec3(waterLocalPos + 0.5, 1.0);
                         mat2 water_dFdXY = mat2(dFdx(waterLocalPos), dFdy(waterLocalPos));
 
                         if (viewDist < WATER_RADIUS) {
                             //float waterDepth = max(waterSolidDepth.y - waterSolidDepth.x, 0.0);
                             float waterDepth = max(lightData.opaqueScreenDepth - lightData.transparentScreenDepth, 0.0);
-                            waterTex = GetWaterParallaxCoord(waterTex, water_dFdXY, tanViewDir, viewDist, waterDepth);
+                            GetWaterParallaxCoord(waterTex, water_dFdXY, tanViewDir, viewDist, waterDepth);
 
                             // TODO: depth-write
+                            #ifdef PARALLAX_DEPTH_WRITE
+                                float pomDist = (1.0 - waterTex.z) / max(-tanViewDir.z, 0.00001);
+
+                                if (pomDist > 0.0) {
+                                    //float depth = linearizePerspectiveDepth(gl_FragCoord.z, gbufferProjection);
+                                    //gl_FragDepth = delinearizePerspectiveDepth(depth + pomDist * (0.25 * PARALLAX_DEPTH), gbufferProjection);
+                                    float depth = -viewPos.z + pomDist * 0.25 * WATER_WAVE_DEPTH;
+                                    gl_FragDepth = 0.5 * (-gbufferProjection[2].z*depth + gbufferProjection[3].z) / depth + 0.5;
+                                }
+                                else {
+                                    gl_FragDepth = gl_FragCoord.z;
+                                }
+                            #endif
                         }
+                        #ifdef PARALLAX_DEPTH_WRITE
+                            else {
+                                gl_FragDepth = gl_FragCoord.z;
+                            }
+                        #endif
 
                         //vec4 depthSamples = textureGather(BUFFER_WATER_WAVES, waterTex, 0);
                         //vec2 f = GetLinearCoords(texcoord, texSize, uv);
                         //depth = LinearBlend4(depthSamples, f);
 
-                        depth = textureGrad(BUFFER_WATER_WAVES, waterTex, water_dFdXY[0], water_dFdXY[1]).r;
-                        depthX = textureGradOffset(BUFFER_WATER_WAVES, waterTex, water_dFdXY[0], water_dFdXY[1], ivec2(1, 0)).r;
-                        depthY = textureGradOffset(BUFFER_WATER_WAVES, waterTex, water_dFdXY[0], water_dFdXY[1], ivec2(0, 1)).r;
+                        depth = textureGrad(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1]).r;
+                        depthX = textureGradOffset(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1], ivec2(1, 0)).r;
+                        depthY = textureGradOffset(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1], ivec2(0, 1)).r;
                     }
                     else {
                 #endif
@@ -131,8 +149,28 @@
 
             #ifdef PARALLAX_ENABLED
                 float viewDist = length(viewPos);
-                if (viewDist < PARALLAX_DISTANCE)
+                if (viewDist < PARALLAX_DISTANCE) {
                     atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, viewDist, texDepth, traceCoordDepth);
+
+                    #ifdef PARALLAX_DEPTH_WRITE
+                        float pomDist = (1.0 - traceCoordDepth.z) / max(-tanViewDir.z, 0.00001);
+
+                        if (pomDist > 0.0) {
+                            //float depth = linearizePerspectiveDepth(gl_FragCoord.z, gbufferProjection);
+                            //gl_FragDepth = delinearizePerspectiveDepth(depth + pomDist * (0.25 * PARALLAX_DEPTH), gbufferProjection);
+                            float depth = -viewPos.z + pomDist * PARALLAX_DEPTH;
+                            gl_FragDepth = 0.5 * (-gbufferProjection[2].z*depth + gbufferProjection[3].z) / depth + 0.5;
+                        }
+                        else {
+                            gl_FragDepth = gl_FragCoord.z;
+                        }
+                    #endif
+                }
+                #ifdef PARALLAX_DEPTH_WRITE
+                    else {
+                        gl_FragDepth = gl_FragCoord.z;
+                    }
+                #endif
             #endif
 
             vec4 colorMap = textureGrad(gtexture, atlasCoord, dFdXY[0], dFdXY[1]);

@@ -411,7 +411,7 @@
             #ifdef SSS_ENABLED
                 if (material.scattering > 0.0 && shadowSSS > 0.0) {
                     // Transmission
-                    vec3 sssDiffuseLight = material.albedo.rgb * pow2(shadowSSS) * skyLightColorFinal;// * skyLight;
+                    vec3 sssDiffuseLight = normalize(material.albedo.rgb) * pow2(shadowSSS) * skyLightColorFinal;// * skyLight;
 
                     float VoL = dot(-viewDir, viewLightDir);
                     sssDiffuseLight *= ComputeVolumetricScattering(VoL, 0.4);
@@ -517,11 +517,19 @@
                     vec3 scatterColor = WATER_SCATTER_COLOR * lightData.sunTransmittance * skyLight2 * shadowFinal;
 
                     float verticalDepth = 0.0;//waterDepthFinal * max(dot(viewLightDir, viewUpDir), 0.0);
-                    vec3 absorption = exp(-1.0 * (verticalDepth + waterDepthFinal) * extinctionInv);
-                    float inverseScatterAmount = saturate(1.0 - exp(-1.6 * waterDepthFinal));
+                    vec3 absorption = exp(-0.8 * (verticalDepth + waterDepthFinal) * extinctionInv);
+                    //float inverseScatterAmount = saturate(1.0 - exp(-1.4 * waterDepthFinal));
+                    
+
+                    float lightDepth = lightData.waterShadowDepth + waterDepthFinal;
+                    float inverseScatterAmount = saturate(1.0 - exp(-1.4 * lightDepth));
+
+                    if (lightData.waterShadowDepth < EPSILON) inverseScatterAmount = 1.0;
 
                     //diffuse = (refractColor + scatterColor * inverseScatterAmount) * absorption;
                     diffuse = refractColor * mix(vec3(1.0), scatterColor, inverseScatterAmount) * absorption;
+                    ambient = vec3(0.0);
+                    //specular = vec3(0.0);
                     //diffuse = refractColor * absorption;
                     //final.rgb = WATER_COLOR.rgb;
                     final.a = 1.0;
@@ -543,6 +551,10 @@
                     //diffuse = (diffuse + scatterColor * scatterAmount) * absorption;
                     //diffuse = scatterColor * scatterAmount * absorption;
                     diffuse *= absorption;
+
+                    ambient = vec3(0.0);
+                    //diffuse = vec3(0.0);
+                    //specular = vec3(0.0);
                     
                     //float alphaF = exp(-(waterViewDepth + lightData.waterShadowDepth));
                     float alphaF = exp(-waterViewDepth);

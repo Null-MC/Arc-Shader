@@ -41,11 +41,10 @@ void ChangeLuminance(inout vec3 color, const in float lumNew) {
 
 void main() {
     int tile = GetBloomTileOuterIndex(tileCount);
-
     vec3 final = vec3(0.0);
+
     if (tile >= 0) {
-        vec2 viewSize = vec2(viewWidth, viewHeight);
-        vec2 pixelSize = 1.0 / viewSize;
+        vec2 pixelSize = SSR_SCALE * rcp(vec2(viewWidth, viewHeight));
 
         vec2 tileMin, tileMax;
         GetBloomTileInnerBounds(tile, tileMin, tileMax);
