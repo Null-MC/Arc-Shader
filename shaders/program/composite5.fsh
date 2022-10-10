@@ -51,23 +51,17 @@ void main() {
             lum = 0.0;
         #endif
 
-        //vec2 pixelSize = SSR_SCALE * rcp(vec2(viewWidth, viewHeight));
-        //ivec2 iuv = ivec2(texcoord * pixelSize);
         float lumPrev = texelFetch(BUFFER_HDR_PREVIOUS, ivec2(gl_FragCoord.xy), 0).a;
 
         lumPrev = max(exp2(lumPrev) - EPSILON, 0.0);
-        //if (lumPrev < 1.0) lumPrev = lum;
-        //else lumPrev = max(exp2(lumPrev) - EPSILON, 0.0);
 
         lum = clamp(lum, 0.0, 1.0e6);
         lumPrev = clamp(lumPrev, 0.0, 1.0e6);
 
         float dir = step(lumPrev, lum);
         float speed = (1.0 - dir) * EXPOSURE_SPEED_DOWN + dir * EXPOSURE_SPEED_UP;
-        //float timeF = 0.01;//exp(-frameTime * TAU * speed);
 
         lum = lumPrev + (lum - lumPrev) * (1.0 - exp(-frameTime * speed));
-        //lum = clamp(lum, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
         lum = log2(lum + EPSILON);
     #endif
 

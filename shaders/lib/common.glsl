@@ -212,7 +212,7 @@ const bool colortex12Clear = false;
 #define EPSILON 1e-7
 #define GAMMA 2.2
 
-const float sunLumen = 20e6;
+const float sunLumen = 20e8;
 const float moonLumen = 8000.0;
 const float StarLumen = 1200.0;
 //const float BlockLightLumen = 2000;
@@ -233,8 +233,8 @@ const float NightSkyLumen = 1200.0;
 const float NightSkyOvercastLumen = 60.0;
 
 const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.06;
-const vec4 WATER_COLOR = vec4(vec3(0.0205, 0.0545, 0.0860)*4.0, 0.1);
-const vec3 WATER_SCATTER_COLOR = vec3(0.105, 0.645, 0.960);
+const vec4 WATER_COLOR = vec4(0.233, 0.362, 0.561, 0.1);
+const vec3 WATER_SCATTER_COLOR = vec3(0.427, 0.884, 0.843);
 //const vec3 WATER_SCATTER_COLOR = vec3(0.8, 0.0, 0.0);
 //const vec3 WATER_ABSORPTION = vec3(0.695, 0.555, 0.540)*2.0;
 //const vec3 WaterAbsorbtionExtinction = vec3(0.28, 0.34, 0.42); //0.54, 0.91, 0.93

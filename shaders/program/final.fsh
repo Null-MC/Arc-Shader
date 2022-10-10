@@ -154,11 +154,11 @@ out vec3 outColor0;
                 vec2 tileTex = texcoord * (tileMax - tileMin) + tileMin;
                 tileTex = clamp(tileTex, tileMin, tileMax);
 
-                bloom += textureLod(BUFFER_BLOOM, tileTex, 0).rgb;
+                bloom += textureLod(BUFFER_BLOOM, tileTex, 0).rgb;// * exp2(i);
             }
 
             bloom *= (0.01 * BLOOM_STRENGTH);
-            color += bloom;
+            color += bloom / sqrt(bloomTileCount);
         #endif
 
         #if CAMERA_BRIGHTNESS != 100
@@ -240,7 +240,7 @@ void main() {
         // Luminance
         float logLum = textureLod(BUFFER_LUMINANCE, texcoord, 0).r;
         float lum = exp2(logLum) - EPSILON;
-        color = vec3(lum * 1e-4);
+        color = vec3(lum * 1e-6);
 
         #if defined DEBUG_EXPOSURE_METERS && CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
             RenderLuminanceMeters(color, averageLuminance, EV100);

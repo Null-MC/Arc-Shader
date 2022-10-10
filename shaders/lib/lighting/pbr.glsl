@@ -411,7 +411,7 @@
             #ifdef SSS_ENABLED
                 if (material.scattering > 0.0 && shadowSSS > 0.0) {
                     // Transmission
-                    vec3 sssDiffuseLight = normalize(material.albedo.rgb) * pow2(shadowSSS) * skyLightColorFinal;// * skyLight;
+                    vec3 sssDiffuseLight = normalize(material.albedo.rgb) * shadowSSS * skyLightColorFinal;// * skyLight;
 
                     float VoL = dot(-viewDir, viewLightDir);
                     sssDiffuseLight *= ComputeVolumetricScattering(VoL, 0.4);
@@ -514,7 +514,7 @@
                     float waterDepthFinal = isEyeInWater == 1 ? waterSolidDepthFinal.x
                         : max(waterSolidDepthFinal.y - waterSolidDepthFinal.x, 0.0);
 
-                    vec3 scatterColor = WATER_SCATTER_COLOR * lightData.sunTransmittance * skyLight2 * shadowFinal;
+                    vec3 scatterColor = WATER_SCATTER_COLOR * lightData.sunTransmittance * skyLight2;// * shadowFinal;
 
                     float verticalDepth = 0.0;//waterDepthFinal * max(dot(viewLightDir, viewUpDir), 0.0);
                     vec3 absorption = exp(-0.8 * (verticalDepth + waterDepthFinal) * extinctionInv);

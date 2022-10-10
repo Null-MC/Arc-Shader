@@ -8,7 +8,7 @@
 in vec2 texcoord;
 in vec4 glcolor;
 //flat in vec2 skyLightLevels;
-flat in vec3 sunTransmittanceLum;
+flat in vec3 sunTransmittance;
 flat in float sunLightLevel;
 flat in float moonLightLevel;
 //flat in vec3 sunLightLumColor;
@@ -34,8 +34,8 @@ void main() {
     float lumF = 0.0;
 
     if (renderStage == MC_RENDER_STAGE_SUN) {
-        lumF += luminance(sunTransmittanceLum);
-        color *= sunTransmittanceLum;
+        lumF += sunLumen;// * sunLightLevel;//luminance(sunTransmittanceLum);
+        color *= sunTransmittance * 10000.0;
         lum *= sunLightLevel;
     }
     else if (renderStage == MC_RENDER_STAGE_MOON) {

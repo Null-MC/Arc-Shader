@@ -8,7 +8,7 @@
 out vec2 texcoord;
 out vec4 glcolor;
 //flat out vec2 skyLightLevels;
-flat out vec3 sunTransmittanceLum;
+flat out vec3 sunTransmittance;
 flat out float sunLightLevel;
 flat out float moonLightLevel;
 //flat out vec3 sunLightLumColor;
@@ -63,8 +63,7 @@ void main() {
 
     vec2 skyLightLevels = GetSkyLightLevels();
 
-    vec3 sunTransmittance = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
-    sunTransmittanceLum = sunTransmittance * sunLumen;
+    sunTransmittance = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
     sunLightLevel = luminance(sunTransmittance);
 
     vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);

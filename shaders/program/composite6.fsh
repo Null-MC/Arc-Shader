@@ -110,11 +110,15 @@ void main() {
 
         lum *= exposure;
         //lum /= 1.0 + 0.1*(exp2(0.1*tile) - 1.0);
-        lum /= 4.0 * exp2(tile);
+        //lum /= exp2(8.0 + 0.1*tile);
+        //lum *= 0.00001;
+        lum = pow(lum * (BLOOM_POWER*0.1), 1.8 + 0.1*tile);// * (tile+1)*10.0;
+        lum = min(lum, 1.0);
+        //lum = lum / (lum + 1.0);
         //lum = clamp(lum, 0.0, 65554.0);
         //lum = pow2(lum);
-        lum = lum / (lum + (11.0 - BLOOM_POWER));
-        lum *= exp2(tile);
+        //lum = lum / (lum + (11.0 - BLOOM_POWER));
+        //lum *= 0.6*exp2(4 + tile);
         //lum /= 0.0004*exp2(12.0 + 0.6*tile);
         //lum = pow(lum, tile);
         //lum = max(lum - 0.01*exp2(tile), 0.0);
@@ -123,5 +127,6 @@ void main() {
         //final = final / (final + 1.0);
     }
 
-    outColor0 = clamp(final, vec3(0.0), vec3(65000.0));// * exposure * 1000.0;
+    //final = clamp(final, vec3(0.0), vec3(65000.0));// * exposure * 1000.0;
+    outColor0 = final;
 }
