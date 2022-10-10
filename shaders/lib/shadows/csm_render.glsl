@@ -164,7 +164,7 @@
 
     // returns: [0] when depth occluded, [1] otherwise
     float CompareOpaqueDepth(const in vec3 shadowPos, const in vec2 pixelOffset, const in float bias) {
-        #if defined SHADOW_ENABLE_HWCOMP && defined IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+        #ifdef IRIS_FEATURE_SEPARATE_HARDWARE_SAMPLERS
             return textureLod(shadowtex1HW, shadowPos + vec3(pixelOffset, -bias), 0);
         #else
             float shadowDepth = textureLod(shadowtex1, shadowPos.xy + pixelOffset, 0).r;

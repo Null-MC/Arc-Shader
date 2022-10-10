@@ -226,15 +226,6 @@ value.SHADOW_BIAS_SCALE.2.3=230
 value.SHADOW_BIAS_SCALE.2.4=240
 value.SHADOW_BIAS_SCALE.2.5=250
 
-option.SHADOW_CSM_FITRANGE=Fit CSM to Shadow Range
-option.SHADOW_CSM_FITRANGE.comment=When enabled, all but the nearest cascade will be scaled to fit the shadow range.
-
-option.SHADOW_CSM_TIGHTEN=Fit CSM to Frustum
-option.SHADOW_CSM_TIGHTEN.comment=When enabled, the shadows cascades will be tightly fit to the view frustum to improve quality. Applies to CSM only. NOTE: disables entity shadows because Optifine bugs!
-
-option.SHADOW_ENABLE_HWCOMP=HW-Accelerated
-option.SHADOW_ENABLE_HWCOMP.comment=When enabled, shadows will leverage hardware-filtering for better quality and performance. NOTE: May only work on NVidia!
-
 
 screen.CAMERA_OPTIONS=Camera
 

@@ -1,10 +1,11 @@
 float SampleDepth(const in ivec2 itex) {
-    #ifdef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+    #ifdef IRIS_FEATURE_SEPARATE_HARDWARE_SAMPLERS
         return texelFetch(shadowtex1, itex, 0).r;
-    #elif defined SHADOW_ENABLE_HWCOMP
-        return texelFetch(shadowtex0, itex, 0).r;
+    //#elif defined SHADOW_ENABLE_HWCOMP
     #else
-        return texelFetch(shadowtex1, itex, 0).r;
+        return texelFetch(shadowtex0, itex, 0).r;
+    //#else
+    //    return texelFetch(shadowtex1, itex, 0).r;
     #endif
 }
 

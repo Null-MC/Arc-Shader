@@ -91,7 +91,7 @@ uniform float fogEnd;
         uniform mat4 shadowProjection;
         uniform mat4 shadowModelView;
 
-        #if defined SHADOW_ENABLE_HWCOMP && defined IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+        #ifdef IRIS_FEATURE_SEPARATE_HARDWARE_SAMPLERS
             uniform sampler2DShadow shadowtex1HW;
         #endif
 
@@ -122,9 +122,9 @@ uniform float fogEnd;
     uniform float darknessFactor;
 #endif
 
-#ifdef IS_OPTIFINE
+//#ifdef IS_OPTIFINE
     uniform float eyeHumidity;
-#endif
+//#endif
 
 #include "/lib/depth.glsl"
 #include "/lib/sampling/bayer.glsl"

@@ -643,7 +643,7 @@
 
             float vlScatter = GetScatteringFactor(sunLightLevel);
             vec3 vlColor = sunColor + moonColor;
-            if (isEyeInWater == 1) vlColor *= WATER_COLOR.rgb;
+            if (isEyeInWater == 1) vlColor *= normalize(WATER_COLOR.rgb);
 
             #ifdef SHADOW_COLOR
                 vec3 volScatter = GetVolumetricLightingColor(lightData, shadowViewStart, shadowViewEnd, vlScatter);

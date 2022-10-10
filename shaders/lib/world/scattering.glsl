@@ -9,9 +9,9 @@ float GetScatteringFactor(const in float sunLightLevel) {
 
     float scattering = mix(G_SCATTERING_NIGHT, G_SCATTERING_CLEAR, sunLightLevel);
 
-    #ifdef IS_OPTIFINE
+    //#ifdef IS_OPTIFINE
         scattering = mix(scattering, G_SCATTERING_HUMID, eyeHumidity);
-    #endif
+    //#endif
 
     scattering = mix(scattering, G_SCATTERING_RAIN, wetness); // rainStrength
 

@@ -18,9 +18,10 @@ const bool shadowcolor1Nearest = true;
 const bool shadowcolor1Clear = false;
 
 const bool generateShadowMipmap = true;
+
 const bool shadowtex0Mipmap = false;
-const bool shadowtex0Nearest = true;
-const bool shadowHardwareFiltering0 = false;
+const bool shadowtex0Nearest = false;
+const bool shadowHardwareFiltering0 = true;
 
 const bool shadowtex1Mipmap = false;
 const bool shadowtex1Nearest = false;

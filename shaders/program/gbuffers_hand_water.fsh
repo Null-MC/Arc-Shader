@@ -60,7 +60,7 @@ flat in mat2 atlasBounds;
             uniform sampler2D shadowtex0;
             uniform sampler2D shadowtex1;
         
-            #if defined SHADOW_ENABLE_HWCOMP && defined IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+            #ifdef IRIS_FEATURE_SEPARATE_HARDWARE_SAMPLERS
                 uniform sampler2DShadow shadowtex1HW;
             #endif
 
@@ -123,9 +123,9 @@ uniform int fogShape;
     uniform float darknessFactor;
 #endif
 
-#ifdef IS_OPTIFINE
+//#ifdef IS_OPTIFINE
     uniform float eyeHumidity;
-#endif
+//#endif
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     uniform sampler2D BUFFER_HDR_PREVIOUS;

@@ -28,9 +28,10 @@ uniform vec3 skyColor;
 uniform int moonPhase;
 
 #ifdef IS_OPTIFINE
-    uniform float eyeHumidity;
+    //uniform float eyeHumidity;
     uniform int worldTime;
 #endif
+    uniform float eyeHumidity;
 
 #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FANCY
     uniform sampler2D noisetex;

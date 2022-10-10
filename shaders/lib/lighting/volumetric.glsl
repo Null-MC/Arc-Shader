@@ -104,8 +104,9 @@ float _GetShadowLightScattering(const in vec3 ray, const in float G_scattering) 
     float VoL = dot(normalize(ray), sunDir);
 
     //float rayLen = min(length(ray) / (101.0 - VL_STRENGTH), 1.0);
-    float rayLen = min(length(ray) / far, 1.0);
-    return ComputeVolumetricScattering(VoL, G_scattering) * rayLen;
+    float rayLen = min(length(ray) / far, 1.0) * (0.01 * VL_STRENGTH);
+    float temp = ComputeVolumetricScattering(VoL, G_scattering) * rayLen;
+    return temp / (temp + 1.0);
 }
 
 #ifdef SHADOW_COLOR

@@ -19,11 +19,12 @@
     uniform usampler2D shadowcolor1;
     uniform sampler2D depthtex0;
 
-    #if defined SHADOW_ENABLE_HWCOMP && !defined IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+    //#if defined SHADOW_ENABLE_HWCOMP && !defined IRIS_FEATURE_SEPARATE_HW_SAMPLERS
+    //#ifndef IRIS_FEATURE_SEPARATE_HW_SAMPLERS
         uniform sampler2D shadowtex0;
-    #else
-        uniform sampler2D shadowtex1;
-    #endif
+    //#else
+    //    uniform sampler2D shadowtex1;
+    //#endif
 
     uniform mat4 gbufferProjectionInverse;
     uniform mat4 gbufferModelViewInverse;
