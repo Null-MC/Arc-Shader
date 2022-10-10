@@ -151,7 +151,7 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
             }
         #endif
 
-        fogColorLinear = mix(fogColorLinear, FOG_RAIN_COLOR, rainStrength);
+        fogColorLinear *= 1.0 - 0.8 * rainStrength;
 
         #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED)
             vec3 upDir = gbufferModelView[1].xyz;
@@ -180,7 +180,7 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
             }
         #endif
 
-        fogColorLinear = mix(fogColorLinear, FOG_RAIN_COLOR, rainStrength);
+        fogColorLinear *= 1.0 - 0.8 * rainStrength;
 
         #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED)
             vec3 upDir = gbufferModelView[1].xyz;

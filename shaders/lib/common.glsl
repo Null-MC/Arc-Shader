@@ -77,6 +77,7 @@ const bool colortex12Clear = false;
 #define ATMOSFOG_ENABLED
 //#define CAVEFOG_ENABLED
 #define WEATHER_OPACITY 40 // [10 20 30 40 50 60 70 80 90 100]
+#define ATMOS_EXTINCTION 0.0025
 
 
 // Shadow Options
@@ -108,7 +109,7 @@ const bool colortex12Clear = false;
 #define SSS_ENABLED
 #define SSS_SCATTER
 #define SSS_DITHER
-#define SSS_STRENGTH 1 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
+#define SSS_STRENGTH 10 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
 #define SSS_MAXDIST 6 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
 #define SSS_PCF_SIZE 4.0 // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
@@ -192,10 +193,10 @@ const bool colortex12Clear = false;
 #define SSR_STEPS 256 // [128 256 512]
 //#define SHADOW_CONTACT
 //#define SHADOW_CONTACT_DITHER
-#define SKY_DITHER
+//#define SKY_DITHER
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
-#define ATMOS_EXTINCTION 0.003
+#define REFRACTION_STRENGTH 0 // [0 5 10 15 20]
 
 
 // INTERNAL
@@ -231,9 +232,9 @@ const float DaySkyOvercastLumen = 10000.0;
 const float NightSkyLumen = 1200.0;
 const float NightSkyOvercastLumen = 60.0;
 
-const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.06;
-const vec4 WATER_COLOR = vec4(0.233, 0.362, 0.561, 0.1);
-const vec3 WATER_SCATTER_COLOR = vec3(0.427, 0.884, 0.843);
+const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.2;
+const vec4 WATER_COLOR = vec4(0.393, 0.641, 0.848, 0.1);
+const vec3 WATER_SCATTER_COLOR = vec3(0.264, 0.874, 0.726);
 //const vec3 WATER_SCATTER_COLOR = vec3(0.8, 0.0, 0.0);
 //const vec3 WATER_ABSORPTION = vec3(0.695, 0.555, 0.540)*2.0;
 //const vec3 WaterAbsorbtionExtinction = vec3(0.28, 0.34, 0.42); //0.54, 0.91, 0.93

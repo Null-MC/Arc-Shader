@@ -1,6 +1,6 @@
 float GetFogFactor(const in float viewDist, const in float start, const in float end, const in float density) {
     float distFactor = min(max(viewDist - start, 0.0) / (end - start), 1.0);
-    return pow(distFactor, density);
+    return saturate(pow(distFactor, density));
 }
 
 float GetCaveFogFactor(const in float viewDist) {

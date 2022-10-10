@@ -37,11 +37,12 @@ flat in mat2 atlasBounds;
 
 #ifdef SKY_ENABLED
     flat in vec2 skyLightLevels;
+    flat in vec3 sunColor;
     flat in vec3 moonColor;
 
     uniform sampler2D colortex9;
 
-    //uniform float eyeAltitude;
+    uniform float eyeAltitude;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
     uniform float rainStrength;

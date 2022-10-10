@@ -72,10 +72,13 @@
             //float NoRm = max(dot(reflectDir, -viewNormal), 0.0);
             //reflectF *= 1.0 - pow(NoRm, 0.5);
 
-            vec3 sunColor = lightData.sunTransmittance * GetSunLux();
-
             vec3 skyLumen = GetVanillaSkyLuminance(reflectDir);
-            vec3 skyScatter = GetVanillaSkyScattering(reflectDir, lightData.skyLightLevels.x, sunColor, moonColor);
+            vec3 skyScatter = vec3(0.0);
+
+            #ifdef VL_ENABLED
+                vec3 sunColor = lightData.sunTransmittance * GetSunLux();
+                skyScatter = GetVanillaSkyScattering(reflectDir, lightData.skyLightLevels.x, sunColor, moonColor);
+            #endif
 
             // TODO: clamp skyScatter?
             //skyScatter = min(skyScatter, 65554.0);
@@ -189,8 +192,8 @@
         float shadowSSS = 0.0;
 
         #ifdef SKY_ENABLED
-            vec2 skyLightLevels = GetSkyLightLevels();
-            float sunLightLevel = GetSunLightLevel(skyLightLevels.x);
+            //vec2 skyLightLevels = GetSkyLightLevels();
+            float sunLightLevel = GetSunLightLevel(lightData.skyLightLevels.x);
             float sssDist = 0.0;
 
             shadow *= step(EPSILON, lightData.geoNoL);
@@ -325,11 +328,12 @@
         vec3 ambient = vec3(MinWorldLux + blockLightAmbient);
         vec3 diffuse = vec3(0.0);
         vec3 specular = vec3(0.0);
-        float occlusion = material.occlusion * lightData.occlusion;
+        float occlusion = lightData.occlusion * material.occlusion;
 
-        #ifdef SSAO_ENABLED
-            occlusion *= textureLod(BUFFER_AO, texcoord, 0).r;
-        #endif
+        // ERROR: The occlusion multiply above is what's causing the vanilla water texture to be visible!
+        //#ifdef SSAO_ENABLED
+        //    occlusion *= textureLod(BUFFER_AO, texcoord, 0).r;
+        //#endif
 
         vec3 iblF = vec3(0.0);
         vec3 iblSpec = vec3(0.0);
@@ -411,7 +415,7 @@
             #ifdef SSS_ENABLED
                 if (material.scattering > 0.0 && shadowSSS > 0.0) {
                     // Transmission
-                    vec3 sssDiffuseLight = normalize(material.albedo.rgb) * shadowSSS * skyLightColorFinal;// * skyLight;
+                    vec3 sssDiffuseLight = normalize(material.albedo.rgb) * pow2(shadowSSS) * skyLightColorFinal;// * skyLight;
 
                     float VoL = dot(-viewDir, viewLightDir);
                     sssDiffuseLight *= ComputeVolumetricScattering(VoL, 0.4);
@@ -421,7 +425,7 @@
                     sssDiffuseLight *= exp(-extDistF * (1.0 - material.albedo.rgb));
                     //sssDiffuseLight *= exp(-extDistF);
 
-                    sunDiffuse += sssDiffuseLight * SSS_STRENGTH;// * max(NoL, 0.0);
+                    sunDiffuse += sssDiffuseLight * (0.1 * SSS_STRENGTH);// * max(NoL, 0.0);
                 }
             #endif
 
@@ -435,6 +439,18 @@
                 specular += sunSpec;// * material.albedo.a;
 
                 final.a = min(final.a + luminance(sunSpec) * exposure, 1.0);
+            }
+        #endif
+
+        #if defined HANDLIGHT_ENABLED && !defined RENDER_HAND && !defined RENDER_HAND_WATER
+            if (heldBlockLightValue + heldBlockLightValue2 > EPSILON) {
+                vec3 handDiffuse, handSpecular;
+                ApplyHandLighting(handDiffuse, handSpecular, material.albedo.rgb, f0, material.hcm, material.scattering, viewNormal, viewPos.xyz, viewDir, NoVm, roughL);
+
+                diffuse += handDiffuse;
+                specular += handSpecular;
+
+                final.a = min(final.a + luminance(handSpecular) * exposure, 1.0);
             }
         #endif
 
@@ -461,7 +477,8 @@
                         vec2 refractOffset = refractDir.xy;
 
                         // scale down contact point to avoid tearing
-                        refractOffset = min(0.1 * refractOffset * refractDist, vec2(0.2));
+                        vec2 minMax = vec2(0.01 * REFRACTION_STRENGTH);
+                        refractOffset = clamp(0.1 * refractOffset * refractDist, -minMax, minMax);
 
                         // scale down with distance
                         //float distF = 1.0 - saturate((viewDist - near) / (far - near));
@@ -514,24 +531,16 @@
                     float waterDepthFinal = isEyeInWater == 1 ? waterSolidDepthFinal.x
                         : max(waterSolidDepthFinal.y - waterSolidDepthFinal.x, 0.0);
 
-                    vec3 scatterColor = WATER_SCATTER_COLOR * lightData.sunTransmittance * skyLight2;// * shadowFinal;
+                    vec3 scatterColor = WATER_SCATTER_COLOR * lightData.sunTransmittanceEye;// * skyLight2;// * shadowFinal;
+                    //float lightDepth = lightData.waterShadowDepth + waterDepthFinal;
 
-                    float verticalDepth = 0.0;//waterDepthFinal * max(dot(viewLightDir, viewUpDir), 0.0);
-                    vec3 absorption = exp(-0.8 * (verticalDepth + waterDepthFinal) * extinctionInv);
-                    //float inverseScatterAmount = saturate(1.0 - exp(-1.4 * waterDepthFinal));
-                    
+                    vec3 absorption = exp(-2.0 * waterDepthFinal * extinctionInv);
+                    float inverseScatterAmount = saturate(1.0 - exp(-1.0 * waterDepthFinal));
 
-                    float lightDepth = lightData.waterShadowDepth + waterDepthFinal;
-                    float inverseScatterAmount = saturate(1.0 - exp(-1.4 * lightDepth));
+                    //if (lightData.waterShadowDepth < EPSILON) inverseScatterAmount = 1.0;
 
-                    if (lightData.waterShadowDepth < EPSILON) inverseScatterAmount = 1.0;
-
-                    //diffuse = (refractColor + scatterColor * inverseScatterAmount) * absorption;
                     diffuse = refractColor * mix(vec3(1.0), scatterColor, inverseScatterAmount) * absorption;
                     ambient = vec3(0.0);
-                    //specular = vec3(0.0);
-                    //diffuse = refractColor * absorption;
-                    //final.rgb = WATER_COLOR.rgb;
                     final.a = 1.0;
                 #else
                     //float waterSurfaceDepth = textureLod(shadowtex0);
@@ -561,18 +570,6 @@
                     final.a = min(final.a + (1.0 - saturate(alphaF)), 1.0);// * (1.0 - material.albedo.a);// * max(1.0 - final.a, 0.0);
                     //final.a = 1.0;
                 #endif
-            }
-        #endif
-
-        #if defined HANDLIGHT_ENABLED && !defined RENDER_HAND && !defined RENDER_HAND_WATER
-            if (heldBlockLightValue + heldBlockLightValue2 > EPSILON) {
-                vec3 handDiffuse, handSpecular;
-                ApplyHandLighting(handDiffuse, handSpecular, material.albedo.rgb, f0, material.hcm, material.scattering, viewNormal, viewPos.xyz, viewDir, NoVm, roughL);
-
-                diffuse += handDiffuse;
-                specular += handSpecular;
-
-                final.a = min(final.a + luminance(handSpecular) * exposure, 1.0);
             }
         #endif
 
@@ -610,8 +607,8 @@
 
             #ifdef SKY_ENABLED
                 // TODO: Get this outa here (vertex shader)
-                vec2 skyLightLevels = GetSkyLightLevels();
-                vec3 skyLightLuxColor = GetSkyLightLuxColor(skyLightLevels);
+                //vec2 skyLightLevels = GetSkyLightLevels();
+                vec3 skyLightLuxColor = GetSkyLightLuxColor(lightData.skyLightLevels);
             #else
                 vec3 skyLightLuxColor = vec3(100.0);
             #endif
@@ -641,8 +638,20 @@
             vec3 shadowViewStart = (matViewToShadowView * vec4(vec3(0.0, 0.0, -near), 1.0)).xyz;
             vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
 
-            float vlScatter = GetScatteringFactor(sunLightLevel);
-            vec3 vlColor = sunColor + moonColor;
+            float vlScatter = GetScatteringFactor(lightData.skyLightLevels.x);
+            //vec3 vlColor = sunColor + moonColor;
+            vec3 vlColor = vec3(0.0);
+
+            vec3 sunDir = normalize(sunPosition);
+            float sun_VoL = dot(-viewDir, sunDir);
+            float sunScattering = ComputeVolumetricScattering(sun_VoL, vlScatter);
+            vlColor += max(sunScattering, 0.0) * lightData.sunTransmittanceEye * GetSunLux();
+
+            vec3 moonDir = normalize(moonPosition);
+            float moon_VoL = dot(-viewDir, moonDir);
+            float moonScattering = ComputeVolumetricScattering(moon_VoL, vlScatter);
+            vlColor += max(moonScattering, 0.0) * moonColor;
+
             if (isEyeInWater == 1) vlColor *= normalize(WATER_COLOR.rgb);
 
             #ifdef SHADOW_COLOR
@@ -651,7 +660,7 @@
                 float volScatter = GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd, vlScatter);
             #endif
             
-            final.rgb += volScatter * vlColor;
+            final.rgb += vlColor * (0.01 * VL_STRENGTH);
         #endif
 
         return final;

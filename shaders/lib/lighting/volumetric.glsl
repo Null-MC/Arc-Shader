@@ -104,9 +104,9 @@ float _GetShadowLightScattering(const in vec3 ray, const in float G_scattering) 
     float VoL = dot(normalize(ray), sunDir);
 
     //float rayLen = min(length(ray) / (101.0 - VL_STRENGTH), 1.0);
-    float rayLen = min(length(ray) / far, 1.0) * (0.01 * VL_STRENGTH);
-    float temp = ComputeVolumetricScattering(VoL, G_scattering) * rayLen;
-    return temp / (temp + 1.0);
+    float rayLen = min(length(ray) / far, 1.0);// * (0.01 * VL_STRENGTH);
+    return ComputeVolumetricScattering(VoL, G_scattering) * rayLen;
+    //return temp / (temp + 1.0);
 }
 
 #ifdef SHADOW_COLOR
@@ -114,6 +114,8 @@ float _GetShadowLightScattering(const in vec3 ray, const in float G_scattering) 
         vec3 ray = shadowViewEnd - shadowViewStart;
         float scattering = _GetShadowLightScattering(ray, G_scattering);
         if (scattering < EPSILON) return vec3(0.0);
+
+        //scattering /= scattering + 1.0;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             return GetVolumetricColor(lightData, shadowViewStart, shadowViewEnd) * scattering;
@@ -126,6 +128,8 @@ float _GetShadowLightScattering(const in vec3 ray, const in float G_scattering) 
         vec3 ray = shadowViewEnd - shadowViewStart;
         float scattering = _GetShadowLightScattering(ray, G_scattering);
         if (scattering < EPSILON) return 0.0;
+
+        //scattering /= scattering + 1.0;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             return GetVolumetricFactor(lightData, shadowViewStart, shadowViewEnd) * scattering;

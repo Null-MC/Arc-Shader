@@ -107,12 +107,9 @@ void main() {
             vec3 sunDir = normalize(sunPosition);
             float sun_VoL = dot(viewDir, sunDir);
             float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering);
-            vlColor += sunScattering * sunTransmittance * GetSunLux();
+            //sunScattering /= sunScattering + 1.0;
 
-            vec3 moonDir = normalize(moonPosition);
-            float moon_VoL = dot(viewDir, moonDir);
-            float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering);
-            vlColor += moonScattering * moonColor;
+            vlColor += sunTransmittance * GetSunLux() * (0.01 * VL_STRENGTH);
 
             sky += vlColor;
         #endif
@@ -121,12 +118,12 @@ void main() {
         color += sky;
     #endif
 
-    #ifdef SKY_DITHER
-        float offset = 0.1;//lum / (lum + 1.0);
-        float b = GetScreenBayerValue();
-        color *= (1.0 - offset) + offset * b;
-        //lum -= b;
-    #endif
+    // #ifdef SKY_DITHER
+    //     float offset = 0.1;//lum / (lum + 1.0);
+    //     float b = GetScreenBayerValue();
+    //     color *= (1.0 - offset) + offset * b;
+    //     //lum -= b;
+    // #endif
 
     outColor1 = log2(lum + EPSILON);
     outColor0 = clamp(color * exposure, vec3(0.0), vec3(65000));

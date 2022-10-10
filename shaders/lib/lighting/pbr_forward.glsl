@@ -42,7 +42,8 @@
         #ifdef SKY_ENABLED
             float worldY = localPos.y + cameraPosition.y;
             lightData.skyLightLevels = skyLightLevels;
-            lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
+            lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x) * sunColor;
+            lightData.sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x) * sunColor;
         #endif
 
         #ifdef PARALLAX_ENABLED

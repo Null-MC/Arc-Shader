@@ -24,10 +24,12 @@ flat out vec3 blockLightColor;
     flat out vec2 skyLightLevels;
     flat out vec3 sunColor;
     flat out vec3 moonColor;
+    flat out vec3 sunTransmittanceEye;
 
-    //uniform sampler2D colortex7;
+    uniform sampler2D colortex7;
 
     uniform vec3 skyColor;
+    uniform float eyeAltitude;
 
     #ifdef SHADOW_ENABLED
         //flat out vec3 skyLightColor;
@@ -79,7 +81,7 @@ uniform int moonPhase;
 #endif
 
 #include "/lib/lighting/blackbody.glsl"
-//#include "/lib/world/sun.glsl"
+#include "/lib/world/sun.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/camera/exposure.glsl"
 
@@ -99,6 +101,8 @@ void main() {
         moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
 
         sunColor = blackbody(5500.0);
+
+        sunTransmittanceEye = GetSunTransmittance(colortex7, eyeAltitude, skyLightLevels.x) * sunColor;
 
         //skyLightColor = GetSkyLightLuxColor(skyLightLevels);
         //skyLightColor = sunColor + moonColor; // TODO: get rid of this variable
