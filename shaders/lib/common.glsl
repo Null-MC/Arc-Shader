@@ -87,7 +87,7 @@ const bool colortex12Clear = false;
 #define SHADOW_PCF_SAMPLES 12 // [12 24 36]
 //#define SHADOW_EXCLUDE_ENTITIES
 //#define SHADOW_EXCLUDE_FOLIAGE
-#define SHADOW_COLOR
+//#define SHADOW_COLOR
 #define SHADOW_DITHER
 //#define SHADOW_PARTICLES
 #define SHADOW_BIAS_SCALE 1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5]
@@ -155,12 +155,13 @@ const bool colortex12Clear = false;
 #define RSM_DITHER
 #define BLOOM_ENABLED
 #define BLOOM_SMOOTH
-#define BLOOM_SCALE 60.0
+//#define BLOOM_SCALE 60.0
+#define BLOOM_THRESHOLD 0.28
+#define BLOOM_POWER 3.0
 #define BLOOM_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
-#define BLOOM_POWER 5 // [1 2 3 4 5 6 7 8 9 10]
 #define VL_ENABLED
 #define VL_DITHER
-#define VL_STRENGTH 200 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 175 200 225 250 275 300 350 400 450 500 600 700 800 900]
+#define VL_STRENGTH 150 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 175 200 225 250 275 300 350 400 450 500 600 700 800 900]
 #define VL_SAMPLE_COUNT 30 // [15 30 60 90]
 //#define VL_PARTICLES
 #define G_SCATTERING_CLEAR 0.28 // 0.96
@@ -216,14 +217,14 @@ const float sunLumen = 20e8;
 const float moonLumen = 8000.0;
 const float StarLumen = 1200.0;
 //const float BlockLightLumen = 2000;
-const float EmissionLumens = 1.0e6;
+const float EmissionLumens = 1.0e5;
 
 const float SunLux = 64000.0;
 const float SunOvercastLux = 1600; //600.0;
 const float MoonLux = 48.0;
 const float MoonOvercastLux = 2.0;
-const float BlockLightLux = 3400.0; // 9k
-const float DaySkyLux = 20000.0;
+const float BlockLightLux = 12800.0; // 9k
+const float DaySkyLux = 30000.0;
 const float NightSkyLux = 2.0;
 const float MinWorldLux = 8.0;
 
@@ -233,11 +234,8 @@ const float NightSkyLumen = 1200.0;
 const float NightSkyOvercastLumen = 60.0;
 
 const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.2;
-const vec4 WATER_COLOR = vec4(0.393, 0.641, 0.848, 0.1);
-const vec3 WATER_SCATTER_COLOR = vec3(0.264, 0.874, 0.726);
-//const vec3 WATER_SCATTER_COLOR = vec3(0.8, 0.0, 0.0);
-//const vec3 WATER_ABSORPTION = vec3(0.695, 0.555, 0.540)*2.0;
-//const vec3 WaterAbsorbtionExtinction = vec3(0.28, 0.34, 0.42); //0.54, 0.91, 0.93
+const vec4 WATER_COLOR = vec4(0.388, 0.515, 0.621, 0.1);
+const vec3 WATER_SCATTER_COLOR = vec3(0.393, 0.732, 0.650);
 
 const vec3 minLight = vec3(0.01);
 const float tile_dist_bias_factor = 0.012288;

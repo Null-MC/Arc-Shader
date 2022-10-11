@@ -108,9 +108,12 @@ void main() {
             vec3 sunDir = normalize(sunPosition);
             float sun_VoL = dot(viewDir, sunDir);
             float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering);
-            //sunScattering /= sunScattering + 1.0;
-
             vlColor += max(sunScattering, 0.0) * sunTransmittance * GetSunLux();// * sunColor;
+
+            vec3 moonDir = normalize(moonPosition);
+            float moon_VoL = dot(viewDir, moonDir);
+            float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering);
+            vlColor += max(moonScattering, 0.0) * moonColor;
 
             sky += vlColor * (0.01 * VL_STRENGTH);
         #endif

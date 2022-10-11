@@ -650,7 +650,7 @@
             vec3 moonDir = normalize(moonPosition);
             float moon_VoL = dot(-viewDir, moonDir);
             float moonScattering = ComputeVolumetricScattering(moon_VoL, vlScatter);
-            //vlColor += max(moonScattering, 0.0) * moonColor;
+            vlColor += max(moonScattering, 0.0) * moonColor;
 
             if (isEyeInWater == 1) vlColor *= normalize(WATER_COLOR.rgb);
 

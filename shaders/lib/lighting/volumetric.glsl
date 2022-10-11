@@ -49,8 +49,10 @@
                 #endif
 
                 vec3 shadowColor = GetShadowColor(lightData);
-                shadowColor = RGBToLinear(shadowColor);
-                accumCol += normalize(shadowColor);// * depthSample;
+                if (dot(shadowColor, shadowColor) > EPSILON) {
+                    shadowColor = RGBToLinear(shadowColor);
+                    accumCol += normalize(shadowColor);// * depthSample;
+                }
             }
         }
 

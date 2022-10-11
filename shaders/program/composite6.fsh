@@ -49,20 +49,8 @@ void main() {
         vec2 tileMin, tileMax;
         GetBloomTileInnerBounds(tile, tileMin, tileMax);
 
-        //vec4 clipPos = vec4(texcoord, 0.0, 1.0);
-
-        //ivec2 itex = ivec2(texcoord * viewSize);
-        //float clipDepth = texelFetch(depthtex0, itex, 0).r;
-        //float depthLinear = linearizeDepth(clipDepth * 2.0 - 1.0, near, far);
-        //float depthFactor = clamp(1.0 - (depthLinear - near) / far, 0.0, 1.0);
-        //clipPos = clipPos * 2.0 - 1.0;
-
-        //vec4 viewPos = gbufferProjectionInverse * clipPos;
-        //viewPos.xyz /= viewPos.w;
-
         vec2 tileSize = tileMax - tileMin;
         vec2 tileTex = (texcoord - tileMin) / tileSize;
-        //tileTex = clamp(tileTex, 0.5 * pixelSize, 1.0 - 0.5 * pixelSize);
 
         #ifdef BLOOM_SMOOTH
             int t = tile+1;//max(tile - 1, 0);
@@ -89,44 +77,15 @@ void main() {
         #else
             final = textureLod(BUFFER_HDR, tileTex, tile+1).rgb;// / exposure;
             float lum = textureLod(BUFFER_LUMINANCE, tileTex, tile+1).r;
-            //final = changeLum(final, (log2(lum) - EPSILON) * exposure);
         #endif
 
         lum = max(exp2(lum) - EPSILON, 0.0);
 
-        // WARN: this is a hacky fix for the NaN's that are coming through
-        //final = clamp(final, vec3(0.0), vec3(10.0));
-
-        //final *= (0.5 + 0.5 * depthFactor);
-
-        //final /= exposure;
-        //float lum = luminance(final);
-
-        //lum /= clamp(exp2(5.0 + 0.2 * tile), 0.001, 1000);
-        //float lum = luminance(final);
-
-        //float lumNew = (lum * BLOOM_SCALE) / exp2(BLOOM_POWER + tile);
-        //final *= (lumNew / max(lum, EPSILON));
-
         lum *= exposure;
-        //lum /= 1.0 + 0.1*(exp2(0.1*tile) - 1.0);
-        //lum /= exp2(8.0 + 0.1*tile);
-        //lum *= 0.00001;
-        lum = pow(lum * (BLOOM_POWER*0.1), 1.8 + 0.1*tile);// * (tile+1)*10.0;
+        lum = pow(lum * BLOOM_THRESHOLD, BLOOM_POWER) * exp2(3.0 + 0.5*tile);
         lum = min(lum, 1.0);
-        //lum = lum / (lum + 1.0);
-        //lum = clamp(lum, 0.0, 65554.0);
-        //lum = pow2(lum);
-        //lum = lum / (lum + (11.0 - BLOOM_POWER));
-        //lum *= 0.6*exp2(4 + tile);
-        //lum /= 0.0004*exp2(12.0 + 0.6*tile);
-        //lum = pow(lum, tile);
-        //lum = max(lum - 0.01*exp2(tile), 0.0);
         ChangeLuminance(final, lum);
-
-        //final = final / (final + 1.0);
     }
 
-    //final = clamp(final, vec3(0.0), vec3(65000.0));// * exposure * 1000.0;
     outColor0 = final;
 }
