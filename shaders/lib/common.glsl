@@ -192,7 +192,7 @@ const bool colortex12Clear = false;
 #define HCM_AMBIENT 0.5
 #define SSR_SCALE 4 // [1 2 4]
 #define SSR_STEPS 256 // [128 256 512]
-//#define SHADOW_CONTACT
+#define SHADOW_CONTACT 1 // [0 1 2]
 //#define SHADOW_CONTACT_DITHER
 //#define SKY_DITHER
 //#define AF_ENABLED
@@ -342,8 +342,6 @@ const float drynessHalflife = 10.0;
 #ifdef SHADOW_CSM_TIGHTEN
 #endif
 #ifdef SHADOW_PARTICLES
-#endif
-#ifdef SHADOW_CONTACT
 #endif
 #ifdef RSM_ENABLED
 #endif

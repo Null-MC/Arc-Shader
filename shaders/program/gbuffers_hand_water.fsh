@@ -182,7 +182,7 @@ uniform int fogShape;
         #endif
     #endif
 
-    #ifdef SHADOW_CONTACT
+    #if SHADOW_CONTACT != SHADOW_CONTACT_NONE
         #include "/lib/shadows/contact.glsl"
     #endif
 #endif

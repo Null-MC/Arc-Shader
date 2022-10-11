@@ -200,7 +200,7 @@
             shadow *= step(EPSILON, NoL);
 
             float contactShadow = 1.0;
-            #ifdef SHADOW_CONTACT
+            #if SHADOW_CONTACT != SHADOW_CONTACT_NONE
                 if (shadow > EPSILON) {
                     vec3 shadowRay = viewLightDir * 10.0;
                     contactShadow = GetContactShadow(depthtex1, viewPos, shadowRay);
@@ -209,21 +209,6 @@
             #endif
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                // #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                //     int shadowCascade;
-                //     float opaqueShadowDepth = GetNearestDepth(lightData, vec2(0.0), shadowCascade);
-                // #else
-                //     float opaqueShadowDepth = SampleDepth(lightData.shadowPos, vec2(0.0));
-                // #endif
-
-                // #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                //     bool isInBounds = false;
-                //     for (int i = 0; i < 4 && !isInBounds; i++) {
-                //         isInBounds = clamp(lightData.shadowPos[i], vec3(0.0), vec3(1.0)) == lightData.shadowPos[i];
-                //     }
-                // #else
-                //     bool isInBounds = clamp(lightData.shadowPos.xyz, vec3(0.0), vec3(1.0)) == lightData.shadowPos.xyz;
-                // #endif
                 bool isInBounds = lightData.opaqueShadowDepth < 1.0 - EPSILON;
 
                 if (isInBounds) {
@@ -241,26 +226,20 @@
                             // TODO: use depth for extinction
                         }
                     #endif
-                }
-                else {
-                    //albedo = vec3(1.0, 0.0, 0.0);
-                    //shadow = 0.0;//contactShadow;
-                    //shadowSSS = material.scattering * contactShadow;
-                    //shadowSSS = 0.0;
-                    //shadowColor = vec3(1.0, 0.0, 0.0);
+
+                    #if SHADOW_CONTACT == SHADOW_CONTACT_FAR
+                        contactShadow = 1.0;
+                    #endif
                 }
 
-                //if (shadowSSS >= 0.98) shadowSSS = 1.0;
                 if (shadowSSS >= 1.0 - EPSILON) shadowSSS = 0.0;
             #else
                 shadow = pow2(skyLight) * lightData.occlusion;
                 shadowSSS = pow2(skyLight) * material.scattering;
             #endif
 
-            #ifdef SHADOW_CONTACT
+            #if SHADOW_CONTACT != 0
                 shadow = min(shadow, contactShadow);
-
-                //shadowSSS = min(shadowSSS, material.scattering * contactShadow);
             #endif
         #endif
 
@@ -374,45 +353,10 @@
             float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength);// * SHADOW_BRIGHTNESS;
             vec3 skyAmbient = GetSkyAmbientLight(lightData, viewNormal);
 
-            //#ifdef SSS_ENABLED
-            //    vec3 skyAmbientSSS = GetSkyAmbientLight(-viewNormal) * invPI;
-            //#endif
-
             sunLux = GetSunLux();
             vec3 sunColor = lightData.sunTransmittance * sunLux;
 
             vec3 skyLightColorFinal = (sunColor + moonColor) * shadowColor;
-            //float diffuseLightF = shadowFinal;
-
-            #ifdef RENDER_DEFERRED
-                if (isEyeInWater == 1) {
-                    //vec3 extinctionInv = 1.0 - WATER_COLOR.rgb;
-                    //vec3 absorption = exp(-lightData.waterShadowDepth * extinctionInv) * shadowFinal;
-
-
-                    //vec3 scatterColor = material.albedo.rgb * skyLightColorFinal;// * shadowFinal;
-                    //float skyLight5 = pow5(skyLight);
-                    //float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
-                    //vec3 scatterColor = vec3(0.0178, 0.0566, 0.0754) * skyLight2 * pow3(eyeLight);// * shadowFinal;
-                    //vec3 extinctionInv = 1.0 - WaterAbsorbtionExtinction;
-                    vec3 extinctionInv = 1.0 - WATER_COLOR.rgb;
-
-                    //float verticalDepth = waterDepthFinal * max(dot(viewLightDir, viewUpDir), 0.0);
-                    //vec3 absorption = exp(extinctionInv * -(verticalDepth + waterDepthFinal));
-                    vec3 absorption = exp(-(lightData.opaqueScreenDepth + lightData.waterShadowDepth) * extinctionInv);// * shadowFinal;
-                    //float inverseScatterAmount = 1.0 - exp(-0.11 * lightData.opaqueScreenDepth);
-
-                    //final.rgb = (final.rgb + scatterColor * inverseScatterAmount) * absorption;
-                    skyLightColorFinal *= absorption;
-
-                    vec3 ambientAbsorption = exp(-lightData.opaqueScreenDepth * extinctionInv);
-                    skyAmbient *= ambientAbsorption * skyLight3;
-
-                    //#ifdef SSS_ENABLED
-                    //    skyAmbientSSS *= absorption;
-                    //#endif
-                }
-            #endif
 
             ambient += skyAmbient * ambientBrightness;
             //return vec4(ambient, 1.0);
@@ -557,8 +501,6 @@
                     vec3 absorption = exp(-2.0 * waterDepthFinal * extinctionInv);
                     float inverseScatterAmount = saturate(1.0 - exp(-1.0 * waterDepthFinal));
 
-                    //if (lightData.waterShadowDepth < EPSILON) inverseScatterAmount = 1.0;
-
                     diffuse = refractColor * mix(vec3(1.0), scatterColor, inverseScatterAmount) * absorption;
                     ambient = vec3(0.0);
                     final.a = 1.0;
@@ -622,6 +564,29 @@
 
         final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
 
+        #if defined SKY_ENABLED && defined RENDER_DEFERRED
+            if (isEyeInWater == 1) {
+                vec3 extinctionInv = 1.0 - WATER_COLOR.rgb;
+
+                //vec3 absorption = exp(-(lightData.opaqueScreenDepth + lightData.waterShadowDepth) * extinctionInv);// * shadowFinal;
+
+                //skyLightColorFinal *= absorption;
+
+                //vec3 ambientAbsorption = exp(-lightData.opaqueScreenDepth * extinctionInv);
+                //skyAmbient *= ambientAbsorption * skyLight3;
+
+                float waterDepthFinal = lightData.opaqueScreenDepth;
+
+                vec3 scatterColor = WATER_SCATTER_COLOR * lightData.sunTransmittanceEye;// * skyLight2;// * shadowFinal;
+                //float lightDepth = lightData.waterShadowDepth + waterDepthFinal;
+
+                vec3 absorption = exp(-2.0 * waterDepthFinal * extinctionInv);
+                float inverseScatterAmount = saturate(1.0 - exp(-1.0 * waterDepthFinal));
+
+                final.rgb *= mix(vec3(1.0), scatterColor, inverseScatterAmount) * absorption;
+            }
+        #endif
+
         if (isEyeInWater == 1) {
             float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
 
@@ -672,7 +637,7 @@
             float moonScattering = ComputeVolumetricScattering(moon_VoL, vlScatter);
             vlColor += max(moonScattering, 0.0) * moonColor;
 
-            if (isEyeInWater == 1) vlColor *= normalize(WATER_COLOR.rgb);
+            if (isEyeInWater == 1) vlColor *= WATER_SCATTER_COLOR.rgb;
 
             #ifdef SHADOW_COLOR
                 vlColor *= GetVolumetricLightingColor(lightData, shadowViewStart, shadowViewEnd);

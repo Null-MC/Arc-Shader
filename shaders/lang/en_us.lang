@@ -185,6 +185,12 @@ option.SHADOW_COLOR.comment=When enabled, sun/moon light will be tinted when pas
 option.SHADOW_PARTICLES=Particles
 option.SHADOW_PARTICLES.comment=When enabled, particles will receive shadows.
 
+option.SHADOW_CONTACT=Contact
+option.SHADOW_CONTACT.comment=Enables short-range screen-space shadow-mapping to improve shadow quality. - Far: Only applies to objects beyond the shadowmap range.
+value.SHADOW_CONTACT.0=None
+value.SHADOW_CONTACT.1=Far
+value.SHADOW_CONTACT.2=All
+
 
 screen.SHADOW_ADV_OPTIONS=Advanced
 
