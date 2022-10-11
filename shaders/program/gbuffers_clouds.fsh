@@ -29,9 +29,10 @@ uniform vec3 skyColor;
 uniform vec3 fogColor;
 uniform int moonPhase;
 
+    uniform float eyeHumidity;
 #ifdef IS_OPTIFINE
     uniform mat4 gbufferModelView;
-    uniform float eyeHumidity;
+    //uniform float eyeHumidity;
     uniform int worldTime;
 
     #if MC_VERSION >= 11700
