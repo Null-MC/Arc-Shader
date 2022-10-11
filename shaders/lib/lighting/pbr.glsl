@@ -602,7 +602,7 @@
             float waterFogEnd = min(40.0, fogEnd);
             float waterFogF = GetFogFactor(viewDist, near, waterFogEnd, 0.8);
             vec3 waterFogColor = WATER_COLOR.rgb * 0.02 * skyLightLuxColor * (0.02 + 0.98*eyeLight);
-            final.rgb = mix(final.rgb, waterFogColor, waterFogF);
+            //final.rgb = mix(final.rgb, waterFogColor, waterFogF);
         }
         else {
             //vec3 sunTransmittanceLux = lightData.sunTransmittance * sunLux;

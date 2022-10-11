@@ -50,7 +50,7 @@ float SampleDepth(const in ivec2 itex) {
 #endif
 {
     #ifdef RSM_DITHER
-        float ditherOffset = (GetScreenBayerValue() - 0.5) * RSM_FILTER_SIZE;
+        float ditherOffset = 0.9 + 0.2*GetScreenBayerValue();
         //float ditherOffset = RSM_FILTER_SIZE * GetBayerValue(ivec2(shadowViewPos.xy));
     #endif
 
@@ -60,10 +60,10 @@ float SampleDepth(const in ivec2 itex) {
         vec3 offsetShadowViewPos = shadowViewPos;
 
         #ifdef RSM_DITHER
-            offsetShadowViewPos += ditherOffset;
+            offsetShadowViewPos.xy += rsmPoissonDisk[i] * RSM_FILTER_SIZE * ditherOffset;
+        #else
+            offsetShadowViewPos.xy += rsmPoissonDisk[i] * RSM_FILTER_SIZE;
         #endif
-
-        offsetShadowViewPos.xy += rsmPoissonDisk[i] * RSM_FILTER_SIZE;
 
         vec2 uv;
         ivec2 iuv;
