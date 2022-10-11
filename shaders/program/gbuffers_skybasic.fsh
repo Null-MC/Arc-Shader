@@ -7,6 +7,7 @@
 
 in vec3 starData;
 flat in vec3 sunTransmittance;
+flat in vec3 sunColor;
 flat in vec3 moonColor;
 flat in float exposure;
 
@@ -109,9 +110,9 @@ void main() {
             float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering);
             //sunScattering /= sunScattering + 1.0;
 
-            vlColor += sunTransmittance * GetSunLux() * (0.01 * VL_STRENGTH);
+            vlColor += max(sunScattering, 0.0) * sunTransmittance * GetSunLux();// * sunColor;
 
-            sky += vlColor;
+            sky += vlColor * (0.01 * VL_STRENGTH);
         #endif
         
         lum += luminance(sky);

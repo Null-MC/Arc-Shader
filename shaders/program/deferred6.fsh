@@ -251,7 +251,7 @@ void main() {
         #ifdef SKY_ENABLED
             float worldY = localPos.y + cameraPosition.y;
             lightData.skyLightLevels = skyLightLevels;
-            lightData.sunTransmittance = GetSunTransmittance(colortex7, worldY, skyLightLevels.x) * sunColor;
+            lightData.sunTransmittance = GetSunTransmittance(colortex7, worldY, skyLightLevels.x);// * sunColor;
             lightData.sunTransmittanceEye = sunTransmittanceEye;
         #endif
         

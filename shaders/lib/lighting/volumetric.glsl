@@ -7,6 +7,7 @@
         float stepLength = rayLength / VL_SAMPLE_COUNT;
         vec3 rayStep = rayDirection * stepLength;
         vec3 accumCol = vec3(0.0);
+        float accumF = 0.0;
 
         #ifdef VL_DITHER
             vec3 ditherOffset = rayStep * GetScreenBayerValue();
@@ -38,6 +39,8 @@
                 float depthSample = CompareOpaqueDepth(lightData.shadowPos, vec2(0.0), 0.0);
             #endif
 
+            accumF += depthSample;
+
             if (depthSample > EPSILON) {
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                     lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData, vec2(0.0), lightData.transparentShadowCascade);
@@ -47,11 +50,13 @@
 
                 vec3 shadowColor = GetShadowColor(lightData);
                 shadowColor = RGBToLinear(shadowColor);
-                accumCol += normalize(shadowColor) * depthSample;
+                accumCol += normalize(shadowColor);// * depthSample;
             }
         }
 
-        return accumCol / VL_SAMPLE_COUNT;
+        if (dot(accumCol, accumCol) > EPSILON) accumCol = normalize(accumCol)*2.0;
+
+        return vec3(accumF / VL_SAMPLE_COUNT) * accumCol;
     }
 #else
     float GetVolumetricFactor(LightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd) {
@@ -67,7 +72,7 @@
             vec3 ditherOffset = rayStep * GetScreenBayerValue();
         #endif
 
-        for (int i = 1; i < VL_SAMPLE_COUNT; i++) {
+        for (int i = 1; i <= VL_SAMPLE_COUNT; i++) {
             vec3 currentShadowViewPos = shadowViewStart + i * rayStep;
 
             #ifdef VL_DITHER
@@ -99,42 +104,14 @@
     }
 #endif
 
-float _GetShadowLightScattering(const in vec3 ray, const in float G_scattering) {
-    const vec3 sunDir = vec3(0.0, 0.0, 1.0);
-    float VoL = dot(normalize(ray), sunDir);
-
-    //float rayLen = min(length(ray) / (101.0 - VL_STRENGTH), 1.0);
-    float rayLen = min(length(ray) / far, 1.0);// * (0.01 * VL_STRENGTH);
-    return ComputeVolumetricScattering(VoL, G_scattering) * rayLen;
-    //return temp / (temp + 1.0);
-}
-
 #ifdef SHADOW_COLOR
-    vec3 GetVolumetricLightingColor(const in LightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float G_scattering) {
-        vec3 ray = shadowViewEnd - shadowViewStart;
-        float scattering = _GetShadowLightScattering(ray, G_scattering);
-        if (scattering < EPSILON) return vec3(0.0);
-
-        //scattering /= scattering + 1.0;
-
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            return GetVolumetricColor(lightData, shadowViewStart, shadowViewEnd) * scattering;
-        #else
-            return GetVolumetricColor(lightData, shadowViewStart, shadowViewEnd) * scattering;
-        #endif
+    vec3 GetVolumetricLightingColor(const in LightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd) {
+        float rayLen = min(length(shadowViewEnd - shadowViewStart) / far, 1.0);
+        return GetVolumetricColor(lightData, shadowViewStart, shadowViewEnd) * rayLen;
     }
 #else
-    float GetVolumetricLighting(const in LightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd, const in float G_scattering) {
-        vec3 ray = shadowViewEnd - shadowViewStart;
-        float scattering = _GetShadowLightScattering(ray, G_scattering);
-        if (scattering < EPSILON) return 0.0;
-
-        //scattering /= scattering + 1.0;
-
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            return GetVolumetricFactor(lightData, shadowViewStart, shadowViewEnd) * scattering;
-        #else
-            return GetVolumetricFactor(lightData, shadowViewStart, shadowViewEnd) * scattering;
-        #endif
+    float GetVolumetricLighting(const in LightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd) {
+        float rayLen = min(length(shadowViewEnd - shadowViewStart) / far, 1.0);
+        return GetVolumetricFactor(lightData, shadowViewStart, shadowViewEnd) * rayLen;
     }
 #endif

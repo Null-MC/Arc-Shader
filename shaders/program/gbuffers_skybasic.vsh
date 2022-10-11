@@ -7,6 +7,7 @@
 
 out vec3 starData;
 flat out vec3 sunTransmittance;
+flat out vec3 sunColor;
 flat out vec3 moonColor;
 flat out float exposure;
 
@@ -60,6 +61,7 @@ void main() {
     vec2 skyLightLevels = GetSkyLightLevels();
     vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
     moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
+    sunColor = blackbody(5500.0);
 
     sunTransmittance = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
 

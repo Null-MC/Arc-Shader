@@ -102,7 +102,7 @@ void main() {
 
         sunColor = blackbody(5500.0);
 
-        sunTransmittanceEye = GetSunTransmittance(colortex7, eyeAltitude, skyLightLevels.x) * sunColor;
+        sunTransmittanceEye = GetSunTransmittance(colortex7, eyeAltitude, skyLightLevels.x);// * sunColor;
 
         //skyLightColor = GetSkyLightLuxColor(skyLightLevels);
         //skyLightColor = sunColor + moonColor; // TODO: get rid of this variable

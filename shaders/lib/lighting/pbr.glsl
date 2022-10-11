@@ -331,9 +331,9 @@
         float occlusion = lightData.occlusion * material.occlusion;
 
         // ERROR: The occlusion multiply above is what's causing the vanilla water texture to be visible!
-        //#ifdef SSAO_ENABLED
-        //    occlusion *= textureLod(BUFFER_AO, texcoord, 0).r;
-        //#endif
+        #if defined SSAO_ENABLED && !defined RENDER_WATER && !defined RENDER_HAND_WATER
+           occlusion *= textureLod(BUFFER_AO, texcoord, 0).r;
+        #endif
 
         vec3 iblF = vec3(0.0);
         vec3 iblSpec = vec3(0.0);
@@ -645,19 +645,19 @@
             vec3 sunDir = normalize(sunPosition);
             float sun_VoL = dot(-viewDir, sunDir);
             float sunScattering = ComputeVolumetricScattering(sun_VoL, vlScatter);
-            vlColor += max(sunScattering, 0.0) * lightData.sunTransmittanceEye * GetSunLux();
+            vlColor += max(sunScattering, 0.0) * lightData.sunTransmittanceEye * GetSunLux();// * sunColor;
 
             vec3 moonDir = normalize(moonPosition);
             float moon_VoL = dot(-viewDir, moonDir);
             float moonScattering = ComputeVolumetricScattering(moon_VoL, vlScatter);
-            vlColor += max(moonScattering, 0.0) * moonColor;
+            //vlColor += max(moonScattering, 0.0) * moonColor;
 
             if (isEyeInWater == 1) vlColor *= normalize(WATER_COLOR.rgb);
 
             #ifdef SHADOW_COLOR
-                vec3 volScatter = GetVolumetricLightingColor(lightData, shadowViewStart, shadowViewEnd, vlScatter);
+                vlColor *= GetVolumetricLightingColor(lightData, shadowViewStart, shadowViewEnd);
             #else
-                float volScatter = GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd, vlScatter);
+                vlColor *= GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd);
             #endif
             
             final.rgb += vlColor * (0.01 * VL_STRENGTH);
