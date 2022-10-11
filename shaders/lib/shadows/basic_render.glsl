@@ -165,6 +165,8 @@
 
                     float texDepth = SampleOpaqueDepth(lightData.shadowPos, pixelOffset);
 
+                    //if (texDepth < 1.0 - EPSILON)
+
                     if (texDepth < lightData.shadowPos.z + lightData.shadowBias) {
                         float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy + pixelOffset);
 

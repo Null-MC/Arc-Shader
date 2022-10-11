@@ -205,6 +205,7 @@
                     vec3 shadowRay = viewLightDir * 10.0;
                     contactShadow = GetContactShadow(depthtex1, viewPos, shadowRay);
                 }
+                else contactShadow = 0.0;
             #endif
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -215,18 +216,15 @@
                 //     float opaqueShadowDepth = SampleDepth(lightData.shadowPos, vec2(0.0));
                 // #endif
 
-                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    bool isInBounds = false;
-                    for (int i = 0; i < 4 && !isInBounds; i++) {
-                        isInBounds =
-                            lightData.shadowPos[i].x > 0.0 && lightData.shadowPos[i].x < 1.0 &&
-                            lightData.shadowPos[i].y > 0.0 && lightData.shadowPos[i].y < 1.0;
-                    }
-                #else
-                    bool isInBounds =
-                        lightData.shadowPos.x > 0.0 && lightData.shadowPos.x < 1.0 &&
-                        lightData.shadowPos.y > 0.0 && lightData.shadowPos.y < 1.0;
-                #endif
+                // #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                //     bool isInBounds = false;
+                //     for (int i = 0; i < 4 && !isInBounds; i++) {
+                //         isInBounds = clamp(lightData.shadowPos[i], vec3(0.0), vec3(1.0)) == lightData.shadowPos[i];
+                //     }
+                // #else
+                //     bool isInBounds = clamp(lightData.shadowPos.xyz, vec3(0.0), vec3(1.0)) == lightData.shadowPos.xyz;
+                // #endif
+                bool isInBounds = lightData.opaqueShadowDepth < 1.0 - EPSILON;
 
                 if (isInBounds) {
                     if (shadow > EPSILON)
@@ -245,10 +243,15 @@
                     #endif
                 }
                 else {
-                    //shadow = 0.0;
-                    shadowSSS *= contactShadow;
+                    //albedo = vec3(1.0, 0.0, 0.0);
+                    //shadow = 0.0;//contactShadow;
+                    //shadowSSS = material.scattering * contactShadow;
+                    //shadowSSS = 0.0;
                     //shadowColor = vec3(1.0, 0.0, 0.0);
                 }
+
+                //if (shadowSSS >= 0.98) shadowSSS = 1.0;
+                if (shadowSSS >= 1.0 - EPSILON) shadowSSS = 0.0;
             #else
                 shadow = pow2(skyLight) * lightData.occlusion;
                 shadowSSS = pow2(skyLight) * material.scattering;
@@ -256,6 +259,8 @@
 
             #ifdef SHADOW_CONTACT
                 shadow = min(shadow, contactShadow);
+
+                //shadowSSS = min(shadowSSS, material.scattering * contactShadow);
             #endif
         #endif
 
@@ -530,7 +535,12 @@
                             }
                         #endif
 
-                        refractColor = textureLod(BUFFER_REFRACT, refractUV, 0).rgb / exposure;
+                        #ifdef MC_GL_VENDOR_NVIDIA
+                            ivec2 iuv = ivec2(refractUV * viewSize);
+                            refractColor = texelFetch(BUFFER_HDR, iuv, 0).rgb / exposure;
+                        #else
+                            refractColor = textureLod(BUFFER_REFRACT, refractUV, 0).rgb / exposure;
+                        #endif
                     }
                     else {
                         // TIR
@@ -600,14 +610,14 @@
             ambient *= metalDarkF;
         #endif
 
-        float emissive = pow4(material.emission) * EmissionLumens;
+        vec3 emissive = material.albedo.rgb * pow(material.emission, 2.2) * EmissionLumens;
 
         //occlusion = 1.0 - SHADOW_BRIGHTNESS * (1.0 - occlusion);
         //occlusion = SHADOW_BRIGHTNESS + occlusion * (1.0 - SHADOW_BRIGHTNESS);
         occlusion *= SHADOW_BRIGHTNESS;
 
-        final.rgb = final.rgb * (ambient * occlusion + emissive)
-            + diffuse
+        final.rgb = final.rgb * (ambient * occlusion)
+            + diffuse + emissive
             + (specular + iblSpec) * specularTint;
 
         final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);

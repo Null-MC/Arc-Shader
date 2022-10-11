@@ -132,7 +132,11 @@ uniform int fogShape;
 #endif
 
 #if defined WATER_FANCY || WATER_REFRACTION != WATER_REFRACTION_NONE
-    uniform sampler2D BUFFER_REFRACT;
+    #ifdef MC_GL_VENDOR_NVIDIA
+        uniform sampler2D BUFFER_HDR;
+    #else
+        uniform sampler2D BUFFER_REFRACT;
+    #endif
 #endif
 
 #if defined WATER_FANCY && !defined WORLD_NETHER

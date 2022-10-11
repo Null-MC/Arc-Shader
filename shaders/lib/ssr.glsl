@@ -17,7 +17,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     float texDepth;
     vec3 tracePos;
 
-    clipPos.xy += pixelSize * (GetScreenBayerValue() - 0.5);
+    clipPos += screenRay * GetScreenBayerValue();
 
     int i = 1;
     float alpha = 0.0;
@@ -27,18 +27,21 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         if (abs(tracePos.x - clipPos.x) < ssrPixelSize.x*1.5
          && abs(tracePos.y - clipPos.y) < ssrPixelSize.y*1.5) continue;
 
-        if (tracePos.x <= 0.0 || tracePos.x >= 1.0
-         || tracePos.y <= 0.0 || tracePos.y >= 1.0
-         || tracePos.z <= 0.0 || tracePos.z >= 1.0) break;
+        if (clamp(tracePos, vec3(0.0), vec3(1.0)) != tracePos) break;
+
+        // if (tracePos.x <= 0.0 || tracePos.x >= 1.0
+        //  || tracePos.y <= 0.0 || tracePos.y >= 1.0
+        //  || tracePos.z <= 0.0 || tracePos.z >= 1.0) break;
 
         texDepth = textureLod(depthtex, tracePos.xy, 0).r;
-        if (texDepth >= tracePos.z) continue;
+        //if (texDepth > tracePos.z - EPSILON) continue;
+        alpha = step(texDepth, tracePos.z - EPSILON);
 
-        float d = 0.001 * i*i;
-        if (linearizeDepthFast(tracePos.z, near, far) < linearizeDepthFast(texDepth, near, far) + d) continue;
+        //float d = 0.8*i;// + EPSILON;
+        //if (linearizeDepthFast(texDepth, near, far) > linearizeDepthFast(tracePos.z, near, far) - d) continue;
 
         //if (i > 1) alpha = 1.0;
-        alpha = 1.0;
+        //alpha = 1.0;
     }
 
     vec3 color = vec3(0.0);
