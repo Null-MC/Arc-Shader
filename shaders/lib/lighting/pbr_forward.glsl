@@ -46,7 +46,7 @@
             lightData.sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);// * sunColor;
         #endif
 
-        #ifdef PARALLAX_ENABLED
+        #if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
             vec3 tanViewDir = normalize(tanViewPos);
         #endif
 
@@ -124,8 +124,8 @@
 
                     float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
                     vec2 waterWorldPos = waterScale * (localPos.xz + cameraPosition.xz);
-                    vec2 waterWorldPosX = waterWorldPos + vec2(1.0, 0.0)*waterPixelSize;
-                    vec2 waterWorldPosY = waterWorldPos + vec2(0.0, 1.0)*waterPixelSize;
+                    vec2 waterWorldPosX = waterWorldPos + vec2(1.0, 0.0)*0.01;
+                    vec2 waterWorldPosY = waterWorldPos + vec2(0.0, 1.0)*0.01;
 
                     float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
 
@@ -134,7 +134,7 @@
                     depth = GetWaves(waterWorldPos, waveSpeed, octaves);
                     depthX = GetWaves(waterWorldPosX, waveSpeed, octaves);
                     depthY = GetWaves(waterWorldPosY, waveSpeed, octaves);
-                    zScale *= 0.2*WATER_SCALE;
+                    zScale *= 0.04*WATER_SCALE;
 
                 #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
                     }

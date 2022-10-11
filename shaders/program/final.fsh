@@ -154,7 +154,7 @@ out vec3 outColor0;
                 vec2 tileTex = texcoord * (tileMax - tileMin) + tileMin;
                 tileTex = clamp(tileTex, tileMin, tileMax);
 
-                bloom += textureLod(BUFFER_BLOOM, tileTex, 0).rgb;// * exp2(i);
+                bloom += textureLod(BUFFER_BLOOM, tileTex, 0).rgb;
             }
 
             bloom *= (0.01 * BLOOM_STRENGTH);

@@ -31,9 +31,9 @@ float GetWaves(inout vec2 position, const in float waveSpeed, const in int itera
         accumWeight += waveDX.x * weight;
         maxWeight += weight;
 
-        weight = mix(weight, 0.0, 0.2);
+        weight = mix(weight, 0.0, 0.18);
 
-        iter += 0.9*i;//12.0;
+        iter += 12.0;
         phase *= 1.18;
         speed *= 1.07;
     }

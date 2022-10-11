@@ -26,7 +26,7 @@ flat in mat2 atlasBounds;
     flat in float matEmissive;
 #endif
 
-#ifdef PARALLAX_ENABLED
+#if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
     in vec2 localCoord;
     in vec3 tanViewPos;
 

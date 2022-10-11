@@ -26,7 +26,7 @@ flat out mat2 atlasBounds;
     flat out float matEmissive;
 #endif
 
-#ifdef PARALLAX_ENABLED
+#if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
     out vec2 localCoord;
     out vec3 tanViewPos;
 
@@ -90,7 +90,7 @@ in vec3 vaPosition;
 in vec4 at_tangent;
 in vec3 at_midBlock;
 
-#if defined PARALLAX_ENABLED || defined AF_ENABLED
+#if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX || defined AF_ENABLED
     in vec4 mc_midTexCoord;
 #endif
 

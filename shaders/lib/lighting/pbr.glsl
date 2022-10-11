@@ -9,7 +9,7 @@
             viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
             tangentW = at_tangent.w;
 
-            #ifdef PARALLAX_ENABLED
+            #if defined PARALLAX_ENABLED || (WATER_WAVE_TYPE == WATER_WAVE_PARALLAX && (defined RENDER_WATER || defined RENDER_HAND_WATER))
                 vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
                 mat3 matTBN = mat3(viewTangent, viewBinormal, viewNormal);
 
@@ -215,10 +215,20 @@
                 //     float opaqueShadowDepth = SampleDepth(lightData.shadowPos, vec2(0.0));
                 // #endif
 
-                if (
-                    lightData.shadowPos.x > 0.0 && lightData.shadowPos.x < 1.0 &&
-                    lightData.shadowPos.y > 0.0 && lightData.shadowPos.y < 1.0
-                ) {
+                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                    bool isInBounds = false;
+                    for (int i = 0; i < 4 && !isInBounds; i++) {
+                        isInBounds =
+                            lightData.shadowPos[i].x > 0.0 && lightData.shadowPos[i].x < 1.0 &&
+                            lightData.shadowPos[i].y > 0.0 && lightData.shadowPos[i].y < 1.0;
+                    }
+                #else
+                    bool isInBounds =
+                        lightData.shadowPos.x > 0.0 && lightData.shadowPos.x < 1.0 &&
+                        lightData.shadowPos.y > 0.0 && lightData.shadowPos.y < 1.0;
+                #endif
+
+                if (isInBounds) {
                     if (shadow > EPSILON)
                         shadow *= GetShadowing(lightData);
 
