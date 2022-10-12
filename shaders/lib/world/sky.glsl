@@ -139,7 +139,7 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
         //float skyLumen = 8000;// sunSkyLumen + moonSkyLumen;
 
         float lightLevel = saturate(skyLightLevels.x * 0.5 + 0.5);
-        lightLevel = smoothstep(0.0, 1.0, lightLevel) * 4000.0 + 500.0;
+        lightLevel = smoothstep(0.0, 1.0, lightLevel) * 18000.0 + 500.0;
         
         vec3 skyColorLinear = RGBToLinear(skyColor) * lightLevel;
         vec3 fogColorLinear = RGBToLinear(fogColor) * lightLevel * 0.8;
