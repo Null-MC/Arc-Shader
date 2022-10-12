@@ -61,7 +61,7 @@ void main() {
         float dir = step(lumPrev, lum);
         float speed = (1.0 - dir) * EXPOSURE_SPEED_DOWN + dir * EXPOSURE_SPEED_UP;
 
-        lum = lumPrev + (lum - lumPrev) * (1.0 - exp(-frameTime * speed));
+        lum = lumPrev + (lum - lumPrev) * max(1.0 - exp(-frameTime * speed), 0.01);
         lum = log2(lum + EPSILON);
     #endif
 
