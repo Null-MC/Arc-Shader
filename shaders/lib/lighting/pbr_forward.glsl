@@ -52,6 +52,10 @@
 
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
 
+        #ifdef PARALLAX_DEPTH_WRITE
+            gl_FragDepth = gl_FragCoord.z;
+        #endif
+
         #if defined RENDER_WATER && defined WATER_FANCY && !defined WORLD_NETHER && !defined WORLD_END
             if (materialId == 1) {
                 material.albedo = WATER_COLOR;
@@ -91,18 +95,18 @@
                                 if (pomDist > 0.0) {
                                     //float depth = linearizePerspectiveDepth(gl_FragCoord.z, gbufferProjection);
                                     //gl_FragDepth = delinearizePerspectiveDepth(depth + pomDist * (0.25 * PARALLAX_DEPTH), gbufferProjection);
-                                    float depth = -viewPos.z + pomDist * 0.25 * WATER_WAVE_DEPTH;
+                                    float depth = -viewPos.z + pomDist * WATER_WAVE_DEPTH;
                                     gl_FragDepth = 0.5 * (-gbufferProjection[2].z*depth + gbufferProjection[3].z) / depth + 0.5;
                                 }
-                                else {
-                                    gl_FragDepth = gl_FragCoord.z;
-                                }
+                                //else {
+                                //    gl_FragDepth = gl_FragCoord.z;
+                                //}
                             #endif
                         }
                         #ifdef PARALLAX_DEPTH_WRITE
-                            else {
-                                gl_FragDepth = gl_FragCoord.z;
-                            }
+                            //else {
+                            //    gl_FragDepth = gl_FragCoord.z;
+                            //}
                         #endif
 
                         //vec4 depthSamples = textureGather(BUFFER_WATER_WAVES, waterTex, 0);

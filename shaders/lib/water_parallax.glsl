@@ -1,7 +1,7 @@
 void GetWaterParallaxCoord(inout vec3 coordDepth, const in mat2 dFdXY, const in vec3 tanViewDir, const in float viewDist, const in float waterDepth) {
-    float viewDistF = 1.0 - saturate(viewDist / WATER_RADIUS);
-    int maxSampleCount = max(int(min(viewDistF, 0.2*waterDepth) * WATER_PARALLAX_SAMPLES), 1);
-    float maxDepth = viewDistF * WATER_PARALLAX_DEPTH;
+    //float viewDistF = 1.0 - saturate(viewDist / WATER_RADIUS);
+    int maxSampleCount = WATER_PARALLAX_SAMPLES;//max(int(min(viewDistF, 0.2*waterDepth) * WATER_PARALLAX_SAMPLES), 1);
+    float maxDepth = WATER_PARALLAX_DEPTH;//viewDistF * WATER_PARALLAX_DEPTH;
 
     vec2 stepCoord = tanViewDir.xy * maxDepth / (1.0 + tanViewDir.z * maxSampleCount);
     stepCoord = clamp(stepCoord, vec2(-0.1), vec2(0.1));
