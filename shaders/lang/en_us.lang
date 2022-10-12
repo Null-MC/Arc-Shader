@@ -92,6 +92,7 @@ option.SSS_SCATTER.comment=When enabled, multiple shadowmap samples will be used
 
 option.SSS_STRENGTH=Strength
 option.SSS_STRENGTH.comment=A multiplier for how strong subsurface scattered light will be.
+suffix.SSS_STRENGTH=0%
 
 option.SSS_MAXDIST=Distance
 option.SSS_MAXDIST.comment=The maximum distance subsurface light can penetrate through a medium.
