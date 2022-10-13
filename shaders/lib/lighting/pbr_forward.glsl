@@ -20,6 +20,7 @@
     vec4 PbrLighting() {
         vec3 traceCoordDepth = vec3(1.0);
         //vec2 waterSolidDepth = vec2(0.0);
+        vec3 viewPosFinal = viewPos;
         vec2 atlasCoord = texcoord;
         float texDepth = 1.0;
         PbrMaterial material;
@@ -96,7 +97,13 @@
                                     //float depth = linearizePerspectiveDepth(gl_FragCoord.z, gbufferProjection);
                                     //gl_FragDepth = delinearizePerspectiveDepth(depth + pomDist * (0.25 * PARALLAX_DEPTH), gbufferProjection);
                                     float depth = -viewPos.z + pomDist * WATER_WAVE_DEPTH;
+                                    
+                                    viewPosFinal.z += pomDist * WATER_WAVE_DEPTH;
+
                                     gl_FragDepth = 0.5 * (-gbufferProjection[2].z*depth + gbufferProjection[3].z) / depth + 0.5;
+
+                                    // update depth for pbr program
+                                    lightData.transparentScreenDepth = linearizeDepthFast(gl_FragDepth, near, far);
                                 }
                                 //else {
                                 //    gl_FragDepth = gl_FragCoord.z;
@@ -262,7 +269,7 @@
         #endif
 
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-            vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos.xyz, 1.0))).xyz;
+            vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPosFinal, 1.0))).xyz;
 
             #ifdef SHADOW_DITHER
                 float ditherOffset = (GetScreenBayerValue() - 0.5) * shadowPixelSize;
@@ -317,6 +324,6 @@
             #endif
         #endif
 
-        return PbrLighting2(material, lightData, viewPos.xyz);
+        return PbrLighting2(material, lightData, viewPosFinal);
     }
 #endif

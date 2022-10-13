@@ -265,7 +265,13 @@
                 vec3 reflectDir = reflect(-viewDir, viewNormal);
 
                 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-                    vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
+                    #ifdef RENDER_WATER
+                        // TODO: get offset-depth pos from pbr_forward
+                        vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
+                    #else
+                        vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
+                    #endif
+
                     vec3 viewPosPrev = (gbufferPreviousModelView * vec4(localPos - previousCameraPosition, 1.0)).xyz;
 
                     vec3 localReflectDir = mat3(gbufferModelViewInverse) * reflectDir;
