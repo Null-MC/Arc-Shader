@@ -102,22 +102,24 @@ void main() {
         lum += luminance(sky);
         
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined VL_ENABLED
-            //sky += GetVanillaSkyScattering(viewDir, sunLightLevel, sunTransmittanceLux, moonColor);
             vec2 skyLightLevels = GetSkyLightLevels();
-            float scattering_G = GetScatteringFactor(skyLightLevels.x);
-            vec3 vlColor = vec3(0.0);
+            sky += GetVanillaSkyScattering(viewDir, skyLightLevels, sunTransmittance * GetSunLux(), moonColor);
 
-            vec3 sunDir = normalize(sunPosition);
-            float sun_VoL = dot(viewDir, sunDir);
-            float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering_G);
-            vlColor += sunScattering * sunTransmittance * GetSunLux();// * sunColor;
+            // vec2 skyLightLevels = GetSkyLightLevels();
+            // float scattering_G = GetScatteringFactor(skyLightLevels.x);
+            // vec3 vlColor = vec3(0.0);
 
-            vec3 moonDir = normalize(moonPosition);
-            float moon_VoL = dot(viewDir, moonDir);
-            float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering_G);
-            vlColor += moonScattering * moonColor;
+            // vec3 sunDir = normalize(sunPosition);
+            // float sun_VoL = dot(viewDir, sunDir);
+            // float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering_G);
+            // vlColor += sunScattering * sunTransmittance * GetSunLux();// * sunColor;
 
-            sky += vlColor * (0.01 * VL_STRENGTH);
+            // vec3 moonDir = normalize(moonPosition);
+            // float moon_VoL = dot(viewDir, moonDir);
+            // float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering_G);
+            // vlColor += moonScattering * moonColor;
+
+            // sky += vlColor * (0.01 * VL_STRENGTH);
         #endif
         
         color += sky;

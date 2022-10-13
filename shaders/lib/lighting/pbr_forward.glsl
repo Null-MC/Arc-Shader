@@ -52,6 +52,7 @@
         #endif
 
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
+        float viewDist = length(viewPos) - near;
 
         #ifdef PARALLAX_DEPTH_WRITE
             gl_FragDepth = gl_FragCoord.z;
@@ -72,64 +73,51 @@
                 float windSpeed = GetWindSpeed();
                 float zScale = 8.0 + windSpeed; // 32
 
-                vec2 waterLocalPos = rcp(2.0*WATER_RADIUS) * localPos.xz;
                 float depth, depthX, depthY;
 
                 #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
+                    const float waterWorldScale = rcp(2.0*WATER_RADIUS);
+                    vec2 waterLocalPos = localPos.xz * waterWorldScale;
+
                     if (
                         waterLocalPos.x > -0.5 && waterLocalPos.x < 0.5 &&
                         waterLocalPos.y > -0.5 && waterLocalPos.y < 0.5
                     ) {
-                        float viewDist = length(viewPos);
+                        //float viewDist = length(viewPos) - near;
                         vec3 waterTex = vec3(waterLocalPos + 0.5, 1.0);
                         mat2 water_dFdXY = mat2(dFdx(waterLocalPos), dFdy(waterLocalPos));
 
                         if (viewDist < WATER_RADIUS) {
-                            //float waterDepth = max(waterSolidDepth.y - waterSolidDepth.x, 0.0);
                             float waterDepth = max(lightData.opaqueScreenDepth - lightData.transparentScreenDepth, 0.0);
                             GetWaterParallaxCoord(waterTex, water_dFdXY, tanViewDir, viewDist, waterDepth);
 
-                            // TODO: depth-write
-                            #ifdef PARALLAX_DEPTH_WRITE
-                                float pomDist = (1.0 - waterTex.z) / max(-tanViewDir.z, 0.00001);
+                            float pomDist = (1.0 - waterTex.z) / max(-tanViewDir.z, 0.00001) * WATER_WAVE_DEPTH;
 
-                                if (pomDist > 0.0) {
-                                    //float depth = linearizePerspectiveDepth(gl_FragCoord.z, gbufferProjection);
-                                    //gl_FragDepth = delinearizePerspectiveDepth(depth + pomDist * (0.25 * PARALLAX_DEPTH), gbufferProjection);
-                                    float depth = -viewPos.z + pomDist * WATER_WAVE_DEPTH;
-                                    
-                                    viewPosFinal.z += pomDist * WATER_WAVE_DEPTH;
+                            if (pomDist > 0.0) {
+                                //viewPosFinal.z += pomDist;
 
-                                    gl_FragDepth = 0.5 * (-gbufferProjection[2].z*depth + gbufferProjection[3].z) / depth + 0.5;
+                                float depth = -viewPos.z + pomDist;
+                                float fragDepthFinal = 0.5 * (-gbufferProjection[2].z*depth + gbufferProjection[3].z) / depth + 0.5;
+                                lightData.transparentScreenDepth = linearizeDepthFast(fragDepthFinal, near, far);
 
-                                    // update depth for pbr program
-                                    lightData.transparentScreenDepth = linearizeDepthFast(gl_FragDepth, near, far);
-                                }
-                                //else {
-                                //    gl_FragDepth = gl_FragCoord.z;
-                                //}
-                            #endif
+                                #ifdef PARALLAX_DEPTH_WRITE
+                                    viewPosFinal.z += pomDist;
+                                    gl_FragDepth = fragDepthFinal;
+                                #endif
+                            }
                         }
-                        #ifdef PARALLAX_DEPTH_WRITE
-                            //else {
-                            //    gl_FragDepth = gl_FragCoord.z;
-                            //}
-                        #endif
-
-                        //vec4 depthSamples = textureGather(BUFFER_WATER_WAVES, waterTex, 0);
-                        //vec2 f = GetLinearCoords(texcoord, texSize, uv);
-                        //depth = LinearBlend4(depthSamples, f);
 
                         depth = textureGrad(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1]).r;
                         depthX = textureGradOffset(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1], ivec2(1, 0)).r;
                         depthY = textureGradOffset(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1], ivec2(0, 1)).r;
+                        //zScale *= 4.0;
                     }
                     else {
                 #endif
 
                     int octaves = WATER_OCTAVES_FAR;
                     #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
-                        float viewDist = length(viewPos) - near;
+                        //float viewDist = length(viewPos) - near;
                         octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, saturate(viewDist / 200.0)));
                     #endif
 
@@ -145,7 +133,7 @@
                     depth = GetWaves(waterWorldPos, waveSpeed, octaves);
                     depthX = GetWaves(waterWorldPosX, waveSpeed, octaves);
                     depthY = GetWaves(waterWorldPosY, waveSpeed, octaves);
-                    zScale *= 0.04*WATER_SCALE;
+                    zScale *= 0.04*WATER_WAVE_DEPTH * WATER_SCALE;
 
                 #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
                     }
@@ -160,7 +148,7 @@
         #endif
 
             #ifdef PARALLAX_ENABLED
-                float viewDist = length(viewPos);
+                //float viewDist = length(viewPos);
                 if (viewDist < PARALLAX_DISTANCE) {
                     atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, viewDist, texDepth, traceCoordDepth);
 

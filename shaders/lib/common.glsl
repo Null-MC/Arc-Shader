@@ -65,10 +65,12 @@ const bool colortex12Clear = false;
 #define WATER_OCTAVES_NEAR 48
 #define WATER_OCTAVES_FAR 24
 #define WATER_OCTAVES_VERTEX 8
-#define WATER_PARALLAX_DEPTH 0.016
 #define WATER_PARALLAX_SAMPLES 64
 #define WATER_WAVE_DEPTH 1.0
 #define WATER_RESOLUTION 2048
+
+#define WATER_SCATTER_RATE 1.6
+#define WATER_ABSROPTION_RATE 1.2
 
 
 // Atmosphere Options
@@ -405,6 +407,10 @@ vec3 LinearToRGB(const in vec3 x) {
 
 float luminance(const in vec3 color) {
    return dot(color, luma_factor);
+}
+
+void setLuminance(inout vec3 color, const in float targetLuminance) {
+    color *= (targetLuminance / luminance(color));
 }
 
 float expStep(float x)

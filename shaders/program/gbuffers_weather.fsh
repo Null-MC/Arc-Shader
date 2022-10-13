@@ -97,7 +97,6 @@ uniform int fogMode;
 
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/lighting/light_data.glsl"
-#include "/lib/world/scattering.glsl"
 
 #ifdef HANDLIGHT_ENABLED
     #include "/lib/lighting/basic_handlight.glsl"
@@ -129,6 +128,7 @@ uniform int fogMode;
 
 #include "/lib/world/sky.glsl"
 #include "/lib/world/fog.glsl"
+#include "/lib/world/scattering.glsl"
 #include "/lib/lighting/basic.glsl"
 #include "/lib/lighting/basic_forward.glsl"
 

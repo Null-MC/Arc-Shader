@@ -20,34 +20,38 @@ float GetScatteringFactor(const in float sunLightLevel) {
     return scattering;
 }
 
-vec3 GetVanillaSkyScattering(const in vec3 viewDir, const in float sunLightLevel, const in vec3 sunColor, const in vec3 moonColor) {
-    float scattering = GetScatteringFactor(sunLightLevel);
-
-    //float scatterDistF = min(far - near, 1.0);
-    // if (isEyeInWater == 1) {
-    //     //scatterDistF /= 1.0;
-    // }
-    // else {
-    //     //scatterDistF /= 101.0 - VL_STRENGTH;
-    // }
+vec3 GetVanillaSkyScattering(const in vec3 viewDir, const in vec2 skyLightLevels, const in vec3 sunColor, const in vec3 moonColor) {
+    //float scattering = GetScatteringFactor(sunLightLevel);
+    //vec2 skyLightLevels = GetSkyLightLevels();
+    float scattering_G = GetScatteringFactor(skyLightLevels.x);
+    vec3 vlColor = vec3(0.0);
 
     #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED)
-        vec3 sunLightDir = GetFixedSunPosition();
+        vec3 sunDir = GetFixedSunPosition();
     #else
-        vec3 sunLightDir = normalize(sunPosition);
+        vec3 sunDir = normalize(sunPosition);
     #endif
 
-    float sun_VoL = dot(viewDir, sunLightDir);
-    float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering);
+    //float sun_VoL = dot(viewDir, sunLightDir);
+    //float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering);
 
-    vec3 moonLightDir = normalize(moonPosition);
-    float moon_VoL = dot(viewDir, moonLightDir);
-    float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering);
+    //vec3 moonLightDir = normalize(moonPosition);
+    //float moon_VoL = dot(viewDir, moonLightDir);
+    //float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering);
 
-    vec3 vlColor = (sunScattering * sunColor + moonScattering * moonColor);// * scatterDistF;
+    //vec3 vlColor = (sunScattering * sunColor + moonScattering * moonColor);// * scatterDistF;
 
-    //if (isEyeInWater == 1) vlColor *= vec3(0.1, 0.7, 1.0);
+    //vec3 sunDir = normalize(sunPosition);
+    float sun_VoL = dot(viewDir, sunDir);
+    float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering_G);
+    vlColor += sunScattering * sunColor;
+
+    vec3 moonDir = normalize(moonPosition);
+    float moon_VoL = dot(viewDir, moonDir);
+    float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering_G);
+    vlColor += moonScattering * moonColor;
+
     if (isEyeInWater == 1) vlColor *= WATER_COLOR.rgb;
 
-    return vlColor;
+    return vlColor * (0.01 * VL_STRENGTH);
 }

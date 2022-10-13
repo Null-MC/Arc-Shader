@@ -72,19 +72,18 @@
             //float NoRm = max(dot(reflectDir, -viewNormal), 0.0);
             //reflectF *= 1.0 - pow(NoRm, 0.5);
 
-            vec3 skyLumen = GetVanillaSkyLuminance(reflectDir);
-            vec3 skyScatter = vec3(0.0);
+            vec3 skyColor = GetVanillaSkyLuminance(reflectDir);
 
             #ifdef VL_ENABLED
-                vec3 sunColor = lightData.sunTransmittance * GetSunLux();
-                skyScatter = GetVanillaSkyScattering(reflectDir, lightData.skyLightLevels.x, sunColor, moonColor);
+                //float skyLumen = luminance(skyColor);
+
+                vec3 sunColor = lightData.sunTransmittance * GetSunLux(); // * sunColor;
+                skyColor += GetVanillaSkyScattering(reflectDir, lightData.skyLightLevels, sunColor, moonColor);
+
+                //setLuminance(skyColor, skyLumen);
             #endif
 
-            // TODO: clamp skyScatter?
-            //skyScatter = min(skyScatter, 65554.0);
-
-            return (skyLumen + skyScatter) * reflectF;
-            //return skyLumen * reflectF;
+            return skyColor * reflectF;
         }
     #endif
 
@@ -265,13 +264,7 @@
                 vec3 reflectDir = reflect(-viewDir, viewNormal);
 
                 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-                    #ifdef RENDER_WATER
-                        // TODO: get offset-depth pos from pbr_forward
-                        vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
-                    #else
-                        vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
-                    #endif
-
+                    vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
                     vec3 viewPosPrev = (gbufferPreviousModelView * vec4(localPos - previousCameraPosition, 1.0)).xyz;
 
                     vec3 localReflectDir = mat3(gbufferModelViewInverse) * reflectDir;
@@ -504,8 +497,8 @@
                     vec3 scatterColor = WATER_SCATTER_COLOR * lightData.sunTransmittanceEye;// * skyLight2;// * shadowFinal;
                     //float lightDepth = lightData.waterShadowDepth + waterDepthFinal;
 
-                    vec3 absorption = exp(-2.0 * waterDepthFinal * extinctionInv);
-                    float inverseScatterAmount = saturate(1.0 - exp(-1.0 * waterDepthFinal));
+                    vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterDepthFinal * extinctionInv);
+                    float inverseScatterAmount = saturate(1.0 - exp(-WATER_SCATTER_RATE * waterDepthFinal));
 
                     diffuse = refractColor * mix(vec3(1.0), scatterColor, inverseScatterAmount) * absorption;
                     ambient = vec3(0.0);
@@ -586,8 +579,8 @@
                 vec3 scatterColor = WATER_SCATTER_COLOR * lightData.sunTransmittanceEye;// * skyLight2;// * shadowFinal;
                 //float lightDepth = lightData.waterShadowDepth + waterDepthFinal;
 
-                vec3 absorption = exp(-2.0 * waterDepthFinal * extinctionInv);
-                float inverseScatterAmount = saturate(1.0 - exp(-1.0 * waterDepthFinal));
+                vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterDepthFinal * extinctionInv);
+                float inverseScatterAmount = saturate(1.0 - exp(-WATER_SCATTER_RATE * waterDepthFinal));
 
                 final.rgb *= mix(vec3(1.0), scatterColor, inverseScatterAmount) * absorption;
             }

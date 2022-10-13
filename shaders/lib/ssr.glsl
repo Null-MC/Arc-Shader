@@ -3,11 +3,12 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     vec3 clipPos = unproject(gbufferProjection * vec4(viewPos, 1.0)) * 0.5 + 0.5;
     vec3 reflectClipPos = unproject(gbufferProjection * vec4(viewPos + reflectDir, 1.0)) * 0.5 + 0.5;
 
-    vec2 pixelSize = rcp(vec2(viewWidth, viewHeight));
-    vec2 ssrPixelSize = SSR_SCALE * pixelSize;
+    vec2 viewSize = vec2(viewWidth, viewHeight) / SSR_SCALE;
+    //vec2 pixelSize = rcp(viewSize);
+    vec2 ssrPixelSize = rcp(viewSize);
 
     vec3 screenRay = reflectClipPos - clipPos;
-    if (screenRay.z <= 0.0) return vec4(0.0);
+    //if (screenRay.z <= 0.0) return vec4(0.0);
 
     if (abs(screenRay.y) > abs(screenRay.x))
         screenRay *= ssrPixelSize.y / abs(screenRay.y);
@@ -17,36 +18,36 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     float texDepth;
     vec3 tracePos;
 
+    ivec2 iuv_start = ivec2(clipPos.xy * viewSize);
     clipPos += screenRay * GetScreenBayerValue();
 
     int i = 1;
     float alpha = 0.0;
     for (; i <= SSR_STEPS && alpha < 0.5; i++) {
         tracePos = clipPos + i*screenRay;
+        if (clamp(tracePos, vec3(0.0), vec3(1.0 - EPSILON)) != tracePos) break;
 
-        if (abs(tracePos.x - clipPos.x) < ssrPixelSize.x*1.5
-         && abs(tracePos.y - clipPos.y) < ssrPixelSize.y*1.5) continue;
+        ivec2 iuv = ivec2(tracePos.xy * viewSize);
+        if (iuv == iuv_start) continue;
 
-        if (clamp(tracePos, vec3(0.0), vec3(1.0)) != tracePos) break;
+        texDepth = texelFetch(depthtex, iuv, 0).r;
+        if (texDepth > tracePos.z - EPSILON) continue;
 
-        // if (tracePos.x <= 0.0 || tracePos.x >= 1.0
-        //  || tracePos.y <= 0.0 || tracePos.y >= 1.0
-        //  || tracePos.z <= 0.0 || tracePos.z >= 1.0) break;
+        if (screenRay.z >= 0.0 && texDepth < clipPos.z) continue;
 
-        texDepth = textureLod(depthtex, tracePos.xy, 0).r;
-        //if (texDepth > tracePos.z - EPSILON) continue;
-        alpha = step(texDepth, tracePos.z - EPSILON);
+        float d = 0.0004*i*i;
+        if (linearizeDepthFast(texDepth, near, far) > linearizeDepthFast(tracePos.z, near, far) - d) continue;
 
-        //float d = 0.8*i;// + EPSILON;
-        //if (linearizeDepthFast(texDepth, near, far) > linearizeDepthFast(tracePos.z, near, far) - d) continue;
-
-        //if (i > 1) alpha = 1.0;
-        //alpha = 1.0;
+        alpha = 1.0;
     }
 
     vec3 color = vec3(0.0);
     if (alpha > 0.5) {
+        //ivec2 iuv = ivec2(tracePos.xy * viewSize / exp2(lod));
+        //color = texelFetch(BUFFER_HDR_PREVIOUS, iuv, lod).rgb;
+
         color = textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, lod).rgb;
+
         //vec2 mipTexSize = vec2(viewWidth, viewHeight) / exp2(lod + 1);
         //color = TextureLodLinearRGB(BUFFER_HDR_PREVIOUS, tracePos.xy, mipTexSize, lod);
     }

@@ -134,10 +134,10 @@ uniform float fogEnd;
 #include "/lib/lighting/light_data.glsl"
 
 #ifdef SKY_ENABLED
-    #include "/lib/world/scattering.glsl"
-    #include "/lib/world/porosity.glsl"
     #include "/lib/world/sun.glsl"
     #include "/lib/world/sky.glsl"
+    #include "/lib/world/scattering.glsl"
+    #include "/lib/world/porosity.glsl"
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #if SHADOW_PCF_SAMPLES == 12
