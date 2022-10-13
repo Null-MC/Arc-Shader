@@ -271,8 +271,8 @@
                     vec3 reflectDirPrev = mat3(gbufferPreviousModelView) * localReflectDir;
 
                     // TODO: move to vertex shader?
-                    int maxHdrPrevLod = textureQueryLevels(BUFFER_HDR_PREVIOUS)-1;
-                    int lod = int(rough * max(maxHdrPrevLod - 0.5, 0.0));
+                    int maxHdrPrevLod = textureQueryLevels(BUFFER_HDR_PREVIOUS);
+                    int lod = int(rough * max(maxHdrPrevLod - EPSILON, 0.0));
 
                     vec4 roughReflectColor = GetReflectColor(BUFFER_DEPTH_PREV, viewPosPrev, reflectDirPrev, lod);
 
@@ -373,7 +373,11 @@
             #ifdef SSS_ENABLED
                 if (material.scattering > 0.0 && shadowSSS > 0.0) {
                     // Transmission
-                    vec3 sssDiffuseLight = normalize(material.albedo.rgb) * pow2(shadowSSS) * skyLightColorFinal;// * skyLight;
+                    vec3 sssDiffuseLight = material.albedo.rgb;
+                    if (dot(sssDiffuseLight, sssDiffuseLight) > EPSILON)
+                        sssDiffuseLight = normalize(sssDiffuseLight);
+                    
+                    sssDiffuseLight *= pow2(shadowSSS) * skyLightColorFinal;// * skyLight;
 
                     float VoL = dot(-viewDir, viewLightDir);
                     sssDiffuseLight *= ComputeVolumetricScattering(VoL, 0.4);
@@ -542,11 +546,11 @@
             if (material.hcm >= 0) {
                 //if (material.hcm < 8) specular *= material.albedo.rgb;
 
-                diffuse *= roughL * HCM_AMBIENT;
-                ambient *= roughL * HCM_AMBIENT;
+                diffuse *= roughL * METAL_AMBIENT;
+                ambient *= roughL * METAL_AMBIENT;
             }
         #else
-            float metalDarkF = 1.0 - material.f0 * (1.0 - HCM_AMBIENT);
+            float metalDarkF = 1.0 - material.f0 * (1.0 - METAL_AMBIENT);
             diffuse *= metalDarkF;
             ambient *= metalDarkF;
         #endif
