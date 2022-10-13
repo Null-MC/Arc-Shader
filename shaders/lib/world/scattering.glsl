@@ -21,8 +21,6 @@ float GetScatteringFactor(const in float sunLightLevel) {
 }
 
 vec3 GetVanillaSkyScattering(const in vec3 viewDir, const in vec2 skyLightLevels, const in vec3 sunColor, const in vec3 moonColor) {
-    //float scattering = GetScatteringFactor(sunLightLevel);
-    //vec2 skyLightLevels = GetSkyLightLevels();
     float scattering_G = GetScatteringFactor(skyLightLevels.x);
     vec3 vlColor = vec3(0.0);
 
@@ -32,16 +30,6 @@ vec3 GetVanillaSkyScattering(const in vec3 viewDir, const in vec2 skyLightLevels
         vec3 sunDir = normalize(sunPosition);
     #endif
 
-    //float sun_VoL = dot(viewDir, sunLightDir);
-    //float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering);
-
-    //vec3 moonLightDir = normalize(moonPosition);
-    //float moon_VoL = dot(viewDir, moonLightDir);
-    //float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering);
-
-    //vec3 vlColor = (sunScattering * sunColor + moonScattering * moonColor);// * scatterDistF;
-
-    //vec3 sunDir = normalize(sunPosition);
     float sun_VoL = dot(viewDir, sunDir);
     float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering_G);
     vlColor += sunScattering * sunColor;

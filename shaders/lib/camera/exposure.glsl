@@ -45,33 +45,17 @@ float GetAverageLuminance() {
             for (int x = 0; x < lodSize.x; x++) {
                 float sampleLum = texelFetch(BUFFER_HDR_PREVIOUS, ivec2(x, y), luminanceLod).a;
                 sampleLum = max(exp2(sampleLum) - EPSILON, 0.0);
-
                 averageLuminance += sampleLum;
-                //averageLuminance = max(averageLuminance, sampleLum);
             }
         }
 
-        averageLuminance /= lodSize.x*lodSize.y;
-        //averageLuminance = textureLod(BUFFER_HDR_PREVIOUS, vec2(0.5), luminanceLod).a;
-        //return exp2(averageLuminance);
-        return averageLuminance;
+        return averageLuminance / (lodSize.x*lodSize.y);
     #else
         return 0.0;
     #endif
 }
 
-// float GetEV100() {
-//     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-//         float avgLum = GetAverageLuminance();
-//         avgLum = clamp(avgLum, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
-//         return GetEV100(avgLum);
-//     #else
-//         return 0.0;
-//     #endif
-// }
-
 float GetExposure() {
-    //float EV100 = GetEV100() - CAMERA_EXPOSURE;
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         float avgLum = GetAverageLuminance();
         avgLum = clamp(avgLum, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
@@ -81,8 +65,6 @@ float GetExposure() {
     #else
         float EV100 = 0.0;
     #endif
-
-    //EV100 += 8.0 * blindness;
 
     return GetExposure(EV100 - CAMERA_EXPOSURE);
 }

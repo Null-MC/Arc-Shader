@@ -2,7 +2,8 @@ float GetContactShadow(const in sampler2D depthtex, const in vec3 viewPos, const
     vec3 startClipPos = unproject(gbufferProjection * vec4(viewPos, 1.0)) * 0.5 + 0.5;
     vec3 endClipPos = unproject(gbufferProjection * vec4(viewPos + shadowRay, 1.0)) * 0.5 + 0.5;
 
-    vec2 pixelSize = rcp(vec2(viewWidth, viewHeight));
+    vec2 viewSize = vec2(viewWidth, viewHeight);
+    vec2 pixelSize = rcp(viewSize);
 
     vec3 screenRay = endClipPos - startClipPos;
 
@@ -17,11 +18,12 @@ float GetContactShadow(const in sampler2D depthtex, const in vec3 viewPos, const
     vec3 screenStep = screenRay / stepCount;// * 2.0;
     stepCount = min(stepCount, 60);
 
-    #ifdef SHADOW_CONTACT_DITHER
-        startClipPos.xy += screenStep.xy * 0.2*GetScreenBayerValue();
-    #endif
+    screenStep *= 2.0;
 
-    //screenStep *= 1.5;
+    #ifdef SHADOW_CONTACT_DITHER
+        //startClipPos.xy += screenStep.xy * 0.2*GetScreenBayerValue();
+        startClipPos += screenStep * GetScreenBayerValue();
+    #endif
 
     float texDepth;
     vec3 tracePos;
@@ -30,29 +32,18 @@ float GetContactShadow(const in sampler2D depthtex, const in vec3 viewPos, const
     float shadow = 1.0;
     for (; i <= stepCount && shadow > EPSILON; i++) {
         tracePos = startClipPos + i*screenStep;
+        if (clamp(tracePos, vec3(0.0), vec3(1.0 - EPSILON)) != tracePos) break;//return 1.0;
 
-        if (tracePos.x <= 0.0 || tracePos.x >= 1.0
-         || tracePos.y <= 0.0 || tracePos.y >= 1.0
-         || tracePos.z <= 0.0 || tracePos.z >= 1.0) return 1.0;
+        ivec2 iuv = ivec2(tracePos.xy * viewSize);
+        texDepth = texelFetch(depthtex, iuv, 0).r;
+        if (texDepth > tracePos.z - EPSILON) continue;
+        if (texDepth < tracePos.z - 0.00001*i) continue;
 
-        //if (abs(tracePos.x - startClipPos.x) < pixelSize.x
-        // && abs(tracePos.y - startClipPos.y) < pixelSize.y) continue;
-        //float traceDepthLinear = linearizeDepthFast(tracePos.z, near, far);
+        //if (screenStep.z > 0.0 && texDepth < startClipPos.z) continue;
+        //if (screenStep.z < 0.0 && texDepth > startClipPos.z) continue;
 
-        texDepth = textureLod(depthtex, tracePos.xy, 0).r;
-        //float texDepthLinear = linearizeDepthFast(texDepth, near, far);
-
-        //float depthDeltaMax = mix(0.08, 0.4, tracePos.z);
-
-        //shadow = step(depthDelta, 0.0) * step(depthDelta, depthDeltaMax);
-
-        //if (depthDelta > 0 && depthDelta < depthDeltaMax) shadow = 0.0;
-        if (tracePos.z <= texDepth) continue;
-
-        // if (texDepth >= tracePos.z) continue;
-
-        float d = 0.001 * i;//001 * i*i;
-        if (linearizeDepthFast(tracePos.z, near, far) <= linearizeDepthFast(texDepth, near, far) + d) continue;
+        //float d = 0.1 * i;//001 * i*i;
+        //if (linearizeDepthFast(texDepth, near, far) > linearizeDepthFast(tracePos.z, near, far) - d) continue;
 
         shadow -= 4.0 / i;
     }
