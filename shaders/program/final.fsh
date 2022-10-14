@@ -113,14 +113,14 @@ out vec3 outColor0;
 #ifdef DEBUG_EXPOSURE_METERS
     void RenderLuminanceMeters(inout vec3 color, const in float avgLum, const in float EV100) {
         if (gl_FragCoord.x < 8) {
-            float avgLumScaled = clamp(avgLum * (1.0/160000.0), 0.0, 1.0);
+            float avgLumScaled = clamp(avgLum / CAMERA_LUM_MAX, 0.0, 1.0);
             color = vec3(1.0, 0.0, 0.0) * step(texcoord.y, sqrt(avgLumScaled));
         }
         else if (gl_FragCoord.x < 16) {
-            color = vec3(0.0, 1.0, 0.0) * step(texcoord.y, (EV100 + 1.0) / 20.0);
+            color = vec3(0.0, 1.0, 0.0) * step(texcoord.y, (EV100 + 2.0) / 16.0);
 
             vec2 pixelSize = 1.0 / vec2(viewWidth, viewHeight);
-            if (abs(texcoord.y - (2.0 / 15.0)) < 2.0 * pixelSize.y)
+            if (abs(texcoord.y - (2.0 / 16.0)) < 2.0 * pixelSize.y)
                 color = vec3(1.0, 1.0, 1.0);
         }
     }

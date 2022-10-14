@@ -14,44 +14,31 @@
 
 //====  Stuff from Jessie ====//
 
-vec3 tonemap_HejlBurgess(const in vec3 color)
-{
+vec3 tonemap_HejlBurgess(const in vec3 color) {
     const float f = 1.0 / 1.1;
 
     vec3 t = max(vec3(0.0), color * f - 0.0008);
     return color * (6.2 * t + 0.5) / (t * (6.2 * t + 1.7) + 0.06);
 }
 
-vec3 tonemap_AcesFilm(const in vec3 color)
-{
+vec3 tonemap_AcesFilm(const in vec3 color) {
     return clamp(color * (2.51 * color + 0.03) / (color * (2.43 * color + 0.59) + 0.14), 0.0, 1.0);
 }
 
 
 //====  Stuff from Tech ====//
 
-//static const vec3 luma_factor = vec3(0.2126f, 0.7152f, 0.0722f);
-//
-//
-//float luminance(const in vec3 color)
-//{
-//    return dot(color, luma_factor);
-//}
-
-vec3 tonemap_Reinhard(const in vec3 color)
-{
+vec3 tonemap_Reinhard(const in vec3 color) {
     return color / (color + 1.0);
 }
 
-vec3 tonemap_ReinhardJodie(const in vec3 color)
-{
+vec3 tonemap_ReinhardJodie(const in vec3 color) {
     float luma = luminance(color);
     vec3 tonemapped_color = color / (1.0 + color);
     return mix(color / (1.0 + luma), tonemapped_color, tonemapped_color);
 }
 
-vec3 tonemap_Uncharted2_curve(const in vec3 x)
-{
+vec3 tonemap_Uncharted2_curve(const in vec3 x) {
     const float A = 0.15;
     const float B = 0.50;
     const float C = 0.10;
@@ -62,13 +49,11 @@ vec3 tonemap_Uncharted2_curve(const in vec3 x)
     return ((x * (A*x + C*B) + D*E) / (x * (A*x + B) + D*F)) - E/F;
 }
 
-vec3 tonemap_Uncharted2(const in vec3 x, const in float whitePoint)
-{
+vec3 tonemap_Uncharted2(const in vec3 x, const in float whitePoint) {
     return 1.6 * tonemap_Uncharted2_curve(x) / tonemap_Uncharted2_curve(vec3(whitePoint));
 }
 
-vec3 tonemap_ACESFit(const in vec3 x)
-{
+vec3 tonemap_ACESFit(const in vec3 x) {
     const float a = 1.9;
     const float b = 0.04;
     const float c = 2.43;
@@ -79,7 +64,7 @@ vec3 tonemap_ACESFit(const in vec3 x)
 }
 
 // Based on http://www.oscars.org/science-technology/sci-tech-projects/aces
-vec3 tonemap_ACESFit2(const in vec3 color){
+vec3 tonemap_ACESFit2(const in vec3 color) {
     const mat3 m1 = mat3(
         0.59719, 0.07600, 0.02840,
         0.35458, 0.90834, 0.13383,
@@ -96,45 +81,35 @@ vec3 tonemap_ACESFit2(const in vec3 color){
     return pow(clamp(m2 * (a / b), 0.0, 1.0), vec3(1.0 / 2.2));
 }
 
-vec3 tonemap_FilmicHejl2015(const in vec3 hdr, const in float whitePoint)
-{
+vec3 tonemap_FilmicHejl2015(const in vec3 hdr, const in float whitePoint) {
     vec4 vh = vec4(hdr, whitePoint);    // pack: [r, g, b, w]
     vec4 va = 1.425 * vh + 0.05;
     vec4 vf = (vh * va + 0.004) / (vh * (va + 0.55) + 0.0491) - 0.0821;
     return vf.rgb / vf.www;
 }
 
-vec3 tonemap_Burgess(const in vec3 color)
-{
+vec3 tonemap_Burgess(const in vec3 color) {
     vec3 maxColor = max(color - 0.004, vec3(0.0));
     return maxColor * (6.2 * maxColor + 0.5) / (maxColor * (6.2 * maxColor + 1.7) + 0.06);
 }
 
-vec3 _ChangeLuma(const in vec3 c_in, const in float l_out)
-{
-    float l_in = luminance(c_in);
-    return c_in * (l_out / l_in);
-}
-
-vec3 tonemap_ReinhardExtendedLuminance(const in vec3 color, const in float maxWhiteLuma)
-{
+vec3 tonemap_ReinhardExtendedLuminance(in vec3 color, const in float maxWhiteLuma) {
     float luma_old = luminance(color);
     float numerator = luma_old * (1.0 + luma_old / pow2(maxWhiteLuma));
     float luma_new = numerator / (1.0 + luma_old);
-    return _ChangeLuma(color, luma_new);
+    setLuminance(color, luma_new);
+    return color;
 }
 
 // Original by Dawson Burgess
 // Modified by: https://github.com/TechDevOnGithub/
-vec3 tonemap_BurgessModified(const in vec3 color)
-{
+vec3 tonemap_BurgessModified(const in vec3 color) {
     vec3 max_color = color * min(vec3(1.0), 1.0 - exp(-1.0 / (luminance(color) * 0.1) * color));
     return max_color * (6.2 * max_color + 0.5) / (max_color * (6.2 * max_color + 1.7) + 0.06);
 }
 
 // My custom tonemap, feel free to use, make sure to give credit though :D
-vec3 tonemap_Tech(const in vec3 color, const in float contrast)
-{
+vec3 tonemap_Tech(const in vec3 color, const in float contrast) {
     vec3 a = color * min(vec3(1.0), 1.0 - exp(-1.0 / contrast * color));
     a = mix(a, color, color * color);
     return a / (a + 0.6);
@@ -143,8 +118,7 @@ vec3 tonemap_Tech(const in vec3 color, const in float contrast)
 
 //====  compile-time global switch ====//
 
-vec3 ApplyTonemap(const in vec3 color, const in float whitePoint)
-{
+vec3 ApplyTonemap(const in vec3 color, const in float whitePoint) {
 #if TONEMAP == TONEMAP_HejlBurgess
     return tonemap_HejlBurgess(color);
 #elif TONEMAP == TONEMAP_AcesFilm
@@ -174,8 +148,7 @@ vec3 ApplyTonemap(const in vec3 color, const in float whitePoint)
 #endif
 }
 
-vec3 TonemapLinearToRGB(const in vec3 color)
-{
+vec3 TonemapLinearToRGB(const in vec3 color) {
 #if TONEMAP == TONEMAP_HejlBurgess
     return color;
 #elif TONEMAP == TONEMAP_AcesFilm

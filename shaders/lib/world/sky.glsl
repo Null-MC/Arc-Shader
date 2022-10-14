@@ -1,4 +1,4 @@
-const float[5] moonPhaseLevels = float[](0.40, 0.52, 0.68, 0.82, 1.00);
+const float[5] moonPhaseLevels = float[](0.50, 0.65, 0.80, 0.90, 1.00);
 
 #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
     // by BuilderBoy

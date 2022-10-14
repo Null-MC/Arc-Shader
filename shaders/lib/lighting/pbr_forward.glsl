@@ -27,9 +27,9 @@
 
         LightData lightData;
         lightData.occlusion = 1.0;
-        lightData.blockLight = lmcoord.x;
-        lightData.skyLight = lmcoord.y;
-        lightData.geoNoL = geoNoL;
+        lightData.blockLight = saturate(lmcoord.x);
+        lightData.skyLight = saturate(lmcoord.y);
+        lightData.geoNoL = saturate(geoNoL);
         lightData.parallaxShadow = 1.0;
 
         float opaqueScreenDepth = texelFetch(depthtex1, ivec2(gl_FragCoord.xy), 0).r;

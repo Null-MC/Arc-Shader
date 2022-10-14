@@ -50,7 +50,7 @@ const bool colortex12Clear = false;
 #define BLOCK_OUTLINE 3 // [0 1 2 3]
 #define BLOCKLIGHT_TEMP 3500 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 0 // [0 10 20 30 40 50 60 70 80 90 100]
-#define SHADOW_BRIGHTNESS 0.20 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
+#define SHADOW_BRIGHTNESS 0.10 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define RAIN_DARKNESS 0.4
 //#define AO_ENABLED
 //#define ANIM_USE_WORLDTIME
@@ -136,7 +136,7 @@ const bool colortex12Clear = false;
 // Camera Options
 #define CAMERA_EXPOSURE_MODE 2 // [0 1 2]
 #define CAMERA_EXPOSURE 0 // [-17 -16 -15 -14 -13 -12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6]
-#define CAMERA_LUM_MIN 500.0
+#define CAMERA_LUM_MIN 120.0
 #define CAMERA_LUM_MAX 64000.0
 //#define EXPOSURE_POINT 0.2
 #define EXPOSURE_SPEED_UP 0.8
@@ -228,7 +228,7 @@ const float MoonOvercastLux = 2.0;
 const float BlockLightLux = 12800.0; // 9k
 const float DaySkyLux = 30000.0;
 const float NightSkyLux = 2.0;
-const float MinWorldLux = 8.0;
+const float MinWorldLux = 12.0;
 
 const float DaySkyLumen = 14000.0;
 const float DaySkyOvercastLumen = 10000.0;
