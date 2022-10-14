@@ -260,8 +260,8 @@
 
         vec3 reflectColor = vec3(0.0);
         #if REFLECTION_MODE != REFLECTION_MODE_NONE
+            vec3 reflectDir = reflect(-viewDir, viewNormal);
             if (smoothness > EPSILON) {
-                vec3 reflectDir = reflect(-viewDir, viewNormal);
 
                 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
                     vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
@@ -566,6 +566,8 @@
             + (specular + iblSpec) * specularTint;
 
         final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
+
+        //final.rgb = (reflectDir * 0.5 + 0.5) * 1000.0;
 
         #if defined SKY_ENABLED && defined RENDER_DEFERRED
             if (isEyeInWater == 1) {

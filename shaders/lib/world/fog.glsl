@@ -30,7 +30,7 @@ float GetCaveFogFactor(const in float viewDist) {
         density = mix(density, rainFogDensity, rainStrength);
         strength = mix(strength, rainFogStrength, rainStrength);
 
-        return GetFogFactor(viewDist, 0.0, fogEnd, density) * strength;
+        return saturate(GetFogFactor(viewDist, 0.0, fogEnd, density) * strength);
     }
 #endif
 

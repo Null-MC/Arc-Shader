@@ -13,7 +13,7 @@ float GetExposureKeyValue(const in float avgLum) {
 }
 
 float GetExposure(const in float EV100) {
-    float brightnessF = 3.0 - 2.0*screenBrightness;
+    float brightnessF = 1.0;//3.0 - 2.0*screenBrightness;
 
     #if MC_VERSION >= 11900
         brightnessF *= 1.0 - 0.9*darknessFactor;
@@ -30,35 +30,40 @@ float GetExposure(const in float EV100) {
 
 float GetAverageLuminance() {
     #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-        float lum = texelFetch(BUFFER_HDR_PREVIOUS, ivec2(0, 0), 0).a;
-        return max(exp2(lum) - EPSILON, 0.0);
+        float lum = texelFetch(BUFFER_HDR_PREVIOUS, ivec2(0), 0).a;
+        float avgLum = max(exp2(lum) - EPSILON, 0.0);
     #elif CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-        int luminanceLod = GetLuminanceLod()-2;
+        int luminanceLod = GetLuminanceLod();
 
         float averageLuminance = 0.0;
-        vec2 texSize = SSR_SCALE * vec2(viewWidth, viewHeight);
+        // vec2 texSize = SSR_SCALE * vec2(viewWidth, viewHeight);
 
-        ivec2 lodSize = ivec2(ceil(texSize / exp2(luminanceLod)));
-        lodSize = min(lodSize, ivec2(12, 8));
+        // ivec2 lodSize = ivec2(ceil(texSize / exp2(luminanceLod)));
+        // lodSize = min(lodSize, ivec2(12, 8));
 
-        for (int y = 0; y < lodSize.y; y++) {
-            for (int x = 0; x < lodSize.x; x++) {
-                float sampleLum = texelFetch(BUFFER_HDR_PREVIOUS, ivec2(x, y), luminanceLod).a;
-                sampleLum = max(exp2(sampleLum) - EPSILON, 0.0);
-                averageLuminance += sampleLum;
-            }
-        }
+        // for (int y = 0; y < lodSize.y; y++) {
+        //     for (int x = 0; x < lodSize.x; x++) {
+        //         //float sampleLum = texelFetch(BUFFER_HDR_PREVIOUS, ivec2(x, y), luminanceLod).a;
+        //         float sampleLum = textureLod(BUFFER_HDR_PREVIOUS, vec2(x, y) / lodSize, luminanceLod).a;
+        //         sampleLum = max(exp2(sampleLum) - EPSILON, 0.0);
+        //         averageLuminance += sampleLum;
+        //     }
+        // }
 
-        return averageLuminance / (lodSize.x*lodSize.y);
+        float sampleLum = texelFetch(BUFFER_HDR_PREVIOUS, ivec2(0), luminanceLod).a;
+        float avgLum = max(exp2(sampleLum) - EPSILON, 0.0);
+
+        //return averageLuminance / (lodSize.x*lodSize.y);
     #else
-        return 0.0;
+        float avgLum = 0.0;
     #endif
+
+    return clamp(avgLum, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
 }
 
 float GetExposure() {
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         float avgLum = GetAverageLuminance();
-        avgLum = clamp(avgLum, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
 
         //float keyValue = GetExposureKeyValue(avgLum);
         float EV100 = GetEV100(avgLum);// - keyValue;

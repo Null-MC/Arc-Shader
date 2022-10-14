@@ -59,7 +59,7 @@ const bool colortex12Clear = false;
 // Water Options
 #define WATER_FANCY
 #define WATER_REFRACTION 1 // [0 1 2]
-#define WATER_WAVE_TYPE 2 // [0 1 2]
+#define WATER_WAVE_TYPE 1 // [0 1 2]
 #define WATER_SCALE 18.0
 #define WATER_RADIUS 50
 #define WATER_OCTAVES_NEAR 48
@@ -111,9 +111,9 @@ const bool colortex12Clear = false;
 #define SSS_ENABLED
 #define SSS_SCATTER
 #define SSS_DITHER
-#define SSS_STRENGTH 10 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
+#define SSS_STRENGTH 6 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
 #define SSS_MAXDIST 6 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
-#define SSS_PCF_SIZE 4.0 // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0]
+#define SSS_PCF_SIZE 3.0 // [0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
 
 
@@ -136,7 +136,7 @@ const bool colortex12Clear = false;
 // Camera Options
 #define CAMERA_EXPOSURE_MODE 2 // [0 1 2]
 #define CAMERA_EXPOSURE 0 // [-17 -16 -15 -14 -13 -12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6]
-#define CAMERA_LUM_MIN 60.0
+#define CAMERA_LUM_MIN 500.0
 #define CAMERA_LUM_MAX 64000.0
 //#define EXPOSURE_POINT 0.2
 #define EXPOSURE_SPEED_UP 0.8
@@ -223,7 +223,7 @@ const float EmissionLumens = 1.0e5;
 
 const float SunLux = 64000.0;
 const float SunOvercastLux = 1600; //600.0;
-const float MoonLux = 48.0;
+const float MoonLux = 20.0;
 const float MoonOvercastLux = 2.0;
 const float BlockLightLux = 12800.0; // 9k
 const float DaySkyLux = 30000.0;

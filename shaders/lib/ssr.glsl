@@ -21,21 +21,24 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     ivec2 iuv_start = ivec2(clipPos.xy * viewSize);
     clipPos += screenRay * GetScreenBayerValue();
 
+    const vec3 clipMin = vec3(0.0);
+    const vec3 clipMax = vec3(1.0 - EPSILON);
+
     int i = 1;
     float alpha = 0.0;
     for (; i <= SSR_STEPS && alpha < 0.5; i++) {
         tracePos = clipPos + i*screenRay;
-        if (clamp(tracePos, vec3(0.0), vec3(1.0 - EPSILON)) != tracePos) break;
+        if (clamp(tracePos, clipMin, clipMax) != tracePos) break;
 
         ivec2 iuv = ivec2(tracePos.xy * viewSize);
         if (iuv == iuv_start) continue;
 
         texDepth = texelFetch(depthtex, iuv, 0).r;
-        if (texDepth > tracePos.z - EPSILON) continue;
+        if (texDepth >= tracePos.z) continue;
 
-        if (screenRay.z >= 0.0 && texDepth < clipPos.z) continue;
+        if (screenRay.z > 0.0 && texDepth < clipPos.z) continue;
 
-        float d = 0.0004*i*i;
+        float d = 0.0001*(i*i);
         if (linearizeDepthFast(texDepth, near, far) > linearizeDepthFast(tracePos.z, near, far) - d) continue;
 
         alpha = 1.0;
