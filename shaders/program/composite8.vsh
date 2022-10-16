@@ -11,6 +11,9 @@ flat out int tileCount;
 
 uniform sampler2D BUFFER_HDR;
 
+uniform float viewWidth;
+uniform float viewHeight;
+
 #include "/lib/camera/bloom.glsl"
 
 
@@ -18,5 +21,6 @@ void main() {
     gl_Position = ftransform();
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
-    tileCount = GetBloomTileCount();
+    vec2 viewSize = vec2(viewWidth, viewHeight);
+    tileCount = GetBloomTileCount(viewSize);
 }

@@ -53,7 +53,8 @@ void main() {
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
     #ifdef BLOOM_ENABLED
-        bloomTileCount = GetBloomTileCount();
+        vec2 viewSize = vec2(viewWidth, viewHeight);
+        bloomTileCount = GetBloomTileCount(viewSize);
     #endif
 
     #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP

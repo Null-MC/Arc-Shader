@@ -24,7 +24,8 @@ out vec3 outColor0;
 
 void main() {
     vec2 tileMin, tileMax;
-    int tile = GetBloomTileInnerIndex(tileCount, tileMin, tileMax);
+    vec2 viewSize = vec2(viewWidth, viewHeight);
+    int tile = GetBloomTileInnerIndex(viewSize, tileCount, tileMin, tileMax);
 
     vec3 final = vec3(0.0);
     if (tile >= 0) final = BloomBlur13(texcoord, tileMin, tileMax, direction);

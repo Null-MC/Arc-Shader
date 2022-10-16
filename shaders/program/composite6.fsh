@@ -22,39 +22,34 @@ uniform float viewHeight;
 out vec3 outColor0;
 
 
-int GetBloomTileOuterIndex(const in int tileCount) {
+int GetBloomTileOuterIndex(const in vec2 screenSize, const in int tileCount) {
+    int tileIndex = -1;
     vec2 tileMin, tileMax;
-    for (int i = 0; i < tileCount; i++) {
-        GetBloomTileOuterBounds(i, tileMin, tileMax);
-
-        if (texcoord.x > tileMin.x && texcoord.x <= tileMax.x
-         && texcoord.y > tileMin.y && texcoord.y <= tileMax.y) return i;
+    for (int i = 0; i < tileCount && tileIndex < 0; i++) {
+        GetBloomTileOuterBounds(screenSize, i, tileMin, tileMax);
+        if (clamp(texcoord, tileMin, tileMax) == texcoord) tileIndex = i;
     }
 
-    return -1;
-}
-
-void ChangeLuminance(inout vec3 color, const in float lumNew) {
-    float lumPrev = luminance(color);
-    color *= (lumNew / max(lumPrev, EPSILON));
+    return tileIndex;
 }
 
 void main() {
-    int tile = GetBloomTileOuterIndex(tileCount);
+    vec2 viewSize = vec2(viewWidth, viewHeight);
+    int tile = GetBloomTileOuterIndex(viewSize, tileCount);
     vec3 final = vec3(0.0);
 
     if (tile >= 0) {
-        vec2 pixelSize = SSR_SCALE * rcp(vec2(viewWidth, viewHeight));
+        vec2 pixelSize = rcp(0.5 * viewSize);
 
         vec2 tileMin, tileMax;
-        GetBloomTileInnerBounds(tile, tileMin, tileMax);
+        GetBloomTileInnerBounds(viewSize, tile, tileMin, tileMax);
 
         vec2 tileSize = tileMax - tileMin;
         vec2 tileTex = (texcoord - tileMin) / tileSize;
+        int t = 2*(tile + 1);//max(tile - 1, 0);
 
         #ifdef BLOOM_SMOOTH
-            int t = tile + 1;//max(tile - 1, 0);
-            vec2 tilePixelSize = pixelSize * exp2(t);
+            vec2 tilePixelSize = pixelSize * exp2(t - 1);
 
             vec2 uv1 = tileTex + vec2(-0.5, -0.5) * tilePixelSize;
             vec2 uv2 = tileTex + vec2( 0.5, -0.5) * tilePixelSize;
@@ -80,17 +75,17 @@ void main() {
                 max(exp2(lumSample[2]) - EPSILON, 0.0) +
                 max(exp2(lumSample[3]) - EPSILON, 0.0));
         #else
-            final = textureLod(BUFFER_HDR, tileTex, tile+1).rgb;// / exposure;
-            float lum = textureLod(BUFFER_LUMINANCE, tileTex, tile+1).r;
+            final = textureLod(BUFFER_HDR, tileTex, t).rgb;// / exposure;
+            float lum = textureLod(BUFFER_LUMINANCE, tileTex, t).r;
             lum = max(exp2(lum) - EPSILON, 0.0);
         #endif
 
         //lum = max(exp2(lum) - EPSILON, 0.0);
 
         lum *= exposure;
-        lum = pow(lum * BLOOM_THRESHOLD, BLOOM_POWER) * 4.0;// * exp2(3.0 + 0.5*tile);
+        lum = pow(lum * BLOOM_THRESHOLD, BLOOM_POWER);// * exp2(3.0 + 0.5*tile);
         lum = min(lum, 1.0);
-        ChangeLuminance(final, lum);
+        setLuminance(final, lum);
     }
 
     outColor0 = final;

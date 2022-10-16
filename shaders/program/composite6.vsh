@@ -11,11 +11,11 @@ flat out float exposure;
 
 uniform sampler2D BUFFER_HDR;
 
+uniform float viewWidth;
+uniform float viewHeight;
+
 #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
     uniform sampler2D BUFFER_HDR_PREVIOUS;
-
-    uniform float viewWidth;
-    uniform float viewHeight;
 #endif
 
 uniform int heldBlockLightValue;
@@ -47,7 +47,8 @@ void main() {
     gl_Position = ftransform();
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
-    tileCount = GetBloomTileCount();
+    vec2 viewSize = vec2(viewWidth, viewHeight);
+    tileCount = GetBloomTileCount(viewSize);
 
     exposure = GetExposure();
 }

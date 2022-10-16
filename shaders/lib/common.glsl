@@ -158,10 +158,9 @@ const bool colortex12Clear = false;
 #define BLOOM_ENABLED
 #define BLOOM_SMOOTH
 //#define BLOOM_SCALE 60.0
-#define BLOOM_THRESHOLD 0.28
-#define BLOOM_POWER 3.0
+#define BLOOM_THRESHOLD 0.18
+#define BLOOM_POWER 2.0
 #define BLOOM_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
-#define BLOOM_LOD_MAX 0 // [0 1 2 3 4 5 6 7 8 9]
 #define VL_ENABLED
 #define VL_DITHER
 #define VL_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 175 200 225 250 275 300 350 400 450 500 600 700 800 900]
@@ -362,26 +361,21 @@ const float drynessHalflife = 10.0;
 #endif
 
 
-// float pow2(const in float x) {
-//     return x * x;
-// }
-
-// float pow3(const in float x) {
-//     return x * x * x;
-// }
-
 #define pow2(x) (x*x)
 #define pow3(x) (x*x*x)
 #define pow4(x) (x*x*x*x)
 #define pow5(x) (x*x*x*x*x)
 #define rcp(x) (1.0 / (x))
-// #define saturate(x) clamp(x, 0.0, 1.0)
-// #define saturate2(x) clamp(x, vec2(0.0), vec2(1.0))
-// #define saturate3(x) clamp(x, vec3(0.0), vec3(1.0))
 
 float saturate(const in float x) {return clamp(x, 0.0, 1.0);}
 vec2 saturate(const in vec2 x) {return clamp(x, vec2(0.0), vec2(1.0));}
 vec3 saturate(const in vec3 x) {return clamp(x, vec3(0.0), vec3(1.0));}
+
+float minOf(vec2 vec) {return min(vec[0], vec[1]);}
+float minOf(vec3 vec) {return min(min(vec[0], vec[1]), vec[2]);}
+
+float maxOf(vec2 vec) {return max(vec[0], vec[1]);}
+float maxOf(vec3 vec) {return max(max(vec[0], vec[1]), vec[2]);}
 
 vec3 unproject(const in vec4 pos) {
     return pos.xyz / pos.w;

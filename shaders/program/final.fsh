@@ -142,23 +142,24 @@ out vec3 outColor0;
     }
 
     vec3 GetFinalColor() {
-        ivec2 itex = ivec2(texcoord * vec2(viewWidth, viewHeight));
+        vec2 viewSize = vec2(viewWidth, viewHeight);
+        ivec2 itex = ivec2(texcoord * viewSize);
         vec3 color = texelFetch(BUFFER_HDR, itex, 0).rgb;// * exposure;
 
         #ifdef BLOOM_ENABLED
             vec3 bloom = vec3(0.0);
+
             for (int i = 0; i < bloomTileCount; i++) {
                 vec2 tileMin, tileMax;
-                GetBloomTileInnerBounds(i, tileMin, tileMax);
+                GetBloomTileInnerBounds(viewSize, i, tileMin, tileMax);
 
                 vec2 tileTex = texcoord * (tileMax - tileMin) + tileMin;
                 tileTex = clamp(tileTex, tileMin, tileMax);
 
-                bloom += textureLod(BUFFER_BLOOM, tileTex, 0).rgb / float(i + 1);
+                bloom += textureLod(BUFFER_BLOOM, tileTex, 0).rgb / float(2*i + 1);
             }
 
-            bloom *= (0.01 * BLOOM_STRENGTH);
-            color += bloom;// / sqrt(bloomTileCount);
+            color += bloom * (0.01 * BLOOM_STRENGTH);
         #endif
 
         #if CAMERA_BRIGHTNESS != 100
