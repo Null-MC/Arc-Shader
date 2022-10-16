@@ -62,11 +62,11 @@ flat in mat2 atlasBounds;
                 uniform sampler2DShadow shadowtex1HW;
             #endif
 
-            #ifdef SHADOW_COLOR
+            #if defined SHADOW_COLOR || defined SSS_ENABLED
                 uniform sampler2D shadowcolor0;
             #endif
 
-            #ifdef SSS_ENABLED
+            #if (defined RSM_ENABLED && defined RSM_UPSCALE) || (defined SSS_ENABLED && defined SHADOW_COLOR)
                 uniform usampler2D shadowcolor1;
             #endif
         #endif

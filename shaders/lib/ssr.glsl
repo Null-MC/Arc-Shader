@@ -28,7 +28,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
 
     int i = 1;
     float alpha = 0.0;
-    for (; i <= SSR_STEPS && alpha < 0.5; i++) {
+    for (; i <= SSR_STEPS && alpha < EPSILON; i++) {
         tracePos = clipPos + i*screenRay;
         if (clamp(tracePos, clipMin, clipMax) != tracePos) break;
 

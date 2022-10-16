@@ -71,10 +71,10 @@ uniform int renderStage;
 #include "/lib/material/material_reader.glsl"
 
 /* RENDERTARGETS: 0,1 */
-#if defined SHADOW_COLOR //|| defined RSM_ENABLED
+#if defined SHADOW_COLOR || defined SSS_ENABLED
     out vec4 outColor0;
 #endif
-#if defined RSM_ENABLED || defined SSS_ENABLED
+#if defined RSM_ENABLED || (defined SSS_ENABLED && defined SHADOW_COLOR)
     out uvec2 outColor1;
 #endif
 
@@ -83,9 +83,11 @@ void main() {
     mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        vec2 screenCascadePos = gl_FragCoord.xy / shadowMapSize - shadowCascadePos;
-        if (screenCascadePos.x < 0 || screenCascadePos.x >= 0.5
-         || screenCascadePos.y < 0 || screenCascadePos.y >= 0.5) discard;
+        vec2 screenCascadePos = 2.0 * (gl_FragCoord.xy / shadowMapSize - shadowCascadePos);
+        if (saturate(screenCascadePos.xy) != screenCascadePos.xy) discard;
+
+        //if (screenCascadePos.x < 0 || screenCascadePos.x >= 0.5
+        // || screenCascadePos.y < 0 || screenCascadePos.y >= 0.5) discard;
     #endif
 
     vec4 sampleColor;
@@ -133,9 +135,14 @@ void main() {
             float specularMapB = textureGrad(specular, texcoord, dFdXY[0], dFdXY[1]).b;
             sss = GetLabPbr_SSS(specularMapB);
         #endif
+
+        #ifndef SHADOW_COLOR
+            // blending SSS is probably bad, should just ignore transparent
+            outColor0 = vec4(sss, 0.0, 0.0, sampleColor.a);
+        #endif
     #endif
 
-    #if defined RSM_ENABLED || defined SSS_ENABLED
+    #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED)
         vec3 rsmColor = mix(vec3(0.0), sampleColor.rgb, sampleColor.a);
         rsmColor = LinearToRGB(rsmColor);
 

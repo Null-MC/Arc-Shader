@@ -200,15 +200,21 @@
 
             float contactShadow = 1.0;
             #if SHADOW_CONTACT != SHADOW_CONTACT_NONE
-                if (shadow > EPSILON) {
-                    vec3 shadowRay = viewLightDir * 10.0;
+                #if SHADOW_CONTACT == SHADOW_CONTACT_FAR
+                    const float minShadowDist = 0.5 * shadowDistance;
+                #else
+                    const float minShadowDist = 0.0;
+                #endif
+
+                if (shadow <= EPSILON) contactShadow = 0.0;
+                else if (viewDist >= minShadowDist) {
+                    vec3 shadowRay = viewLightDir * 60.0;
                     contactShadow = GetContactShadow(depthtex1, viewPos, shadowRay);
                 }
-                else contactShadow = 0.0;
             #endif
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                bool isInBounds = lightData.opaqueShadowDepth < 1.0 - EPSILON;
+                bool isInBounds = true;//lightData.opaqueShadowDepth < 1.0 - EPSILON;
 
                 if (isInBounds) {
                     if (shadow > EPSILON)
@@ -225,14 +231,9 @@
                             // TODO: use depth for extinction
                         }
                     #endif
-
-                    #if SHADOW_CONTACT == SHADOW_CONTACT_FAR
-                        if (viewDist < 0.5 * shadowDistance)
-                            contactShadow = 1.0;
-                    #endif
                 }
 
-                if (shadowSSS >= 1.0 - EPSILON) shadowSSS = 0.0;
+                //if (shadowSSS >= 1.0 - EPSILON) shadowSSS = 0.0;
             #else
                 shadow = pow2(skyLight) * lightData.occlusion;
                 shadowSSS = pow2(skyLight) * material.scattering;

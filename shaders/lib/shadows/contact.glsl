@@ -16,9 +16,9 @@ float GetContactShadow(const in sampler2D depthtex, const in vec3 viewPos, const
     }
 
     vec3 screenStep = screenRay / stepCount;// * 2.0;
-    stepCount = min(stepCount, 60);
+    stepCount = min(stepCount, 128);
 
-    screenStep *= 2.0;
+    screenStep *= 6.0;
 
     #ifdef SHADOW_CONTACT_DITHER
         //startClipPos.xy += screenStep.xy * 0.2*GetScreenBayerValue();
@@ -42,10 +42,10 @@ float GetContactShadow(const in sampler2D depthtex, const in vec3 viewPos, const
         //if (screenStep.z > 0.0 && texDepth < startClipPos.z) continue;
         //if (screenStep.z < 0.0 && texDepth > startClipPos.z) continue;
 
-        //float d = 0.1 * i;//001 * i*i;
-        //if (linearizeDepthFast(texDepth, near, far) > linearizeDepthFast(tracePos.z, near, far) - d) continue;
+        float d = 0.001*(i*i);
+        if (linearizeDepthFast(texDepth, near, far) > linearizeDepthFast(tracePos.z, near, far) - d) continue;
 
-        shadow -= 4.0 / i;
+        shadow -= 9.0 / i;
     }
 
     return max(shadow, 0.0);

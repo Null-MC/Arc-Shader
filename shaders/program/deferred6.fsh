@@ -23,11 +23,19 @@ flat in vec3 blockLightColor;
 
     #ifdef SHADOW_COLOR
         uniform sampler2D BUFFER_DEFERRED2;
-        uniform sampler2D shadowcolor0;
+        //uniform sampler2D shadowcolor0;
     #endif
 
     #ifdef RSM_ENABLED
         uniform sampler2D BUFFER_RSM_COLOR;
+    #endif
+
+    #if defined SHADOW_COLOR || defined SSS_ENABLED
+        uniform sampler2D shadowcolor0;
+    #endif
+
+    #if (defined RSM_ENABLED && defined RSM_UPSCALE) || (defined SSS_ENABLED && defined SHADOW_COLOR)
+        uniform usampler2D shadowcolor1;
     #endif
 #endif
 
@@ -96,9 +104,9 @@ uniform float fogEnd;
             uniform sampler2DShadow shadowtex1HW;
         #endif
 
-        #if defined SSS_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE)
-            uniform usampler2D shadowcolor1;
-        #endif
+        // #if defined SSS_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE)
+        //     uniform usampler2D shadowcolor1;
+        // #endif
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             flat in float cascadeSizes[4];

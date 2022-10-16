@@ -143,8 +143,12 @@
         #endif
 
         float SampleShadowSSS(const in vec2 shadowPos) {
-            uint data = textureLod(shadowcolor1, shadowPos, 0).g;
-            return unpackUnorm4x8(data).a;
+            #ifdef SHADOW_COLOR
+                uint data = textureLod(shadowcolor1, shadowPos, 0).g;
+                return unpackUnorm4x8(data).a;
+            #else
+                return textureLod(shadowcolor0, shadowPos, 0).r;
+            #endif
         }
 
         #ifdef SSS_SCATTER

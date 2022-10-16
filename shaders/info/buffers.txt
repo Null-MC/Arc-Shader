@@ -1,5 +1,5 @@
-shadowcolor0	RGBA8		1.0   light-color
-shadowcolor1	RG32UI		1.0   R: rsm-color; G: normal-XYZ, sss
+shadowcolor0	RGBA8		1.0   light-color OR sss*
+shadowcolor1	RG32UI		1.0   R: rsm-color; G: normal-XYZ, sss*
 
 colortex2		RGBA32		1.0   deferred= R: color; G: normal; B: specular; A: lighting
 colortex3		R16F		1.0	  AO
@@ -14,3 +14,7 @@ colortex11		RG16F		2048  Water Waves
 colortex12		R32F		0.25   Depth Tiles
 
 colortex10		n/a			256   BRDF LUT
+
+
+
+* SSS is only in shadowcolor0 if colored lighting is disabled!

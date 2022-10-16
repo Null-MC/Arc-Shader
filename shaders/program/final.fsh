@@ -154,11 +154,11 @@ out vec3 outColor0;
                 vec2 tileTex = texcoord * (tileMax - tileMin) + tileMin;
                 tileTex = clamp(tileTex, tileMin, tileMax);
 
-                bloom += textureLod(BUFFER_BLOOM, tileTex, 0).rgb;
+                bloom += textureLod(BUFFER_BLOOM, tileTex, 0).rgb / float(i + 1);
             }
 
             bloom *= (0.01 * BLOOM_STRENGTH);
-            color += bloom / sqrt(bloomTileCount);
+            color += bloom;// / sqrt(bloomTileCount);
         #endif
 
         #if CAMERA_BRIGHTNESS != 100

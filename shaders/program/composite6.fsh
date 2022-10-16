@@ -53,7 +53,7 @@ void main() {
         vec2 tileTex = (texcoord - tileMin) / tileSize;
 
         #ifdef BLOOM_SMOOTH
-            int t = tile+1;//max(tile - 1, 0);
+            int t = tile + 1;//max(tile - 1, 0);
             vec2 tilePixelSize = pixelSize * exp2(t);
 
             vec2 uv1 = tileTex + vec2(-0.5, -0.5) * tilePixelSize;
@@ -66,23 +66,29 @@ void main() {
             vec3 sample3 = textureLod(BUFFER_HDR, uv3, t).rgb;
             vec3 sample4 = textureLod(BUFFER_HDR, uv4, t).rgb;
             
-            final = (sample1 + sample2 + sample3 + sample4) * 0.25;
+            final = 0.25 * (sample1 + sample2 + sample3 + sample4);
 
-            vec4 lumSample;
+            vec4 lumSample;// = textureGather(BUFFER_LUMINANCE, tileTex, 0);
             lumSample[0] = textureLod(BUFFER_LUMINANCE, uv1, t).r;
             lumSample[1] = textureLod(BUFFER_LUMINANCE, uv2, t).r;
             lumSample[2] = textureLod(BUFFER_LUMINANCE, uv3, t).r;
             lumSample[3] = textureLod(BUFFER_LUMINANCE, uv4, t).r;
-            float lum = (lumSample[0] + lumSample[1] + lumSample[2] + lumSample[3]) * 0.25;
+            //float lum = (lumSample[0] + lumSample[1] + lumSample[2] + lumSample[3]) * 0.25;
+            float lum = 0.25 * (
+                max(exp2(lumSample[0]) - EPSILON, 0.0) +
+                max(exp2(lumSample[1]) - EPSILON, 0.0) +
+                max(exp2(lumSample[2]) - EPSILON, 0.0) +
+                max(exp2(lumSample[3]) - EPSILON, 0.0));
         #else
             final = textureLod(BUFFER_HDR, tileTex, tile+1).rgb;// / exposure;
             float lum = textureLod(BUFFER_LUMINANCE, tileTex, tile+1).r;
+            lum = max(exp2(lum) - EPSILON, 0.0);
         #endif
 
-        lum = max(exp2(lum) - EPSILON, 0.0);
+        //lum = max(exp2(lum) - EPSILON, 0.0);
 
         lum *= exposure;
-        lum = pow(lum * BLOOM_THRESHOLD, BLOOM_POWER) * exp2(3.0 + 0.5*tile);
+        lum = pow(lum * BLOOM_THRESHOLD, BLOOM_POWER) * 4.0;// * exp2(3.0 + 0.5*tile);
         lum = min(lum, 1.0);
         ChangeLuminance(final, lum);
     }

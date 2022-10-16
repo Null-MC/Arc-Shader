@@ -1,7 +1,13 @@
 #ifdef RENDER_VERTEX
     int GetBloomTileCount() {
+        #if BLOOM_LOD_MAX > 0
+            const int lodMax = BLOOM_LOD_MAX;
+        #else
+            const int lodMax = 99;
+        #endif
+
         int lodCount = textureQueryLevels(BUFFER_HDR);
-        return max(lodCount - 2, 1);
+        return clamp(lodCount - 2, 1, lodMax);
     }
 #endif
 
@@ -43,8 +49,7 @@
         for (int i = 0; i < tileCount; i++) {
             GetBloomTileInnerBounds(i, tileMin, tileMax);
 
-            if (texcoord.x > tileMin.x && texcoord.x <= tileMax.x
-             && texcoord.y > tileMin.y && texcoord.y <= tileMax.y) return i;
+            if (clamp(texcoord, tileMin, tileMax) == texcoord) return i;
         }
 
         return -1;
