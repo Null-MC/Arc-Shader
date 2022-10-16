@@ -548,11 +548,13 @@
             if (material.hcm >= 0) {
                 //if (material.hcm < 8) specular *= material.albedo.rgb;
 
-                diffuse *= roughL * METAL_AMBIENT;
-                ambient *= roughL * METAL_AMBIENT;
+                float metalDarkF = roughL * METAL_AMBIENT; //1.0 - material.f0 * (1.0 - METAL_AMBIENT);
+                diffuse *= metalDarkF;
+                ambient *= metalDarkF;
             }
         #else
-            float metalDarkF = 1.0 - material.f0 * (1.0 - METAL_AMBIENT);
+            //float metalDarkF = 1.0 - material.f0 * (1.0 - METAL_AMBIENT);
+            float metalDarkF = mix(roughL * METAL_AMBIENT, 1.0, 1.0 - pow2(material.f0)); //1.0 - material.f0 * (1.0 - METAL_AMBIENT);
             diffuse *= metalDarkF;
             ambient *= metalDarkF;
         #endif

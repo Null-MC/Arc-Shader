@@ -169,7 +169,7 @@
                     }
                 #endif
             #else
-                #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined RENDER_TERRAIN
+                #ifdef RENDER_TERRAIN
                     float sss = (0.25 + 0.75 * matSSS) * step(EPSILON, matSSS);
                     specularMap = vec4(matSmooth, matF0, sss, 0.0);
                 #else

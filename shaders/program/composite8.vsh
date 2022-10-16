@@ -11,6 +11,9 @@ flat out int tileCount;
 
 uniform sampler2D BUFFER_HDR;
 
+uniform float viewWidth;
+uniform float viewHeight;
+
 #include "/lib/camera/bloom.glsl"
 
 

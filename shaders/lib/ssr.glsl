@@ -18,7 +18,13 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     float texDepth;
     vec3 tracePos;
 
-    screenRay *= 3.0;
+    #if SSR_QUALITY == 0
+        screenRay *= 3.0;
+    #elif SSR_QUALITY == 1
+        screenRay *= 2.5;
+    #else
+        screenRay *= 2.0;
+    #endif
 
     ivec2 iuv_start = ivec2(clipPos.xy * viewSize);
     clipPos += screenRay * GetScreenBayerValue();
@@ -28,7 +34,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
 
     int i = 1;
     float alpha = 0.0;
-    for (; i <= SSR_STEPS && alpha < EPSILON; i++) {
+    for (; i <= SSR_MAXSTEPS && alpha < EPSILON; i++) {
         tracePos = clipPos + i*screenRay;
         if (clamp(tracePos, clipMin, clipMax) != tracePos) break;
 
