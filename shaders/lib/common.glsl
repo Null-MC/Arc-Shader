@@ -425,8 +425,7 @@ void setLuminance(inout vec3 color, const in float targetLuminance) {
     color *= (targetLuminance / luminance(color));
 }
 
-float expStep(float x)
-{
+float expStep(float x) {
     return 1.0 - exp(-x*x);
 }
 

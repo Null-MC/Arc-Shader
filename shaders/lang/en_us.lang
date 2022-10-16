@@ -80,6 +80,10 @@ value.REFLECTION_MODE.0=None
 value.REFLECTION_MODE.1=Sky Only
 value.REFLECTION_MODE.2=Screen-Space
 
+option.SSR_QUALITY=SSR Quality
+value.SSR_QUALITY.0=Low
+value.SSR_QUALITY.1=Medium
+value.SSR_QUALITY.2=High
 
 screen.MATERIAL_SSS_OPTIONS=Subsurface Scattering
 screen.MATERIAL_SSS_OPTIONS.comment=Allows light to scatter thorugh surfaces.

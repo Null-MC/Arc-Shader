@@ -174,8 +174,8 @@
                     if (texDepth < lightData.shadowPos.z + lightData.shadowBias) {
                         float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy + pixelOffset);
 
-                        float dist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * ShadowMaxDepth;
-                        light += max(shadow_sss - dist / maxDist, 0.0);
+                        float dist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * ShadowMaxDepth / maxDist;
+                        light += max(shadow_sss - pow2(dist), 0.0);
                     }
                     else {
                         light++;
