@@ -191,9 +191,9 @@ const bool colortex12Clear = false;
 #define PARTICLE_OPACITY 0.8
 //#define WETNESS_SMOOTH_NORMAL
 #define HCM_LAZANYI
-#define METAL_AMBIENT 0.024
+#define METAL_AMBIENT 0.2
 #define SSR_SCALE 4 // [1 2 4]
-#define SSR_STEPS 256 // [128 256 512]
+#define SSR_STEPS 128 // [128 256 512]
 #define SHADOW_CONTACT 1 // [0 1 2]
 //#define SHADOW_CONTACT_DITHER
 //#define SKY_DITHER
@@ -313,8 +313,6 @@ const float drynessHalflife = 10.0;
     #undef RSM_UPSCALE
 #endif
 
-#ifdef TITLE
-#endif
 #ifdef REFLECTION_MODE
 #endif
 #ifdef WATER_WAVE_TYPE
@@ -376,9 +374,13 @@ const float drynessHalflife = 10.0;
 #define pow4(x) (x*x*x*x)
 #define pow5(x) (x*x*x*x*x)
 #define rcp(x) (1.0 / (x))
-#define saturate(x) clamp(x, 0.0, 1.0)
-#define saturate2(x) clamp(x, vec2(0.0), vec2(1.0))
-#define saturate3(x) clamp(x, vec3(0.0), vec3(1.0))
+// #define saturate(x) clamp(x, 0.0, 1.0)
+// #define saturate2(x) clamp(x, vec2(0.0), vec2(1.0))
+// #define saturate3(x) clamp(x, vec3(0.0), vec3(1.0))
+
+float saturate(const in float x) {return clamp(x, 0.0, 1.0);}
+vec2 saturate(const in vec2 x) {return clamp(x, vec2(0.0), vec2(1.0));}
+vec3 saturate(const in vec3 x) {return clamp(x, vec3(0.0), vec3(1.0));}
 
 vec3 unproject(const in vec4 pos) {
     return pos.xyz / pos.w;

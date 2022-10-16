@@ -70,16 +70,14 @@
         vec3 rayStep = rayDirection * stepLength;
         float accumF = 0.0;
 
+        vec3 rayStart = shadowViewStart;
+
         #ifdef VL_DITHER
-            vec3 ditherOffset = rayStep * GetScreenBayerValue();
+            rayStart += rayStep * GetScreenBayerValue();
         #endif
 
         for (int i = 1; i <= VL_SAMPLE_COUNT; i++) {
-            vec3 currentShadowViewPos = shadowViewStart + i * rayStep;
-
-            #ifdef VL_DITHER
-                currentShadowViewPos += ditherOffset;
-            #endif
+            vec3 currentShadowViewPos = rayStart + i * rayStep;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 //vec3 shadowPos[4];

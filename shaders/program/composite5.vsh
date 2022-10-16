@@ -26,7 +26,7 @@ out vec2 texcoord;
     #include "/lib/world/sky.glsl"
 
     float GetEyeBrightnessLuminance() {
-        vec2 eyeBrightnessLinear = saturate2(eyeBrightness / 240.0);
+        vec2 eyeBrightnessLinear = saturate(eyeBrightness / 240.0);
 
         vec2 skyLightLevels = GetSkyLightLevels();
         float sunLightLux = GetSunLightLux(skyLightLevels.x);

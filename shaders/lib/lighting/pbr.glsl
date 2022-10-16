@@ -227,7 +227,8 @@
                     #endif
 
                     #if SHADOW_CONTACT == SHADOW_CONTACT_FAR
-                        contactShadow = 1.0;
+                        if (viewDist < 0.5 * shadowDistance)
+                            contactShadow = 1.0;
                     #endif
                 }
 

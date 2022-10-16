@@ -18,6 +18,8 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     float texDepth;
     vec3 tracePos;
 
+    screenRay *= 3.0;
+
     ivec2 iuv_start = ivec2(clipPos.xy * viewSize);
     clipPos += screenRay * GetScreenBayerValue();
 
@@ -45,7 +47,10 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     }
 
     vec3 color = vec3(0.0);
-    if (alpha > 0.5) {
+    if (alpha > EPSILON) {
+        vec2 alphaXY = saturate(2.0 * abs(vec2(0.5) - tracePos.xy));
+        alpha = 1.0 - pow(max(alphaXY.x, alphaXY.y), 4.0);
+
         //ivec2 iuv = ivec2(tracePos.xy * viewSize / exp2(lod));
         //color = texelFetch(BUFFER_HDR_PREVIOUS, iuv, lod).rgb;
 
