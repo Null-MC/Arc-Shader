@@ -153,49 +153,55 @@
 
         #ifdef SSS_SCATTER
             float GetShadowing_PCF_SSS(const in LightData lightData, const in vec2 pixelRadius, const in int sampleCount, const in float materialSSS) {
-                float maxDist = SSS_MAXDIST * materialSSS;
+                //float maxDist = SSS_MAXDIST * materialSSS;
 
                 #ifdef SSS_DITHER
-                    float dither = 0.98 + 0.04*GetScreenBayerValue();
+                    float dither = shadowPixelSize * (GetScreenBayerValue() - 0.5);
                 #endif
 
                 float light = 0.0;
                 for (int i = 0; i < sampleCount; i++) {
                     vec2 pixelOffset = poissonDisk[i] * pixelRadius;
 
-                    #ifdef SSS_DITHER
-                        pixelOffset *= dither;
-                    #endif
+                    //#ifdef SSS_DITHER
+                    //    pixelOffset += dither;
+                    //#endif
 
                     float texDepth = SampleOpaqueDepth(lightData.shadowPos, pixelOffset);
 
                     //if (texDepth < 1.0 - EPSILON)
+                    //if (lightData.shadowPos.z - lightData.shadowBias >= texDepth + EPSILON) continue;
 
                     if (texDepth < lightData.shadowPos.z + lightData.shadowBias) {
                         float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy + pixelOffset);
 
-                        float dist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * ShadowMaxDepth / maxDist;
-                        light += max(shadow_sss - pow2(dist), 0.0);
+                        if (shadow_sss >= EPSILON) {
+                            float maxDist = SSS_MAXDIST * sqrt(shadow_sss);
+
+                            float lightDist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * ShadowMaxDepth;
+                            light += max(1.0 - lightDist / maxDist, 0.0);
+                        }
                     }
                     else {
                         light++;
                     }
                 }
 
-                return light / sampleCount;
+                return sqrt(materialSSS) * (light / sampleCount);
             }
         #endif
 
         #ifdef SSS_SCATTER
             // PCF + PCSS
-            float GetShadowSSS(const in LightData lightData, const in float materialSSS, out float traceDist) {
-                float maxDist = SSS_MAXDIST * materialSSS;
+            float GetShadowSSS(const in LightData lightData, const in float materialSSS, out float lightDist) {
+                lightDist = max(lightData.shadowPos.z + lightData.shadowBias - lightData.opaqueShadowDepth, 0.0) * ShadowMaxDepth;
 
-                traceDist = max(lightData.shadowPos.z + lightData.shadowBias - lightData.opaqueShadowDepth, 0.0) * ShadowMaxDepth;
-
-                float blockRadius = SSS_PCF_SIZE * saturate(traceDist / maxDist);
+                //float blockRadius = SSS_PCF_SIZE * (0.5 + 0.5*saturate(traceDist / SSS_MAXDIST));
+                float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy);
+                //float maxDist = SSS_MAXDIST;// * sqrt(materialSSS);
 
                 int sampleCount = SSS_PCF_SAMPLES;
+                float blockRadius = SSS_PCF_SIZE * lightDist * (1.0 - shadow_sss);
                 vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, blockRadius);
                 if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
@@ -203,14 +209,14 @@
             }
         #else
             // Unfiltered
-            float GetShadowSSS(const in LightData lightData, const in float materialSSS, out float traceDist) {
-                float maxDist = SSS_MAXDIST * materialSSS;
-
-                traceDist = max(lightData.shadowPos.z + lightData.shadowBias - lightData.opaqueShadowDepth, 0.0) * ShadowMaxDepth;
+            float GetShadowSSS(const in LightData lightData, const in float materialSSS, out float lightDist) {
+                lightDist = max(lightData.shadowPos.z + lightData.shadowBias - lightData.opaqueShadowDepth, 0.0) * ShadowMaxDepth;
 
                 float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy);
+                if (shadow_sss < EPSILON) return 0.0;
 
-                return max(shadow_sss - traceDist / maxDist, 0.0);
+                float maxDist = SSS_MAXDIST * sqrt(shadow_sss);
+                return sqrt(materialSSS) * max(1.0 - lightDist / maxDist, 0.0);
             }
         #endif
     #endif

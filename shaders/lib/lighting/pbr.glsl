@@ -146,7 +146,8 @@
         #endif
 
         float NoLm = max(NoL, 0.0);
-        float NoVm = max(dot(viewNormal, viewDir), 0.0);
+        float NoV = dot(viewNormal, viewDir);
+        float NoVm = max(NoV, 0.0);
         vec3 viewUpDir = normalize(upPosition);
 
         float blockLight = saturate((lightData.blockLight - (1.0/16.0 + EPSILON)) / (15.0/16.0));
@@ -245,6 +246,7 @@
         #endif
 
         float shadowFinal = shadow;
+        //return vec4(vec3(1000.0 * shadowSSS), 1.0);
 
         #ifdef LIGHTLEAK_FIX
             // Make areas without skylight fully shadowed (light leak fix)
@@ -325,9 +327,10 @@
         vec3 specular = vec3(0.0);
         float occlusion = lightData.occlusion * material.occlusion;
 
-        // ERROR: The occlusion multiply above is what's causing the vanilla water texture to be visible!
         #if defined SSAO_ENABLED && !defined RENDER_WATER && !defined RENDER_HAND_WATER
-           occlusion *= textureLod(BUFFER_AO, texcoord, 0).r;
+            //float linearDepth = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
+            occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, 0.5 * viewSize, depthtex0, viewSize, lightData.opaqueScreenDepth, 0.9);
+           //occlusion *= textureLod(BUFFER_AO, texcoord, 0).r;
         #endif
 
         vec3 iblF = vec3(0.0);
@@ -381,12 +384,13 @@
                     
                     sssDiffuseLight *= pow2(shadowSSS) * skyLightColorFinal;// * skyLight;
 
-                    float VoL = dot(-viewDir, viewLightDir);
-                    sssDiffuseLight *= ComputeVolumetricScattering(VoL, 0.4);
+                    //float VoL = dot(-viewDir, viewLightDir);
+                    sssDiffuseLight *= BiLambertianPlatePhaseFunction(-NoV, 0.6);
+                    sssDiffuseLight *= BiLambertianPlatePhaseFunction(NoL, 0.6);
                     //sssDiffuseLight *= BiLambertianPlatePhaseFunction(0.9, VoL);
 
-                    float extDistF = (1.0 - 0.9*material.scattering) * sssDist;
-                    sssDiffuseLight *= exp(-extDistF * (1.0 - material.albedo.rgb));
+                    float extDistF = sssDist / SSS_MAXDIST;
+                    sssDiffuseLight *= exp(-extDistF * material.scattering * (1.0 - material.albedo.rgb));
                     //sssDiffuseLight *= exp(-extDistF);
 
                     sunDiffuse += sssDiffuseLight * (0.1 * SSS_STRENGTH);// * max(NoL, 0.0);
@@ -507,7 +511,7 @@
                     float inverseScatterAmount = saturate(1.0 - exp(-WATER_SCATTER_RATE * waterDepthFinal));
 
                     diffuse = refractColor * mix(vec3(1.0), scatterColor, inverseScatterAmount) * absorption;
-                    ambient = vec3(0.0);
+                    //ambient = vec3(0.0);
                     final.a = 1.0;
                 #else
                     //float waterSurfaceDepth = textureLod(shadowtex0);
@@ -519,24 +523,25 @@
                     float waterLightDist = waterViewDepth + lightData.waterShadowDepth;
 
                     //float verticalDepth = waterViewDepth * max(dot(viewLightDir, viewUpDir), 0.0);
-                    vec3 absorption = exp(-waterLightDist * extinctionInv);
-                    float scatterAmount = exp(0.01 * -waterLightDist);
+                    vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterViewDepth * extinctionInv);
+                    float scatterAmount = exp(-WATER_SCATTER_RATE * waterViewDepth);
 
-                    vec3 scatterColor = material.albedo.rgb * skyLightColorFinal * skyLight2;// * shadowFinal;
+                    vec3 scatterColor = WATER_SCATTER_COLOR * lightData.sunTransmittanceEye;// * skyLight2;// * shadowFinal;
 
                     //diffuse = (diffuse + scatterColor * scatterAmount) * absorption;
                     //diffuse = scatterColor * scatterAmount * absorption;
-                    diffuse *= absorption;
+                    diffuse *= mix(scatterColor, vec3(1.0), scatterAmount) * absorption;
 
-                    ambient = vec3(0.0);
                     //diffuse = vec3(0.0);
                     //specular = vec3(0.0);
                     
                     //float alphaF = exp(-(waterViewDepth + lightData.waterShadowDepth));
-                    float alphaF = exp(-waterViewDepth);
+                    float alphaF = exp(-0.2 * WATER_ABSROPTION_RATE * waterViewDepth);
                     final.a = min(final.a + (1.0 - saturate(alphaF)), 1.0);// * (1.0 - material.albedo.a);// * max(1.0 - final.a, 0.0);
                     //final.a = 1.0;
                 #endif
+
+                ambient = vec3(0.0);
             }
         #endif
 

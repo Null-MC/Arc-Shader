@@ -47,7 +47,11 @@ uniform float viewHeight;
     uniform sampler2D shadowcolor0;
 #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_SSS
     // Shadow SSS
-    uniform usampler2D shadowcolor1;
+    #ifdef SHADOW_COLOR
+        uniform usampler2D shadowcolor1;
+    #else
+        uniform sampler2D shadowcolor0;
+    #endif
 #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_DEPTH0
     // Shadow Depth [0]
     uniform sampler2D shadowtex0;
@@ -225,8 +229,12 @@ void main() {
         color = textureLod(shadowcolor0, texcoord, 0).rgb;
     #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_SSS
         // Shadow SSS
-        uint data = textureLod(shadowcolor1, texcoord, 0).g;
-        color = unpackUnorm4x8(data).bbb;
+        #ifdef SHADOW_COLOR
+            uint data = textureLod(shadowcolor1, texcoord, 0).g;
+            color = unpackUnorm4x8(data).aaa;
+        #else
+            color = textureLod(shadowcolor0, texcoord, 0).rrr;
+        #endif
     #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_DEPTH0
         // Shadow Depth [0]
         color = textureLod(shadowtex0, texcoord, 0).rrr;

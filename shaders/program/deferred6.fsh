@@ -141,6 +141,10 @@ uniform float fogEnd;
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/lighting/light_data.glsl"
 
+#ifdef SSAO_ENABLED
+    #include "/lib/sampling/bilateral_gaussian.glsl"
+#endif
+
 #ifdef SKY_ENABLED
     #include "/lib/world/sun.glsl"
     #include "/lib/world/sky.glsl"
@@ -322,7 +326,7 @@ void main() {
 
                 if (lightData.opaqueShadowCascade >= 0 && lightData.transparentShadowCascade >= 0) {
                     float minOpaqueDepth = min(lightData.shadowPos[lightData.opaqueShadowCascade].z, lightData.opaqueShadowDepth);
-                    lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 4.0 * far;
+                    lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 3.0 * far;
                 }
             #else
                 lightData.shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
@@ -347,7 +351,14 @@ void main() {
                 //if (lightData.opaqueShadowDepth < lightData.shadowPos.z) lightData.waterShadowDepth
 
                 //float minOpaqueDepth = min(lightData.shadowPos.z, lightData.opaqueShadowDepth);
-                lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.transparentShadowDepth, 0.0) * 3.0 * far;
+
+                #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                    const float ShadowMaxDepth = 512.0;
+                #else
+                    const float ShadowMaxDepth = 256.0;
+                #endif
+
+                lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.transparentShadowDepth, 0.0) * ShadowMaxDepth;
             #endif
 
             //float waterDepth = min(lightData.shadowPos.z, lightData.opaqueShadowDepth) - lightData.shadowBias - waterTexDepth;

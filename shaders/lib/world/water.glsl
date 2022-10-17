@@ -14,7 +14,7 @@ float GetWaveSpeed(const in float windSpeed, const in float skyLight) {
 
 float GetWaves(inout vec2 position, const in float waveSpeed, const in int iterations) {
     float weight = max(waveSpeed, 0.4);
-    float maxWeight = max(2.0 - 0.5*waveSpeed, 0.0);
+    float maxWeight = max(1.0 - 0.2*waveSpeed, 0.0);
 
     float iter = 0.0;
     float speed = 6.0;

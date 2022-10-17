@@ -6,7 +6,7 @@ deferred1	Water Waves
 deferred2	RSM
 deferred3	RSM Blur
 deferred4	AO Render
-deferred5	AO Blur
+--deferred5	AO Blur
 deferred6	Opaque PBR: RGB1: pre-exposed color, R2: Raw Luminance
 ---deferred7	opaque copy
 
@@ -14,10 +14,10 @@ deferred6	Opaque PBR: RGB1: pre-exposed color, R2: Raw Luminance
 <particles?>
 
 
-composite1	transparent blend
-composite2	depth tiles
-composite3	VL
-composite4	VL Blur
+--composite1	transparent blend
+--composite2	depth tiles
+--composite3	VL
+--composite4	VL Blur
 composite5	copy previous-frame = RGB: pre-exposed color
 composite6	Bloom threshold/downsampling
 composite7	Bloom Blur H
