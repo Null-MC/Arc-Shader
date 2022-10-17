@@ -101,36 +101,11 @@ void main() {
 
         lum += luminance(sky);
         
-        //#if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined VL_ENABLED
-            vec2 skyLightLevels = GetSkyLightLevels();
-            sky += GetVanillaSkyScattering(viewDir, skyLightLevels, sunTransmittance * GetSunLux(), moonColor);
-
-            // vec2 skyLightLevels = GetSkyLightLevels();
-            // float scattering_G = GetScatteringFactor(skyLightLevels.x);
-            // vec3 vlColor = vec3(0.0);
-
-            // vec3 sunDir = normalize(sunPosition);
-            // float sun_VoL = dot(viewDir, sunDir);
-            // float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering_G);
-            // vlColor += sunScattering * sunTransmittance * GetSunLux();// * sunColor;
-
-            // vec3 moonDir = normalize(moonPosition);
-            // float moon_VoL = dot(viewDir, moonDir);
-            // float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering_G);
-            // vlColor += moonScattering * moonColor;
-
-            // sky += vlColor * (0.01 * VL_STRENGTH);
-        //#endif
+        vec2 skyLightLevels = GetSkyLightLevels();
+        sky += GetVanillaSkyScattering(viewDir, skyLightLevels, sunTransmittance * GetSunLux(), moonColor);
         
         color += sky;
     #endif
-
-    // #ifdef SKY_DITHER
-    //     float offset = 0.1;//lum / (lum + 1.0);
-    //     float b = GetScreenBayerValue();
-    //     color *= (1.0 - offset) + offset * b;
-    //     //lum -= b;
-    // #endif
 
     outColor1 = log2(lum + EPSILON);
     outColor0 = clamp(color * exposure, vec3(0.0), vec3(65000));

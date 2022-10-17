@@ -4,7 +4,6 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     vec3 reflectClipPos = unproject(gbufferProjection * vec4(viewPos + reflectDir, 1.0)) * 0.5 + 0.5;
 
     vec2 viewSize = vec2(viewWidth, viewHeight) / SSR_SCALE;
-    //vec2 pixelSize = rcp(viewSize);
     vec2 ssrPixelSize = rcp(viewSize);
 
     vec3 screenRay = reflectClipPos - clipPos;
@@ -57,13 +56,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         vec2 alphaXY = saturate(2.0 * abs(vec2(0.5) - tracePos.xy));
         alpha = 1.0 - pow(max(alphaXY.x, alphaXY.y), 4.0);
 
-        //ivec2 iuv = ivec2(tracePos.xy * viewSize / exp2(lod));
-        //color = texelFetch(BUFFER_HDR_PREVIOUS, iuv, lod).rgb;
-
         color = textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, lod).rgb;
-
-        //vec2 mipTexSize = vec2(viewWidth, viewHeight) / exp2(lod + 1);
-        //color = TextureLodLinearRGB(BUFFER_HDR_PREVIOUS, tracePos.xy, mipTexSize, lod);
     }
 
     return vec4(color, alpha);
