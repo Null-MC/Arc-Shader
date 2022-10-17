@@ -200,24 +200,25 @@
             shadow *= step(EPSILON, NoL);
 
             float contactShadow = 1.0;
+            float contactLightDist = 0.0;
             #if SHADOW_CONTACT != SHADOW_CONTACT_NONE
                 #if SHADOW_CONTACT == SHADOW_CONTACT_FAR
-                    const float minShadowDist = 0.5 * shadowDistance;
+                    const float minContactShadowDist = 0.5 * shadowDistance;
                 #else
-                    const float minShadowDist = 0.0;
+                    const float minContactShadowDist = 0.0;
                 #endif
 
-                if (shadow <= EPSILON) contactShadow = 0.0;
-                else if (viewDist >= minShadowDist) {
+                //if (shadow <= EPSILON) contactShadow = 0.0;
+                if (viewDist >= minContactShadowDist) {
                     vec3 shadowRay = viewLightDir * 60.0;
-                    contactShadow = GetContactShadow(depthtex1, viewPos, shadowRay);
+                    contactShadow = GetContactShadow(depthtex1, viewPos, shadowRay, contactLightDist);
                 }
             #endif
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                bool isInBounds = true;//lightData.opaqueShadowDepth < 1.0 - EPSILON;
+                //bool isInBounds = true;//lightData.opaqueShadowDepth < 1.0 - EPSILON;
 
-                if (isInBounds) {
+                //if (isInBounds) {
                     if (shadow > EPSILON)
                         shadow *= GetShadowing(lightData);
 
@@ -232,7 +233,7 @@
                             // TODO: use depth for extinction
                         }
                     #endif
-                }
+                //}
 
                 //if (shadowSSS >= 1.0 - EPSILON) shadowSSS = 0.0;
             #else
@@ -240,8 +241,18 @@
                 shadowSSS = pow2(skyLight) * material.scattering;
             #endif
 
-            #if SHADOW_CONTACT != 0
-                shadow = min(shadow, contactShadow);
+            #if SHADOW_CONTACT != SHADOW_CONTACT_NONE
+                #if SHADOW_CONTACT == SHADOW_CONTACT_FAR
+                    float contactShadowMix = saturate(0.2 * (viewDist - minContactShadowDist));
+                    contactShadow = mix(1.0, contactShadow, contactShadowMix);
+                #endif
+
+                //if (contactShadow < 1.0 - EPSILON) {
+                    shadow = min(shadow, contactShadow);
+
+                    shadowSSS *= mix(1.0, contactShadow, saturate(contactLightDist / SSS_MAXDIST));
+                    //shadowSSS *= 1.0 - (1.0 - contactShadow) * saturate(1.0 - 100.0*contactLightDist);
+                //}
             #endif
         #endif
 

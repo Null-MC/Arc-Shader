@@ -1,4 +1,4 @@
-float GetContactShadow(const in sampler2D depthtex, const in vec3 viewPos, const in vec3 shadowRay) {
+float GetContactShadow(const in sampler2D depthtex, const in vec3 viewPos, const in vec3 shadowRay, out float lightDist) {
     vec3 startClipPos = unproject(gbufferProjection * vec4(viewPos, 1.0)) * 0.5 + 0.5;
     vec3 endClipPos = unproject(gbufferProjection * vec4(viewPos + shadowRay, 1.0)) * 0.5 + 0.5;
 
@@ -28,9 +28,11 @@ float GetContactShadow(const in sampler2D depthtex, const in vec3 viewPos, const
     float texDepth;
     vec3 tracePos;
 
+    vec3 lastHitPos = startClipPos;
+
     int i = 1;
     float shadow = 1.0;
-    for (; i <= stepCount && shadow > EPSILON; i++) {
+    for (; i <= stepCount; i++) {
         tracePos = startClipPos + i*screenStep;
         if (clamp(tracePos, vec3(0.0), vec3(1.0 - EPSILON)) != tracePos) break;//return 1.0;
 
@@ -45,8 +47,12 @@ float GetContactShadow(const in sampler2D depthtex, const in vec3 viewPos, const
         float d = 0.001*(i*i);
         if (linearizeDepthFast(texDepth, near, far) > linearizeDepthFast(tracePos.z, near, far) - d) continue;
 
+        lastHitPos = tracePos;
         shadow -= 9.0 / i;
     }
+
+    vec3 hitViewPos = unproject(gbufferProjectionInverse * vec4(lastHitPos * 2.0 - 1.0, 1.0));
+    lightDist = distance(viewPos, hitViewPos);
 
     return max(shadow, 0.0);
 }
