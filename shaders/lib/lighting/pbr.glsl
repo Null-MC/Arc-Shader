@@ -203,14 +203,14 @@
             float contactLightDist = 0.0;
             #if SHADOW_CONTACT != SHADOW_CONTACT_NONE
                 #if SHADOW_CONTACT == SHADOW_CONTACT_FAR
-                    const float minContactShadowDist = 0.5 * shadowDistance;
+                    const float minContactShadowDist = 40;//0.5 * shadowDistance;
                 #else
                     const float minContactShadowDist = 0.0;
                 #endif
 
                 //if (shadow <= EPSILON) contactShadow = 0.0;
                 if (viewDist >= minContactShadowDist) {
-                    vec3 shadowRay = viewLightDir * 60.0;
+                    vec3 shadowRay = viewLightDir * 60.0 * saturate(viewDist / far);
                     contactShadow = GetContactShadow(depthtex1, viewPos, shadowRay, contactLightDist);
                 }
             #endif
@@ -250,7 +250,7 @@
                 //if (contactShadow < 1.0 - EPSILON) {
                     shadow = min(shadow, contactShadow);
 
-                    shadowSSS *= mix(1.0, contactShadow, saturate(contactLightDist / SSS_MAXDIST));
+                    shadowSSS *= mix(1.0, contactShadow, saturate(contactLightDist / (SSS_MAXDIST * material.scattering)));
                     //shadowSSS *= 1.0 - (1.0 - contactShadow) * saturate(1.0 - 100.0*contactLightDist);
                 //}
             #endif

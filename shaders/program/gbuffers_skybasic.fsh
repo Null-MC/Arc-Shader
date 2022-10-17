@@ -101,7 +101,7 @@ void main() {
 
         lum += luminance(sky);
         
-        #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined VL_ENABLED
+        //#if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined VL_ENABLED
             vec2 skyLightLevels = GetSkyLightLevels();
             sky += GetVanillaSkyScattering(viewDir, skyLightLevels, sunTransmittance * GetSunLux(), moonColor);
 
@@ -120,7 +120,7 @@ void main() {
             // vlColor += moonScattering * moonColor;
 
             // sky += vlColor * (0.01 * VL_STRENGTH);
-        #endif
+        //#endif
         
         color += sky;
     #endif
