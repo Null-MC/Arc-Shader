@@ -39,10 +39,9 @@ void main() {
         lum *= sunLightLevel;
     }
     else if (renderStage == MC_RENDER_STAGE_MOON) {
-        color *= moonLightLumColor * moonLightLevel;
-        lum *= moonLightLevel;
-
         lumF += moonLumen;
+        color *= moonLightLumColor * moonLightLevel * 0.1;
+        lum *= moonLightLevel;
     }
 
     float alpha = saturate(lum);

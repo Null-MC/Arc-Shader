@@ -77,45 +77,6 @@
         }
     #endif
 
-    #if defined SKY_ENABLED && defined RSM_ENABLED && defined RSM_UPSCALE && defined RENDER_DEFERRED
-        vec3 GetUpscaledRSM(const in LightData lightData, const in vec3 shadowViewPos, const in vec3 shadowViewNormal, const in float depthLinear, const in vec2 screenUV) {
-            vec4 rsmDepths = textureGather(BUFFER_RSM_DEPTH, screenUV, 0);
-            float rsmDepthMin = min(min(rsmDepths.x, rsmDepths.y), min(rsmDepths.z, rsmDepths.w));
-            float rsmDepthMax = max(max(rsmDepths.x, rsmDepths.y), max(rsmDepths.z, rsmDepths.w));
-
-            float rsmDepthMinLinear = linearizeDepth(rsmDepthMin * 2.0 - 1.0, near, far);
-            float rsmDepthMaxLinear = linearizeDepth(rsmDepthMax * 2.0 - 1.0, near, far);
-
-            // TODO: Not sure if this should be negative or not!
-            //float clipDepthLinear = -viewPos.z; //linearizeDepth(clipDepth * 2.0 - 1.0, near, far);
-            float depthThreshold = 0.01 + 0.018 * pow2(depthLinear);
-
-            bool depthTest = abs(rsmDepthMinLinear - depthLinear) <= depthThreshold
-                          && abs(rsmDepthMaxLinear - depthLinear) <= depthThreshold;
-
-            if (depthTest) {
-                return textureLod(BUFFER_RSM_COLOR, screenUV, 0).rgb;
-            }
-            else {
-                vec3 final = vec3(0.0);
-                #ifdef LIGHTLEAK_FIX
-                    if (lightData.skyLight >= 1.0 / 16.0) {
-                #endif
-                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        final = GetIndirectLighting_RSM(lightData.matShadowProjection, shadowViewPos, shadowViewNormal);
-                    #else
-                        final = GetIndirectLighting_RSM(shadowViewPos, shadowViewNormal);
-                    #endif
-                #ifdef LIGHTLEAK_FIX
-                    }
-                #endif
-
-                //final = mix(final, vec3(600.0, 0.0, 0.0), 0.25);
-                return final;
-            }
-        }
-    #endif
-
     vec4 PbrLighting2(const in PbrMaterial material, const in LightData lightData, const in vec3 viewPos) {
         vec2 viewSize = vec2(viewWidth, viewHeight);
         vec3 viewNormal = normalize(material.normal);
@@ -148,7 +109,7 @@
         float f0 = material.f0;
 
         #if defined SKY_ENABLED
-            float wetnessFinal = GetDirectionalWetness(viewNormal, skyLight);
+            float wetnessFinal = biomeWetness * GetDirectionalWetness(viewNormal, skyLight);
 
             #ifdef RENDER_WATER
                 if (materialId != 1) {
@@ -191,15 +152,16 @@
             float contactLightDist = 0.0;
             #if SHADOW_CONTACT != SHADOW_CONTACT_NONE
                 #if SHADOW_CONTACT == SHADOW_CONTACT_FAR
-                    const float minContactShadowDist = 40;//0.5 * shadowDistance;
+                    const float minContactShadowDist = 0.75 * shadowDistance;
                 #else
                     const float minContactShadowDist = 0.0;
                 #endif
 
                 //if (shadow <= EPSILON) contactShadow = 0.0;
                 if (viewDist >= minContactShadowDist) {
-                    vec3 shadowRay = viewLightDir * 60.0 * saturate(viewDist / far);
-                    contactShadow = GetContactShadow(depthtex1, viewPos, shadowRay, contactLightDist);
+                    //vec3 lightDir = viewLightDir;// * 60.0 * saturate(viewDist / far);
+                    float contactMinDist = 0.0;
+                    contactShadow = GetContactShadow(depthtex1, viewPos, viewLightDir, contactMinDist, contactLightDist);
                 }
             #endif
 
@@ -288,10 +250,8 @@
             vec2 tex = screenUV;
 
             #ifdef RSM_UPSCALE
-                vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
-                vec3 shadowViewNormal = mat3(shadowModelView) * (mat3(gbufferModelViewInverse) * viewNormal);
-
-                vec3 rsmColor = GetUpscaledRSM(lightData, shadowViewPos, shadowViewNormal, -viewPos.z, tex);
+                vec2 rsmViewSize = viewSize / exp2(RSM_SCALE);
+                vec3 rsmColor = BilateralGaussianDepthBlurRGB_5x(BUFFER_RSM_COLOR, rsmViewSize, BUFFER_RSM_DEPTH, rsmViewSize, lightData.opaqueScreenDepth, 0.9);
             #else
                 vec3 rsmColor = textureLod(BUFFER_RSM_COLOR, tex, 0).rgb;
             #endif
@@ -331,7 +291,7 @@
 
                 iblF = GetFresnel(material.albedo.rgb, f0, material.hcm, NoVm, rough);
                 iblSpec = iblF * envBRDF.r + envBRDF.g;
-                iblSpec *= (1.0 - rough) * reflectColor * occlusion;
+                iblSpec *= (1.0 - roughL) * reflectColor * occlusion;
 
                 float iblFmax = max(max(iblF.x, iblF.y), iblF.z);
                 final.a += iblFmax * max(1.0 - final.a, 0.0);
@@ -359,22 +319,26 @@
             #ifdef SSS_ENABLED
                 if (material.scattering > 0.0 && shadowSSS > 0.0) {
                     // Transmission
-                    vec3 sssDiffuseLight = material.albedo.rgb;
-                    if (dot(sssDiffuseLight, sssDiffuseLight) > EPSILON)
-                        sssDiffuseLight = normalize(sssDiffuseLight);
+                    vec3 sssAlbedo = material.albedo.rgb;
+                    if (dot(sssAlbedo, sssAlbedo) > EPSILON)
+                        sssAlbedo = normalize(sssAlbedo);
                     
-                    sssDiffuseLight *= pow2(shadowSSS) * skyLightColorFinal;// * skyLight;
+                    //sssAlbedo *= sssAlbedo;
+                    vec3 sssDiffuseLight = sssAlbedo * shadowSSS * skyLightColorFinal * skyLight2;
 
-                    //float VoL = dot(-viewDir, viewLightDir);
-                    sssDiffuseLight *= BiLambertianPlatePhaseFunction(-NoV, 0.6);
-                    sssDiffuseLight *= BiLambertianPlatePhaseFunction(NoL, 0.6);
-                    //sssDiffuseLight *= BiLambertianPlatePhaseFunction(0.9, VoL);
+                    float VoL = dot(-viewDir, viewLightDir);
+                    //sssDiffuseLight *= BiLambertianPlatePhaseFunction(-NoV, 0.6);
+                    float scatter = mix(0.0, 0.8, material.scattering);
+                    float inScatter = ComputeVolumetricScattering(NoL, -0.8);
+                    float outScatter = ComputeVolumetricScattering(VoL, scatter);
 
-                    float extDistF = sssDist / SSS_MAXDIST;
-                    sssDiffuseLight *= exp(-extDistF * material.scattering * (1.0 - material.albedo.rgb));
+                    //sssDiffuseLight *= 2.0 * saturate(inScatter) * saturate(outScatter);
+
+                    float extDistF = 1.5 * (sssDist / SSS_MAXDIST);
+                    sssDiffuseLight *= exp(-extDistF * material.scattering * (1.0 - sssAlbedo));
                     //sssDiffuseLight *= exp(-extDistF);
 
-                    sunDiffuse += sssDiffuseLight * (0.1 * SSS_STRENGTH);// * max(NoL, 0.0);
+                    sunDiffuse += sssDiffuseLight * pow(saturate(inScatter) * saturate(outScatter), 0.5) * (0.1 * SSS_STRENGTH);// * max(NoL, 0.0);
                 }
             #endif
 
@@ -594,7 +558,8 @@
             vec3 sunDir = normalize(sunPosition);
             float sun_VoL = dot(-viewDir, sunDir);
             float sunScattering = ComputeVolumetricScattering(sun_VoL, vlScatter);
-            vlColor += max(sunScattering, 0.0) * lightData.sunTransmittanceEye * GetSunLux();// * sunColor;
+            vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
+            vlColor += max(sunScattering, 0.0) * sunColorFinal;
 
             vec3 moonDir = normalize(moonPosition);
             float moon_VoL = dot(-viewDir, moonDir);
@@ -610,6 +575,8 @@
             #endif
             
             final.rgb += vlColor * (0.01 * VL_STRENGTH);
+            //vlColor *= 0.01 * VL_STRENGTH;
+            //final.rgb = final.rgb / (1.0 + 0.01*luminance(vlColor)) + vlColor;
         #endif
 
         return final;

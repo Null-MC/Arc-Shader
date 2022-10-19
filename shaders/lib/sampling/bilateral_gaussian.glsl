@@ -79,5 +79,6 @@ vec3 BilateralGaussianDepthBlurRGB_5x(const in sampler2D blendSampler, const in 
         }
     }
     
+    if (total < EPSILON) return vec3(0.0);
     return accum / total;
 }

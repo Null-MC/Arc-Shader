@@ -126,6 +126,7 @@ uniform int fogShape;
 
 //#ifdef IS_OPTIFINE
     uniform float eyeHumidity;
+    uniform float biomeWetness;
 //#endif
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN

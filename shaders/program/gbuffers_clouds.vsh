@@ -11,11 +11,16 @@ out vec3 viewPos;
 out vec3 localPos;
 flat out float exposure;
 flat out vec2 skyLightLevels;
+flat out vec3 sunTransmittanceEye;
+flat out vec3 moonColor;
+
+uniform sampler2D colortex9;
 
 //uniform mat4 gbufferModelView;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
 uniform float screenBrightness;
+uniform float eyeAltitude;
 uniform float blindness;
 
 #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
@@ -46,6 +51,7 @@ uniform int moonPhase;
 #endif
 
 #include "/lib/lighting/blackbody.glsl"
+#include "/lib/world/sun.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/camera/exposure.glsl"
 
@@ -61,6 +67,10 @@ void main() {
     localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 
     skyLightLevels = GetSkyLightLevels();
+
+    sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
+
+    moonColor = vec3(0.0); // TODO
 
     exposure = GetExposure();
 }

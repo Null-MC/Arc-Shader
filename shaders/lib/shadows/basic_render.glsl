@@ -176,7 +176,7 @@
                         float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy + pixelOffset);
 
                         if (shadow_sss >= EPSILON) {
-                            float maxDist = SSS_MAXDIST * sqrt(shadow_sss);
+                            float maxDist = SSS_MAXDIST * shadow_sss;
 
                             float lightDist = max(lightData.shadowPos.z + lightData.shadowBias - texDepth, 0.0) * ShadowMaxDepth;
                             light += max(1.0 - lightDist / maxDist, 0.0);
@@ -187,7 +187,7 @@
                     }
                 }
 
-                return sqrt(materialSSS) * (light / sampleCount);
+                return materialSSS * (light / sampleCount);
             }
         #endif
 
@@ -201,7 +201,7 @@
                 //float maxDist = SSS_MAXDIST;// * sqrt(materialSSS);
 
                 int sampleCount = SSS_PCF_SAMPLES;
-                float blockRadius = SSS_PCF_SIZE * lightDist * (1.0 - shadow_sss);
+                float blockRadius = SSS_PCF_SIZE * lightDist;// * (1.0 - 0.8*shadow_sss);
                 vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, blockRadius);
                 if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
@@ -215,8 +215,8 @@
                 float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy);
                 if (shadow_sss < EPSILON) return 0.0;
 
-                float maxDist = SSS_MAXDIST * sqrt(shadow_sss);
-                return sqrt(materialSSS) * max(1.0 - lightDist / maxDist, 0.0);
+                float maxDist = SSS_MAXDIST * shadow_sss;
+                return materialSSS * max(1.0 - lightDist / maxDist, 0.0);
             }
         #endif
     #endif

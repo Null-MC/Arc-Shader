@@ -3,19 +3,15 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     vec3 clipPos = unproject(gbufferProjection * vec4(viewPos, 1.0)) * 0.5 + 0.5;
     vec3 reflectClipPos = unproject(gbufferProjection * vec4(viewPos + reflectDir, 1.0)) * 0.5 + 0.5;
 
-    vec2 viewSize = vec2(viewWidth, viewHeight) / SSR_SCALE;
-    vec2 ssrPixelSize = rcp(viewSize);
-
     vec3 screenRay = reflectClipPos - clipPos;
-    //if (screenRay.z <= 0.0) return vec4(0.0);
+    vec2 viewSize = vec2(viewWidth, viewHeight) / SSR_SCALE;
+    ivec2 iuv_start = ivec2(clipPos.xy * viewSize);
+    vec2 ssrPixelSize = rcp(viewSize);
 
     if (abs(screenRay.y) > abs(screenRay.x))
         screenRay *= ssrPixelSize.y / abs(screenRay.y);
     else
         screenRay *= ssrPixelSize.x / abs(screenRay.x);
-
-    float texDepth;
-    vec3 tracePos;
 
     #if SSR_QUALITY == 0
         screenRay *= 3.0;
@@ -25,15 +21,16 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         screenRay *= 2.0;
     #endif
 
-    ivec2 iuv_start = ivec2(clipPos.xy * viewSize);
     clipPos += screenRay * GetScreenBayerValue();
 
     const vec3 clipMin = vec3(0.0);
     const vec3 clipMax = vec3(1.0 - EPSILON);
 
-    int i = 1;
+    int i;
     float alpha = 0.0;
-    for (; i <= SSR_MAXSTEPS && alpha < EPSILON; i++) {
+    float texDepth;
+    vec3 tracePos;
+    for (i = 1; i <= SSR_MAXSTEPS && alpha < EPSILON; i++) {
         tracePos = clipPos + i*screenRay;
         if (clamp(tracePos, clipMin, clipMax) != tracePos) break;
 

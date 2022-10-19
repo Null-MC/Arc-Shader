@@ -50,8 +50,8 @@ float SampleDepth(const in ivec2 itex) {
 #endif
 {
     #ifdef RSM_DITHER
-        float ditherOffset = 0.9 + 0.2*GetScreenBayerValue();
-        //float ditherOffset = RSM_FILTER_SIZE * GetBayerValue(ivec2(shadowViewPos.xy));
+        //float ditherOffset = 0.9 + 0.2*GetScreenBayerValue();
+        float ditherOffset = RSM_FILTER_SIZE * (GetScreenBayerValue() - 0.5);
     #endif
 
     vec3 shading = vec3(0.0);
@@ -60,10 +60,10 @@ float SampleDepth(const in ivec2 itex) {
         vec3 offsetShadowViewPos = shadowViewPos;
 
         #ifdef RSM_DITHER
-            offsetShadowViewPos.xy += rsmPoissonDisk[i] * RSM_FILTER_SIZE * ditherOffset;
-        #else
-            offsetShadowViewPos.xy += rsmPoissonDisk[i] * RSM_FILTER_SIZE;
+            offsetShadowViewPos += ditherOffset;
         #endif
+
+        offsetShadowViewPos.xy += rsmPoissonDisk[i] * RSM_FILTER_SIZE;
 
         vec2 uv;
         ivec2 iuv;
@@ -107,10 +107,11 @@ float SampleDepth(const in ivec2 itex) {
         float NoR1 = max(dot(shadowViewNormal, rayDir), 0.0);
         float NoR2 = max(dot(sampleNormal, -rayDir), 0.0);
 
-        sampleColor *= NoR1 * NoR2;
+        sampleColor *= pow(NoR1 * NoR2, 0.5);
 
-        float weight = dot(rsmPoissonDisk[i], rsmPoissonDisk[i]);
-        weight = max(1.0 - weight, 0.0) / length(ray);
+        //float weight = dot(rsmPoissonDisk[i], rsmPoissonDisk[i]);
+        //weight = max(1.0 - weight, 0.0) / length(ray);
+        float weight = 1.0 - saturate(length(ray) / RSM_FILTER_SIZE);
 
         shading += sampleColor * weight;
     }

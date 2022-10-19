@@ -133,6 +133,7 @@ uniform float fogEnd;
 
 //#ifdef IS_OPTIFINE
     uniform float eyeHumidity;
+    uniform float biomeWetness;
 //#endif
 
 #include "/lib/depth.glsl"

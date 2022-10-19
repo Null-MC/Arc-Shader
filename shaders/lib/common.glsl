@@ -84,8 +84,8 @@ const bool colortex12Clear = false;
 
 // Shadow Options
 #define SHADOW_TYPE 2 // [0 1 2 3]
-#define SHADOW_FILTER 1 // [0 1 2]
-#define SHADOW_PCF_SIZE 0.080 // [0.010 0.020 0.030 0.040 0.050 0.060 0.070 0.080 0.090 0.100 0.110 0.120 0.130 0.140 0.150 0.160 0.170 0.180 0.190 0.200]
+#define SHADOW_FILTER 0 // [0 1 2]
+#define SHADOW_PCF_SIZE 0.060 // [0.010 0.020 0.030 0.040 0.050 0.060 0.070 0.080 0.090 0.100 0.110 0.120 0.130 0.140 0.150 0.160 0.170 0.180 0.190 0.200]
 #define SHADOW_PCF_SAMPLES 12 // [12 24 36]
 //#define SHADOW_EXCLUDE_ENTITIES
 //#define SHADOW_EXCLUDE_FOLIAGE
@@ -113,7 +113,7 @@ const bool colortex12Clear = false;
 #define SSS_DITHER
 #define SSS_STRENGTH 10 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
 #define SSS_MAXDIST 6 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
-#define SSS_PCF_SIZE 0.2 // [0.1 0.2 0.3 0.4 0.5 0.6 0.8 1.0 1.2 1.5 2.0 3.0]
+#define SSS_PCF_SIZE 0.04 // [0.02 0.04 0.06 0.08 0.1 0.2 0.3 0.4 0.5 0.6 0.8 1.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
 
 
@@ -136,7 +136,7 @@ const bool colortex12Clear = false;
 // Camera Options
 #define CAMERA_EXPOSURE_MODE 2 // [0 1 2]
 #define CAMERA_EXPOSURE 0 // [-17 -16 -15 -14 -13 -12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6]
-#define CAMERA_LUM_MIN 120.0
+#define CAMERA_LUM_MIN 100.0
 #define CAMERA_LUM_MAX 64000.0
 //#define EXPOSURE_POINT 0.2
 #define EXPOSURE_SPEED_UP 0.8
@@ -149,11 +149,11 @@ const bool colortex12Clear = false;
 
 // Effect Options
 #define RSM_ENABLED
-#define RSM_INTENSITY 14 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 22 24 28 36 48 128]
-#define RSM_FILTER_SIZE 1.8 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.4 2.6 2.8 3.0 3.5 4.0 5.0]
+#define RSM_INTENSITY 9 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
+#define RSM_FILTER_SIZE 3.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0 3.5 4.0 4.5 5.0 5.5 6.0 7.0 8.0 10.0 12.0 14.0 16.0]
 #define RSM_SAMPLE_COUNT 35 // [35 100 200]
 #define RSM_SCALE 2 // [0 1 2]
-//#define RSM_UPSCALE
+#define RSM_UPSCALE
 #define RSM_DITHER
 #define BLOOM_ENABLED
 #define BLOOM_SMOOTH
@@ -167,13 +167,13 @@ const bool colortex12Clear = false;
 #define VL_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 175 200 225 250 275 300 350 400 450 500 600 700 800 900]
 #define VL_SAMPLE_COUNT 30 // [15 30 60 90]
 //#define VL_PARTICLES
-#define G_SCATTERING_CLEAR 0.28 // 0.96
-#define G_SCATTERING_NIGHT 0.36 // 0.96
-#define G_SCATTERING_HUMID 0.68 // 0.84
-#define G_SCATTERING_RAIN 0.85
-#define G_SCATTERING_WATER 0.85
-#define G_SCATTERING_CLOUDS 0.6
-#define G_SCATTERING_RAIN_CLOUDS 0.94
+#define G_SCATTERING_CLEAR 0.28
+#define G_SCATTERING_NIGHT 0.50
+//#define G_SCATTERING_HUMID 0.08
+#define G_SCATTERING_RAIN 0.12
+#define G_SCATTERING_WATER 0.16
+#define G_SCATTERING_CLOUDS 0.64
+#define G_SCATTERING_RAIN_CLOUDS 0.64
 #define SSAO_ENABLED
 #define SSAO_SAMPLES 16 // [8 16 32]
 #define SSAO_INTENSITY 35 // [5 10 15 20 25 30 35 40 45 50]
@@ -184,9 +184,9 @@ const bool colortex12Clear = false;
 
 
 // Debug Options
+#define IS_OPTIFINE
 #define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
 //#define DEBUG_EXPOSURE_METERS
-#define IS_OPTIFINE
 //#define IRIS_FEATURE_SEPARATE_HW_SAMPLERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
 #define PARTICLE_OPACITY 0.8
@@ -201,7 +201,6 @@ const bool colortex12Clear = false;
 #define REFRACTION_STRENGTH 0 // [0 5 10 15 20]
 #define SSR_QUALITY 0 // [0 1 2]
 //#define SSR_STEPS 128 // [128 256 512]
-
 
 #if SSR_QUALITY == 0
     #define SSR_SCALE 4
@@ -230,7 +229,7 @@ const bool colortex12Clear = false;
 #define EPSILON 1e-7
 #define GAMMA 2.2
 
-const float sunLumen = 20e8;
+const float sunLumen = 24e8;
 const float moonLumen = 8000.0;
 const float StarLumen = 1200.0;
 //const float BlockLightLumen = 2000;
@@ -238,15 +237,15 @@ const float EmissionLumens = 1.0e5;
 
 const float SunLux = 64000.0;
 const float SunOvercastLux = 1600; //600.0;
-const float MoonLux = 20.0;
+const float MoonLux = 40.0;
 const float MoonOvercastLux = 2.0;
 const float BlockLightLux = 12800.0; // 9k
 const float DaySkyLux = 30000.0;
 const float NightSkyLux = 2.0;
 const float MinWorldLux = 12.0;
 
-const float DaySkyLumen = 14000.0;
-const float DaySkyOvercastLumen = 10000.0;
+const float DaySkyLumen = 9000.0;
+const float DaySkyOvercastLumen = 6000.0;
 const float NightSkyLumen = 1200.0;
 const float NightSkyOvercastLumen = 60.0;
 

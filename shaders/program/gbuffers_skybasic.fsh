@@ -98,13 +98,16 @@ void main() {
     #else
         vec3 viewDir = normalize(viewPos);
         vec3 sky = GetVanillaSkyLuminance(viewDir);
-
-        lum += luminance(sky);
         
         vec2 skyLightLevels = GetSkyLightLevels();
-        sky += GetVanillaSkyScattering(viewDir, skyLightLevels, sunTransmittance * GetSunLux(), moonColor);
-        
+        vec3 sunColorFinal = sunTransmittance * GetSunLux(); // * sunColor;
+        sky += GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
+        //setLuminance(sky, skyLum);
+        //float skyLum = luminance(sky);
+
+        //sky = sky / (1.0 + 0.001*luminance(skyVL)) + skyVL;
         color += sky;
+        lum += luminance(sky);
     #endif
 
     outColor1 = log2(lum + EPSILON);
