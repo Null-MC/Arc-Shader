@@ -51,7 +51,7 @@ float SampleDepth(const in ivec2 itex) {
 {
     #ifdef RSM_DITHER
         //float ditherOffset = 0.9 + 0.2*GetScreenBayerValue();
-        float ditherOffset = RSM_FILTER_SIZE * (GetScreenBayerValue() - 0.5);
+        //float ditherOffset = RSM_FILTER_SIZE * (GetScreenBayerValue() - 0.5);
     #endif
 
     vec3 shading = vec3(0.0);
@@ -59,9 +59,9 @@ float SampleDepth(const in ivec2 itex) {
     for (int i = 0; i < RSM_SAMPLE_COUNT; i++) {
         vec3 offsetShadowViewPos = shadowViewPos;
 
-        #ifdef RSM_DITHER
-            offsetShadowViewPos += ditherOffset;
-        #endif
+        // #ifdef RSM_DITHER
+        //     offsetShadowViewPos += ditherOffset;
+        // #endif
 
         offsetShadowViewPos.xy += rsmPoissonDisk[i] * RSM_FILTER_SIZE;
 
@@ -83,7 +83,7 @@ float SampleDepth(const in ivec2 itex) {
             #endif
 
             iuv = ivec2(uv * shadowMapSize);
-            clipPos.z = SampleDepth(iuv) * 2.0 - 1.0;
+            clipPos.z = textureLod(shadowtex0, uv, 0).r * 2.0 - 1.0;
 
             #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                 clipPos.z *= 2.0;

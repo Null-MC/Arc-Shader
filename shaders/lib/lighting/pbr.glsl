@@ -247,12 +247,11 @@
         #endif
 
         #if defined SKY_ENABLED && defined RSM_ENABLED && defined RENDER_DEFERRED
-            vec2 tex = screenUV;
-
             #ifdef RSM_UPSCALE
                 vec2 rsmViewSize = viewSize / exp2(RSM_SCALE);
                 vec3 rsmColor = BilateralGaussianDepthBlurRGB_5x(BUFFER_RSM_COLOR, rsmViewSize, BUFFER_RSM_DEPTH, rsmViewSize, lightData.opaqueScreenDepth, 0.9);
             #else
+                vec2 tex = screenUV;
                 vec3 rsmColor = textureLod(BUFFER_RSM_COLOR, tex, 0).rgb;
             #endif
         #endif
@@ -298,17 +297,12 @@
             }
         #endif
 
-        float sunLux = 0.0;
         #ifdef SKY_ENABLED
             float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength);// * SHADOW_BRIGHTNESS;
-            vec3 skyAmbient = GetSkyAmbientLight(lightData, viewNormal);
+            ambient += GetSkyAmbientLight(lightData, viewNormal) * ambientBrightness;
 
-            sunLux = GetSunLux();
-            vec3 sunColor = lightData.sunTransmittance * sunLux;
-
+            vec3 sunColor = lightData.sunTransmittance * GetSunLux();
             vec3 skyLightColorFinal = (sunColor + moonColor) * shadowColor;
-
-            ambient += skyAmbient * ambientBrightness;
 
             vec3 sunF = GetFresnel(material.albedo.rgb, f0, material.hcm, LoHm, roughL);
 
@@ -342,7 +336,7 @@
                 }
             #endif
 
-            diffuse += sunDiffuse * material.albedo.a;
+            diffuse += sunDiffuse;// * material.albedo.a;
 
             if (NoLm > EPSILON) {
                 float NoHm = max(dot(viewNormal, halfDir), 0.0);
@@ -533,8 +527,8 @@
             // apply water fog
             float waterFogEnd = min(40.0, fogEnd);
             fogFactor = GetFogFactor(viewDist, near, waterFogEnd, 0.8);
-            vec3 waterFogColor = WATER_COLOR.rgb * 0.02 * skyLightLuxColor * (0.02 + 0.98*eyeLight);
-            //final.rgb = mix(final.rgb, waterFogColor, fogFactor);
+            vec3 waterFogColor = WATER_SCATTER_COLOR * skyLightLuxColor * (0.02*eyeLight);
+            final.rgb = mix(final.rgb, waterFogColor, fogFactor);
         }
         else {
             #ifdef RENDER_DEFERRED
@@ -546,41 +540,28 @@
                     fogFactor = ApplyFog(final, viewPos, lightData, alphaTestRef);
                 #endif
             #endif
-        }
 
-        #ifdef SKY_ENABLED
-            float vlScatter = GetScatteringFactor(lightData.skyLightLevels.x);
+            #ifdef SKY_ENABLED
+                vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
+                vec3 vlColor = GetVanillaSkyScattering(-viewDir, skyLightLevels, sunColorFinal, moonColor);
 
-            vec3 sunDir = normalize(sunPosition);
-            float sun_VoL = dot(-viewDir, sunDir);
-            float sunScattering = ComputeVolumetricScattering(sun_VoL, vlScatter);
-            vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
+                #ifdef VL_ENABLED
+                    mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
+                    vec3 shadowViewStart = (matViewToShadowView * vec4(vec3(0.0, 0.0, -near), 1.0)).xyz;
+                    vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
 
-            vec3 moonDir = normalize(moonPosition);
-            float moon_VoL = dot(-viewDir, moonDir);
-            float moonScattering = ComputeVolumetricScattering(moon_VoL, vlScatter);
-
-            vec3 vlColor =
-                max(sunScattering, 0.0) * sunColorFinal +
-                max(moonScattering, 0.0) * moonColor;
-
-            #ifdef VL_ENABLED
-                mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
-                vec3 shadowViewStart = (matViewToShadowView * vec4(vec3(0.0, 0.0, -near), 1.0)).xyz;
-                vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
-
-                #ifdef SHADOW_COLOR
-                    vlColor *= GetVolumetricLightingColor(lightData, shadowViewStart, shadowViewEnd);
+                    #ifdef SHADOW_COLOR
+                        vlColor *= GetVolumetricLightingColor(lightData, shadowViewStart, shadowViewEnd);
+                    #else
+                        vlColor *= GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd);
+                    #endif
                 #else
-                    vlColor *= GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd);
+                    vlColor *= fogFactor;
                 #endif
-            #else
-                vlColor *= fogFactor;
+                
+                final.rgb += vlColor;
             #endif
-            
-            if (isEyeInWater == 1) vlColor *= WATER_SCATTER_COLOR.rgb;
-            final.rgb += vlColor * (0.01 * VL_STRENGTH);
-        #endif
+        }
 
         return final;
     }

@@ -143,7 +143,7 @@ uniform float fogEnd;
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/lighting/light_data.glsl"
 
-#ifdef SSAO_ENABLED
+#if defined SSAO_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE)
     #include "/lib/sampling/bilateral_gaussian.glsl"
 #endif
 

@@ -6,7 +6,7 @@
 #include "/lib/common.glsl"
 
 in vec3 starData;
-flat in vec3 sunTransmittance;
+flat in vec3 sunTransmittanceEye;
 flat in vec3 sunColor;
 flat in vec3 moonColor;
 flat in float exposure;
@@ -89,27 +89,16 @@ void main() {
 
         vec3 eye = vec3(0.0, 200.0 * eyeAltitude, 0.0);
 
-        vec3 sky = ComputeSkyInscattering(setting, eye, localViewDir, localSunDir).rgb;
-
-        //vec3 sky = GetSkyColor(localViewDir, localSunDir) * 1000.0;
-
-        color += sky;
-        lum += luminance(sky);
+        color += ComputeSkyInscattering(setting, eye, localViewDir, localSunDir).rgb;
     #else
         vec3 viewDir = normalize(viewPos);
-        vec3 sky = GetVanillaSkyLuminance(viewDir);
+        color += GetVanillaSkyLuminance(viewDir);
         
         vec2 skyLightLevels = GetSkyLightLevels();
-        vec3 sunColorFinal = sunTransmittance * GetSunLux(); // * sunColor;
-        sky += GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
-        //setLuminance(sky, skyLum);
-        //float skyLum = luminance(sky);
-
-        //sky = sky / (1.0 + 0.001*luminance(skyVL)) + skyVL;
-        color += sky;
-        lum += luminance(sky);
+        vec3 sunColorFinal = sunTransmittanceEye * GetSunLux(); // * sunColor;
+        color += GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
     #endif
 
-    outColor1 = log2(lum + EPSILON);
+    outColor1 = log2(luminance(color) + EPSILON);
     outColor0 = clamp(color * exposure, vec3(0.0), vec3(65000));
 }

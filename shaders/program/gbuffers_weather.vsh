@@ -12,6 +12,7 @@ out vec2 lmcoord;
 out vec2 texcoord;
 out vec4 glcolor;
 out float geoNoL;
+out vec3 localPos;
 out vec3 viewPos;
 out vec3 viewNormal;
 flat out float exposure;
@@ -28,8 +29,13 @@ flat out float exposure;
 #ifdef SKY_ENABLED
     flat out vec3 sunColor;
     flat out vec3 moonColor;
-    flat out vec3 skyLightColor;
+    flat out vec2 skyLightLevels;
+    //flat out vec3 skyLightColor;
+    flat out vec3 sunTransmittanceEye;
     
+    uniform sampler2D colortex9;
+
+    uniform float eyeAltitude;
     uniform float rainStrength;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
@@ -93,6 +99,7 @@ uniform float blindness;
 #endif
 
 #include "/lib/lighting/blackbody.glsl"
+#include "/lib/world/sun.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/lighting/basic.glsl"
 #include "/lib/camera/exposure.glsl"
@@ -104,18 +111,21 @@ void main() {
     lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     glcolor = gl_Color;
 
-    vec3 localPos = gl_Vertex.xyz;
+    localPos = gl_Vertex.xyz;
     BasicVertex(localPos);
     
     #ifdef HANDLIGHT_ENABLED
         blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
     #endif
 
-    vec2 skyLightLevels = GetSkyLightLevels();
+    skyLightLevels = GetSkyLightLevels();
     vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
-    sunColor = GetSunLightColor(skyLightTemps.x, skyLightLevels.x) * sunLumen;
-    moonColor = GetMoonLightColor(skyLightTemps.y, skyLightLevels.y) * moonLumen;
-    skyLightColor = GetSkyLightLuxColor(skyLightLevels);
+    //sunColor = GetSunLightColor(skyLightTemps.x, skyLightLevels.x) * sunLumen;
+    sunColor = blackbody(5500.0);
+    moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
+    //skyLightColor = GetSkyLightLuxColor(skyLightLevels);
+    
+    sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);// * sunColor;
 
     exposure = GetExposure();
 }

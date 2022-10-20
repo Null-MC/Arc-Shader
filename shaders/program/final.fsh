@@ -73,6 +73,17 @@ uniform float viewHeight;
 #elif DEBUG_VIEW == DEBUG_VIEW_RSM_FINAL
     // RSM Final
     uniform sampler2D BUFFER_RSM_COLOR;
+
+    #ifdef RSM_UPSCALE
+        uniform sampler2D BUFFER_RSM_DEPTH;
+        uniform sampler2D depthtex0;
+
+        uniform float near;
+        uniform float far;
+
+        #include "/lib/depth.glsl"
+        #include "/lib/sampling/bilateral_gaussian.glsl"
+    #endif
 #elif DEBUG_VIEW == DEBUG_VIEW_BLOOM
     // Bloom Tiles
     uniform sampler2D BUFFER_BLOOM;
@@ -165,11 +176,7 @@ out vec3 outColor0;
             color += bloom;// / sqrt(bloomTileCount);
         #endif
 
-        // #if CAMERA_BRIGHTNESS != 100
-        //     color *= CAMERA_BRIGHTNESS * 0.01;
-        // #endif
-
-        float whitePoint = 1.25;
+        float whitePoint = 1.0;
         color = ApplyTonemap(color, whitePoint);
 
         #if CAMERA_SATURATION != 100
@@ -264,7 +271,15 @@ void main() {
         color = RestoreNormalZ(normalXY) * 0.5 + 0.5;
     #elif DEBUG_VIEW == DEBUG_VIEW_RSM_FINAL
         // RSM Final
-        color = textureLod(BUFFER_RSM_COLOR, texcoord, 0).rgb;
+        //color = textureLod(BUFFER_RSM_COLOR, texcoord, 0).rgb;
+        #ifdef RSM_UPSCALE
+            vec2 rsmViewSize = viewSize / exp2(RSM_SCALE);
+            float clipDepth = texelFetch(depthtex0, iuv, 0).r;
+            clipDepth = linearizeDepthFast(clipDepth, near, far);
+            color = BilateralGaussianDepthBlurRGB_5x(BUFFER_RSM_COLOR, rsmViewSize, BUFFER_RSM_DEPTH, rsmViewSize, clipDepth, 0.2);
+        #else
+            color = textureLod(BUFFER_RSM_COLOR, texcoord, 0).rgb;
+        #endif
     #elif DEBUG_VIEW == DEBUG_VIEW_BLOOM
         // Bloom Tiles
         color = textureLod(BUFFER_BLOOM, texcoord, 0).rgb;

@@ -7,22 +7,17 @@ vec4 BasicLighting(const in LightData lightData) {
     //#endif
 
     albedo.rgb = RGBToLinear(albedo.rgb * glcolor.rgb);
-    albedo.a *= PARTICLE_OPACITY;
 
-    float shadow = step(EPSILON, lightData.geoNoL);
-    shadow *= step(1.0 / 32.0, lightData.skyLight);
-
-    vec3 skyAmbient = vec3(pow(lightData.skyLight, 5.0));
-    #ifdef SKY_ENABLED
-        float skyLight2 = pow2(lightData.skyLight);
-        float ambientBrightness = mix(0.36 * skyLight2, 0.95 * lightData.skyLight, rainStrength); // SHADOW_BRIGHTNESS
-        skyAmbient *= GetSkyAmbientLight(lightData, viewNormal) * ambientBrightness;
+    #ifdef RENDER_TEXTURED
+        albedo.a *= PARTICLE_OPACITY;
+    #else
+        albedo.a *= WEATHER_OPACITY * 0.01;
     #endif
 
-    float blockAmbient = pow(lightData.blockLight, 5.0) * BlockLightLux;
-    vec3 ambient = 0.1 + blockAmbient + skyAmbient;
-    vec3 diffuse = vec3(0.0);
+    float shadow = step(EPSILON, lightData.geoNoL);
+    //shadow *= step(1.0 / 32.0, lightData.skyLight);
 
+    float skyLight = lightData.skyLight;
     vec3 shadowColor = vec3(1.0);
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #if defined SHADOW_PARTICLES || (!defined RENDER_TEXTURED && !defined RENDER_WEATHER)
@@ -48,41 +43,60 @@ vec4 BasicLighting(const in LightData lightData) {
         shadow = glcolor.a;
     #endif
 
+    #ifdef LIGHTLEAK_FIX
+        // Make areas without skylight fully shadowed (light leak fix)
+        float lightLeakFix = step(skyLight, EPSILON);
+        shadow *= lightLeakFix;
+    #endif
+
+    float skyLight2 = pow2(skyLight);
+    float skyLight3 = pow3(skyLight);
+
+    vec3 ambient = vec3(MinWorldLux);
+    vec3 diffuse = albedo.rgb * pow5(lightData.blockLight) * blockLightColor;
+
+    //vec3 skyAmbient = vec3(pow(skyLight, 5.0));
     #ifdef SKY_ENABLED
+        float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength);// * SHADOW_BRIGHTNESS;
+        ambient += GetSkyAmbientLight(lightData, viewNormal) * ambientBrightness;
+
         vec3 skyLightColor = lightData.sunTransmittance * GetSunLux() + moonColor;
-        diffuse += albedo.rgb * skyLightColor * shadowColor * shadow;
+        diffuse += albedo.rgb * skyLightColor * shadowColor * shadow *skyLight3;
     #endif
 
     #if defined HANDLIGHT_ENABLED && !defined RENDER_HAND && !defined RENDER_HAND_WATER
         if (heldBlockLightValue + heldBlockLightValue2 > EPSILON) {
-            const float roughL = 1.0;
-            const float scattering = 0.0;
+            //const float roughL = 1.0;
+            //const float scattering = 0.0;
             diffuse += ApplyHandLighting(albedo.rgb, viewPos.xyz);
         }
     #endif
 
     vec4 final = albedo;
-    final.rgb *= ambient;
+    final.rgb *= ambient * SHADOW_BRIGHTNESS;
     final.rgb += diffuse;
+
+    vec3 viewDir = normalize(viewPos);
+
+    #ifdef RENDER_WEATHER
+        vec3 sunDir = normalize(sunPosition);
+        float sun_VoL = dot(viewDir, sunDir);
+        vec3 sunLightColor = 3.0 * lightData.sunTransmittanceEye * GetSunLux(); // * sunColor;
+        float rainSnowSunVL = ComputeVolumetricScattering(sun_VoL, 0.88);
+
+        vec3 moonDir = normalize(moonPosition);
+        float moon_VoL = dot(viewDir, moonDir);
+        float rainSnowMoonVL = ComputeVolumetricScattering(moon_VoL, 0.74);
+
+        final.rgb += albedo.rgb * (max(rainSnowSunVL, 0.0) * sunLightColor + max(rainSnowMoonVL, 0.0) * 20.0*moonColor) * shadow;
+        final.a = albedo.a * mix(WEATHER_OPACITY * 0.01, 1.0, saturate(max(rainSnowSunVL, rainSnowMoonVL)));
+    #endif
 
     float fogFactor = ApplyFog(final, viewPos, lightData, EPSILON);
 
     #ifdef SKY_ENABLED
-        vec3 viewDir = normalize(viewPos);
-        float vlScatter = GetScatteringFactor(lightData.skyLightLevels.x);
-
-        vec3 sunDir = normalize(sunPosition);
-        float sun_VoL = dot(viewDir, sunDir);
-        float sunScattering = ComputeVolumetricScattering(sun_VoL, vlScatter);
         vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
-
-        vec3 moonDir = normalize(moonPosition);
-        float moon_VoL = dot(viewDir, moonDir);
-        float moonScattering = ComputeVolumetricScattering(moon_VoL, vlScatter);
-
-        vec3 vlColor =
-            max(sunScattering, 0.0) * sunColorFinal +
-            max(moonScattering, 0.0) * moonColor;
+        vec3 vlColor = GetVanillaSkyScattering(viewDir, lightData.skyLightLevels, sunColorFinal, moonColor);
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined VL_ENABLED && (defined VL_PARTICLES || (!defined RENDER_TEXTURED && !defined RENDER_WEATHER))
             mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
@@ -98,8 +112,7 @@ vec4 BasicLighting(const in LightData lightData) {
             vlColor *= fogFactor;
         #endif
 
-        if (isEyeInWater == 1) vlColor *= WATER_SCATTER_COLOR.rgb;
-        final.rgb += vlColor * (0.01 * VL_STRENGTH);
+        final.rgb += vlColor;
     #endif
 
     return final;

@@ -72,7 +72,7 @@ void main() {
 
     float viewDist = length(viewPos);
     float distF = saturate(viewDist * 0.02);
-    colorMap.a = 0.1 + 0.9 * smoothstep(0.0, 1.0, distF);
+    colorMap.a = 0.1 + 0.7 * smoothstep(0.0, 1.0, distF);
 
     //lightLevel = smoothstep(0.2, 1.0, lightLevel) * 8000.0 + 500.0;
     float skyLux = smoothstep(0.2, 1.0, saturate(skyLightLevels.x)) * 5000.0 + 300.0;
@@ -106,7 +106,6 @@ void main() {
     lightData.sunTransmittanceEye = sunTransmittanceEye;
     float fogFactor = ApplyFog(finalColor, viewPos, lightData, EPSILON);
 
-    // Add distance-based VL
     vec3 sunColorFinal = sunTransmittanceEye * GetSunLux(); // * sunColor;
     vec3 vlColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
     //vlColor *= GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd);

@@ -83,6 +83,12 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in LightData light
     #endif
 
     float vanillaFogFactor = GetVanillaFogFactor(viewPos);
+
+    #ifdef SKY_ENABLED
+        float rainFogFactor = 0.6 * GetFogFactor(viewDist, 0.0, fogEnd, 0.5) * wetness;
+        vanillaFogFactor = min(vanillaFogFactor + rainFogFactor, 1.0);
+    #endif
+
     maxFactor = max(maxFactor, vanillaFogFactor);
 
     #if defined CAVEFOG_ENABLED && defined SHADOW_ENABLED

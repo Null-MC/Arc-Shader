@@ -17,6 +17,10 @@
             if (abs(mc_Entity.x - 100.0) < 0.5) {
                 if (gl_Normal.y > 0.01) {
                     //the bottom face doesn't have a backface.
+                    if (isEyeInWater != 0) {
+                        gl_Position = vec4(10.0);
+                        return;
+                    }
                 }
                 else if (gl_Normal.y < -0.01) {
                     //sneaky back face of top needs weird checks.
@@ -25,12 +29,12 @@
                         return;
                     }
                 }
-                else {
-                    if (dot(gl_Normal, at_midBlock) > 0.0) {
-                        gl_Position = vec4(10.0);
-                        return;
-                    }
-                }
+                // else {
+                //     if (dot(gl_Normal, at_midBlock) > 0.0) {
+                //         gl_Position = vec4(10.0);
+                //         return;
+                //     }
+                // }
 
                 #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX && !defined WORLD_NETHER && !defined WORLD_END
                     #if MC_VERSION >= 11700
@@ -40,7 +44,7 @@
                         float posY = step(EPSILON, gl_Normal.y);
                     #endif
 
-                    if (posY > EPSILON) {// || (abs(gl_Normal.y) < EPSILON && true)) {
+                    if (posY > EPSILON && dot(gl_Normal, at_midBlock) <= 0.0) {// || (abs(gl_Normal.y) < EPSILON && true)) {
                         float windSpeed = GetWindSpeed();
                         float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
                         
