@@ -76,7 +76,7 @@ const bool colortex12Clear = false;
 // Atmosphere Options
 #define ATMOSPHERE_TYPE 0 // [0 1]
 //#define LIGHTLEAK_FIX
-#define ATMOSFOG_ENABLED
+//#define ATMOSFOG_ENABLED
 //#define CAVEFOG_ENABLED
 #define WEATHER_OPACITY 40 // [10 20 30 40 50 60 70 80 90 100]
 #define ATMOS_EXTINCTION 0.0025
@@ -172,7 +172,7 @@ const bool colortex12Clear = false;
 //#define G_SCATTERING_HUMID 0.08
 #define G_SCATTERING_RAIN 0.12
 #define G_SCATTERING_WATER 0.16
-#define G_SCATTERING_CLOUDS 0.64
+#define G_SCATTERING_CLOUDS 0.2
 #define G_SCATTERING_RAIN_CLOUDS 0.64
 #define SSAO_ENABLED
 #define SSAO_SAMPLES 16 // [8 16 32]

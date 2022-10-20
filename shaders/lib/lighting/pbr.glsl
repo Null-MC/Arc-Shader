@@ -519,6 +519,7 @@
             }
         #endif
 
+        float fogFactor;
         if (isEyeInWater == 1) {
             float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
 
@@ -531,52 +532,54 @@
 
             // apply water fog
             float waterFogEnd = min(40.0, fogEnd);
-            float waterFogF = GetFogFactor(viewDist, near, waterFogEnd, 0.8);
+            fogFactor = GetFogFactor(viewDist, near, waterFogEnd, 0.8);
             vec3 waterFogColor = WATER_COLOR.rgb * 0.02 * skyLightLuxColor * (0.02 + 0.98*eyeLight);
-            //final.rgb = mix(final.rgb, waterFogColor, waterFogF);
+            //final.rgb = mix(final.rgb, waterFogColor, fogFactor);
         }
         else {
             #ifdef RENDER_DEFERRED
-                ApplyFog(final.rgb, viewPos, lightData);
+                fogFactor = ApplyFog(final.rgb, viewPos, lightData);
             #elif defined RENDER_GBUFFER
                 #if defined RENDER_WATER || defined RENDER_HAND_WATER
-                    ApplyFog(final, viewPos, lightData, EPSILON);
+                    fogFactor = ApplyFog(final, viewPos, lightData, EPSILON);
                 #else
-                    ApplyFog(final, viewPos, lightData, alphaTestRef);
+                    fogFactor = ApplyFog(final, viewPos, lightData, alphaTestRef);
                 #endif
             #endif
         }
 
-        #if defined SKY_ENABLED && defined VL_ENABLED
-            mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
-            vec3 shadowViewStart = (matViewToShadowView * vec4(vec3(0.0, 0.0, -near), 1.0)).xyz;
-            vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
-
+        #ifdef SKY_ENABLED
             float vlScatter = GetScatteringFactor(lightData.skyLightLevels.x);
-            vec3 vlColor = vec3(0.0);
 
             vec3 sunDir = normalize(sunPosition);
             float sun_VoL = dot(-viewDir, sunDir);
             float sunScattering = ComputeVolumetricScattering(sun_VoL, vlScatter);
             vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
-            vlColor += max(sunScattering, 0.0) * sunColorFinal;
 
             vec3 moonDir = normalize(moonPosition);
             float moon_VoL = dot(-viewDir, moonDir);
             float moonScattering = ComputeVolumetricScattering(moon_VoL, vlScatter);
-            vlColor += max(moonScattering, 0.0) * moonColor;
 
-            if (isEyeInWater == 1) vlColor *= WATER_SCATTER_COLOR.rgb;
+            vec3 vlColor =
+                max(sunScattering, 0.0) * sunColorFinal +
+                max(moonScattering, 0.0) * moonColor;
 
-            #ifdef SHADOW_COLOR
-                vlColor *= GetVolumetricLightingColor(lightData, shadowViewStart, shadowViewEnd);
+            #ifdef VL_ENABLED
+                mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
+                vec3 shadowViewStart = (matViewToShadowView * vec4(vec3(0.0, 0.0, -near), 1.0)).xyz;
+                vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
+
+                #ifdef SHADOW_COLOR
+                    vlColor *= GetVolumetricLightingColor(lightData, shadowViewStart, shadowViewEnd);
+                #else
+                    vlColor *= GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd);
+                #endif
             #else
-                vlColor *= GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd);
+                vlColor *= fogFactor;
             #endif
             
+            if (isEyeInWater == 1) vlColor *= WATER_SCATTER_COLOR.rgb;
             final.rgb += vlColor * (0.01 * VL_STRENGTH);
-            //vlColor *= 0.01 * VL_STRENGTH;
-            //final.rgb = final.rgb / (1.0 + 0.01*luminance(vlColor)) + vlColor;
         #endif
 
         return final;

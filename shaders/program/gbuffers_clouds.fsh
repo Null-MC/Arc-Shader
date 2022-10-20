@@ -74,7 +74,8 @@ void main() {
     float distF = saturate(viewDist * 0.02);
     colorMap.a = 0.1 + 0.9 * smoothstep(0.0, 1.0, distF);
 
-    float skyLux = smoothstep(0.0, 1.0, saturate(skyLightLevels.x)) * 6000.0 + 8.0;
+    //lightLevel = smoothstep(0.2, 1.0, lightLevel) * 8000.0 + 500.0;
+    float skyLux = smoothstep(0.2, 1.0, saturate(skyLightLevels.x)) * 5000.0 + 300.0;
 
     // TODO: Add VL
     #ifdef IS_OPTIFINE
@@ -92,6 +93,7 @@ void main() {
     vec3 sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
     vec3 vlColorLux = saturate(sunScattering) * sunTransmittance * GetSunLux();
 
+    // TODO: Add moon VL
 
     vec4 finalColor = colorMap;
     finalColor.rgb *= skyLux * (1.0 - 0.96*rainStrength);
@@ -102,15 +104,13 @@ void main() {
     lightData.skyLightLevels = skyLightLevels;
     //lightData.sunTransmittance = sunTransmittance;
     lightData.sunTransmittanceEye = sunTransmittanceEye;
-    ApplyFog(finalColor, viewPos, lightData, EPSILON);
+    float fogFactor = ApplyFog(finalColor, viewPos, lightData, EPSILON);
 
-    #ifdef VL_ENABLED
-        // Add distance-based VL
-        vec3 sunColorFinal = sunTransmittanceEye * GetSunLux(); // * sunColor;
-        vec3 vlColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
-        //vlColor *= GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd);
-        finalColor.rgb += vlColor * saturate(viewDist / fogEnd);
-    #endif
+    // Add distance-based VL
+    vec3 sunColorFinal = sunTransmittanceEye * GetSunLux(); // * sunColor;
+    vec3 vlColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
+    //vlColor *= GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd);
+    finalColor.rgb += vlColor * fogFactor;
 
     vec4 lum = vec4(0.0);
     lum.r = log2(luminance(finalColor.rgb) + EPSILON);

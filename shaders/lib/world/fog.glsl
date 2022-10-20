@@ -1,5 +1,6 @@
 float GetFogFactor(const in float dist, const in float start, const in float end, const in float density) {
-    float distFactor = min(max(dist - start, 0.0) / (end - start), 1.0);
+    //float distFactor = min(max(dist - start, 0.0) / (end - start), 1.0);
+    float distFactor = dist >= far ? 1.0 : smoothstep(near, far, dist);
     return saturate(pow(distFactor, density));
 }
 
@@ -111,17 +112,19 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in LightData light
         color = mix(color, caveFogColorBlend, caveFogFactor);
     #endif
 
-    #if defined SKY_ENABLED && !defined VL_ENABLED
-        vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux();// * sunColor
-        color += maxFactor * GetVanillaSkyScattering(viewDir, lightData.skyLightLevels, sunColorFinal, moonColor);
-    #endif
+    // #if defined SKY_ENABLED && !defined VL_ENABLED
+    //     vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux();// * sunColor
+    //     color += maxFactor * GetVanillaSkyScattering(viewDir, lightData.skyLightLevels, sunColorFinal, moonColor);
+    // #endif
 
     return maxFactor;
 }
 
-void ApplyFog(inout vec4 color, const in vec3 viewPos, const in LightData lightData, const in float alphaTestRef) {
+float ApplyFog(inout vec4 color, const in vec3 viewPos, const in LightData lightData, const in float alphaTestRef) {
     float fogFactor = ApplyFog(color.rgb, viewPos, lightData);
 
     if (color.a > alphaTestRef)
         color.a = mix(color.a, 1.0, fogFactor);
+
+    return fogFactor;
 }
