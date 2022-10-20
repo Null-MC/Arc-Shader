@@ -1,11 +1,11 @@
-float GetFogFactor(const in float viewDist, const in float start, const in float end, const in float density) {
-    float distFactor = min(max(viewDist - start, 0.0) / (end - start), 1.0);
+float GetFogFactor(const in float dist, const in float start, const in float end, const in float density) {
+    float distFactor = min(max(dist - start, 0.0) / (end - start), 1.0);
     return saturate(pow(distFactor, density));
 }
 
-float GetCaveFogFactor(const in float viewDist) {
+float GetCaveFogFactor(const in float dist) {
     float end = min(60.0, fogEnd);
-    return GetFogFactor(viewDist, 0.0, end, 1.0);
+    return GetFogFactor(dist, 0.0, end, 1.0);
 }
 
 #ifdef SKY_ENABLED
@@ -34,10 +34,15 @@ float GetCaveFogFactor(const in float viewDist) {
     }
 #endif
 
-float GetVanillaFogFactor(const in float viewDist) {
-    //vec3 fogPos = viewPos;
-    //if (fogShape == 1) fogPos.z = 0.0;
-    return GetFogFactor(viewDist, fogStart, fogEnd, 1.0);
+float GetVanillaFogFactor(const in vec3 viewPos) {
+    vec3 fogPos = viewPos;
+    if (fogShape == 1) {
+        fogPos = (gbufferModelViewInverse * vec4(fogPos, 1.0)).xyz;
+        fogPos.y = 0.0;
+    }
+
+    float fogDist = length(fogPos);
+    return GetFogFactor(fogDist, fogStart, fogEnd, 1.0);
 }
 
 float ApplyFog(inout vec3 color, const in vec3 viewPos, const in LightData lightData) {
@@ -76,7 +81,7 @@ float ApplyFog(inout vec3 color, const in vec3 viewPos, const in LightData light
         float customFogFactor = GetCustomFogFactor(viewDist, sunLightLevel);
     #endif
 
-    float vanillaFogFactor = GetVanillaFogFactor(viewDist);
+    float vanillaFogFactor = GetVanillaFogFactor(viewPos);
     maxFactor = max(maxFactor, vanillaFogFactor);
 
     #if defined CAVEFOG_ENABLED && defined SHADOW_ENABLED

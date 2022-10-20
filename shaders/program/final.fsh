@@ -165,11 +165,11 @@ out vec3 outColor0;
             color += bloom;// / sqrt(bloomTileCount);
         #endif
 
-        #if CAMERA_BRIGHTNESS != 100
-            color *= CAMERA_BRIGHTNESS * 0.01;
-        #endif
+        // #if CAMERA_BRIGHTNESS != 100
+        //     color *= CAMERA_BRIGHTNESS * 0.01;
+        // #endif
 
-        float whitePoint = 1.0;
+        float whitePoint = 1.25;
         color = ApplyTonemap(color, whitePoint);
 
         #if CAMERA_SATURATION != 100

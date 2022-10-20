@@ -16,7 +16,7 @@ const float[5] moonPhaseLevels = float[](0.50, 0.65, 0.80, 0.90, 1.00);
 vec2 GetSkyLightLevels() {
     vec3 moonLightDir = normalize(moonPosition);
 
-    #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED)
+    #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
         vec3 upDir = gbufferModelView[1].xyz;
         vec3 sunLightDir = GetFixedSunPosition();
     #else
@@ -153,7 +153,7 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
 
         fogColorLinear *= 1.0 - 0.8 * rainStrength;
 
-        #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED)
+        #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
             vec3 upDir = gbufferModelView[1].xyz;
         #else
             vec3 upDir = normalize(upPosition);

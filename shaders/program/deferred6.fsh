@@ -75,6 +75,7 @@ uniform float far;
 uniform int isEyeInWater;
 uniform ivec2 eyeBrightnessSmooth;
 
+uniform int fogShape;
 uniform vec3 fogColor;
 uniform float fogStart;
 uniform float fogEnd;

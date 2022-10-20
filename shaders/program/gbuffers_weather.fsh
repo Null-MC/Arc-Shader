@@ -76,6 +76,7 @@ flat in float exposure;
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
 
+uniform mat4 gbufferModelViewInverse;
 uniform ivec2 eyeBrightnessSmooth;
 uniform int isEyeInWater;
 uniform float near;
@@ -126,9 +127,9 @@ uniform int fogMode;
     #endif
 #endif
 
+#include "/lib/world/scattering.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/world/fog.glsl"
-#include "/lib/world/scattering.glsl"
 #include "/lib/lighting/basic.glsl"
 #include "/lib/lighting/basic_forward.glsl"
 

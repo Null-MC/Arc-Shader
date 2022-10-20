@@ -30,7 +30,8 @@ flat in float exposure;
     flat in vec3 sunColor;
     flat in vec3 moonColor;
     flat in vec2 skyLightLevels;
-    flat in vec3 skyLightColor;
+    //flat in vec3 skyLightColor;
+    flat in vec3 sunTransmittanceEye;
 
     uniform sampler2D colortex9;
 
@@ -173,6 +174,7 @@ void main() {
         float worldY = localPos.y + cameraPosition.y;
         lightData.skyLightLevels = skyLightLevels;
         lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
+        lightData.sunTransmittanceEye = sunTransmittanceEye;
     #endif
 
     #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE

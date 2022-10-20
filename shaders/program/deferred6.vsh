@@ -81,8 +81,12 @@ uniform int moonPhase;
 #endif
 
 #include "/lib/lighting/blackbody.glsl"
-#include "/lib/world/sun.glsl"
-#include "/lib/world/sky.glsl"
+
+#ifdef SKY_ENABLED
+    #include "/lib/world/sun.glsl"
+    #include "/lib/world/sky.glsl"
+#endif
+
 #include "/lib/camera/exposure.glsl"
 
 

@@ -193,7 +193,7 @@
                 }
             #endif
 
-            #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
+            #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT && !defined RENDER_ENTITIES
                 ApplyDirectionalLightmap(lm.x, normal);
             #endif
         }

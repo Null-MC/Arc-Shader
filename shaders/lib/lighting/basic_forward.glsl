@@ -49,6 +49,7 @@ vec4 BasicLighting(const in LightData lightData) {
     #endif
 
     #ifdef SKY_ENABLED
+        vec3 skyLightColor = lightData.sunTransmittance * GetSunLux() + moonColor;
         diffuse += albedo.rgb * skyLightColor * shadowColor * shadow;
     #endif
 
@@ -66,23 +67,42 @@ vec4 BasicLighting(const in LightData lightData) {
 
     ApplyFog(final, viewPos, lightData, EPSILON);
 
-    // #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined VL_ENABLED && (defined VL_PARTICLES || (!defined RENDER_TEXTURED && !defined RENDER_WEATHER))
-    //     mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
-    //     vec3 shadowViewStart = (matViewToShadowView * vec4(vec3(0.0, 0.0, -near), 1.0)).xyz;
-    //     vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
+    #ifdef SKY_ENABLED
+        vec3 viewDir = normalize(viewPos);
+        float vlScatter = GetScatteringFactor(lightData.skyLightLevels.x);
+        vec3 vlColor = vec3(0.0);
 
-    //     vec2 skyLightLevels = GetSkyLightLevels();
-    //     float sunLightLevel = GetSunLightLevel(skyLightLevels.x);
-    //     //float vlScatter = GetScatteringFactor(sunLightLevel);
+        vec3 sunDir = normalize(sunPosition);
+        float sun_VoL = dot(viewDir, sunDir);
+        float sunScattering = ComputeVolumetricScattering(sun_VoL, vlScatter);
+        vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
+        vlColor += max(sunScattering, 0.0) * sunColorFinal;
 
-    //     #ifdef SHADOW_COLOR
-    //         vec3 volScatter = GetVolumetricLightingColor(lightData, shadowViewStart, shadowViewEnd, 0.6);
-    //     #else
-    //         float volScatter = GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd, 0.6);
-    //     #endif
+        vec3 moonDir = normalize(moonPosition);
+        float moon_VoL = dot(viewDir, moonDir);
+        float moonScattering = ComputeVolumetricScattering(moon_VoL, vlScatter);
+        vlColor += max(moonScattering, 0.0) * moonColor;
 
-    //     final.rgb += volScatter * (sunColor + moonColor);
-    // #endif
+        if (isEyeInWater == 1) vlColor *= WATER_SCATTER_COLOR.rgb;
+
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined VL_ENABLED && (defined VL_PARTICLES || (!defined RENDER_TEXTURED && !defined RENDER_WEATHER))
+            mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
+            vec3 shadowViewStart = (matViewToShadowView * vec4(vec3(0.0, 0.0, -near), 1.0)).xyz;
+            vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
+
+            #ifdef SHADOW_COLOR
+                vlColor *= GetVolumetricLightingColor(lightData, shadowViewStart, shadowViewEnd);
+            #else
+                vlColor *= GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd);
+            #endif
+        #else
+            // Add distance-based VL
+            float viewDist = length(viewPos);
+            vlColor *= saturate(viewDist / fogEnd);
+        #endif
+
+        final.rgb += vlColor * (0.01 * VL_STRENGTH);
+    #endif
 
     return final;
 }

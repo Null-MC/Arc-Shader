@@ -25,8 +25,12 @@ flat out float exposure;
     flat out vec3 sunColor;
     flat out vec3 moonColor;
     flat out vec2 skyLightLevels;
-    flat out vec3 skyLightColor;
+    //flat out vec3 skyLightColor;
+    flat out vec3 sunTransmittanceEye;
 
+    uniform sampler2D colortex9;
+
+    uniform float eyeAltitude;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
     uniform vec3 upPosition;
@@ -88,6 +92,7 @@ uniform float blindness;
 #include "/lib/lighting/blackbody.glsl"
 
 #ifdef SKY_ENABLED
+    #include "/lib/world/sun.glsl"
     #include "/lib/world/sky.glsl"
 #endif
 
@@ -110,12 +115,12 @@ void main() {
     #ifdef SKY_ENABLED
         skyLightLevels = GetSkyLightLevels();
         vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
-        //sunColor = GetSunLightColor(skyLightTemps.x, skyLightLevels.x) * sunLumen;
-        //moonColor = GetMoonLightColor(skyLightTemps.y, skyLightLevels.y) * moonLumen;
-        //skyLightColor = GetSkyLightLuxColor(skyLightLevels);
-        sunColor = GetSunLightLuxColor(skyLightTemps.x, skyLightLevels.x);
+        //sunColor = GetSunLightLuxColor(skyLightTemps.x, skyLightLevels.x);
+        sunColor = blackbody(5500.0);
         moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
-        skyLightColor = sunColor + moonColor; // TODO: get rid of this variable
+        //skyLightColor = sunColor + moonColor; // TODO: get rid of this variable
+
+        sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);// * sunColor;
     #endif
 
     exposure = GetExposure();

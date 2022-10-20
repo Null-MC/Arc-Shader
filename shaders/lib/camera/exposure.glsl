@@ -13,13 +13,13 @@ float GetExposureKeyValue(const in float avgLum) {
 }
 
 float GetExposure(const in float EV100) {
-    float brightnessF = 1.0;//3.0 - 2.0*screenBrightness;
+    float brightnessF = 0.01 * CAMERA_BRIGHTNESS; //3.0 - 2.0*screenBrightness;
 
     #if MC_VERSION >= 11900
         brightnessF *= 1.0 - 0.9*darknessFactor;
     #endif
 
-    return rcp(brightnessF * exp2(EV100));
+    return brightnessF * rcp(exp2(EV100));
 }
 
 #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL

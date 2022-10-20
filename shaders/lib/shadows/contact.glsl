@@ -37,8 +37,8 @@ float GetContactShadow(const in sampler2D depthtex, const in vec3 viewPos, const
         if (texDepth > tracePos.z - EPSILON) continue;
         //if (texDepth < tracePos.z - 0.00001*i) continue;
 
-        //if (screenStep.z > 0.0 && texDepth < startClipPos.z) continue;
-        //if (screenStep.z < 0.0 && texDepth > startClipPos.z) continue;
+        if (screenRay.z > 0.0 && texDepth < startClipPos.z) continue;
+        if (screenRay.z < 0.0 && texDepth > startClipPos.z) continue;
 
         float d = 0.001*i;
         if (linearizeDepthFast(texDepth, near, far) > linearizeDepthFast(tracePos.z, near, far) - d) continue;
