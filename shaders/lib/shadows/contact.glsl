@@ -23,6 +23,8 @@ float GetContactShadow(const in sampler2D depthtex, const in vec3 viewPos, const
 
     vec3 lastHitPos = startClipPos;
 
+    float startDepthLinear = linearizeDepthFast(startClipPos.z, near, far);
+
     int i;
     float shadow = 1.0;
     for (i = 1; i <= 64; i++) {
@@ -35,13 +37,17 @@ float GetContactShadow(const in sampler2D depthtex, const in vec3 viewPos, const
         texDepth = texelFetch(depthtex, iuv, 0).r;
 
         if (texDepth > tracePos.z - EPSILON) continue;
-        if (texDepth < tracePos.z - 0.00001*i) continue;
+
+        float texDepthLinear = linearizeDepthFast(texDepth, near, far);
+        float traceDepthLinear = linearizeDepthFast(tracePos.z, near, far);
+
+        if (texDepthLinear < startDepthLinear - 0.05) continue;
 
         //if (screenRay.z > 0.0 && texDepth < startClipPos.z) continue;
         //if (screenRay.z < 0.0 && texDepth > startClipPos.z) continue;
 
         float d = 0.001*i;
-        if (linearizeDepthFast(texDepth, near, far) > linearizeDepthFast(tracePos.z, near, far) - d) continue;
+        if (texDepthLinear > traceDepthLinear - d) continue;
 
         lastHitPos = tracePos;
         shadow -= 9.0 / i;

@@ -323,16 +323,16 @@
                     float VoL = dot(-viewDir, viewLightDir);
                     //sssDiffuseLight *= BiLambertianPlatePhaseFunction(-NoV, 0.6);
                     float scatter = mix(0.0, 0.8, material.scattering);
-                    float inScatter = ComputeVolumetricScattering(NoL, -0.8);
-                    float outScatter = ComputeVolumetricScattering(VoL, scatter);
+                    float inScatter = 0.2*ComputeVolumetricScattering(NoL, -0.5);
+                    float outScatter = abs(NoL)*ComputeVolumetricScattering(VoL, scatter);
 
                     //sssDiffuseLight *= 2.0 * saturate(inScatter) * saturate(outScatter);
 
-                    float extDistF = 1.5 * (sssDist / SSS_MAXDIST);
-                    sssDiffuseLight *= exp(-extDistF * material.scattering * (1.0 - sssAlbedo));
+                    float extDistF = 0.1 + 4.0*(sssDist / SSS_MAXDIST);
+                    sssDiffuseLight *= exp(-extDistF * material.scattering * (1.0 - material.albedo.rgb));
                     //sssDiffuseLight *= exp(-extDistF);
 
-                    sunDiffuse += sssDiffuseLight * pow(saturate(inScatter) * saturate(outScatter), 0.5) * (0.1 * SSS_STRENGTH);// * max(NoL, 0.0);
+                    sunDiffuse += sssDiffuseLight * (saturate(inScatter) + saturate(outScatter)) * (0.1 * SSS_STRENGTH);// * max(NoL, 0.0);
                 }
             #endif
 
