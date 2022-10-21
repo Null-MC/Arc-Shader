@@ -129,11 +129,14 @@ uniform int fogShape;
     uniform float biomeWetness;
 //#endif
 
+#if defined SHADOW_CONTACT || REFLECTION_MODE == REFLECTION_MODE_SCREEN
+    uniform mat4 gbufferProjectionInverse;
+#endif
+
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     uniform sampler2D BUFFER_HDR_PREVIOUS;
     uniform sampler2D BUFFER_DEPTH_PREV;
 
-    uniform mat4 gbufferProjectionInverse;
     uniform mat4 gbufferPreviousModelView;
     uniform mat4 gbufferPreviousProjection;
     uniform vec3 previousCameraPosition;

@@ -63,7 +63,6 @@ flat in float exposure;
             #endif
             
             uniform mat4 shadowModelView;
-            uniform mat4 gbufferModelViewInverse;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 flat in float cascadeSizes[4];
@@ -81,10 +80,15 @@ flat in float exposure;
     #endif
 #endif
 
+#if defined SHADOW_CONTACT || REFLECTION_MODE == REFLECTION_MODE_SCREEN
+    uniform mat4 gbufferProjectionInverse;
+#endif
+
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
 uniform sampler2D depthtex1;
 
+uniform mat4 gbufferModelViewInverse;
 uniform ivec2 eyeBrightnessSmooth;
 uniform vec3 cameraPosition;
 uniform int isEyeInWater;

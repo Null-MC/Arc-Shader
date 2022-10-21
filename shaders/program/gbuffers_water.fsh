@@ -120,13 +120,16 @@ uniform float fogEnd;
 uniform int fogMode;
 uniform int fogShape;
 
+#if defined SHADOW_CONTACT || REFLECTION_MODE == REFLECTION_MODE_SCREEN
+    uniform mat4 gbufferProjectionInverse;
+#endif
+
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     uniform sampler2D BUFFER_HDR_PREVIOUS;
     uniform sampler2D BUFFER_DEPTH_PREV;
 
     uniform mat4 gbufferPreviousModelView;
     uniform mat4 gbufferPreviousProjection;
-    uniform mat4 gbufferProjectionInverse;
     //uniform mat4 gbufferProjection;
     uniform vec3 previousCameraPosition;
 #endif
