@@ -73,7 +73,7 @@ uniform float near;
 uniform float far;
 
 uniform int isEyeInWater;
-//uniform ivec2 eyeBrightnessSmooth;
+uniform ivec2 eyeBrightnessSmooth;
 uniform ivec2 eyeBrightness;
 
 uniform int fogShape;
@@ -226,19 +226,38 @@ void main() {
     float screenDepth = texelFetch(depthtex1, iTex, 0).r;
     vec3 color;
 
+    vec2 viewSize = vec2(viewWidth, viewHeight);
+    vec3 clipPos = vec3(gl_FragCoord.xy / viewSize, screenDepth) * 2.0 - 1.0;
+    vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
+
+    #ifdef SKY_ENABLED
+        vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+
+        float worldY = localPos.y + cameraPosition.y;
+        vec3 sunTransmittance = GetSunTransmittance(colortex7, worldY, skyLightLevels.x);
+    #endif
+
     // SKY
     if (screenDepth == 1.0) {
-        #ifdef SKY_ENABLED
-            color = texelFetch(BUFFER_HDR, iTex, 0).rgb;
-
-            outColor1 = texelFetch(BUFFER_LUMINANCE, iTex, 0).r;
-        #else
-            color = RGBToLinear(fogColor) * 100.0;
-
+        if (isEyeInWater == 1) {
+            vec3 viewDir = normalize(viewPos);
+            //vec3 sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
+            color = GetWaterFogColor(viewDir, sunTransmittance, sunTransmittanceEye);
             outColor1 = log2(luminance(color) + EPSILON);
 
             color = clamp(color * exposure, 0.0, 65000.0);
-        #endif
+        }
+        else {
+            #ifdef SKY_ENABLED
+                color = texelFetch(BUFFER_HDR, iTex, 0).rgb;
+                outColor1 = texelFetch(BUFFER_LUMINANCE, iTex, 0).r;
+            #else
+                color = RGBToLinear(fogColor) * 100.0;
+                outColor1 = log2(luminance(color) + EPSILON);
+
+                color = clamp(color * exposure, 0.0, 65000.0);
+            #endif
+        }
     }
     else {
         uvec4 deferredData = texelFetch(BUFFER_DEFERRED, iTex, 0);
@@ -247,10 +266,10 @@ void main() {
         vec4 specularMap = unpackUnorm4x8(deferredData.b);
         vec4 lightingMap = unpackUnorm4x8(deferredData.a);
         
-        vec2 viewSize = vec2(viewWidth, viewHeight);
-        vec3 clipPos = vec3(gl_FragCoord.xy / viewSize, screenDepth) * 2.0 - 1.0;
-        vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
-        vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+        // vec2 viewSize = vec2(viewWidth, viewHeight);
+        // vec3 clipPos = vec3(gl_FragCoord.xy / viewSize, screenDepth) * 2.0 - 1.0;
+        // vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
+        //vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 
         LightData lightData;
         lightData.occlusion = normalMap.a;
@@ -264,9 +283,9 @@ void main() {
         lightData.transparentScreenDepth = far; // This doesn't work here!
 
         #ifdef SKY_ENABLED
-            float worldY = localPos.y + cameraPosition.y;
+            //float worldY = localPos.y + cameraPosition.y;
             lightData.skyLightLevels = skyLightLevels;
-            lightData.sunTransmittance = GetSunTransmittance(colortex7, worldY, skyLightLevels.x);// * sunColor;
+            lightData.sunTransmittance = sunTransmittance;//GetSunTransmittance(colortex7, worldY, skyLightLevels.x);// * sunColor;
             lightData.sunTransmittanceEye = sunTransmittanceEye;
         #endif
         

@@ -18,6 +18,8 @@ uniform sampler2D gtexture;
 uniform sampler2D colortex9;
 
 uniform mat4 gbufferModelViewInverse;
+uniform ivec2 eyeBrightnessSmooth;
+uniform ivec2 eyeBrightness;
 uniform vec3 cameraPosition;
 uniform vec3 upPosition;
 uniform float near;
@@ -76,7 +78,7 @@ void main() {
     float worldY = localPos.y + cameraPosition.y;
 
     vec4 finalColor;
-    finalColor.a = 0.1 + 0.6 * smoothstep(0.0, 1.0, distF);
+    finalColor.a = 0.1 + 0.5 * smoothstep(0.0, 1.0, distF);
 
     //lightLevel = smoothstep(0.2, 1.0, lightLevel) * 8000.0 + 500.0;
     //float skyLux = smoothstep(0.2, 1.0, saturate(skyLightLevels.x)) * 5000.0 + 300.0;
@@ -90,26 +92,24 @@ void main() {
 
     float sun_VoL = dot(viewDir, sunDir);
     float sunScattering = ComputeVolumetricScattering(sun_VoL, scatter_G);
-
     vec3 sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
-    finalColor.rgb += colorMap.rgb * saturate(sunScattering) * sunTransmittance * GetSunLux();
+    finalColor.rgb += saturate(sunScattering) * sunTransmittance * GetSunLux();
 
     vec3 moonDir = normalize(moonPosition);
     float moon_VoL = dot(viewDir, moonDir);
     float moonScattering = ComputeVolumetricScattering(moon_VoL, scatter_G);
-
-    finalColor.rgb += colorMap.rgb * saturate(sunScattering) * moonColor;
+    finalColor.rgb += saturate(moonScattering) * moonColor;
 
     LightData lightData;
     lightData.skyLight = 1.0;
     lightData.skyLightLevels = skyLightLevels;
     //lightData.sunTransmittance = sunTransmittance;
     lightData.sunTransmittanceEye = sunTransmittanceEye;
-    float fogFactor = ApplyFog(finalColor.rgb, viewPos, lightData);
+    //float fogFactor = ApplyFog(finalColor.rgb, viewPos, lightData);
 
-    vec3 sunColorFinal = sunTransmittanceEye * GetSunLux(); // * sunColor;
-    vec3 vlColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
-    finalColor.rgb += vlColor * fogFactor;
+    //vec3 sunColorFinal = sunTransmittanceEye * GetSunLux(); // * sunColor;
+    //vec3 vlColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
+    //finalColor.rgb += vlColor * fogFactor;
 
     vec4 lum = vec4(0.0);
     lum.r = log2(luminance(finalColor.rgb) + EPSILON);

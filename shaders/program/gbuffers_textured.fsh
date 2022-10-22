@@ -90,6 +90,7 @@ uniform sampler2D depthtex1;
 
 uniform mat4 gbufferModelViewInverse;
 uniform ivec2 eyeBrightnessSmooth;
+uniform ivec2 eyeBrightness;
 uniform vec3 cameraPosition;
 uniform int isEyeInWater;
 uniform float near;

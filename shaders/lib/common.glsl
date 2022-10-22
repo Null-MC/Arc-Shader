@@ -172,8 +172,8 @@ const bool colortex12Clear = false;
 //#define G_SCATTERING_HUMID 0.08
 #define G_SCATTERING_RAIN 0.06
 #define G_SCATTERING_WATER 0.16
-#define G_SCATTERING_CLOUDS 0.2
-#define G_SCATTERING_RAIN_CLOUDS 0.64
+#define G_SCATTERING_CLOUDS 0.32
+#define G_SCATTERING_RAIN_CLOUDS 0.48
 #define SSAO_ENABLED
 #define SSAO_SAMPLES 16 // [8 16 32]
 #define SSAO_INTENSITY 35 // [5 10 15 20 25 30 35 40 45 50]
@@ -253,6 +253,7 @@ const float NightSkyOvercastLumen = 60.0;
 const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.2;
 const vec4 WATER_COLOR = vec4(0.388, 0.515, 0.621, 0.1);
 const vec3 WATER_SCATTER_COLOR = vec3(0.393, 0.732, 0.650);
+const vec3 WATER_ABSORB_COLOR = vec3(0.390, 0.476, 0.485);
 
 const vec3 minLight = vec3(0.01);
 const float tile_dist_bias_factor = 0.012288;

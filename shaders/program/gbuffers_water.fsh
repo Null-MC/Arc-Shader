@@ -111,7 +111,7 @@ uniform ivec2 atlasSize;
 uniform float near;
 uniform float far;
 
-//uniform ivec2 eyeBrightnessSmooth;
+uniform ivec2 eyeBrightnessSmooth;
 uniform ivec2 eyeBrightness;
 uniform int isEyeInWater;
 
