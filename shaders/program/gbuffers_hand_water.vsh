@@ -136,7 +136,7 @@ void main() {
 
     //if (mc_Entity.x == 100.0) materialId = 1;
     //else materialId = 0;
-    materialId = 0;
+    materialId = -1;
 
     localPos = gl_Vertex.xyz;
     BasicVertex(localPos);

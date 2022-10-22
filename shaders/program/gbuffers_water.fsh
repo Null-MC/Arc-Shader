@@ -111,7 +111,8 @@ uniform ivec2 atlasSize;
 uniform float near;
 uniform float far;
 
-uniform ivec2 eyeBrightnessSmooth;
+//uniform ivec2 eyeBrightnessSmooth;
+uniform ivec2 eyeBrightness;
 uniform int isEyeInWater;
 
 uniform vec3 fogColor;
@@ -135,7 +136,7 @@ uniform int fogShape;
 #endif
 
 #if defined WATER_FANCY || WATER_REFRACTION != WATER_REFRACTION_NONE
-    #ifdef MC_GL_VENDOR_NVIDIA
+    #ifdef WATER_REFRACT_HACK
         uniform sampler2D BUFFER_HDR;
     #else
         uniform sampler2D BUFFER_REFRACT;

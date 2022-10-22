@@ -18,6 +18,7 @@ in vec3 viewNormal;
 in vec3 viewTangent;
 flat in float tangentW;
 flat in mat2 atlasBounds;
+flat in int materialId;
 
 #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
     flat in float matSmooth;

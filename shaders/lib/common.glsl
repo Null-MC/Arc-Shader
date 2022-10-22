@@ -69,8 +69,8 @@ const bool colortex12Clear = false;
 #define WATER_WAVE_DEPTH 1.0
 #define WATER_RESOLUTION 2048
 
-#define WATER_SCATTER_RATE 1.6
-#define WATER_ABSROPTION_RATE 1.2
+#define WATER_SCATTER_RATE 1.8
+#define WATER_ABSROPTION_RATE 0.8
 
 
 // Atmosphere Options
@@ -167,7 +167,7 @@ const bool colortex12Clear = false;
 #define VL_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 175 200 225 250 275 300 350 400 450 500 600 700 800 900]
 #define VL_SAMPLE_COUNT 30 // [15 30 60 90]
 //#define VL_PARTICLES
-#define G_SCATTERING_CLEAR 0.28
+#define G_SCATTERING_CLEAR 0.2
 #define G_SCATTERING_NIGHT 0.50
 //#define G_SCATTERING_HUMID 0.08
 #define G_SCATTERING_RAIN 0.06
@@ -199,6 +199,7 @@ const bool colortex12Clear = false;
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
 #define REFRACTION_STRENGTH 0 // [0 5 10 15 20]
+//#define WATER_REFRACT_HACK
 #define SSR_QUALITY 0 // [0 1 2]
 //#define SSR_STEPS 128 // [128 256 512]
 

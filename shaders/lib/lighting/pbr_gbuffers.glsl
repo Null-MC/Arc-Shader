@@ -13,6 +13,8 @@
 
         #ifdef RENDER_ENTITIES
             if (entityId == 101) skipParallax = true;
+        #else
+            if (materialId == 110) skipParallax = true;
         #endif
 
         vec2 atlasCoord = texcoord;

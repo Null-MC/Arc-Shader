@@ -71,44 +71,44 @@ void main() {
     if (colorMap.a < alphaTestRef) discard;
 
     float viewDist = length(viewPos);
+    vec3 viewDir = normalize(viewPos);
     float distF = saturate(viewDist * 0.02);
-    colorMap.a = 0.1 + 0.7 * smoothstep(0.0, 1.0, distF);
+    float worldY = localPos.y + cameraPosition.y;
+
+    vec4 finalColor;
+    finalColor.a = 0.1 + 0.6 * smoothstep(0.0, 1.0, distF);
 
     //lightLevel = smoothstep(0.2, 1.0, lightLevel) * 8000.0 + 500.0;
-    float skyLux = smoothstep(0.2, 1.0, saturate(skyLightLevels.x)) * 5000.0 + 300.0;
+    //float skyLux = smoothstep(0.2, 1.0, saturate(skyLightLevels.x)) * 5000.0 + 300.0;
+    float scatter_G = mix(G_SCATTERING_CLOUDS, G_SCATTERING_RAIN_CLOUDS, rainStrength);
 
-    // TODO: Add VL
     #ifdef IS_OPTIFINE
-        vec3 sunLightDir = GetFixedSunPosition();
+        vec3 sunDir = GetFixedSunPosition();
     #else
-        vec3 sunLightDir = normalize(sunPosition);
+        vec3 sunDir = normalize(sunPosition);
     #endif
 
-    vec3 viewDir = normalize(viewPos);
-    float sun_VoL = dot(viewDir, sunLightDir);
-    float sun_G = mix(G_SCATTERING_CLOUDS, G_SCATTERING_RAIN_CLOUDS, rainStrength);
-    float sunScattering = ComputeVolumetricScattering(sun_VoL, sun_G);
+    float sun_VoL = dot(viewDir, sunDir);
+    float sunScattering = ComputeVolumetricScattering(sun_VoL, scatter_G);
 
-    float worldY = localPos.y + cameraPosition.y;
     vec3 sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
-    vec3 vlColorLux = saturate(sunScattering) * sunTransmittance * GetSunLux();
+    finalColor.rgb += colorMap.rgb * saturate(sunScattering) * sunTransmittance * GetSunLux();
 
-    // TODO: Add moon VL
+    vec3 moonDir = normalize(moonPosition);
+    float moon_VoL = dot(viewDir, moonDir);
+    float moonScattering = ComputeVolumetricScattering(moon_VoL, scatter_G);
 
-    vec4 finalColor = colorMap;
-    finalColor.rgb *= skyLux * (1.0 - 0.96*rainStrength);
-    finalColor.rgb += vlColorLux;
+    finalColor.rgb += colorMap.rgb * saturate(sunScattering) * moonColor;
 
     LightData lightData;
     lightData.skyLight = 1.0;
     lightData.skyLightLevels = skyLightLevels;
     //lightData.sunTransmittance = sunTransmittance;
     lightData.sunTransmittanceEye = sunTransmittanceEye;
-    float fogFactor = ApplyFog(finalColor, viewPos, lightData, EPSILON);
+    float fogFactor = ApplyFog(finalColor.rgb, viewPos, lightData);
 
     vec3 sunColorFinal = sunTransmittanceEye * GetSunLux(); // * sunColor;
     vec3 vlColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
-    //vlColor *= GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd);
     finalColor.rgb += vlColor * fogFactor;
 
     vec4 lum = vec4(0.0);

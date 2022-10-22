@@ -70,7 +70,8 @@ void main() {
 
     sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
 
-    moonColor = vec3(0.0); // TODO
+    vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
+    moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
 
     exposure = GetExposure();
 }

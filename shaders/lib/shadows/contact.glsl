@@ -2,7 +2,7 @@ float GetContactShadow(const in sampler2D depthtex, const in vec3 viewPos, const
     vec3 startClipPos = unproject(gbufferProjection * vec4(viewPos, 1.0)) * 0.5 + 0.5;
     vec3 endClipPos = unproject(gbufferProjection * vec4(viewPos + lightDir, 1.0)) * 0.5 + 0.5;
 
-    vec3 screenRay = endClipPos - startClipPos;
+    vec3 screenRay = normalize(endClipPos - startClipPos);
     vec2 viewSize = vec2(viewWidth, viewHeight);
     ivec2 iuv_start = ivec2(startClipPos.xy * viewSize);
     vec2 pixelSize = rcp(viewSize);
@@ -12,7 +12,7 @@ float GetContactShadow(const in sampler2D depthtex, const in vec3 viewPos, const
     else
         screenRay *= pixelSize.x / abs(screenRay.x);
 
-    screenRay *= 2.0;
+    screenRay *= 3.0;
 
     #ifdef SHADOW_CONTACT_DITHER
         startClipPos += screenRay * GetScreenBayerValue();
@@ -24,10 +24,13 @@ float GetContactShadow(const in sampler2D depthtex, const in vec3 viewPos, const
     vec3 lastHitPos = startClipPos;
 
     float startDepthLinear = linearizeDepthFast(startClipPos.z, near, far);
+    float viewDist = saturate(viewPos.z / far);
+
+    int sampleCount = int(mix(24, 64, viewDist));
 
     int i;
     float shadow = 1.0;
-    for (i = 1; i <= 64; i++) {
+    for (i = 1; i <= sampleCount; i++) {
         tracePos = startClipPos + i*screenRay;
         if (clamp(tracePos, vec3(0.0), vec3(1.0 - EPSILON)) != tracePos) break;
 
@@ -41,13 +44,18 @@ float GetContactShadow(const in sampler2D depthtex, const in vec3 viewPos, const
         float texDepthLinear = linearizeDepthFast(texDepth, near, far);
         float traceDepthLinear = linearizeDepthFast(tracePos.z, near, far);
 
-        if (texDepthLinear < startDepthLinear - 0.05) continue;
+        if (screenRay.z >= 0.0) {
+            if (texDepthLinear < startDepthLinear - 0.0025 * i*i) continue;
+        }
+        else {
+            if (texDepthLinear > startDepthLinear) continue;
+            if (texDepthLinear < traceDepthLinear - 0.01 * i*i) continue;
+        }
 
         //if (screenRay.z > 0.0 && texDepth < startClipPos.z) continue;
         //if (screenRay.z < 0.0 && texDepth > startClipPos.z) continue;
 
-        float d = 0.001*i;
-        if (texDepthLinear > traceDepthLinear - d) continue;
+        //if (texDepthLinear > traceDepthLinear - 0.001 * i) continue;
 
         lastHitPos = tracePos;
         shadow -= 9.0 / i;

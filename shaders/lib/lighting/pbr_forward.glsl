@@ -59,7 +59,7 @@
         #endif
 
         #if defined RENDER_WATER && defined WATER_FANCY && !defined WORLD_NETHER && !defined WORLD_END
-            if (materialId == 1) {
+            if (materialId == 100 || materialId == 101) {
                 material.albedo = WATER_COLOR;
                 material.normal = vec3(0.0, 0.0, 1.0);
                 material.occlusion = 1.0;
@@ -145,6 +145,11 @@
         #endif
 
             #ifdef PARALLAX_ENABLED
+                // bool skipParallax =
+                //     viewDist >= PARALLAX_DISTANCE ||
+                //     materialId == 101 ||
+                //     materialId == 111;
+
                 if (viewDist < PARALLAX_DISTANCE) {
                     atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, viewDist, texDepth, traceCoordDepth);
 
@@ -199,7 +204,7 @@
                 #endif
 
                 //#if MATERIAL_FORMAT != MATERIAL_FORMAT_LABPBR
-                    if (materialId == 1) {
+                    if (materialId == 100 || materialId == 101) {
                         material.albedo.a = 0.1;
                         material.f0 = 0.02;
                         material.smoothness += 0.96 * step(material.smoothness, EPSILON);
@@ -215,7 +220,7 @@
 
                 #ifdef PARALLAX_SLOPE_NORMALS
                     float dO = max(texDepth - traceCoordDepth.z, 0.0);
-                    if (dO >= 0.95 / 255.0 && materialId != 1) {
+                    if (dO >= 0.95 / 255.0 && materialId != 100 && materialId != 101) {
                         //#ifdef PARALLAX_USE_TEXELFETCH
                         //    material.normal = GetParallaxSlopeNormal(atlasCoord, traceCoordDepth.z, tanViewDir);
                         //#else

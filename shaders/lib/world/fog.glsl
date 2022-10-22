@@ -1,6 +1,6 @@
 float GetFogFactor(const in float dist, const in float start, const in float end, const in float density) {
     //float distFactor = min(max(dist - start, 0.0) / (end - start), 1.0);
-    float distFactor = dist >= far ? 1.0 : smoothstep(near, far, dist);
+    float distFactor = dist >= end ? 1.0 : smoothstep(start, end, dist);
     return saturate(pow(distFactor, density));
 }
 
@@ -131,6 +131,36 @@ float ApplyFog(inout vec4 color, const in vec3 viewPos, const in LightData light
 
     if (color.a > alphaTestRef)
         color.a = mix(color.a, 1.0, fogFactor);
+
+    return fogFactor;
+}
+
+float ApplyWaterFog(inout vec3 color, const in LightData lightData, const in vec3 lightColor) {
+    // float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
+
+    // #ifdef SKY_ENABLED
+    //     // TODO: Get this outa here (vertex shader)
+    //     vec3 skyLightLuxColor = lightData.sunTransmittanceEye * GetSunLux();// GetSkyLightLuxColor(lightData.skyLightLevels);
+    // #else
+    //     vec3 skyLightLuxColor = vec3(100.0);
+    // #endif
+
+    #ifdef RENDER_WATER
+        float dist = isEyeInWater == 1
+            ? min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth)
+            : lightData.opaqueScreenDepth - lightData.transparentScreenDepth;
+    #else
+        float dist = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
+    #endif
+
+    // float dist = isEyeInWater == 1
+    //     ? min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth)
+    //     : lightData.waterShadowDepth;
+
+    float waterFogEnd = min(32.0, fogEnd);
+    float fogFactor = GetFogFactor(dist, 0.0, waterFogEnd, 1.0);
+    vec3 waterFogColor = 0.02*WATER_SCATTER_COLOR * lightColor;// * pow(eyeLight, 3.0);
+    color = mix(color, waterFogColor, fogFactor);
 
     return fogFactor;
 }

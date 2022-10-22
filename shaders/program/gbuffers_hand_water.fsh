@@ -103,7 +103,8 @@ uniform ivec2 atlasSize;
 
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
-uniform ivec2 eyeBrightnessSmooth;
+//uniform ivec2 eyeBrightnessSmooth;
+uniform ivec2 eyeBrightness;
 uniform int heldBlockLightValue;
 uniform int heldBlockLightValue2;
 uniform vec3 cameraPosition;

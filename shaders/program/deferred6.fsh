@@ -73,7 +73,8 @@ uniform float near;
 uniform float far;
 
 uniform int isEyeInWater;
-uniform ivec2 eyeBrightnessSmooth;
+//uniform ivec2 eyeBrightnessSmooth;
+uniform ivec2 eyeBrightness;
 
 uniform int fogShape;
 uniform vec3 fogColor;
@@ -260,7 +261,7 @@ void main() {
 
         float opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
         lightData.opaqueScreenDepth = linearizeDepthFast(opaqueScreenDepth, near, far);
-        lightData.transparentScreenDepth = 1.0; // This doesn't work here!
+        lightData.transparentScreenDepth = far; // This doesn't work here!
 
         #ifdef SKY_ENABLED
             float worldY = localPos.y + cameraPosition.y;

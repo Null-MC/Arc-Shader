@@ -31,10 +31,10 @@ flat out float exposure;
     uniform sampler2D colortex9;
 
     uniform float eyeAltitude;
+    uniform float rainStrength;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
     uniform vec3 upPosition;
-    uniform float rainStrength;
     uniform int moonPhase;
 
     #ifdef SHADOW_ENABLED

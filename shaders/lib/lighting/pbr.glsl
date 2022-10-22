@@ -112,7 +112,7 @@
             float wetnessFinal = biomeWetness * GetDirectionalWetness(viewNormal, skyLight);
 
             #ifdef RENDER_WATER
-                if (materialId != 1) {
+                if (materialId != 100 && materialId != 101) {
             #endif
                 if (wetnessFinal > EPSILON) {
                     vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
@@ -306,7 +306,7 @@
 
             vec3 sunF = GetFresnel(material.albedo.rgb, f0, material.hcm, LoHm, roughL);
 
-            vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * max(1.0 - sunF, 0.0);
+            vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL);// * max(1.0 - sunF, 0.0);
             //sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo, material.scattering, NoVm, diffuseNoL, LoHm, roughL);
             sunDiffuse *= skyLightColorFinal * shadowFinal;// * skyLight2;
 
@@ -320,23 +320,23 @@
                     //sssAlbedo *= sssAlbedo;
                     vec3 sssDiffuseLight = sssAlbedo * shadowSSS * skyLightColorFinal * skyLight2;
 
+                    float extDistF = 0.1 + 4.0*(sssDist / SSS_MAXDIST);
+                    sssDiffuseLight *= exp(-extDistF * material.scattering * (1.0 - material.albedo.rgb));
+
                     float VoL = dot(-viewDir, viewLightDir);
                     //sssDiffuseLight *= BiLambertianPlatePhaseFunction(-NoV, 0.6);
                     float scatter = mix(0.0, 0.8, material.scattering);
-                    float inScatter = 0.2*ComputeVolumetricScattering(NoL, -0.5);
-                    float outScatter = abs(NoL)*ComputeVolumetricScattering(VoL, scatter);
+                    float inScatter = material.scattering * ComputeVolumetricScattering(NoL, -0.5);
+                    float outScatter = 0.7 * ComputeVolumetricScattering(VoL, scatter);
 
                     //sssDiffuseLight *= 2.0 * saturate(inScatter) * saturate(outScatter);
-
-                    float extDistF = 0.1 + 4.0*(sssDist / SSS_MAXDIST);
-                    sssDiffuseLight *= exp(-extDistF * material.scattering * (1.0 - material.albedo.rgb));
                     //sssDiffuseLight *= exp(-extDistF);
 
                     sunDiffuse += sssDiffuseLight * (saturate(inScatter) + saturate(outScatter)) * (0.1 * SSS_STRENGTH);// * max(NoL, 0.0);
                 }
             #endif
 
-            diffuse += sunDiffuse;// * material.albedo.a;
+            diffuse += max(1.0 - sunF, 0.0) * sunDiffuse;// * material.albedo.a;
 
             if (NoLm > EPSILON) {
                 float NoHm = max(dot(viewNormal, halfDir), 0.0);
@@ -362,7 +362,7 @@
         #endif
 
         #if defined RENDER_WATER && !defined WORLD_NETHER && !defined WORLD_END
-            if (materialId == 1) {
+            if (materialId == 100 || materialId == 101) {
                 const float ScatteringCoeff = 0.11;
 
                 vec3 extinctionInv = 1.0 - WATER_COLOR.rgb;
@@ -376,7 +376,7 @@
 
                     vec2 waterSolidDepthFinal;
                     vec3 refractColor = vec3(0.0);
-                    vec3 refractDir = refract(vec3(0.0, 0.0, -1.0), viewNormal, waterRefractEta); // TODO: subtract geoViewNormal from texViewNormal
+                    vec3 refractDir = refract(viewDir, viewNormal, waterRefractEta); // TODO: subtract geoViewNormal from texViewNormal
                     if (dot(refractDir, refractDir) > EPSILON) {
                         vec2 refractOffset = refractDir.xy;
 
@@ -422,7 +422,7 @@
                             }
                         #endif
 
-                        #ifdef MC_GL_VENDOR_NVIDIA
+                        #ifdef WATER_REFRACT_HACK
                             ivec2 iuv = ivec2(refractUV * viewSize);
                             refractColor = texelFetch(BUFFER_HDR, iuv, 0).rgb / exposure;
                         #else
@@ -446,6 +446,17 @@
 
                     diffuse = refractColor * mix(vec3(1.0), scatterColor, inverseScatterAmount) * absorption;
                     final.a = 1.0;
+
+                    float eyeLight = saturate(eyeBrightness.y / 240.0);
+
+                    #ifdef SKY_ENABLED
+                        // TODO: Get this outa here (vertex shader)
+                        vec3 skyLightLuxColor = lightData.sunTransmittanceEye * GetSunLux();// GetSkyLightLuxColor(lightData.skyLightLevels);
+                    #else
+                        vec3 skyLightLuxColor = vec3(100.0);
+                    #endif
+
+                    ApplyWaterFog(diffuse, lightData, skyLightLuxColor * pow(eyeLight, 3.0));
                 #else
                     float waterViewDepth = isEyeInWater == 1 ? lightData.transparentScreenDepth
                         : max(lightData.opaqueScreenDepth - lightData.transparentScreenDepth, 0.0);
@@ -497,8 +508,10 @@
 
         final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
 
+        bool isUnderwater = lightData.shadowPos.z > lightData.transparentShadowDepth && abs(lightData.opaqueShadowDepth - lightData.transparentShadowDepth) > 0.001;
+
         #if defined SKY_ENABLED && defined RENDER_DEFERRED
-            if (isEyeInWater == 1) {
+            if (isEyeInWater == 1 && isUnderwater) {
                 vec3 extinctionInv = 1.0 - WATER_COLOR.rgb;
 
                 float waterDepthFinal = lightData.opaqueScreenDepth;
@@ -507,30 +520,35 @@
                 //float lightDepth = lightData.waterShadowDepth + waterDepthFinal;
 
                 vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterDepthFinal * extinctionInv);
-                float inverseScatterAmount = saturate(1.0 - exp(-WATER_SCATTER_RATE * waterDepthFinal));
+                float inverseScatterAmount = 1.0 - saturate(exp(-WATER_SCATTER_RATE * waterDepthFinal));
 
                 final.rgb *= mix(vec3(1.0), scatterColor, inverseScatterAmount) * absorption;
             }
         #endif
 
         float fogFactor;
-        if (isEyeInWater == 1) {
-            float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
+        if (isEyeInWater == 1 && isUnderwater) {// || lightData.shadowPos.z > lightData.opaqueShadowDepth)) {
+            float eyeLight = saturate(eyeBrightness.y / 240.0);
 
             #ifdef SKY_ENABLED
                 // TODO: Get this outa here (vertex shader)
-                vec3 skyLightLuxColor = GetSkyLightLuxColor(lightData.skyLightLevels);
+                vec3 skyLightLuxColor = lightData.sunTransmittanceEye * GetSunLux();// GetSkyLightLuxColor(lightData.skyLightLevels);
             #else
                 vec3 skyLightLuxColor = vec3(100.0);
             #endif
 
-            // apply water fog
-            float waterFogEnd = min(40.0, fogEnd);
-            fogFactor = GetFogFactor(viewDist, near, waterFogEnd, 0.8);
-            vec3 waterFogColor = WATER_SCATTER_COLOR * skyLightLuxColor * (0.02*eyeLight);
-            final.rgb = mix(final.rgb, waterFogColor, fogFactor);
+            // // apply water fog
+            // float waterFogEnd = min(32.0, fogEnd);
+            // fogFactor = GetFogFactor(min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth), 0.0, waterFogEnd, 1.0);
+            // vec3 waterFogColor = 0.1*WATER_SCATTER_COLOR * skyLightLuxColor * pow(eyeLight, 3.0);
+            // final.rgb = mix(final.rgb, waterFogColor, fogFactor);
+            fogFactor = ApplyWaterFog(final.rgb, lightData, skyLightLuxColor * pow(eyeLight, 3.0));
         }
         else {
+            #ifdef RENDER_WATER
+                if (materialId != 100 || isEyeInWater != 1) {
+            #endif
+
             #ifdef RENDER_DEFERRED
                 fogFactor = ApplyFog(final.rgb, viewPos, lightData);
             #elif defined RENDER_GBUFFER
@@ -560,6 +578,10 @@
                 #endif
                 
                 final.rgb += vlColor;
+            #endif
+
+            #ifdef RENDER_WATER
+                }
             #endif
         }
 

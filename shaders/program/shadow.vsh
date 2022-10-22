@@ -8,7 +8,7 @@
 out vec2 lmcoord;
 out vec2 texcoord;
 out vec4 glcolor;
-flat out uint materialId;
+flat out int materialId;
 
 #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
     flat out float matSmooth;
@@ -122,11 +122,9 @@ void main() {
         }
     #endif
 
-    materialId = 0;
-    if (mc_Entity.x == 100.0) {
-        materialId = 1;
-
-        #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
+    materialId = int(mc_Entity.x + 0.5);
+    #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
+        if (materialId == 100) {
             float windSpeed = GetWindSpeed();
             float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
             
@@ -146,8 +144,8 @@ void main() {
 
                 normal = normalize(cross(pX, pY)).xzy;
             #endif
-        #endif
-    }
+        }
+    #endif
 
     //vec4 viewPos = shadowModelView * pos;
     vec4 viewPos = gl_ModelViewMatrix * pos;

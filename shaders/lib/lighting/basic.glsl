@@ -39,12 +39,12 @@
                 #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX && !defined WORLD_NETHER && !defined WORLD_END
                     #if MC_VERSION >= 11700
                         float vY = -at_midBlock.y / 64.0;
-                        float posY = saturate(vY + 0.5) * (1.0 - step(0.48, vY + EPSILON));
+                        float posY = saturate(vY + 0.5) * (1.0 - step(0.5, vY + EPSILON));
                     #else
                         float posY = step(EPSILON, gl_Normal.y);
                     #endif
 
-                    if (posY > EPSILON && dot(gl_Normal, at_midBlock) <= 0.0) {// || (abs(gl_Normal.y) < EPSILON && true)) {
+                    if (posY > EPSILON) {// || (abs(gl_Normal.y) < EPSILON && true)) {
                         float windSpeed = GetWindSpeed();
                         float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
                         
@@ -67,24 +67,24 @@
                     }
                 #endif
             }
-            else if (abs(mc_Entity.x - 101.0) < 0.5) {
-                if (gl_Normal.y > 0.01) {
-                    //the bottom face doesn't have a backface.
-                }
-                else if (gl_Normal.y < -0.01) {
-                    //sneaky back face of top needs weird checks.
-                    if (at_midBlock.y < 30.75) {
-                       gl_Position = vec4(10.0);
-                       return;
-                    }
-                }
-                else {
-                    if (dot(gl_Normal, at_midBlock) > 0.0) {
-                        gl_Position = vec4(10.0);
-                        return;
-                    }
-                }
-            }
+            // else if (abs(mc_Entity.x - 101.0) < 0.5) {
+            //     if (gl_Normal.y > 0.01) {
+            //         //the bottom face doesn't have a backface.
+            //     }
+            //     else if (gl_Normal.y < -0.01) {
+            //         //sneaky back face of top needs weird checks.
+            //         if (at_midBlock.y < 30.75) {
+            //            gl_Position = vec4(10.0);
+            //            return;
+            //         }
+            //     }
+            //     else {
+            //         if (dot(gl_Normal, at_midBlock) > 0.0) {
+            //             gl_Position = vec4(10.0);
+            //             return;
+            //         }
+            //     }
+            // }
         #endif
 
         viewPos = (gl_ModelViewMatrix * vec4(pos, 1.0)).xyz;

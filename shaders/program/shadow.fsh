@@ -31,7 +31,7 @@ const bool shadowHardwareFiltering1 = true;
 in vec2 lmcoord;
 in vec2 texcoord;
 in vec4 glcolor;
-flat in uint materialId;
+flat in int materialId;
 
 #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
     flat in float matSmooth;
@@ -91,7 +91,7 @@ void main() {
     #endif
 
     vec4 sampleColor;
-    if (materialId == 1) {
+    if (materialId == 100 || materialId == 101) {
         sampleColor = WATER_COLOR;
     }
     else {

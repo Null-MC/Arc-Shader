@@ -14,6 +14,7 @@ out vec3 viewNormal;
 out vec3 viewTangent;
 flat out float tangentW;
 flat out mat2 atlasBounds;
+flat out int materialId;
 
 #ifdef PARALLAX_ENABLED
     out vec2 localCoord;
@@ -34,6 +35,7 @@ flat out mat2 atlasBounds;
     out vec4 spriteBounds;
 #endif
 
+in vec3 mc_Entity;
 in vec4 at_tangent;
 
 #if defined PARALLAX_ENABLED || defined AF_ENABLED
@@ -53,9 +55,9 @@ void main() {
     lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     glcolor = gl_Color;
 
+    materialId = int(mc_Entity.x + 0.5);
+
     vec3 localPos = gl_Vertex.xyz;
     BasicVertex(localPos);
-    
-    //vec3 viewPos = (gbufferModelView * vec4(localPos, 1.0)).xyz;
     PbrVertex(viewPos);
 }

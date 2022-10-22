@@ -85,7 +85,7 @@ flat out mat2 atlasBounds;
     uniform int heldBlockLightValue2;
 #endif
 
-in vec4 mc_Entity;
+in vec3 mc_Entity;
 in vec3 vaPosition;
 in vec4 at_tangent;
 in vec3 at_midBlock;
@@ -149,12 +149,13 @@ void main() {
     localPos = gl_Vertex.xyz;
     glcolor = gl_Color;
 
-    // water
-    if (mc_Entity.x == 100.0 || mc_Entity.x == 101.0) materialId = 1;
-    // Nether Portal
-    else if (mc_Entity.x == 102.0) materialId = 2;
-    // undefined
-    else materialId = 0;
+    materialId = int(mc_Entity.x + 0.5);
+
+    // if (mc_Entity.x == 100.0 || mc_Entity.x == 101.0) materialId = 1;
+    // // Nether Portal
+    // else if (mc_Entity.x == 102.0) materialId = 2;
+    // // undefined
+    // else materialId = 0;
 
     BasicVertex(localPos);
     PbrVertex(viewPos);

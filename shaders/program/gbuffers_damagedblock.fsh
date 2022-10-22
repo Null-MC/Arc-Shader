@@ -14,6 +14,7 @@ in vec3 viewNormal;
 in vec3 viewTangent;
 flat in float tangentW;
 flat in mat2 atlasBounds;
+flat in int materialId;
 
 #ifdef PARALLAX_ENABLED
     in vec2 localCoord;

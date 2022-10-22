@@ -14,6 +14,7 @@ out vec3 viewNormal;
 out vec3 viewTangent;
 flat out float tangentW;
 flat out mat2 atlasBounds;
+flat out int materialId;
 
 #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
     flat out float matSmooth;
@@ -43,7 +44,7 @@ flat out mat2 atlasBounds;
     out vec4 spriteBounds;
 #endif
 
-in vec4 mc_Entity;
+in vec3 mc_Entity;
 in vec3 vaPosition;
 in vec4 at_tangent;
 in vec3 at_midBlock;
@@ -83,6 +84,8 @@ void main() {
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     glcolor = gl_Color;
+    
+    materialId = int(mc_Entity.x + 0.5);
 
     vec3 localPos = gl_Vertex.xyz;
     BasicVertex(localPos);
