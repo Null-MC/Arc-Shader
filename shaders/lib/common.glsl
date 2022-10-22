@@ -269,28 +269,6 @@ const float drynessHalflife = 10.0;
     const float alphaTestRef = 0.1;
 #endif
 
-// #ifdef WORLD_NETHER
-//     #undef SHADOW_ENABLED
-// #endif
-
-// #if SHADOW_TYPE != 1 && SHADOW_TYPE != 2
-// 	#undef SHADOW_DISTORT_FACTOR
-// #endif
-
-// #if SHADOW_TYPE != 3
-// 	#undef DEBUG_CASCADE_TINT
-// 	#undef SHADOW_CSM_FITRANGE
-// 	#undef SHADOW_CSM_TIGHTEN
-// #endif
-
-// #if defined IS_OPTIFINE && SHADOW_TYPE == 3 && defined SHADOW_CSM_TIGHTEN && !defined SHADOW_EXCLUDE_ENTITIES
-// 	#define SHADOW_EXCLUDE_ENTITIES
-// #endif
-
-// #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-//     #undef PARALLAX_ENABLED
-// #endif
-
 #ifdef PARALLAX_ENABLED
     #ifdef PARALLAX_SMOOTH
         #undef PARALLAX_SLOPE_NORMALS

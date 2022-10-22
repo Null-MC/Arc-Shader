@@ -188,14 +188,19 @@
             #endif
 
             #if SHADOW_CONTACT != SHADOW_CONTACT_NONE
+                float contactShadowMix = saturate(0.2 * (viewDist - minContactShadowDist));
+
                 #if SHADOW_CONTACT == SHADOW_CONTACT_FAR
-                    float contactShadowMix = saturate(0.2 * (viewDist - minContactShadowDist));
                     contactShadow = mix(1.0, contactShadow, contactShadowMix);
                 #endif
 
                 shadow = min(shadow, contactShadow);
+                sssDist = max(sssDist, contactLightDist);
 
-                shadowSSS *= mix(1.0, contactShadow, saturate(contactLightDist / (SSS_MAXDIST * material.scattering)));
+                float maxDist = SSS_MAXDIST * material.scattering;
+                float contactSSS = material.scattering * max(1.0 - sssDist / maxDist, 0.0);
+                shadowSSS = mix(shadowSSS, contactSSS, contactShadowMix);
+                //shadowSSS *= mix(1.0, contactShadow, saturate(contactLightDist / (SSS_MAXDIST * material.scattering)));
             #endif
         #endif
 
@@ -283,6 +288,8 @@
         vec3 iblF = vec3(0.0);
         vec3 iblSpec = vec3(0.0);
         #if REFLECTION_MODE != REFLECTION_MODE_NONE
+            iblF = GetFresnel(material.albedo.rgb, f0, material.hcm, NoVm, roughL);
+
             if (any(greaterThan(reflectColor, vec3(EPSILON)))) {
                 vec2 envBRDF = textureLod(BUFFER_BRDF_LUT, vec2(NoVm, rough), 0).rg;
 
@@ -290,7 +297,6 @@
                     envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
                 #endif
 
-                iblF = GetFresnel(material.albedo.rgb, f0, material.hcm, NoVm, rough);
                 iblSpec = iblF * envBRDF.r + envBRDF.g;
                 iblSpec *= (1.0 - roughL) * reflectColor * occlusion;
 
@@ -333,14 +339,14 @@
                     //sssAlbedo *= sssAlbedo;
                     vec3 sssDiffuseLight = sssAlbedo * shadowSSS * skyLightColorFinal * skyLight2;
 
-                    float extDistF = 0.1 + 4.0*(sssDist / SSS_MAXDIST);
-                    sssDiffuseLight *= exp(-extDistF * material.scattering * (1.0 - material.albedo.rgb));
+                    float extDistF = (sssDist / SSS_MAXDIST) * material.scattering;
+                    sssDiffuseLight *= exp(-4.0 * extDistF * (1.2 - material.albedo.rgb));
 
                     float VoL = dot(-viewDir, viewLightDir);
                     //sssDiffuseLight *= BiLambertianPlatePhaseFunction(-NoV, 0.6);
-                    float scatter = mix(0.0, 0.8, material.scattering);
+                    float scatter = mix(0.2, 0.9, material.scattering);
                     float inScatter = material.scattering * ComputeVolumetricScattering(NoL, -0.5);
-                    float outScatter = 0.7 * ComputeVolumetricScattering(VoL, scatter);
+                    float outScatter = 0.5 * ComputeVolumetricScattering(VoL, scatter);
 
                     //sssDiffuseLight *= 2.0 * saturate(inScatter) * saturate(outScatter);
                     //sssDiffuseLight *= exp(-extDistF);
@@ -349,7 +355,7 @@
                 }
             #endif
 
-            diffuse += max(1.0 - sunF, 0.0) * sunDiffuse;// * material.albedo.a;
+            diffuse += sunDiffuse * max(1.0 - sunF, 0.0);// * material.albedo.a;
 
             if (NoLm > EPSILON) {
                 float NoHm = max(dot(viewNormal, halfDir), 0.0);
@@ -463,9 +469,6 @@
                         diffuse *= absorption;
                     else
                         diffuse *= mix(vec3(1.0), scatterColor, inverseScatterAmount) * absorption;
-                    
-                    diffuse *= max(1.0 - iblF, vec3(0.0));
-                    final.a = 1.0;
 
                     float eyeLight = saturate(eyeBrightness.y / 240.0);
 
@@ -477,6 +480,9 @@
                     #endif
 
                     ApplyWaterFog(diffuse, lightData, -viewDir);
+                    
+                    diffuse *= max(1.0 - iblF, vec3(0.0));
+                    final.a = 1.0;
                 #else
                     float waterViewDepth = isEyeInWater == 1 ? lightData.transparentScreenDepth
                         : max(lightData.opaqueScreenDepth - lightData.transparentScreenDepth, 0.0);
