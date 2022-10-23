@@ -198,7 +198,7 @@
                 sssDist = max(sssDist, contactLightDist);
 
                 float maxDist = SSS_MAXDIST * material.scattering;
-                float contactSSS = material.scattering * max(1.0 - sssDist / maxDist, 0.0);
+                float contactSSS = 0.7 * pow2(material.scattering) * max(1.0 - contactLightDist / maxDist, 0.0);
                 shadowSSS = mix(shadowSSS, contactSSS, contactShadowMix);
                 //shadowSSS *= mix(1.0, contactShadow, saturate(contactLightDist / (SSS_MAXDIST * material.scattering)));
             #endif
@@ -301,7 +301,8 @@
                 iblSpec *= (1.0 - roughL) * reflectColor * occlusion;
 
                 float iblFmax = max(max(iblF.x, iblF.y), iblF.z);
-                final.a += iblFmax * max(1.0 - final.a, 0.0);
+                //final.a += iblFmax * max(1.0 - final.a, 0.0);
+                final.a = min(final.a + iblFmax * exposure * final.a, 1.0);
             }
         #endif
 
@@ -360,7 +361,7 @@
             if (NoLm > EPSILON) {
                 float NoHm = max(dot(viewNormal, halfDir), 0.0);
 
-                vec3 sunSpec = GetSpecularBRDF(sunF, NoVm, NoLm, NoHm, roughL) * skyLightColorFinal * skyLight2 * shadowFinal;
+                vec3 sunSpec = GetSpecularBRDF(sunF, NoVm, NoLm, NoHm, roughL) * skyLightColorFinal * skyLight2 * shadowFinal * final.a;
                 
                 specular += sunSpec;// * material.albedo.a;
 
@@ -565,7 +566,7 @@
                 fogFactor = ApplyFog(final.rgb, viewPos, lightData);
             #elif defined RENDER_GBUFFER
                 #if defined RENDER_WATER || defined RENDER_HAND_WATER
-                    fogFactor = ApplyFog(final, viewPos, lightData, EPSILON);
+                    fogFactor = ApplyFog(final, viewPos, lightData, 1.0/255.0);
                 #else
                     fogFactor = ApplyFog(final, viewPos, lightData, alphaTestRef);
                 #endif

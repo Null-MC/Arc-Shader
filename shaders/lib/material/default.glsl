@@ -6,7 +6,7 @@ void ApplyHardCodedMaterials() {
 
     if (mc_Entity.x == 100.0 || mc_Entity.x == 101.0) {
         // Water
-        matSmooth = 0.96;
+        matSmooth = 0.98;
         matF0 = 0.02;
     }
     else if (mc_Entity.x == 102.0) {
@@ -16,7 +16,7 @@ void ApplyHardCodedMaterials() {
     else if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0) {
         // Foliage
         matSmooth = 0.08;
-        matSSS = 0.85;
+        matSSS = 0.7;
         matF0 = 0.03;
     }
     else if (mc_Entity.x >= 11000.0 && mc_Entity.x < 11010) {
@@ -43,7 +43,7 @@ void ApplyHardCodedMaterials() {
             // Snow
             matSmooth = 0.4;
             matF0 = 0.02;
-            matSSS = 0.5;
+            matSSS = 0.6;
         }
         else if (mc_Entity.x == 11011) {
             // Slime
