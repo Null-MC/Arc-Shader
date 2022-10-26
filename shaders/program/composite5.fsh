@@ -23,6 +23,11 @@ uniform sampler2D BUFFER_HDR;
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     uniform sampler2D depthtex0;
+
+    #ifdef SSR_IGNORE_HAND
+        uniform sampler2D depthtex1;
+        uniform sampler2D depthtex2;
+    #endif
 #endif
 
 uniform float viewWidth;
@@ -72,6 +77,12 @@ void main() {
 
         // TODO: replace this with separate depth tiles?
         depth = textureLod(depthtex0, texcoord, scaleLod).r;
+
+        #ifdef SSR_IGNORE_HAND
+            float depthT1 = textureLod(depthtex1, texcoord, scaleLod).r;
+            float depthT2 = textureLod(depthtex2, texcoord, scaleLod).r;
+            depth = max(depth, step(EPSILON, abs(depthT2 - depthT1)));
+        #endif
 
         outColor1 = depth;
     #endif

@@ -39,6 +39,7 @@ float BilateralGaussianDepthBlur_9x(const in sampler2D blendSampler, const in ve
         }
     }
     
+    if (total <= EPSILON) return 1.0;
     return accum / total;
 }
 
@@ -79,6 +80,7 @@ vec3 BilateralGaussianDepthBlurRGB_5x(const in sampler2D blendSampler, const in 
         }
     }
     
-    if (total < EPSILON) return vec3(0.0);
+    //if (dot(accum, accum) <= EPSILON) return vec3(1.0);
+    if (total <= EPSILON) return vec3(1.0);
     return accum / total;
 }

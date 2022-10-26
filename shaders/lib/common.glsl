@@ -69,8 +69,8 @@ const bool colortex12Clear = false;
 #define WATER_WAVE_DEPTH 1.0
 #define WATER_RESOLUTION 2048
 
-#define WATER_SCATTER_RATE 1.8
-#define WATER_ABSROPTION_RATE 1.0
+//#define WATER_SCATTER_RATE 1.8
+#define WATER_ABSROPTION_RATE 0.5
 #define WATER_FOG_DIST 16.0
 
 
@@ -109,6 +109,8 @@ const bool colortex12Clear = false;
 // Material Options
 #define MATERIAL_FORMAT 1 // [0 1 2 3]
 #define REFLECTION_MODE 2 // [0 1 2]
+#define SSR_QUALITY 0 // [0 1 2]
+#define SSR_IGNORE_HAND
 #define SSS_ENABLED
 #define SSS_SCATTER
 #define SSS_DITHER
@@ -201,7 +203,6 @@ const bool colortex12Clear = false;
 #define AF_SAMPLES 16.0
 #define REFRACTION_STRENGTH 0 // [0 5 10 15 20]
 //#define WATER_REFRACT_HACK
-#define SSR_QUALITY 0 // [0 1 2]
 //#define SSR_STEPS 128 // [128 256 512]
 
 #if SSR_QUALITY == 0
@@ -254,7 +255,7 @@ const float NightSkyOvercastLumen = 60.0;
 const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.2;
 const vec4 WATER_COLOR = vec4(0.139, 0.271, 0.313, 0.1);
 const vec3 WATER_SCATTER_COLOR = vec3(0.393, 0.732, 0.650);
-const vec3 WATER_ABSORB_COLOR = vec3(0.390, 0.476, 0.485);
+const vec3 WATER_ABSORB_COLOR = vec3(0.472, 0.724, 0.732);
 
 const vec3 minLight = vec3(0.01);
 const float tile_dist_bias_factor = 0.012288;

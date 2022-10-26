@@ -77,7 +77,7 @@ void main() {
     float distF = saturate(viewDist * 0.02);
     float worldY = localPos.y + cameraPosition.y;
 
-    vec4 finalColor;
+    vec4 finalColor = vec4(0.0);
     finalColor.a = 0.1 + 0.5 * smoothstep(0.0, 1.0, distF);
 
     //lightLevel = smoothstep(0.2, 1.0, lightLevel) * 8000.0 + 500.0;

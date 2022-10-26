@@ -10,6 +10,7 @@ struct LightData {
     vec3 sunTransmittanceEye;
 
     float opaqueScreenDepth;
+    float opaqueScreenDepthLinear;
     float transparentScreenDepth;
     //float waterScreenDepth;
 

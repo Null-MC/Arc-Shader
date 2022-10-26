@@ -222,12 +222,12 @@ out float outColor1;
 
 
 void main() {
-    ivec2 iTex = ivec2(gl_FragCoord.xy);
+    ivec2 iTex = ivec2(gl_FragCoord.xy + 0.5);
     float screenDepth = texelFetch(depthtex1, iTex, 0).r;
     vec3 color;
 
     vec2 viewSize = vec2(viewWidth, viewHeight);
-    vec3 clipPos = vec3(gl_FragCoord.xy / viewSize, screenDepth) * 2.0 - 1.0;
+    vec3 clipPos = vec3(texcoord, screenDepth) * 2.0 - 1.0;
     vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
 
     #ifdef SKY_ENABLED
@@ -278,8 +278,8 @@ void main() {
         lightData.geoNoL = lightingMap.z * 2.0 - 1.0;
         lightData.parallaxShadow = lightingMap.w;
 
-        float opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
-        lightData.opaqueScreenDepth = linearizeDepthFast(opaqueScreenDepth, near, far);
+        lightData.opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
+        lightData.opaqueScreenDepthLinear = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
         lightData.transparentScreenDepth = far; // This doesn't work here!
 
         #ifdef SKY_ENABLED

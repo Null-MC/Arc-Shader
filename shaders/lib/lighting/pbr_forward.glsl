@@ -32,8 +32,8 @@
         lightData.geoNoL = saturate(geoNoL);
         lightData.parallaxShadow = 1.0;
 
-        float opaqueScreenDepth = texelFetch(depthtex1, ivec2(gl_FragCoord.xy), 0).r;
-        lightData.opaqueScreenDepth = linearizeDepthFast(opaqueScreenDepth, near, far);
+        lightData.opaqueScreenDepth = texelFetch(depthtex1, ivec2(gl_FragCoord.xy), 0).r;
+        lightData.opaqueScreenDepthLinear = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
         lightData.transparentScreenDepth = linearizeDepthFast(gl_FragCoord.z, near, far);
 
         #ifdef AO_ENABLED
@@ -87,7 +87,7 @@
                         mat2 water_dFdXY = mat2(dFdx(waterLocalPos), dFdy(waterLocalPos));
 
                         if (viewDist < WATER_RADIUS && tanViewDir.z < 0.0) {
-                            float waterDepth = max(lightData.opaqueScreenDepth - lightData.transparentScreenDepth, 0.0);
+                            float waterDepth = max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepth, 0.0);
                             GetWaterParallaxCoord(waterTex, water_dFdXY, tanViewDir, viewDist, waterDepth);
 
                             float pomDist = (1.0 - waterTex.z) / max(-tanViewDir.z, 0.1) * WATER_WAVE_DEPTH;

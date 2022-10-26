@@ -86,7 +86,11 @@
         vec3 viewDir = -normalize(viewPos);
         float viewDist = length(viewPos);
 
-        vec2 screenUV = gl_FragCoord.xy / viewSize;
+        #ifdef RENDER_DEFERRED
+            vec2 screenUV = texcoord;
+        #else
+            vec2 screenUV = gl_FragCoord.xy / viewSize;
+        #endif
 
         #ifdef SHADOW_ENABLED
             vec3 viewLightDir = normalize(shadowLightPosition);
@@ -145,7 +149,7 @@
         float shadowSSS = 0.0;
 
         #ifdef SKY_ENABLED
-            float sunLightLevel = GetSunLightLevel(lightData.skyLightLevels.x);
+            //float sunLightLevel = GetSunLightLevel(lightData.skyLightLevels.x);
             float sssDist = 0.0;
 
             shadow *= step(EPSILON, lightData.geoNoL);
@@ -208,8 +212,9 @@
 
         #ifdef LIGHTLEAK_FIX
             // Make areas without skylight fully shadowed (light leak fix)
-            float lightLeakFix = step(skyLight, EPSILON);
+            float lightLeakFix = saturate(skyLight * 15.0);
             shadowFinal *= lightLeakFix;
+            shadowSSS *= lightLeakFix;
         #endif
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -256,7 +261,7 @@
         #if defined SKY_ENABLED && defined RSM_ENABLED && defined RENDER_DEFERRED
             #ifdef RSM_UPSCALE
                 vec2 rsmViewSize = viewSize / exp2(RSM_SCALE);
-                vec3 rsmColor = BilateralGaussianDepthBlurRGB_5x(BUFFER_RSM_COLOR, rsmViewSize, BUFFER_RSM_DEPTH, rsmViewSize, lightData.opaqueScreenDepth, 0.9);
+                vec3 rsmColor = BilateralGaussianDepthBlurRGB_5x(BUFFER_RSM_COLOR, rsmViewSize, BUFFER_RSM_DEPTH, rsmViewSize, lightData.opaqueScreenDepthLinear, 0.9);
             #else
                 vec2 tex = screenUV;
                 vec3 rsmColor = textureLod(BUFFER_RSM_COLOR, tex, 0).rgb;
@@ -264,9 +269,9 @@
         #endif
 
         #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
-            vec3 blockLightAmbient = pow2(blockLight)*blockLightColor;
+            vec3 blockLightDiffuse = pow2(blockLight)*blockLightColor;
         #else
-            vec3 blockLightAmbient = pow5(blockLight)*blockLightColor;
+            vec3 blockLightDiffuse = pow5(blockLight)*blockLightColor;
         #endif
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
@@ -276,13 +281,13 @@
         #endif
 
         vec4 final = vec4(albedo, material.albedo.a);
-        vec3 ambient = vec3(MinWorldLux + blockLightAmbient);
-        vec3 diffuse = vec3(0.0);
+        vec3 ambient = vec3(MinWorldLux);
+        vec3 diffuse = albedo * blockLightDiffuse;
         vec3 specular = vec3(0.0);
         float occlusion = lightData.occlusion * material.occlusion;
 
         #if defined SSAO_ENABLED && !defined RENDER_WATER && !defined RENDER_HAND_WATER
-            occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, 0.5 * viewSize, depthtex0, viewSize, lightData.opaqueScreenDepth, 0.9);
+            occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, 0.5 * viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, 0.9);
         #endif
 
         vec3 iblF = vec3(0.0);
@@ -308,7 +313,7 @@
 
         #ifdef SKY_ENABLED
             float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength);// * SHADOW_BRIGHTNESS;
-            ambient += GetSkyAmbientLight(lightData, viewNormal) * ambientBrightness;
+            vec3 skyAmbient = GetSkyAmbientLight(lightData, viewNormal) * ambientBrightness;
 
             vec3 sunColor = lightData.sunTransmittance * GetSunLux();
             vec3 skyLightColorFinal = (sunColor + moonColor) * shadowColor;
@@ -320,9 +325,11 @@
 
                 skyLightColorFinal *= absorption;
                 //reflectColor *= absorption;
+                skyAmbient *= absorption;
                 iblSpec *= absorption;
-                ambient *= absorption;
             }
+
+            ambient += skyAmbient;
 
             vec3 sunF = GetFresnel(material.albedo.rgb, f0, material.hcm, LoHm, roughL);
 
@@ -385,14 +392,14 @@
             if (materialId == 100 || materialId == 101) {
                 const float ScatteringCoeff = 0.11;
 
-                const vec3 extinctionInv = 1.0 - WATER_SCATTER_COLOR;
+                const vec3 extinctionInv = 1.0 - WATER_ABSORB_COLOR;
 
                 #if WATER_REFRACTION != WATER_REFRACTION_NONE
                     float waterRefractEta = isEyeInWater == 1
                         ? IOR_WATER / IOR_AIR
                         : IOR_AIR / IOR_WATER;
                     
-                    float refractDist = max(lightData.opaqueScreenDepth - lightData.transparentScreenDepth, 0.0);
+                    float refractDist = max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepth, 0.0);
 
                     vec2 waterSolidDepthFinal;
                     vec3 refractColor = vec3(0.0);
@@ -410,7 +417,7 @@
                         
                         vec2 refractUV = screenUV + refractOffset;
 
-                        waterSolidDepthFinal.y = lightData.opaqueScreenDepth;
+                        waterSolidDepthFinal.y = lightData.opaqueScreenDepthLinear;
                         waterSolidDepthFinal.x = lightData.transparentScreenDepth;
 
                         #if WATER_REFRACTION == WATER_REFRACTION_FANCY
@@ -455,33 +462,71 @@
                         waterSolidDepthFinal.y = 65000;
                     }
 
-                    float waterDepthFinal = isEyeInWater == 1 ? waterSolidDepthFinal.x
+                    float waterViewDepthFinal = isEyeInWater == 1 ? waterSolidDepthFinal.x
                         : max(waterSolidDepthFinal.y - waterSolidDepthFinal.x, 0.0);
 
-                    vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterDepthFinal * extinctionInv);
+                    //float waterShadowDepth = lightData.waterShadowDepth;
+                    // TODO: convert opaque depth to shadow pos; compare against transparent shadow depth
+                    vec3 waterOpaqueClipPos = vec3(screenUV, lightData.opaqueScreenDepth) * 2.0 - 1.0;
+                    vec3 waterOpaqueLocalPos = unproject(gbufferModelViewInverse * (gbufferProjectionInverse * vec4(waterOpaqueClipPos, 1.0)));
+                    vec3 waterOpaqueShadowPos = (shadowProjection * (shadowModelView * vec4(waterOpaqueLocalPos, 1.0))).xyz;
 
-                    refractColor *= absorption * max(1.0 - iblF, vec3(0.0));
-                    ApplyWaterFog(refractColor, lightData, -viewDir);
-                    diffuse = refractColor;
+                    #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                        //float distortFactor = getDistortFactor(waterOpaqueShadowPos.xy);
+                        waterOpaqueShadowPos = distort(waterOpaqueShadowPos);//, distortFactor);
+                        //lightData.shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
+                    #else
+                        //lightData.shadowBias = GetShadowBias(lightData.geoNoL);
+                    #endif
+
+                    waterOpaqueShadowPos = waterOpaqueShadowPos * 0.5 + 0.5;
+
+                    #ifdef SHADOW_DITHER
+                        float ditherOffset = (GetScreenBayerValue() - 0.5) * shadowPixelSize;
+                        waterOpaqueShadowPos.xy += ditherOffset;
+                    #endif
+
+                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                        const float ShadowMaxDepth = far * 3.0;
+                    #elif SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                        const float ShadowMaxDepth = 512.0;
+                    #else
+                        const float ShadowMaxDepth = 256.0;
+                    #endif
+
+                    float waterOpaqueShadowDepth = SampleOpaqueDepth(vec4(waterOpaqueShadowPos, 1.0), vec2(0.0));
+                    float waterTransparentShadowDepth = SampleTransparentDepth(vec4(waterOpaqueShadowPos, 1.0), vec2(0.0));
+                    float waterShadowDepth = max(waterOpaqueShadowPos.z - waterTransparentShadowDepth, 0.0) * ShadowMaxDepth;
+                    float waterLightDist = max(waterShadowDepth + waterViewDepthFinal, EPSILON);
+
+                    // TODO: This should be based on the refracted opaque fragment!
+                    float waterShadowBias = lightData.shadowBias;
+
+                    vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterLightDist * extinctionInv);
+                    if (waterOpaqueShadowDepth < waterOpaqueShadowPos.z - waterShadowBias) absorption = vec3(0.0);
+
+                    diffuse = refractColor * absorption;// * max(1.0 - sunF, vec3(0.0));
+                    ApplyWaterFog(diffuse, lightData, -viewDir);
                     
-                    final.a = saturate(waterDepthFinal - 0.2);
+                    final.a = saturate(waterViewDepthFinal - 0.2);
                 #else
                     float waterViewDepth = isEyeInWater == 1 ? lightData.transparentScreenDepth
-                        : max(lightData.opaqueScreenDepth - lightData.transparentScreenDepth, 0.0);
+                        : max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepth, 0.0);
 
                     float waterLightDist = waterViewDepth + lightData.waterShadowDepth;
 
-                    //float verticalDepth = waterViewDepth * max(dot(viewLightDir, viewUpDir), 0.0);
                     vec3 absorption = exp(-extinctionInv * waterViewDepth);
-                    float scatterAmount = exp(-WATER_SCATTER_RATE * waterViewDepth);
+                    diffuse *= absorption;
+                    //float scatterAmount = exp(-WATER_SCATTER_RATE * waterViewDepth);
 
-                    vec3 scatterColor = WATER_SCATTER_COLOR * lightData.sunTransmittanceEye;// * skyLight2;// * shadowFinal;
+                    //vec3 scatterColor = WATER_SCATTER_COLOR * lightData.sunTransmittanceEye;// * skyLight2;// * shadowFinal;
 
-                    diffuse *= mix(scatterColor, vec3(1.0), scatterAmount) * absorption;
+                    //diffuse *= mix(scatterColor, vec3(1.0), scatterAmount) * absorption;
+
+                    float waterFogF = ApplyWaterFog(diffuse, lightData, -viewDir);
                     
-                    //float alphaF = exp(-(waterViewDepth + lightData.waterShadowDepth));
-                    float alphaF = exp(-0.2 * WATER_ABSROPTION_RATE * waterViewDepth);
-                    final.a = min(final.a + (1.0 - saturate(alphaF)), 1.0);// * (1.0 - material.albedo.a);// * max(1.0 - final.a, 0.0);
+                    //float alphaF = exp(-0.2 * WATER_ABSROPTION_RATE * waterViewDepth);
+                    final.a = waterFogF;//min(final.a + (1.0 - saturate(alphaF)), 1.0);// * (1.0 - material.albedo.a);// * max(1.0 - final.a, 0.0);
                 #endif
 
                 ambient = vec3(0.0);
@@ -510,6 +555,8 @@
 
         occlusion *= SHADOW_BRIGHTNESS;
 
+        diffuse *= 1.0 - saturate(iblF);
+
         final.rgb = final.rgb * (ambient * occlusion)
             + diffuse + emissive
             + (specular + iblSpec) * specularTint;
@@ -517,18 +564,14 @@
         final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
 
         #if defined SKY_ENABLED && defined RENDER_DEFERRED
-            bool isUnderwater = lightData.shadowPos.z > lightData.transparentShadowDepth && abs(lightData.opaqueShadowDepth - lightData.transparentShadowDepth) > 0.001;
+            //bool isUnderwater = true;//lightData.shadowPos.z > lightData.transparentShadowDepth && abs(lightData.opaqueShadowDepth - lightData.transparentShadowDepth) > 0.001;
 
-            if (isEyeInWater == 1 && isUnderwater) {
-                const vec3 extinctionInv = 1.0 - WATER_SCATTER_COLOR;
+            if (isEyeInWater == 1) {
+                float waterLightDist = max(lightData.opaqueScreenDepthLinear + lightData.waterShadowDepth, 0.0);
 
-                float waterDepthFinal = lightData.opaqueScreenDepth;
-
-                //vec3 scatterColor = WATER_SCATTER_COLOR * lightData.sunTransmittanceEye;// * skyLight2;// * shadowFinal;
-                //float lightDepth = lightData.waterShadowDepth + waterDepthFinal;
-
-                vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterDepthFinal * extinctionInv);
-                //float inverseScatterAmount = 1.0 - saturate(exp(-WATER_SCATTER_RATE * waterDepthFinal));
+                const vec3 extinctionInv = 1.0 - WATER_ABSORB_COLOR;
+                vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterLightDist * extinctionInv);
+                if (lightData.geoNoL < 0.0 || lightData.opaqueShadowDepth < lightData.shadowPos.z - lightData.shadowBias) absorption = vec3(0.0);
 
                 final.rgb *= absorption;
             }

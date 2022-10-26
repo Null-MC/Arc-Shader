@@ -168,13 +168,13 @@ vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunTransmittance, con
 float ApplyWaterFog(inout vec3 color, const in LightData lightData, const in vec3 viewDir) {
     #ifdef RENDER_WATER
         float dist = isEyeInWater == 1
-            ? min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth)
-            : lightData.opaqueScreenDepth - lightData.transparentScreenDepth;
+            ? min(lightData.opaqueScreenDepthLinear, lightData.transparentScreenDepth)
+            : lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepth;
     #else
-        float dist = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
+        float dist = min(lightData.opaqueScreenDepthLinear, lightData.transparentScreenDepth);
     #endif
 
-    float waterFogEnd = min(fogEnd, WATER_FOG_DIST);
+    float waterFogEnd = WATER_FOG_DIST;//min(fogEnd, WATER_FOG_DIST);
     float fogFactor = GetFogFactor(dist, 0.0, waterFogEnd, 1.0);
     vec3 waterFogColor = GetWaterFogColor(viewDir, lightData.sunTransmittance, lightData.sunTransmittanceEye);
     color = mix(color, waterFogColor, fogFactor);

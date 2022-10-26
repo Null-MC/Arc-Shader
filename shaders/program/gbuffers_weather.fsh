@@ -160,8 +160,8 @@ void main() {
     lightData.geoNoL = geoNoL;
     lightData.parallaxShadow = 1.0;
 
-    float opaqueScreenDepth = texelFetch(depthtex1, ivec2(gl_FragCoord.xy), 0).r;
-    lightData.opaqueScreenDepth = linearizeDepthFast(opaqueScreenDepth, near, far);
+    lightData.opaqueScreenDepth = texelFetch(depthtex1, ivec2(gl_FragCoord.xy), 0).r;
+    lightData.opaqueScreenDepthLinear = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
     lightData.transparentScreenDepth = linearizeDepthFast(gl_FragCoord.z, near, far);
 
     #ifdef SKY_ENABLED
