@@ -40,8 +40,8 @@ void _ApplyHandLighting(out vec3 diffuse, out vec3 specular, const in vec3 albed
 
     if (isEyeInWater == 1) {
         float viewDist = length(viewPos);
-        vec3 extinctionInv = 1.0 - WATER_COLOR.rgb;
-        vec3 absorption = exp(-(lightDist + viewDist) * extinctionInv);
+        const vec3 extinctionInv = 1.0 - WATER_SCATTER_COLOR;
+        vec3 absorption = exp(-WATER_ABSROPTION_RATE * (lightDist + viewDist) * extinctionInv);
         handLightColor *= absorption;
     }
 

@@ -70,7 +70,8 @@ const bool colortex12Clear = false;
 #define WATER_RESOLUTION 2048
 
 #define WATER_SCATTER_RATE 1.8
-#define WATER_ABSROPTION_RATE 0.8
+#define WATER_ABSROPTION_RATE 1.0
+#define WATER_FOG_DIST 16.0
 
 
 // Atmosphere Options
@@ -144,7 +145,7 @@ const bool colortex12Clear = false;
 #define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
 
 #define CAMERA_BRIGHTNESS 80 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
-#define CAMERA_SATURATION 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
+#define CAMERA_SATURATION 100 // [0 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 
 
 // Effect Options
@@ -251,7 +252,7 @@ const float NightSkyLumen = 1200.0;
 const float NightSkyOvercastLumen = 60.0;
 
 const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.2;
-const vec4 WATER_COLOR = vec4(0.388, 0.515, 0.621, 0.1);
+const vec4 WATER_COLOR = vec4(0.139, 0.271, 0.313, 0.1);
 const vec3 WATER_SCATTER_COLOR = vec3(0.393, 0.732, 0.650);
 const vec3 WATER_ABSORB_COLOR = vec3(0.390, 0.476, 0.485);
 

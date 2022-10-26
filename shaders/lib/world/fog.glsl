@@ -136,18 +136,14 @@ float ApplyFog(inout vec4 color, const in vec3 viewPos, const in LightData light
 }
 
 vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunTransmittance, const in vec3 sunTransmittanceEye) {
-    #ifdef SKY_ENABLED
-        vec3 waterFogColor = vec3(0.0);//sunTransmittanceEye;// * GetSunLux();
-    #else
-        vec3 waterFogColor = vec3(100.0);
-    #endif
+    vec3 waterFogColor = 0.05*WATER_COLOR.rgb * sunTransmittance * GetSunLux();
 
     float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
     //vec3 waterFogColor = skyLightColor;
 
     #ifdef SKY_ENABLED
         // TODO: add sun VL
-        const float scatter_G = 0.45;
+        const float scatter_G = 0.5;
 
         #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
             vec3 sunDir = GetFixedSunPosition();
@@ -158,15 +154,15 @@ vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunTransmittance, con
         float sun_VoL = dot(viewDir, sunDir);
         float sunScattering = ComputeVolumetricScattering(sun_VoL, scatter_G);
         // vec3 sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
-        waterFogColor += saturate(sunScattering) * sunTransmittance * GetSunLux();
+        waterFogColor += 0.4*saturate(sunScattering) * sunTransmittanceEye * GetSunLux() * WATER_SCATTER_COLOR;
 
         vec3 moonDir = normalize(moonPosition);
         float moon_VoL = dot(viewDir, moonDir);
         float moonScattering = ComputeVolumetricScattering(moon_VoL, scatter_G);
-        waterFogColor += saturate(moonScattering) * moonColor;
+        waterFogColor += 0.4*saturate(moonScattering) * moonColor * WATER_SCATTER_COLOR;
     #endif
 
-    return 0.5 * WATER_SCATTER_COLOR * waterFogColor * pow2(eyeLight);
+    return waterFogColor * pow3(eyeLight);
 }
 
 float ApplyWaterFog(inout vec3 color, const in LightData lightData, const in vec3 viewDir) {
@@ -178,7 +174,7 @@ float ApplyWaterFog(inout vec3 color, const in LightData lightData, const in vec
         float dist = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
     #endif
 
-    float waterFogEnd = min(16.0, fogEnd);
+    float waterFogEnd = min(fogEnd, WATER_FOG_DIST);
     float fogFactor = GetFogFactor(dist, 0.0, waterFogEnd, 1.0);
     vec3 waterFogColor = GetWaterFogColor(viewDir, lightData.sunTransmittance, lightData.sunTransmittanceEye);
     color = mix(color, waterFogColor, fogFactor);

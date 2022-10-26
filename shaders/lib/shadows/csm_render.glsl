@@ -367,8 +367,8 @@
                 float shadow_sss = SampleShadowSSS(lightData.shadowPos[lightData.opaqueShadowCascade].xy);
                 if (shadow_sss < EPSILON) return 0.0;
 
-                float maxDist = SSS_MAXDIST * sqrt(shadow_sss);
-                return sqrt(materialSSS) * max(1.0 - lightDist / maxDist, 0.0);
+                float maxDist = SSS_MAXDIST * shadow_sss;
+                return materialSSS * max(1.0 - lightDist / maxDist, 0.0);
             }
         #endif
     #endif
