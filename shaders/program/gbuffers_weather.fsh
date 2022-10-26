@@ -16,10 +16,9 @@ in vec3 viewPos;
 in vec3 viewNormal;
 in float geoNoL;
 flat in float exposure;
+flat in vec3 blockLightColor;
 
 #ifdef HANDLIGHT_ENABLED
-    flat in vec3 blockLightColor;
-
     uniform int heldBlockLightValue;
     uniform int heldBlockLightValue2;
 #endif

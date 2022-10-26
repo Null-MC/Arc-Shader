@@ -16,10 +16,7 @@ in vec3 localPos;
 in vec3 viewPos;
 in vec3 viewNormal;
 flat in float exposure;
-
-#ifdef HANDLIGHT_ENABLED
-    flat in vec3 blockLightColor;
-#endif
+flat in vec3 blockLightColor;
 
 #if defined HANDLIGHT_ENABLED || CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
     uniform int heldBlockLightValue;
