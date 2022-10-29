@@ -99,6 +99,7 @@ uniform sampler2D lightmap;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
 uniform sampler2D colortex10;
+uniform usampler2D BUFFER_DEFERRED;
 
 uniform mat4 shadowProjection;
 uniform mat4 gbufferModelViewInverse;

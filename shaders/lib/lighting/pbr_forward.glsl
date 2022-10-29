@@ -32,9 +32,10 @@
         lightData.geoNoL = saturate(geoNoL);
         lightData.parallaxShadow = 1.0;
 
+        lightData.transparentScreenDepth = gl_FragCoord.z;
         lightData.opaqueScreenDepth = texelFetch(depthtex1, ivec2(gl_FragCoord.xy), 0).r;
         lightData.opaqueScreenDepthLinear = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
-        lightData.transparentScreenDepth = linearizeDepthFast(gl_FragCoord.z, near, far);
+        lightData.transparentScreenDepthLinear = linearizeDepthFast(lightData.transparentScreenDepth, near, far);
 
         #ifdef AO_ENABLED
             lightData.occlusion = pow2(glcolor.a);
@@ -74,6 +75,7 @@
                 float zScale = 8.0 + windSpeed; // 32
 
                 float depth, depthX, depthY;
+                vec3 waterPos;
 
                 #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
                     const float waterWorldScale = rcp(2.0*WATER_RADIUS);
@@ -90,24 +92,37 @@
                             float waterDepth = max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepth, 0.0);
                             GetWaterParallaxCoord(waterTex, water_dFdXY, tanViewDir, viewDist, waterDepth);
 
-                            float pomDist = (1.0 - waterTex.z) / max(-tanViewDir.z, 0.1) * WATER_WAVE_DEPTH;
+                            const float waterParallaxDepth = WATER_WAVE_DEPTH / (2.0*WATER_RADIUS);
+                            float pomDist = (1.0 - waterTex.z) / max(-tanViewDir.z, 0.01);// * waterParallaxDepth;
 
                             if (pomDist > 0.0) {
-                                float depth = -viewPos.z + pomDist;
-                                float fragDepthFinal = 0.5 * ((-gbufferProjection[2].z*depth + gbufferProjection[3].z) / depth) + 0.5;
-                                lightData.transparentScreenDepth = linearizeDepthFast(fragDepthFinal, near, far);
-
                                 #ifdef PARALLAX_DEPTH_WRITE
-                                    viewPosFinal.z -= pomDist;
-                                    gl_FragDepth = fragDepthFinal;
+                                    viewPosFinal.z -= pomDist * waterParallaxDepth;
+
+                                    float shit = viewPosFinal.z - pomDist;
+
+                                    gl_FragDepth = 0.5 * ((-gbufferProjection[2].z*-shit + gbufferProjection[3].z) / -shit) + 0.5;
                                 #endif
+
+                                float depth = -viewPos.z + pomDist * waterParallaxDepth;
+                                lightData.transparentScreenDepth = 0.5 * ((-gbufferProjection[2].z*depth + gbufferProjection[3].z) / depth) + 0.5;
+                                lightData.transparentScreenDepthLinear = linearizeDepthFast(lightData.transparentScreenDepth, near, far);
                             }
                         }
 
-                        depth = textureLod(BUFFER_WATER_WAVES, waterTex.xy, 0).r;
-                        depthX = textureLodOffset(BUFFER_WATER_WAVES, waterTex.xy, 0, ivec2(1, 0)).r;
-                        depthY = textureLodOffset(BUFFER_WATER_WAVES, waterTex.xy, 0, ivec2(0, 1)).r;
-                        //zScale *= 2.0;
+                        float depth = textureGrad(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1]).r;
+                        float depthX = textureGradOffset(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1], ivec2(1, 0)).r;
+                        float depthY = textureGradOffset(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1], ivec2(0, 1)).r;
+
+                        float dx = depthX - depth;
+                        float dy = depthY - depth;
+
+                        const float waterParallaxDepth = 8.0 * (WATER_WAVE_DEPTH / (2.0*WATER_RADIUS));
+                        const float waterPixelSize = rcp(WATER_RESOLUTION);
+
+                        material.normal = normalize(cross(
+                          vec3(waterPixelSize, 0.0, dx * waterParallaxDepth * WATER_NORMAL_STRENGTH),
+                          vec3(0.0, waterPixelSize, dy * waterParallaxDepth * WATER_NORMAL_STRENGTH)));
                     }
                     else {
                 #endif
@@ -118,28 +133,26 @@
                         octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, saturate(viewDist / 200.0)));
                     #endif
 
-                    float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
-                    vec2 waterWorldPos = waterScale * (localPos.xz + cameraPosition.xz);
-                    vec2 waterWorldPosX = waterWorldPos + vec2(1.0, 0.0)*0.01;
-                    vec2 waterWorldPosY = waterWorldPos + vec2(0.0, 1.0)*0.01;
-
                     float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
-
                     float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
 
-                    depth = GetWaves(waterWorldPos, waveSpeed, octaves);
-                    depthX = GetWaves(waterWorldPosX, waveSpeed, octaves);
-                    depthY = GetWaves(waterWorldPosY, waveSpeed, octaves);
-                    zScale *= 0.4*WATER_WAVE_DEPTH;// * WATER_SCALE;
+                    float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
+                    vec2 waterWorldPos = waterScale * (localPos.xz + cameraPosition.xz);
+
+                    depth = GetWaves(waterWorldPos, waveSpeed, octaves) * WATER_WAVE_DEPTH * WATER_NORMAL_STRENGTH;
+                    waterPos = vec3(waterWorldPos.x, waterWorldPos.y, depth);
+
+                    material.normal = normalize(cross(
+                      dFdxFine(waterPos),
+                      dFdyFine(waterPos)
+                    ));
+
+                    if (isEyeInWater != 1)
+                        material.normal = -material.normal;
 
                 #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
                     }
                 #endif
-                
-                vec3 pX = vec3(1.0, 0.0, (depthX - depth) * zScale);
-                vec3 pY = vec3(0.0, 1.0, (depthY - depth) * zScale);
-                
-                material.normal = normalize(cross(pX, pY));
             }
             else {
         #endif

@@ -29,25 +29,25 @@
 #endif
 
 #ifdef RENDER_FRAG
-    #ifdef RENDER_WATER
-        float GetWaterDepth(const in vec2 screenUV) {
-            float waterViewDepthLinear = linearizeDepthFast(gl_FragCoord.z, near, far);
-            if (isEyeInWater == 1) return waterViewDepthLinear;
+    // #ifdef RENDER_WATER
+    //     float GetWaterDepth(const in vec2 screenUV) {
+    //         float waterViewDepthLinear = linearizeDepthFast(gl_FragCoord.z, near, far);
+    //         if (isEyeInWater == 1) return waterViewDepthLinear;
 
-            float solidViewDepth = textureLod(depthtex1, screenUV, 0).r;
-            float solidViewDepthLinear = linearizeDepthFast(solidViewDepth, near, far);
-            return max(solidViewDepthLinear - waterViewDepthLinear, 0.0);
-        }
+    //         float solidViewDepth = textureLod(depthtex1, screenUV, 0).r;
+    //         float solidViewDepthLinear = linearizeDepthFast(solidViewDepth, near, far);
+    //         return max(solidViewDepthLinear - waterViewDepthLinear, 0.0);
+    //     }
 
-        // returns: x=water-depth, y=solid-depth
-        vec2 GetWaterSolidDepth(const in vec2 screenUV) {
-            float solidViewDepth = textureLod(depthtex1, screenUV, 0).r;
-            float solidViewDepthLinear = linearizeDepthFast(solidViewDepth, near, far);
-            float waterViewDepthLinear = linearizeDepthFast(gl_FragCoord.z, near, far);
+    //     // returns: x=transparent-depth, y=opaque-depth
+    //     vec2 GetWaterSolidDepth(const in vec2 screenUV) {
+    //         float solidViewDepth = textureLod(depthtex1, screenUV, 0).r;
+    //         float solidViewDepthLinear = linearizeDepthFast(solidViewDepth, near, far);
+    //         float waterViewDepthLinear = linearizeDepthFast(gl_FragCoord.z, near, far);
 
-            return vec2(waterViewDepthLinear, solidViewDepthLinear);
-        }
-    #endif
+    //         return vec2(waterViewDepthLinear, solidViewDepthLinear);
+    //     }
+    // #endif
 
     #ifdef SKY_ENABLED
         vec3 GetSkyReflectionColor(const in LightData lightData, const in vec3 viewDir, const in vec3 reflectDir) {
@@ -55,11 +55,6 @@
                 if (materialId == 100 && isEyeInWater == 1)
                     return GetWaterFogColor(viewDir, lightData.sunTransmittance, lightData.sunTransmittanceEye);
             #endif
-
-            // darken lower horizon
-            vec3 downDir = normalize(-upPosition);
-            float RoDm = max(dot(reflectDir, downDir), 0.0);
-            float reflectF = 1.0 - RoDm;
 
             // occlude inward reflections
             //float NoRm = max(dot(reflectDir, -viewNormal), 0.0);
@@ -76,7 +71,19 @@
                 //setLuminance(skyColor, skyLumen);
             #endif
 
-            return skyColor * reflectF;
+            // darken lower horizon
+            vec3 downDir = normalize(-upPosition);
+            float RoDm = max(dot(reflectDir, downDir), 0.0);
+            //float reflectF = 1.0 - RoDm;
+
+            #ifdef RENDER_WATER
+                if (materialId == 100) {
+                    vec3 waterFogColor = GetWaterFogColor(viewDir, lightData.sunTransmittance, lightData.sunTransmittanceEye);
+                    return mix(skyColor, waterFogColor, RoDm);
+                }
+            #endif
+
+            return skyColor * (1.0 - RoDm);
         }
     #endif
 
@@ -219,7 +226,8 @@
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             // Increase skylight when in direct sunlight
-            skyLight = max(skyLight, shadowFinal);
+            if (isEyeInWater != 1)
+                skyLight = max(skyLight, shadowFinal);
         #endif
 
         float skyLight2 = pow2(skyLight);
@@ -227,9 +235,9 @@
 
         vec3 reflectColor = vec3(0.0);
         #if REFLECTION_MODE != REFLECTION_MODE_NONE
-            if (smoothness > EPSILON) {
-                vec3 reflectDir = reflect(-viewDir, viewNormal);
+            vec3 reflectDir = reflect(-viewDir, viewNormal);
 
+            if (smoothness > EPSILON) {
                 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
                     vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
                     vec3 viewPosPrev = (gbufferPreviousModelView * vec4(localPos - previousCameraPosition, 1.0)).xyz;
@@ -318,14 +326,31 @@
             vec3 sunColor = lightData.sunTransmittance * GetSunLux();
             vec3 skyLightColorFinal = (sunColor + moonColor) * shadowColor;
 
-            if (isEyeInWater == 1) {
-                const vec3 extinctionInv = 1.0 - WATER_ABSORB_COLOR;
-                vec3 absorption = exp(-extinctionInv * lightData.waterShadowDepth);
-                if (lightData.waterShadowDepth < EPSILON) absorption = vec3(0.0);
+            bool applyWaterAbsorption = isEyeInWater == 1;
 
-                skyLightColorFinal *= absorption;
-                //reflectColor *= absorption;
+            #ifdef RENDER_WATER
+                if (materialId == 100 || materialId == 101) applyWaterAbsorption = false;
+            #endif
+
+            if (applyWaterAbsorption) {
+                float waterLightDist = max(lightData.opaqueScreenDepthLinear + lightData.waterShadowDepth, 0.0);
+
+                const vec3 extinctionInv = 1.0 - WATER_ABSORB_COLOR;
+                vec3 absorption = exp(-extinctionInv * waterLightDist);
+                //if (lightData.waterShadowDepth < EPSILON) absorption = vec3(0.0);
+
                 skyAmbient *= absorption;
+                //skyAmbient *= skyLight3;
+
+                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                    if (lightData.geoNoL < 0.0 || lightData.opaqueShadowDepth < lightData.shadowPos[lightData.opaqueShadowCascade].z - lightData.shadowBias[lightData.opaqueShadowCascade]) absorption = vec3(0.0);
+                #else
+                    if (lightData.geoNoL < 0.0 || lightData.opaqueShadowDepth < lightData.shadowPos.z - lightData.shadowBias) absorption = vec3(0.0);
+                #endif
+
+
+                skyLightColorFinal *= absorption;// * skyLight3;
+                //reflectColor *= absorption;
                 iblSpec *= absorption;
             }
 
@@ -376,20 +401,10 @@
             }
         #endif
 
-        #if defined HANDLIGHT_ENABLED && !defined RENDER_HAND && !defined RENDER_HAND_WATER
-            if (heldBlockLightValue + heldBlockLightValue2 > EPSILON) {
-                vec3 handDiffuse, handSpecular;
-                ApplyHandLighting(handDiffuse, handSpecular, material.albedo.rgb, f0, material.hcm, material.scattering, viewNormal, viewPos.xyz, viewDir, NoVm, roughL);
-
-                diffuse += handDiffuse;
-                specular += handSpecular;
-
-                final.a = min(final.a + luminance(handSpecular) * exposure, 1.0);
-            }
-        #endif
-
         #if defined RENDER_WATER && !defined WORLD_NETHER && !defined WORLD_END
             if (materialId == 100 || materialId == 101) {
+                //return vec4(material.normal * 1000.0, 1.0);
+
                 const float ScatteringCoeff = 0.11;
 
                 const vec3 extinctionInv = 1.0 - WATER_ABSORB_COLOR;
@@ -399,54 +414,62 @@
                         ? IOR_WATER / IOR_AIR
                         : IOR_AIR / IOR_WATER;
                     
-                    float refractDist = max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepth, 0.0);
+                    //vec3 waterNormal = viewNormal;
+                    //if (isEyeInWater == 1) waterNormal = -waterNormal;
 
-                    vec2 waterSolidDepthFinal;
+                    vec3 refractDir = refract(-viewDir, viewNormal, waterRefractEta);
+
+                    float refractOpaqueScreenDepth = lightData.opaqueScreenDepth;
+                    float refractOpaqueScreenDepthLinear = lightData.opaqueScreenDepthLinear;
                     vec3 refractColor = vec3(0.0);
-                    vec3 refractDir = refract(viewDir, viewNormal, waterRefractEta); // TODO: subtract geoViewNormal from texViewNormal
+                    vec2 refractUV = screenUV;
+
                     if (dot(refractDir, refractDir) > EPSILON) {
-                        vec2 refractOffset = refractDir.xy;
+                        #if REFRACTION_STRENGTH > 0
+                            vec3 refractClipPos = unproject(gbufferProjection * vec4(viewPos + refractDir, 1.0)) * 0.5 + 0.5;
+                            
+                            vec2 refractOffset = refractClipPos.xy - screenUV;
+                            if (length(refractOffset) > 1.0) refractOffset = normalize(refractOffset);
 
-                        // scale down contact point to avoid tearing
-                        vec2 minMax = vec2(0.01 * REFRACTION_STRENGTH);
-                        refractOffset = clamp(0.1 * refractOffset * refractDist, -minMax, minMax);
+                            float refractDist = max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepthLinear - lightData.shadowBias, 0.0);
 
-                        // scale down with distance
-                        //float distF = 1.0 - saturate((viewDist - near) / (far - near));
-                        //refractOffset *= pow2(distF);
-                        
-                        vec2 refractUV = screenUV + refractOffset;
+                            refractOffset *= 4.0 * saturate(2.0 * refractDist);
+                            refractUV += refractOffset * 0.01 * REFRACTION_STRENGTH;
+                            
+                            vec2 alphaXY = saturate(10.0 * abs(vec2(0.5) - refractUV) - 4.0);
+                            float rf = smoothstep(0.0, 1.0, 1.0 - maxOf(alphaXY));
+                            refractUV = mix(screenUV, refractUV, rf);
 
-                        waterSolidDepthFinal.y = lightData.opaqueScreenDepthLinear;
-                        waterSolidDepthFinal.x = lightData.transparentScreenDepth;
+                            refractOpaqueScreenDepth = textureLod(depthtex1, refractUV, 0).r;
+                            refractOpaqueScreenDepthLinear = linearizeDepthFast(refractOpaqueScreenDepth, near, far);
 
-                        #if WATER_REFRACTION == WATER_REFRACTION_FANCY
-                            // update water depth
-                            waterSolidDepthFinal = GetWaterSolidDepth(refractUV);
+                            #if WATER_REFRACTION == WATER_REFRACTION_FANCY
+                                vec2 startUV = refractUV;
+                                vec2 d = screenUV - startUV;
+                                vec2 dp = d * viewSize;
 
-                            vec2 startUV = refractUV;
-                            vec2 d = screenUV - startUV;
-                            vec2 dp = d * viewSize;
+                                float stepCount = abs(dp.x) > abs(dp.y) ? abs(dp.x) : abs(dp.y);
 
-                            float stepCount = abs(dp.x) > abs(dp.y) ? abs(dp.x) : abs(dp.y);
+                                if (stepCount > 1.0) {
+                                    vec2 step = d / stepCount;
 
-                            if (stepCount > 1.0) {
-                                vec2 step = d / stepCount;
+                                    float solidViewDepth = 0.0;
+                                    for (int i = 0; i <= stepCount && solidViewDepth < waterSolidDepthFinal.x; i++) {
+                                        refractUV = startUV + i * step;
+                                        solidViewDepth = textureLod(depthtex1, refractUV, 0).r;
+                                        solidViewDepth = linearizeDepthFast(solidViewDepth, near, far);
+                                    }
 
-                                float solidViewDepth = 0.0;
-                                for (int i = 0; i <= stepCount && solidViewDepth < waterSolidDepthFinal.x; i++) {
-                                    refractUV = startUV + i * step;
-                                    solidViewDepth = textureLod(depthtex1, refractUV, 0).r;
-                                    solidViewDepth = linearizeDepthFast(solidViewDepth, near, far);
+                                    solidViewDepthLinear = solidViewDepth;//linearizeDepthFast(solidViewDepth, near, far);
                                 }
-
-                                waterSolidDepthFinal.y = solidViewDepth;//linearizeDepthFast(solidViewDepth, near, far);
-                            }
-                        #else
-                            if (waterSolidDepthFinal.y < waterSolidDepthFinal.x) {
-                                // refracted vector returned an invalid hit
-                                refractUV = screenUV;
-                            }
+                            #else
+                                if (refractOpaqueScreenDepthLinear < lightData.transparentScreenDepthLinear - 0.6*refractDist) {
+                                    // reset UV & depths to original point
+                                    refractUV = screenUV;
+                                    refractOpaqueScreenDepth = lightData.opaqueScreenDepth;
+                                    refractOpaqueScreenDepthLinear = lightData.opaqueScreenDepthLinear;
+                                }
+                            #endif
                         #endif
 
                         #ifdef WATER_REFRACT_HACK
@@ -458,25 +481,21 @@
                     }
                     else {
                         // TIR
-                        waterSolidDepthFinal.x = 65000;
-                        waterSolidDepthFinal.y = 65000;
+                        refractUV = screenUV;
+                        refractOpaqueScreenDepth = 1.0;
+                        refractOpaqueScreenDepthLinear = 65000;
+                        //refractColor = vec3(10000.0, 0.0, 0.0);
                     }
 
-                    float waterViewDepthFinal = isEyeInWater == 1 ? waterSolidDepthFinal.x
-                        : max(waterSolidDepthFinal.y - waterSolidDepthFinal.x, 0.0);
+                    float waterViewDepthFinal = isEyeInWater == 1 ? lightData.transparentScreenDepthLinear
+                        : max(refractOpaqueScreenDepthLinear - lightData.transparentScreenDepthLinear, 0.0);
 
-                    //float waterShadowDepth = lightData.waterShadowDepth;
-                    // TODO: convert opaque depth to shadow pos; compare against transparent shadow depth
-                    vec3 waterOpaqueClipPos = vec3(screenUV, lightData.opaqueScreenDepth) * 2.0 - 1.0;
+                    vec3 waterOpaqueClipPos = vec3(refractUV, refractOpaqueScreenDepth) * 2.0 - 1.0;
                     vec3 waterOpaqueLocalPos = unproject(gbufferModelViewInverse * (gbufferProjectionInverse * vec4(waterOpaqueClipPos, 1.0)));
                     vec3 waterOpaqueShadowPos = (shadowProjection * (shadowModelView * vec4(waterOpaqueLocalPos, 1.0))).xyz;
 
                     #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                        //float distortFactor = getDistortFactor(waterOpaqueShadowPos.xy);
-                        waterOpaqueShadowPos = distort(waterOpaqueShadowPos);//, distortFactor);
-                        //lightData.shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
-                    #else
-                        //lightData.shadowBias = GetShadowBias(lightData.geoNoL);
+                        waterOpaqueShadowPos = distort(waterOpaqueShadowPos);
                     #endif
 
                     waterOpaqueShadowPos = waterOpaqueShadowPos * 0.5 + 0.5;
@@ -499,19 +518,30 @@
                     float waterShadowDepth = max(waterOpaqueShadowPos.z - waterTransparentShadowDepth, 0.0) * ShadowMaxDepth;
                     float waterLightDist = max(waterShadowDepth + waterViewDepthFinal, EPSILON);
 
+                    //uvec4 deferredData = texelFetch(BUFFER_DEFERRED, ivec2(gl_FragCoord.xy), 0);
+                    //vec4 waterLightingMap = unpackUnorm4x8(deferredData.a);
+                    float waterGeoNoL = 1.0;//waterLightingMap.z * 2.0 - 1.0; //lightData.geoNoL;
+
                     // TODO: This should be based on the refracted opaque fragment!
                     float waterShadowBias = lightData.shadowBias;
 
-                    vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterLightDist * extinctionInv);
-                    if (waterOpaqueShadowDepth < waterOpaqueShadowPos.z - waterShadowBias) absorption = vec3(0.0);
+                    if (waterGeoNoL <= 0.0 || waterOpaqueShadowDepth < waterOpaqueShadowPos.z - waterShadowBias)
+                        waterLightDist = 2.0 * waterViewDepthFinal;
 
-                    diffuse = refractColor * absorption;// * max(1.0 - sunF, vec3(0.0));
-                    ApplyWaterFog(diffuse, lightData, -viewDir);
+                    vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterLightDist * extinctionInv);
+
+                    diffuse = refractColor * absorption;
+
+                    ApplyWaterFog(diffuse, lightData, waterViewDepthFinal, -viewDir);
                     
-                    final.a = saturate(waterViewDepthFinal - 0.2);
+                    diffuse *= max(1.0 - sunF, 0.0);
+                    diffuse *= max(1.0 - iblF, 0.0);
+
+                    final.a = saturate(10.0*waterViewDepthFinal - 0.2);
+                    //final.a = 1.0;
                 #else
-                    float waterViewDepth = isEyeInWater == 1 ? lightData.transparentScreenDepth
-                        : max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepth, 0.0);
+                    float waterViewDepth = isEyeInWater == 1 ? lightData.transparentScreenDepthLinear
+                        : max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepthLinear, 0.0);
 
                     float waterLightDist = waterViewDepth + lightData.waterShadowDepth;
 
@@ -523,13 +553,31 @@
 
                     //diffuse *= mix(scatterColor, vec3(1.0), scatterAmount) * absorption;
 
-                    float waterFogF = ApplyWaterFog(diffuse, lightData, -viewDir);
+                    float lightDist = isEyeInWater == 1
+                        ? min(lightData.opaqueScreenDepthLinear, lightData.transparentScreenDepthLinear)
+                        : lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepthLinear;
+
+                    float waterFogF = ApplyWaterFog(diffuse, lightData, lightDist, -viewDir);
                     
                     //float alphaF = exp(-0.2 * WATER_ABSROPTION_RATE * waterViewDepth);
                     final.a = waterFogF;//min(final.a + (1.0 - saturate(alphaF)), 1.0);// * (1.0 - material.albedo.a);// * max(1.0 - final.a, 0.0);
                 #endif
 
                 ambient = vec3(0.0);
+            }
+        #endif
+
+        #if defined HANDLIGHT_ENABLED && defined RENDER_DEFERRED
+            // TODO: Apply to translucents, but not water!
+
+            if (heldBlockLightValue + heldBlockLightValue2 > EPSILON) {
+                vec3 handDiffuse, handSpecular;
+                ApplyHandLighting(handDiffuse, handSpecular, material.albedo.rgb, f0, material.hcm, material.scattering, viewNormal, viewPos.xyz, viewDir, NoVm, roughL);
+
+                diffuse += handDiffuse;
+                specular += handSpecular;
+
+                final.a = min(final.a + luminance(handSpecular) * exposure, 1.0);
             }
         #endif
 
@@ -555,7 +603,7 @@
 
         occlusion *= SHADOW_BRIGHTNESS;
 
-        diffuse *= 1.0 - saturate(iblF);
+        //diffuse *= 1.0 - saturate(specF);
 
         final.rgb = final.rgb * (ambient * occlusion)
             + diffuse + emissive
@@ -563,23 +611,31 @@
 
         final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
 
-        #if defined SKY_ENABLED && defined RENDER_DEFERRED
-            //bool isUnderwater = true;//lightData.shadowPos.z > lightData.transparentShadowDepth && abs(lightData.opaqueShadowDepth - lightData.transparentShadowDepth) > 0.001;
+        // #if defined SKY_ENABLED && defined RENDER_DEFERRED
+        //     //bool isUnderwater = true;//lightData.shadowPos.z > lightData.transparentShadowDepth && abs(lightData.opaqueShadowDepth - lightData.transparentShadowDepth) > 0.001;
 
-            if (isEyeInWater == 1) {
-                float waterLightDist = max(lightData.opaqueScreenDepthLinear + lightData.waterShadowDepth, 0.0);
+        //     if (isEyeInWater == 1) {
+        //         float waterLightDist = max(lightData.opaqueScreenDepthLinear + lightData.waterShadowDepth, 0.0);
 
-                const vec3 extinctionInv = 1.0 - WATER_ABSORB_COLOR;
-                vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterLightDist * extinctionInv);
-                if (lightData.geoNoL < 0.0 || lightData.opaqueShadowDepth < lightData.shadowPos.z - lightData.shadowBias) absorption = vec3(0.0);
+        //         const vec3 extinctionInv = 1.0 - WATER_ABSORB_COLOR;
+        //         vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterLightDist * extinctionInv);
+        //         if (lightData.geoNoL < 0.0 || lightData.opaqueShadowDepth < lightData.shadowPos.z - lightData.shadowBias) absorption = vec3(0.0);
 
-                final.rgb *= absorption;
-            }
-        #endif
+        //         final.rgb *= absorption;
+        //     }
+        // #endif
 
         float fogFactor;
         if (isEyeInWater == 1) {
-            fogFactor = ApplyWaterFog(final.rgb, lightData, -viewDir);
+            #ifdef RENDER_WATER
+                float lightDist = isEyeInWater == 1
+                    ? min(lightData.opaqueScreenDepthLinear, lightData.transparentScreenDepthLinear)
+                    : lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepthLinear;
+            #else
+                float lightDist = min(lightData.opaqueScreenDepthLinear, lightData.transparentScreenDepthLinear);
+            #endif
+
+            fogFactor = ApplyWaterFog(final.rgb, lightData, lightDist, -viewDir);
         }
         else {
             #ifdef RENDER_WATER

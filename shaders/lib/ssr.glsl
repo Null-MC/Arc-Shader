@@ -51,7 +51,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     vec3 color = vec3(0.0);
     if (alpha > EPSILON) {
         vec2 alphaXY = saturate(10.0 * abs(vec2(0.5) - tracePos.xy) - 4.0);
-        alpha = 1.0 - pow(max(alphaXY.x, alphaXY.y), 8.0);
+        alpha = 1.0 - pow(maxOf(alphaXY), 8.0);
 
         color = textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, lod).rgb;
     }

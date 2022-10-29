@@ -64,6 +64,8 @@ value.WATER_WAVE_TYPE.0=None
 value.WATER_WAVE_TYPE.1=Vertex
 value.WATER_WAVE_TYPE.2=Parallax
 
+option.REFRACTION_STRENGTH=Refract Distance
+suffix.REFRACTION_STRENGTH=%
 
 screen.MATERIAL_OPTIONS=Materials
 screen.MATERIAL_OPTIONS.comment=Options for PBR materials.

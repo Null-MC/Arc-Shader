@@ -88,8 +88,6 @@
                     //normalMap.rgb = TextureGradLinearRGB(normals, atlasCoord, atlasSize, dFdXY);
 
                     vec2 uv[4];
-                    //vec2 localCoord = GetLocalCoord(atlasCoord);
-                    //vec2 atlasTileSize = atlasBounds[1] * atlasSize;
                     vec2 f = GetLinearCoords(atlasCoord, atlasSize, uv);
 
                     uv[0] = GetAtlasCoord(GetLocalCoord(uv[0]));

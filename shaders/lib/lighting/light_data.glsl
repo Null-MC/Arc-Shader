@@ -12,6 +12,7 @@ struct LightData {
     float opaqueScreenDepth;
     float opaqueScreenDepthLinear;
     float transparentScreenDepth;
+    float transparentScreenDepthLinear;
     //float waterScreenDepth;
 
     float opaqueShadowDepth;

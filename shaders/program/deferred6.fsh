@@ -280,7 +280,8 @@ void main() {
 
         lightData.opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
         lightData.opaqueScreenDepthLinear = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
-        lightData.transparentScreenDepth = far; // This doesn't work here!
+        lightData.transparentScreenDepth = 0.0; // TODO: delinearize far?
+        lightData.transparentScreenDepthLinear = far; // This doesn't work here!
 
         #ifdef SKY_ENABLED
             //float worldY = localPos.y + cameraPosition.y;

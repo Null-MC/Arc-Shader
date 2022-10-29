@@ -29,7 +29,7 @@ void GetWaterParallaxCoord(inout vec3 coordDepth, const in mat2 dFdXY, const in 
 
         vec2 traceCoord = coordDepth.xy - i * stepCoord;
         vec4 samples = textureGather(BUFFER_WATER_WAVES, traceCoord, 0);
-        vec2 f = fract(traceCoord * 2048.0);
+        vec2 f = fract(traceCoord * WATER_RESOLUTION);
         texDepth = LinearBlend4(samples, f);
         
         depthDist = 1.0 - i * stepDepth - texDepth;
