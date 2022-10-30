@@ -14,6 +14,12 @@
             material.f0 = GetLabPbr_F0(matF0);
             material.hcm = GetLabPbr_HCM(matF0);
             material.emission = matEmissive;
+
+            if (materialId == 100 || materialId == 101) {
+                //material.albedo = vec4(1.0, 0.0, 0.0, 1.0);
+                material.smoothness = WATER_SMOOTH;
+                material.f0 = 0.02;
+            }
         }
     #endif
 
@@ -218,9 +224,9 @@
 
                 //#if MATERIAL_FORMAT != MATERIAL_FORMAT_LABPBR
                     if (materialId == 100 || materialId == 101) {
-                        material.albedo.a = 0.1;
+                        //material.albedo = vec4(1.0, 0.0, 0.0, 1.0);
                         material.f0 = 0.02;
-                        material.smoothness += 0.96 * step(material.smoothness, EPSILON);
+                        material.smoothness = WATER_SMOOTH;// += 0.96 * step(material.smoothness, EPSILON);
 
                         // #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
                         //     material.smoothness = 0.96;

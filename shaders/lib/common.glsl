@@ -62,18 +62,18 @@ const bool colortex12Clear = false;
 #define WATER_WAVE_TYPE 1 // [0 1 2]
 #define WATER_SCALE 18.0
 #define WATER_RADIUS 50
-#define WATER_OCTAVES_NEAR 28
+#define WATER_OCTAVES_NEAR 32
 #define WATER_OCTAVES_FAR 12
 #define WATER_OCTAVES_VERTEX 8
 #define WATER_PARALLAX_SAMPLES 64
 #define WATER_WAVE_DEPTH 1.0
 #define WATER_RESOLUTION 2048
 #define REFRACTION_STRENGTH 0 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80]
-#define WATER_NORMAL_STRENGTH 0.1
+#define WATER_NORMAL_STRENGTH 0.025
 
 //#define WATER_SCATTER_RATE 1.8
-#define WATER_ABSROPTION_RATE 1.0
-#define WATER_FOG_DIST 9.0
+#define WATER_ABSROPTION_RATE 0.5
+#define WATER_FOG_DIST 16.0
 
 
 // Atmosphere Options
@@ -225,7 +225,7 @@ const bool colortex12Clear = false;
 #define SEA_LEVEL 62
 //#define CLOUD_LEVEL 128
 #define ATMOSPHERE_LEVEL 256
-#define WATER_SMOOTH 0.98
+#define WATER_SMOOTH 0.92
 #define IOR_AIR 1.000293
 #define IOR_WATER 1.333
 #define PI 3.1415926538
@@ -240,7 +240,7 @@ const float StarLumen = 1200.0;
 const float EmissionLumens = 1.0e5;
 
 const float SunLux = 64000.0;
-const float SunOvercastLux = 1600; //600.0;
+const float SunOvercastLux = 22000; //600.0;
 const float MoonLux = 40.0;
 const float MoonOvercastLux = 2.0;
 const float BlockLightLux = 12800.0; // 9k

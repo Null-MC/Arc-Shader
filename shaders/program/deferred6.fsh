@@ -242,7 +242,7 @@ void main() {
         if (isEyeInWater == 1) {
             vec3 viewDir = normalize(viewPos);
             //vec3 sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
-            color = GetWaterFogColor(viewDir, sunTransmittance, sunTransmittanceEye);
+            color = GetWaterFogColor(viewDir, sunTransmittance, sunTransmittanceEye, WATER_SCATTER_COLOR);
             outColor1 = log2(luminance(color) + EPSILON);
 
             color = clamp(color * exposure, 0.0, 65000.0);
