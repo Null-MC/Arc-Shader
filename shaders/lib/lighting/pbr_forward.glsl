@@ -103,15 +103,14 @@
 
                             if (pomDist > 0.0) {
                                 #ifdef PARALLAX_DEPTH_WRITE
-                                    viewPosFinal.z -= pomDist * waterParallaxDepth;
-
                                     float shit = viewPosFinal.z - pomDist;
-
                                     gl_FragDepth = 0.5 * ((-gbufferProjection[2].z*-shit + gbufferProjection[3].z) / -shit) + 0.5;
+                                    
+                                    viewPosFinal.z -= pomDist * waterParallaxDepth;
                                 #endif
 
-                                float depth = -viewPos.z + pomDist * waterParallaxDepth;
-                                lightData.transparentScreenDepth = 0.5 * ((-gbufferProjection[2].z*depth + gbufferProjection[3].z) / depth) + 0.5;
+                                float depth = viewPos.z - pomDist * waterParallaxDepth;
+                                lightData.transparentScreenDepth = 0.5 * ((-gbufferProjection[2].z*-depth + gbufferProjection[3].z) / -depth) + 0.5;
                                 lightData.transparentScreenDepthLinear = linearizeDepthFast(lightData.transparentScreenDepth, near, far);
                             }
                         }

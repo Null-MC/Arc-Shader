@@ -68,12 +68,12 @@ const bool colortex12Clear = false;
 #define WATER_PARALLAX_SAMPLES 64
 #define WATER_WAVE_DEPTH 1.0
 #define WATER_RESOLUTION 2048
-#define REFRACTION_STRENGTH 0 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80]
+#define REFRACTION_STRENGTH 20 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80]
 #define WATER_NORMAL_STRENGTH 0.025
 
 //#define WATER_SCATTER_RATE 1.8
-#define WATER_ABSROPTION_RATE 0.5
-#define WATER_FOG_DIST 16.0
+#define WATER_ABSROPTION_RATE 1.0
+#define WATER_FOG_DIST 12.0
 
 
 // Atmosphere Options
@@ -255,8 +255,8 @@ const float NightSkyOvercastLumen = 60.0;
 
 const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.2;
 const vec4 WATER_COLOR = vec4(0.139, 0.271, 0.313, 0.1);
-const vec3 WATER_SCATTER_COLOR = vec3(0.393, 0.732, 0.650);
-const vec3 WATER_ABSORB_COLOR = vec3(0.472, 0.724, 0.732);
+const vec3 WATER_SCATTER_COLOR = vec3(0.304, 0.626, 0.646);
+const vec3 WATER_ABSORB_COLOR = vec3(0.541, 0.728, 0.798);
 
 const vec3 minLight = vec3(0.01);
 const float tile_dist_bias_factor = 0.012288;

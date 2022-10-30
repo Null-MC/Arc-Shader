@@ -318,7 +318,7 @@
                 float waterLightDist = max(lightData.opaqueScreenDepthLinear + lightData.waterShadowDepth, 0.0);
 
                 const vec3 extinctionInv = 1.0 - WATER_ABSORB_COLOR;
-                vec3 absorption = exp(-extinctionInv * waterLightDist);
+                vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterLightDist * extinctionInv);
                 //if (lightData.waterShadowDepth < EPSILON) absorption = vec3(0.0);
 
                 skyAmbient *= absorption;
@@ -630,6 +630,7 @@
         occlusion *= SHADOW_BRIGHTNESS;
 
         //diffuse *= 1.0 - saturate(specF);
+        //return vec4(ambient * occlusion, 1.0);
 
         final.rgb = final.rgb * (ambient * occlusion)
             + diffuse + emissive

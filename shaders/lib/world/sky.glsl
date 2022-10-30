@@ -128,6 +128,12 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
 }
 
 #ifdef RENDER_FRAG
+    #ifdef WORLD_OVERWORLD
+        const vec3 skyTint = vec3(0.6, 0.8, 1.0);
+    #else
+        const vec3 skyTint = vec3(1.0);
+    #endif
+
     float GetVanillaSkyFog(const in float x, const in float w) {
         return w / (x * x + w);
     }
@@ -141,8 +147,8 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
         float lightLevel = saturate(skyLightLevels.x);
         lightLevel = smoothstep(0.1, 0.6, lightLevel) * 16000.0 + 200.0;
         
-        vec3 skyColorLinear = RGBToLinear(skyColor) * lightLevel;
-        vec3 fogColorLinear = RGBToLinear(fogColor) * lightLevel * 0.8;
+        vec3 skyColorLinear = RGBToLinear(skyColor) * lightLevel * skyTint;
+        vec3 fogColorLinear = RGBToLinear(fogColor) * lightLevel * 0.8 * skyTint;
 
         #ifdef RENDER_SKYBASIC
             if (isEyeInWater == 1) {
@@ -170,8 +176,8 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
         float moonLightLux = GetMoonLightLux(skyLightLevels.y);
         float skyLux = sunLightLux + moonLightLux;
 
-        vec3 skyColorLinear = RGBToLinear(skyColor);
-        vec3 fogColorLinear = RGBToLinear(fogColor);
+        vec3 skyColorLinear = RGBToLinear(skyColor) * skyTint;
+        vec3 fogColorLinear = RGBToLinear(fogColor) * 0.8 * skyTint;
 
         #ifdef RENDER_SKYBASIC
             if (isEyeInWater == 1) {
