@@ -61,7 +61,7 @@
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
         float viewDist = length(viewPos) - near;
 
-        #ifdef PARALLAX_DEPTH_WRITE
+        #if defined PARALLAX_ENABLED && defined PARALLAX_DEPTH_WRITE
             gl_FragDepth = gl_FragCoord.z;
         #endif
 
@@ -102,7 +102,7 @@
                             float pomDist = (1.0 - waterTex.z) / max(-tanViewDir.z, 0.01);// * waterParallaxDepth;
 
                             if (pomDist > 0.0) {
-                                #ifdef PARALLAX_DEPTH_WRITE
+                                #if defined PARALLAX_ENABLED && defined PARALLAX_DEPTH_WRITE
                                     float shit = viewPosFinal.z - pomDist;
                                     gl_FragDepth = 0.5 * ((-gbufferProjection[2].z*-shit + gbufferProjection[3].z) / -shit) + 0.5;
                                     
@@ -147,10 +147,11 @@
                     depth = GetWaves(waterWorldPos, waveSpeed, octaves) * WATER_WAVE_DEPTH * WATER_NORMAL_STRENGTH;
                     waterPos = vec3(waterWorldPos.x, waterWorldPos.y, depth);
 
-                    material.normal = normalize(cross(
-                      dFdxFine(waterPos),
-                      dFdyFine(waterPos)
-                    ));
+                    material.normal = normalize(
+                        cross(
+                            dFdxFine(waterPos),
+                            dFdyFine(waterPos))
+                        );
 
                     if (isEyeInWater != 1)
                         material.normal = -material.normal;
@@ -171,7 +172,7 @@
                 if (viewDist < PARALLAX_DISTANCE) {
                     atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, viewDist, texDepth, traceCoordDepth);
 
-                    #ifdef PARALLAX_DEPTH_WRITE
+                    #if defined PARALLAX_ENABLED && defined PARALLAX_DEPTH_WRITE
                         float pomDist = (1.0 - traceCoordDepth.z) / max(-tanViewDir.z, 0.00001);
 
                         if (pomDist > 0.0) {

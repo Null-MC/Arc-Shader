@@ -31,13 +31,14 @@ const bool shadowHardwareFiltering1 = true;
 in vec2 lmcoord;
 in vec2 texcoord;
 in vec4 glcolor;
+in vec3 localPos;
 flat in int materialId;
 
-#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
-    flat in float matSmooth;
+#ifdef SSS_ENABLED
+    //flat in float matSmooth;
     flat in float matSSS;
-    flat in float matF0;
-    flat in float matEmissive;
+    //flat in float matF0;
+    //flat in float matEmissive;
 #endif
 
 #ifdef RSM_ENABLED
@@ -66,9 +67,22 @@ uniform int renderStage;
     uniform sampler2D specular;
 #endif
 
+#if defined WATER_FANCY && !defined WORLD_NETHER
+    uniform sampler2D BUFFER_WATER_WAVES;
+
+    uniform vec3 cameraPosition;
+    uniform float frameTimeCounter;
+    uniform float rainStrength;
+#endif
+
 #include "/lib/material/hcm.glsl"
 #include "/lib/material/material.glsl"
 #include "/lib/material/material_reader.glsl"
+
+#if defined WATER_FANCY && !defined WORLD_NETHER && !defined WORLD_END
+    #include "/lib/world/wind.glsl"
+    #include "/lib/world/water.glsl"
+#endif
 
 /* RENDERTARGETS: 0,1 */
 #if defined SHADOW_COLOR || defined SSS_ENABLED
@@ -122,10 +136,32 @@ void main() {
     vec3 viewNormal = vec3(0.0);
     #if defined RSM_ENABLED
         vec2 normalMap = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).rg;
-        viewNormal = matViewTBN * RestoreNormalZ(normalMap);
+        viewNormal = RestoreNormalZ(normalMap);
 
-        sampleColor.rgb *= max(dot(viewNormal, vec3(0.0, 0.0, 1.0)), 0.0);
+        //sampleColor.rgb *= max(dot(viewNormal, vec3(0.0, 0.0, 1.0)), 0.0);
     #endif
+
+    #if defined WATER_FANCY && !defined WORLD_NETHER && !defined WORLD_END
+        if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && materialId == 100) {
+            float windSpeed = GetWindSpeed();
+            float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
+            float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
+
+            float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
+            vec2 waterWorldPos = waterScale * (localPos.xz + cameraPosition.xz);
+
+            float depth = GetWaves(waterWorldPos, waveSpeed, WATER_OCTAVES_FAR) * WATER_WAVE_DEPTH * WATER_NORMAL_STRENGTH;
+            vec3 waterPos = vec3(waterWorldPos.x, waterWorldPos.y, depth);
+
+            viewNormal = -normalize(
+                cross(
+                    dFdx(waterPos),
+                    dFdy(waterPos))
+                );
+        }
+    #endif
+
+    viewNormal = matViewTBN * viewNormal;
 
     float sss = 0.0;
     #ifdef SSS_ENABLED
@@ -134,6 +170,12 @@ void main() {
         #else
             float specularMapB = textureGrad(specular, texcoord, dFdXY[0], dFdXY[1]).b;
             sss = GetLabPbr_SSS(specularMapB);
+        #endif
+
+        #ifdef PHYSICSMOD_ENABLED
+            if (materialId == 102) {
+                sss = matSSS;
+            }
         #endif
 
         #ifndef SHADOW_COLOR

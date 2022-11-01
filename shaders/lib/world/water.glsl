@@ -1,4 +1,4 @@
-#define DRAG_MULT 0.048
+#define DRAG_MULT 0.066
 
 // returns vec2 with wave height in X and its derivative in Y
 vec2 GetWaveDX(const in vec2 position, const in vec2 direction, const in float speed, const in float frequency, const in float timeshift) {
@@ -12,26 +12,27 @@ float GetWaveSpeed(const in float windSpeed, const in float skyLight) {
     return windSpeed * skyLight * 0.04;
 }
 
-float GetWaves(inout vec2 position, const in float waveSpeed, const in int iterations) {
-    float weight = max(waveSpeed, 0.4);
-    float maxWeight = max(1.0 - 0.2*waveSpeed, 0.0);
+float GetWaves(const in vec2 position, const in float waveSpeed, const in int iterations) {
+    float weight = 1.0;//max(waveSpeed, 0.3) + 0.1;
+    float maxWeight = 0.0;//max(1.0 - 0.2*waveSpeed, 0.0);
 
     float iter = 0.0;
-    float speed = 8.0;
-    float phase = 2.0*PI;
-    float accumWeight = maxWeight;
+    float speed = 2.0;
+    float phase = 6.0;//2.0*PI;
+    float accumWeight = 0.0;//maxWeight;
 
-    float time = frameTimeCounter / 3.6;
+    float time = 4.0 * (frameTimeCounter / 3.6);
+    vec2 pos = position * 0.5;
 
     for (int i = 0; i < iterations; i++) {
         vec2 direction = vec2(sin(iter), cos(iter));
-        vec2 waveDX = GetWaveDX(position, direction, speed, phase, time);
-        position += normalize(direction) * waveDX.y * weight * DRAG_MULT;
+        vec2 waveDX = GetWaveDX(pos, direction, speed, phase, time);
+        pos += normalize(direction) * waveDX.y * weight * DRAG_MULT;
 
         accumWeight += waveDX.x * weight;
         maxWeight += weight;
 
-        weight = mix(weight, 0.0, 0.18);
+        weight = mix(weight, 0.0, 0.2);
 
         iter += 12.0;
         phase *= 1.18;

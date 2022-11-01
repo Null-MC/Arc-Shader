@@ -69,7 +69,7 @@ const bool colortex12Clear = false;
 #define WATER_WAVE_DEPTH 1.0
 #define WATER_RESOLUTION 2048
 #define REFRACTION_STRENGTH 20 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80]
-#define WATER_NORMAL_STRENGTH 0.025
+#define WATER_NORMAL_STRENGTH 0.6
 
 //#define WATER_SCATTER_RATE 1.8
 #define WATER_ABSROPTION_RATE 1.0
@@ -163,7 +163,7 @@ const bool colortex12Clear = false;
 #define BLOOM_ENABLED
 #define BLOOM_SMOOTH
 //#define BLOOM_SCALE 60.0
-#define BLOOM_THRESHOLD 0.18
+#define BLOOM_THRESHOLD 0.14
 #define BLOOM_POWER 2.4
 #define BLOOM_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define BLOOM_LOD_MAX 0 // [0 1 2 3 4 5 6 7 8 9]
@@ -190,7 +190,7 @@ const bool colortex12Clear = false;
 
 // Debug Options
 #define IS_OPTIFINE
-#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 24 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
 //#define DEBUG_EXPOSURE_METERS
 //#define IRIS_FEATURE_SEPARATE_HW_SAMPLERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
@@ -203,6 +203,7 @@ const bool colortex12Clear = false;
 //#define SKY_DITHER
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
+#define PHYSICSMOD_ENABLED
 //#define WATER_REFRACT_HACK
 //#define SSR_STEPS 128 // [128 256 512]
 

@@ -55,11 +55,13 @@ flat in mat2 atlasBounds;
 
         uniform mat4 shadowModelView;
         uniform mat4 shadowProjection;
+        uniform mat4 shadowModelViewInverse;
         uniform vec3 shadowLightPosition;
 
         #if SHADOW_TYPE != SHADOW_TYPE_NONE
             uniform sampler2D shadowtex0;
             uniform sampler2D shadowtex1;
+            uniform usampler2D shadowcolor1;
         
             #ifdef IRIS_FEATURE_SEPARATE_HARDWARE_SAMPLERS
                 uniform sampler2DShadow shadowtex1HW;
@@ -69,9 +71,9 @@ flat in mat2 atlasBounds;
                 uniform sampler2D shadowcolor0;
             #endif
 
-            #if (defined RSM_ENABLED && defined RSM_UPSCALE) || (defined SSS_ENABLED && defined SHADOW_COLOR)
-                uniform usampler2D shadowcolor1;
-            #endif
+            //#if (defined RSM_ENABLED && defined RSM_UPSCALE) || (defined SSS_ENABLED && defined SHADOW_COLOR)
+            //    uniform usampler2D shadowcolor1;
+            //#endif
         #endif
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -150,6 +152,11 @@ uniform int fogShape;
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/lighting/light_data.glsl"
 
+#include "/lib/material/hcm.glsl"
+#include "/lib/material/material.glsl"
+#include "/lib/material/material_reader.glsl"
+#include "/lib/lighting/brdf.glsl"
+
 #ifdef PARALLAX_ENABLED
     #include "/lib/parallax.glsl"
 #endif
@@ -193,15 +200,10 @@ uniform int fogShape;
 #endif
 
 #include "/lib/world/fog.glsl"
-#include "/lib/material/hcm.glsl"
-#include "/lib/material/material.glsl"
-#include "/lib/material/material_reader.glsl"
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     #include "/lib/ssr.glsl"
 #endif
-
-#include "/lib/lighting/brdf.glsl"
 
 #ifdef HANDLIGHT_ENABLED
     #include "/lib/lighting/pbr_handlight.glsl"

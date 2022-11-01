@@ -416,7 +416,7 @@
                                 vec2 refractOffset = refractClipPos.xy - screenUV;
                                 //if (length(refractOffset) > 1.0) refractOffset = normalize(refractOffset);
 
-                                refractOffset *= 4.0 * saturate(2.0 * refractDist);
+                                refractOffset *= 16.0 * saturate(0.5 * refractDist);
                                 refractUV += refractOffset * 0.01 * REFRACTION_STRENGTH;
                                 
                                 vec2 alphaXY = saturate(10.0 * abs(vec2(0.5) - refractUV) - 4.0);

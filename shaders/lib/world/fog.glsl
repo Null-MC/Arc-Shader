@@ -138,12 +138,11 @@ float ApplyFog(inout vec4 color, const in vec3 viewPos, const in LightData light
 vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunTransmittance, const in vec3 sunTransmittanceEye, const in vec3 vlColor) {
     vec3 waterFogColor = vec3(0.0);
 
-    float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
     //vec3 waterFogColor = skyLightColor;
 
     #ifdef SKY_ENABLED
         // TODO: add sun VL
-        const float scatter_G = 0.2;
+        //const float scatter_G = 0.2;
 
         #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
             vec3 sunDir = GetFixedSunPosition();
@@ -152,26 +151,30 @@ vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunTransmittance, con
         #endif
 
         float sun_VoL = dot(viewDir, sunDir);
-        float sunScattering = ComputeVolumetricScattering(sun_VoL, 0.2);
-        //float sunScattering = ComputeVolumetricScattering(sun_VoL, 0.85) + ComputeVolumetricScattering(sun_VoL, -0.3);
-        // vec3 sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
-        waterFogColor += saturate(0.5 * sunScattering) * sunTransmittanceEye * GetSunLux();
+        float sunScattering =
+            ComputeVolumetricScattering(sun_VoL, 0.6) +
+            ComputeVolumetricScattering(sun_VoL, -0.3);
 
         vec3 moonDir = normalize(moonPosition);
         float moon_VoL = dot(viewDir, moonDir);
-        float moonScattering = ComputeVolumetricScattering(moon_VoL, scatter_G);
+        float moonScattering =
+            ComputeVolumetricScattering(moon_VoL, 0.6) +
+            ComputeVolumetricScattering(moon_VoL, -0.3);
+
+        waterFogColor += saturate(sunScattering) * sunTransmittanceEye * GetSunLux();
         waterFogColor += saturate(moonScattering) * moonColor;
+        waterFogColor *= 0.5 * vlColor;
     #endif
 
-    waterFogColor *= vlColor;
-    waterFogColor += 0.025*WATER_COLOR.rgb * sunTransmittance * GetSunLux();
+    float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
+    waterFogColor += 0.002*WATER_COLOR.rgb * sunTransmittanceEye * GetSunLux() * pow3(eyeLight);
 
-    return waterFogColor * pow3(eyeLight);
+    return waterFogColor;
 }
 
 float ApplyWaterFog(inout vec3 color, const in vec3 fogColor, const in float lightDist) {
     float waterFogEnd = WATER_FOG_DIST;//min(fogEnd, WATER_FOG_DIST);
-    float fogFactor = GetFogFactor(lightDist, 0.0, waterFogEnd, 0.5);
+    float fogFactor = GetFogFactor(lightDist, 0.0, waterFogEnd, 0.8);
     //vec3 waterFogColor = GetWaterFogColor(viewDir, lightData.sunTransmittance, lightData.sunTransmittanceEye);
     //waterFogColor *= pow3(lightData.skyLight);
     color = mix(color, fogColor, fogFactor);

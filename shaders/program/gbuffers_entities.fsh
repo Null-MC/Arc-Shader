@@ -12,8 +12,10 @@ in float geoNoL;
 in vec3 viewPos;
 in vec3 viewNormal;
 in vec3 viewTangent;
+//in vec4 mc_midTexCoord;
 flat in float tangentW;
 flat in mat2 atlasBounds;
+flat in int materialId;
 
 #ifdef PARALLAX_ENABLED
     in vec2 localCoord;

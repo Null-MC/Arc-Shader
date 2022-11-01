@@ -45,6 +45,9 @@ uniform float viewHeight;
 #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_COLOR
     // Shadow Color
     uniform sampler2D shadowcolor0;
+#elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_NORMAL
+    // Shadow Normal
+    uniform usampler2D shadowcolor1;
 #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_SSS
     // Shadow SSS
     #ifdef SHADOW_COLOR
@@ -169,7 +172,7 @@ out vec3 outColor0;
                 vec2 tileTex = texcoord * (tileMax - tileMin) + tileMin;
                 tileTex = clamp(tileTex, tileMin, tileMax);
 
-                bloom += textureLod(BUFFER_BLOOM, tileTex, 0).rgb / float(i + 3);
+                bloom += textureLod(BUFFER_BLOOM, tileTex, 0).rgb;
             }
 
             bloom *= (0.01 * BLOOM_STRENGTH);
@@ -231,9 +234,11 @@ void main() {
     #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SHADOW
         // Deferred Shadow
         color = texelFetch(BUFFER_DEFERRED2, iuv, 0).rgb;
-    #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_COLOR
-        // Shadow Color
-        color = textureLod(shadowcolor0, texcoord, 0).rgb;
+    #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_NORMAL
+        // Shadow Normal
+        uint data = textureLod(shadowcolor1, texcoord, 0).g;
+        color = unpackUnorm4x8(data).rgb;
+    //DEBUG_VIEW_SHADOW_NORMAL
     #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_SSS
         // Shadow SSS
         #ifdef SHADOW_COLOR

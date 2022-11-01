@@ -180,14 +180,24 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 shad
                 transparentDepth = SampleTransparentDepth(shadowPos, vec2(0.0));
         #endif
 
+        // sample normal, get fresnel, darken
+        uint data = textureLod(shadowcolor1, shadowPos.xy, 0).g;
+        vec3 normal = unpackUnorm4x8(data).xyz * 2.0 - 1.0;
+        normal = normalize(normal);
+        //vec3 normal = RestoreNormalZ(normalXY) * 0.5 + 0.5;
+
+        vec3 lightDir = vec3(0.0, 0.0, 1.0);//normalize(shadowLightPosition);
+        float NoL = max(dot(normal, lightDir), 0.0);
+        float waterF = F_schlick(NoL, 0.02, 1.0);
+
         // TODO: apply absorption to each step depending on the distance travelled so far
         float waterLightDist = max((shadowPos.z - transparentDepth) * MaxShadowDist, 0.0);
-        waterLightDist = min(waterLightDist, WATER_FOG_DIST);
+        //waterLightDist = min(waterLightDist, WATER_FOG_DIST);
 
         const vec3 extinctionInv = 1.0 - WATER_ABSORB_COLOR;
         vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterLightDist * extinctionInv);
 
-        accumF += lightSample * absorption;
+        accumF += lightSample * absorption * max(1.0 - waterF, 0.0);
     }
 
     return (accumF / stepCount);// * min(rayLength / WATER_FOG_DIST, 1.0);

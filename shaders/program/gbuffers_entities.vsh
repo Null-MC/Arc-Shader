@@ -6,10 +6,7 @@
 #include "/lib/common.glsl"
 
 in vec4 at_tangent;
-
-#if defined PARALLAX_ENABLED || defined AF_ENABLED
-    in vec4 mc_midTexCoord;
-#endif
+in vec4 mc_midTexCoord;
 
 out vec2 lmcoord;
 out vec2 texcoord;
@@ -20,6 +17,7 @@ out vec3 viewNormal;
 out vec3 viewTangent;
 flat out float tangentW;
 flat out mat2 atlasBounds;
+flat out int materialId;
 
 #ifdef AF_ENABLED
     out vec4 spriteBounds;
@@ -38,6 +36,8 @@ flat out mat2 atlasBounds;
     uniform vec3 shadowLightPosition;
 #endif
 
+uniform sampler2D gtexture;
+
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform vec3 cameraPosition;
@@ -52,10 +52,20 @@ void main() {
     lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     glcolor = gl_Color;
 
+    materialId = entityId;
+
     vec3 localPos = gl_Vertex.xyz;
     BasicVertex(localPos);
     
     // No PBR for lightning
     if (entityId != 100.0)
         PbrVertex(viewPos);
+
+    #ifdef PHYSICSMOD_ENABLED
+        // Hack for PhysicsMod snow
+        vec3 sampleColor = textureLod(gtexture, mc_midTexCoord.xy, 0).rgb;
+        if (abs(dot(sampleColor, sampleColor) - 3.0) < EPSILON) {
+            materialId = 102;
+        }
+    #endif
 }

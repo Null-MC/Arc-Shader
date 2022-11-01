@@ -12,7 +12,7 @@
         bool skipParallax = isMissingTangent || isMissingNormal;
 
         #ifdef RENDER_ENTITIES
-            if (entityId == 101) skipParallax = true;
+            if (entityId == 101 || entityId == 102) skipParallax = true;
         #else
             if (materialId == 110) skipParallax = true;
         #endif
@@ -217,6 +217,13 @@
         //     normal = normalize(cross(dX, dY));
         //     occlusion = 1.0;
         // }
+
+        #if defined RENDER_ENTITIES && defined PHYSICSMOD_ENABLED
+            if (materialId == 102) {
+                colorMap.rgb = LinearToRGB(vec3(0.575, 0.724, 0.758));
+                specularMap = vec4(0.4, 0.02, 0.92, 1.0);
+            }
+        #endif
 
         colorMapOut = vec4(colorMap.rgb, 1.0);
         normalMapOut = vec4(normal * 0.5 + 0.5, occlusion);

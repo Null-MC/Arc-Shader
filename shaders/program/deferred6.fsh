@@ -34,9 +34,9 @@ flat in vec3 blockLightColor;
         uniform sampler2D shadowcolor0;
     #endif
 
-    #if (defined RSM_ENABLED && defined RSM_UPSCALE) || (defined SSS_ENABLED && defined SHADOW_COLOR)
-        uniform usampler2D shadowcolor1;
-    #endif
+    // #if (defined RSM_ENABLED && defined RSM_UPSCALE) || (defined SSS_ENABLED && defined SHADOW_COLOR)
+    //     uniform usampler2D shadowcolor1;
+    // #endif
 #endif
 
 #ifdef SSAO_ENABLED
@@ -94,13 +94,15 @@ uniform float fogEnd;
     uniform vec3 moonPosition;
     uniform int moonPhase;
 
-    #ifdef SHADOW_ENABLED
+    #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         uniform sampler2D shadowtex0;
         uniform sampler2D shadowtex1;
+        uniform usampler2D shadowcolor1;
 
         uniform vec3 shadowLightPosition;
         uniform mat4 shadowProjection;
         uniform mat4 shadowModelView;
+        uniform mat4 shadowModelViewInverse;
 
         #ifdef IRIS_FEATURE_SEPARATE_HARDWARE_SAMPLERS
             uniform sampler2DShadow shadowtex1HW;
@@ -144,6 +146,11 @@ uniform float fogEnd;
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/lighting/light_data.glsl"
 
+#include "/lib/material/hcm.glsl"
+#include "/lib/material/material.glsl"
+#include "/lib/material/material_reader.glsl"
+#include "/lib/lighting/brdf.glsl"
+
 #if defined SSAO_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE)
     #include "/lib/sampling/bilateral_gaussian.glsl"
 #endif
@@ -185,9 +192,6 @@ uniform float fogEnd;
 #endif
 
 #include "/lib/world/fog.glsl"
-#include "/lib/material/hcm.glsl"
-#include "/lib/material/material.glsl"
-#include "/lib/material/material_reader.glsl"
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     #include "/lib/ssr.glsl"
@@ -208,7 +212,6 @@ uniform float fogEnd;
 #endif
 
 #include "/lib/lighting/basic.glsl"
-#include "/lib/lighting/brdf.glsl"
 
 #ifdef HANDLIGHT_ENABLED
     #include "/lib/lighting/pbr_handlight.glsl"
@@ -222,7 +225,7 @@ out float outColor1;
 
 
 void main() {
-    ivec2 iTex = ivec2(gl_FragCoord.xy + 0.5);
+    ivec2 iTex = ivec2(gl_FragCoord.xy);
     float screenDepth = texelFetch(depthtex1, iTex, 0).r;
     vec3 color;
 
@@ -230,67 +233,17 @@ void main() {
     vec3 clipPos = vec3(texcoord, screenDepth) * 2.0 - 1.0;
     vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
 
+    LightData lightData;
+
     #ifdef SKY_ENABLED
+        lightData.skyLightLevels = skyLightLevels;
+        lightData.sunTransmittanceEye = sunTransmittanceEye;
+
         vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
-
         float worldY = localPos.y + cameraPosition.y;
-        vec3 sunTransmittance = GetSunTransmittance(colortex7, worldY, skyLightLevels.x);
-    #endif
+        lightData.sunTransmittance = GetSunTransmittance(colortex7, worldY, skyLightLevels.x);
 
-    // SKY
-    if (screenDepth == 1.0) {
-        if (isEyeInWater == 1) {
-            vec3 viewDir = normalize(viewPos);
-            //vec3 sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
-            color = GetWaterFogColor(viewDir, sunTransmittance, sunTransmittanceEye, WATER_SCATTER_COLOR);
-            outColor1 = log2(luminance(color) + EPSILON);
-
-            color = clamp(color * exposure, 0.0, 65000.0);
-        }
-        else {
-            #ifdef SKY_ENABLED
-                color = texelFetch(BUFFER_HDR, iTex, 0).rgb;
-                outColor1 = texelFetch(BUFFER_LUMINANCE, iTex, 0).r;
-            #else
-                color = RGBToLinear(fogColor) * 100.0;
-                outColor1 = log2(luminance(color) + EPSILON);
-
-                color = clamp(color * exposure, 0.0, 65000.0);
-            #endif
-        }
-    }
-    else {
-        uvec4 deferredData = texelFetch(BUFFER_DEFERRED, iTex, 0);
-        vec4 colorMap = unpackUnorm4x8(deferredData.r);
-        vec4 normalMap = unpackUnorm4x8(deferredData.g);
-        vec4 specularMap = unpackUnorm4x8(deferredData.b);
-        vec4 lightingMap = unpackUnorm4x8(deferredData.a);
-        
-        // vec2 viewSize = vec2(viewWidth, viewHeight);
-        // vec3 clipPos = vec3(gl_FragCoord.xy / viewSize, screenDepth) * 2.0 - 1.0;
-        // vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
-        //vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
-
-        LightData lightData;
-        lightData.occlusion = normalMap.a;
-        lightData.blockLight = lightingMap.x;
-        lightData.skyLight = lightingMap.y;
-        lightData.geoNoL = lightingMap.z * 2.0 - 1.0;
-        lightData.parallaxShadow = lightingMap.w;
-
-        lightData.opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
-        lightData.opaqueScreenDepthLinear = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
-        lightData.transparentScreenDepth = 0.0; // TODO: delinearize far?
-        lightData.transparentScreenDepthLinear = far; // This doesn't work here!
-
-        #ifdef SKY_ENABLED
-            //float worldY = localPos.y + cameraPosition.y;
-            lightData.skyLightLevels = skyLightLevels;
-            lightData.sunTransmittance = sunTransmittance;//GetSunTransmittance(colortex7, worldY, skyLightLevels.x);// * sunColor;
-            lightData.sunTransmittanceEye = sunTransmittanceEye;
-        #endif
-        
-        #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
 
             #ifdef SHADOW_DITHER
@@ -298,19 +251,6 @@ void main() {
             #endif
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                // for (int i = 0; i < 4; i++) {
-                //     lightData.matShadowProjection[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
-                //     lightData.shadowPos[i] = (lightData.matShadowProjection[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                    
-                //     lightData.shadowTilePos[i] = GetShadowCascadeClipPos(i);
-                //     lightData.shadowBias[i] = GetCascadeBias(lightData.geoNoL, i);
-                //     lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + lightData.shadowTilePos[i];
-
-                //     #ifdef SHADOW_DITHER
-                //         lightData.shadowPos[i].xy += ditherOffset;
-                //     #endif
-                // }
-
                 lightData.matShadowProjection[0] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[0], matShadowProjections_translation[0]);
                 lightData.matShadowProjection[1] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[1], matShadowProjections_translation[1]);
                 lightData.matShadowProjection[2] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[2], matShadowProjections_translation[2]);
@@ -343,8 +283,6 @@ void main() {
                     lightData.shadowPos[3].xy += ditherOffset;
                 #endif
 
-                //lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData, vec2(0.0), lightData.opaqueShadowCascade);
-                //lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData, vec2(0.0), lightData.transparentShadowCascade);
                 SetNearestDepths(lightData);
 
                 if (lightData.opaqueShadowCascade >= 0 && lightData.transparentShadowCascade >= 0) {
@@ -371,10 +309,6 @@ void main() {
                 lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
                 lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos, vec2(0.0));
 
-                //if (lightData.opaqueShadowDepth < lightData.shadowPos.z) lightData.waterShadowDepth
-
-                //float minOpaqueDepth = min(lightData.shadowPos.z, lightData.opaqueShadowDepth);
-
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                     const float ShadowMaxDepth = 512.0;
                 #else
@@ -383,11 +317,63 @@ void main() {
 
                 lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.transparentShadowDepth, 0.0) * ShadowMaxDepth;
             #endif
-
-            //float waterDepth = min(lightData.shadowPos.z, lightData.opaqueShadowDepth) - lightData.shadowBias - waterTexDepth;
-            //float waterDepth = (min(lightData.shadowPos.z, lightData.opaqueShadowDepth) - waterTexDepth) * 3.0 * far;
         #endif
+    #endif
 
+    // SKY
+    if (screenDepth == 1.0) {
+        if (isEyeInWater == 1) {
+            vec3 viewDir = normalize(viewPos);
+            vec3 vlColor = WATER_SCATTER_COLOR;
+
+            #ifdef VL_ENABLED
+                vec3 nearPos = -viewDir * near;
+                vec3 farPos = -viewDir * min(far, WATER_FOG_DIST);
+
+                mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
+                vec3 shadowViewStart = (matViewToShadowView * vec4(nearPos, 1.0)).xyz;
+                vec3 shadowViewEnd = (matViewToShadowView * vec4(farPos, 1.0)).xyz;
+
+                vlColor *= GetWaterVolumetricLighting(lightData, shadowViewStart, shadowViewEnd);
+            #endif
+
+            color = GetWaterFogColor(viewDir, lightData.sunTransmittance, lightData.sunTransmittanceEye, vlColor);
+
+            outColor1 = log2(luminance(color) + EPSILON);
+
+            color = clamp(color * exposure, 0.0, 65000.0);
+        }
+        else {
+            #ifdef SKY_ENABLED
+                color = texelFetch(BUFFER_HDR, iTex, 0).rgb;
+                outColor1 = texelFetch(BUFFER_LUMINANCE, iTex, 0).r;
+            #else
+                color = RGBToLinear(fogColor) * 100.0;
+                outColor1 = log2(luminance(color) + EPSILON);
+
+                color = clamp(color * exposure, 0.0, 65000.0);
+            #endif
+        }
+    }
+    else {
+        uvec4 deferredData = texelFetch(BUFFER_DEFERRED, iTex, 0);
+        vec4 colorMap = unpackUnorm4x8(deferredData.r);
+        vec4 normalMap = unpackUnorm4x8(deferredData.g);
+        vec4 specularMap = unpackUnorm4x8(deferredData.b);
+        vec4 lightingMap = unpackUnorm4x8(deferredData.a);
+        
+        lightData.occlusion = normalMap.a;
+        lightData.blockLight = lightingMap.x;
+        lightData.skyLight = lightingMap.y;
+        lightData.geoNoL = lightingMap.z * 2.0 - 1.0;
+        lightData.parallaxShadow = lightingMap.w;
+
+        lightData.opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
+        lightData.opaqueScreenDepthLinear = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
+
+        lightData.transparentScreenDepth = 0.0; // TODO: delinearize far?
+        lightData.transparentScreenDepthLinear = far; // This doesn't work here!
+        
         PbrMaterial material;
         PopulateMaterial(material, colorMap.rgb, normalMap, specularMap);
 

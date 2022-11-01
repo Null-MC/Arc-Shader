@@ -87,9 +87,8 @@ void main() {
             //lum = max(exp2(lum) - EPSILON, 0.0);
         #endif
 
-        lum = max(exp2(lum) - EPSILON, 0.0);
+        lum = max(exp2(lum) - EPSILON, 0.0) * exposure;
 
-        lum *= exposure;
         lum = pow(lum * BLOOM_THRESHOLD, BLOOM_POWER) * 10.0;// * exp2(3.0 + 0.5*tile);
         //lum = min(lum, 1.0);
         lum = lum / (lum + 1.0);

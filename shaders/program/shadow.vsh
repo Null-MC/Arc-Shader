@@ -8,13 +8,14 @@
 out vec2 lmcoord;
 out vec2 texcoord;
 out vec4 glcolor;
+out vec3 localPos;
 flat out int materialId;
 
-#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
-    flat out float matSmooth;
+#ifdef SSS_ENABLED
+    //flat out float matSmooth;
     flat out float matSSS;
-    flat out float matF0;
-    flat out float matEmissive;
+    //flat out float matF0;
+    //flat out float matEmissive;
 #endif
 
 #if defined RSM_ENABLED
@@ -24,6 +25,11 @@ flat out int materialId;
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     flat out float cascadeSizes[4];
     flat out vec2 shadowCascadePos;
+#endif
+
+#ifdef PHYSICSMOD_ENABLED
+    uniform sampler2D gtexture;
+    in vec4 mc_midTexCoord;
 #endif
 
 in vec4 mc_Entity;
@@ -80,6 +86,7 @@ uniform float far;
 
 
 void main() {
+    localPos = gl_Vertex.xyz;
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     glcolor = gl_Color;
@@ -108,7 +115,7 @@ void main() {
         }
     #endif
 
-    vec4 pos = gl_Vertex;
+    //vec4 pos = gl_Vertex;
     vec3 normal = gl_Normal;
 
     #if defined ENABLE_WAVING || WATER_WAVE_TYPE == WATER_WAVE_VERTEX
@@ -118,7 +125,7 @@ void main() {
     #ifdef ENABLE_WAVING
         if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0) {
             float wavingRange = GetWavingRange(skyLight);
-            pos.xyz += GetWavingOffset(wavingRange);
+            localPos += GetWavingOffset(wavingRange);
         }
     #endif
 
@@ -129,9 +136,9 @@ void main() {
             float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
             
             float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
-            vec2 waterWorldPos = waterWorldScale * (pos.xz + cameraPosition.xz);
+            vec2 waterWorldPos = waterWorldScale * (localPos.xz + cameraPosition.xz);
             float depth = GetWaves(waterWorldPos, waveSpeed, WATER_OCTAVES_VERTEX);
-            pos.y -= (1.0 - depth) * WATER_WAVE_DEPTH;
+            localPos.y -= (1.0 - depth) * WATER_WAVE_DEPTH;
 
             #ifndef WATER_FANCY
                 vec2 waterWorldPosX = waterWorldPos + vec2(waterWorldScale, 0.0);
@@ -148,7 +155,7 @@ void main() {
     #endif
 
     //vec4 viewPos = shadowModelView * pos;
-    vec4 viewPos = gl_ModelViewMatrix * pos;
+    vec4 viewPos = gl_ModelViewMatrix * vec4(localPos, 1.0);
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         cascadeSizes[0] = GetCascadeDistance(0);
@@ -188,6 +195,17 @@ void main() {
     #if defined SSS_ENABLED || defined RSM_ENABLED
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
             ApplyHardCodedMaterials();
+        #endif
+
+        #if defined PHYSICSMOD_ENABLED && defined SSS_ENABLED
+            // TODO: PhysicsMod snow?
+            vec3 sampleColor = textureLod(gtexture, mc_midTexCoord.xy, 0).rgb;
+            if (abs(dot(sampleColor, sampleColor) - 3.0) < EPSILON) {
+                materialId = 102;
+                //matSmooth = 0.4;
+                matSSS = 0.8;
+                //matF0 = 0.02;
+            }
         #endif
     #endif
 }
