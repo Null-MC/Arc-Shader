@@ -176,23 +176,23 @@
     }
 
     // returns: [0] when depth occluded, [1] otherwise
-    float CompareNearestOpaqueDepth(const in LightData lightData, const in vec2 blockOffset) {
+    float CompareNearestOpaqueDepth(const in vec3 shadowPos[4], const in vec2 shadowTilePos[4], const in float shadowBias[4], const in vec2 blockOffset) {
         float texComp = 1.0;
         for (int i = 3; i >= 0 && texComp > 0.0; i--) {
-            vec2 shadowTilePos = lightData.shadowTilePos[i];//GetShadowCascadeClipPos(i);
+            vec2 shadowTilePos = shadowTilePos[i];//GetShadowCascadeClipPos(i);
             vec2 clipMin = shadowTilePos + 2.0 * shadowPixelSize;
             vec2 clipMax = shadowTilePos + 0.5 - 4.0 * shadowPixelSize;
 
             // Ignore if outside cascade bounds
-            if (lightData.shadowPos[i].x < clipMin.x || lightData.shadowPos[i].x >= clipMax.x
-             || lightData.shadowPos[i].y < clipMin.y || lightData.shadowPos[i].y >= clipMax.y) continue;
+            if (shadowPos[i].x < clipMin.x || shadowPos[i].x >= clipMax.x
+             || shadowPos[i].y < clipMin.y || shadowPos[i].y >= clipMax.y) continue;
 
             //vec2 shadowProjectionSize = 2.0 / vec2(matShadowProjections[i][0].x, matShadowProjections[i][1].y);
             vec2 shadowProjectionSize = 2.0 / matShadowProjections_scale[i].xy;
             vec2 pixelPerBlockScale = cascadeTexSize / shadowProjectionSize;
             vec2 pixelOffset = blockOffset * pixelPerBlockScale * shadowPixelSize;
 
-            texComp = min(texComp, CompareOpaqueDepth(lightData.shadowPos[i], pixelOffset, lightData.shadowBias[i]));
+            texComp = min(texComp, CompareOpaqueDepth(shadowPos[i], pixelOffset, shadowBias[i]));
         }
 
         return max(texComp, 0.0);

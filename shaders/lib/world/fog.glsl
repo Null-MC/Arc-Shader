@@ -176,7 +176,7 @@ vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunTransmittance, con
 
 float ApplyWaterFog(inout vec3 color, const in vec3 fogColor, const in float lightDist) {
     float waterFogEnd = WATER_FOG_DIST;//min(fogEnd, WATER_FOG_DIST);
-    float fogFactor = GetFogFactor(lightDist, 0.0, waterFogEnd, 0.8);
+    float fogFactor = GetFogFactor(lightDist, 0.0, waterFogEnd, 0.68);
     //vec3 waterFogColor = GetWaterFogColor(viewDir, lightData.sunTransmittance, lightData.sunTransmittanceEye);
     //waterFogColor *= pow3(lightData.skyLight);
     color = mix(color, fogColor, fogFactor);

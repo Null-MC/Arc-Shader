@@ -93,7 +93,7 @@ uniform float fogEnd;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
     uniform int moonPhase;
-    
+
     uniform vec3 shadowLightPosition;
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -328,8 +328,8 @@ void main() {
             vec3 vlColor = WATER_SCATTER_COLOR;
 
             #ifdef VL_ENABLED
-                vec3 nearPos = -viewDir * near;
-                vec3 farPos = -viewDir * min(far, WATER_FOG_DIST);
+                vec3 nearPos = viewDir * near;
+                vec3 farPos = viewDir * min(far, WATER_FOG_DIST);
 
                 mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
                 vec3 shadowViewStart = (matViewToShadowView * vec4(nearPos, 1.0)).xyz;
