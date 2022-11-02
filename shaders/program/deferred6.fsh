@@ -93,13 +93,14 @@ uniform float fogEnd;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
     uniform int moonPhase;
+    
+    uniform vec3 shadowLightPosition;
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         uniform sampler2D shadowtex0;
         uniform sampler2D shadowtex1;
         uniform usampler2D shadowcolor1;
 
-        uniform vec3 shadowLightPosition;
         uniform mat4 shadowProjection;
         uniform mat4 shadowModelView;
         uniform mat4 shadowModelViewInverse;

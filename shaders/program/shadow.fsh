@@ -41,7 +41,7 @@ flat in int materialId;
     //flat in float matEmissive;
 #endif
 
-#ifdef RSM_ENABLED
+#if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_ENABLED)
     flat in mat3 matViewTBN;
 #endif
 
@@ -59,7 +59,7 @@ uniform int renderStage;
    uniform float alphaTestRef;
 #endif
 
-#ifdef RSM_ENABLED
+#if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_ENABLED)
     uniform sampler2D normals;
 #endif
 
@@ -88,7 +88,7 @@ uniform int renderStage;
 #if defined SHADOW_COLOR || defined SSS_ENABLED
     out vec4 outColor0;
 #endif
-#if defined RSM_ENABLED || (defined SSS_ENABLED && defined SHADOW_COLOR)
+#if defined RSM_ENABLED || (defined SSS_ENABLED && defined SHADOW_COLOR) || (defined WATER_FANCY && defined VL_ENABLED)
     out uvec2 outColor1;
 #endif
 
@@ -134,7 +134,7 @@ void main() {
     }
 
     vec3 viewNormal = vec3(0.0);
-    #if defined RSM_ENABLED
+    #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_ENABLED)
         vec2 normalMap = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).rg;
         viewNormal = RestoreNormalZ(normalMap);
 
@@ -161,7 +161,9 @@ void main() {
         }
     #endif
 
-    viewNormal = matViewTBN * viewNormal;
+    #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_ENABLED)
+        viewNormal = matViewTBN * viewNormal;
+    #endif
 
     float sss = 0.0;
     #ifdef SSS_ENABLED
@@ -184,7 +186,7 @@ void main() {
         #endif
     #endif
 
-    #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED)
+    #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_ENABLED)
         vec3 rsmColor = mix(vec3(0.0), sampleColor.rgb, sampleColor.a);
         rsmColor = LinearToRGB(rsmColor);
 

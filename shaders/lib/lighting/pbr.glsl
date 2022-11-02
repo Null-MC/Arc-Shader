@@ -79,7 +79,7 @@
             vec2 screenUV = gl_FragCoord.xy / viewSize;
         #endif
 
-        #ifdef SHADOW_ENABLED
+        #ifdef SKY_ENABLED
             vec3 viewLightDir = normalize(shadowLightPosition);
             float NoL = dot(viewNormal, viewLightDir);
 
@@ -659,7 +659,7 @@
 
             #ifdef VL_ENABLED
                 vec3 nearPos = -viewDir * near;
-                vec3 farPos = -viewDir * lightDist;
+                vec3 farPos = -viewDir * min(lightDist, WATER_FOG_DIST);
 
                 mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
                 vec3 shadowViewStart = (matViewToShadowView * vec4(nearPos, 1.0)).xyz;

@@ -18,7 +18,7 @@ flat out int materialId;
     //flat out float matEmissive;
 #endif
 
-#if defined RSM_ENABLED
+#if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_ENABLED)
     flat out mat3 matViewTBN;
 #endif
 
@@ -184,7 +184,7 @@ void main() {
         #endif
     #endif
 
-    #ifdef RSM_ENABLED
+    #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_ENABLED)
         vec3 viewNormal = normalize(gl_NormalMatrix * normal);
         vec3 viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
         vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
