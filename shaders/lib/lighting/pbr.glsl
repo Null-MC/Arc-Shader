@@ -340,42 +340,48 @@
 
             vec3 sunF = GetFresnel(material.albedo.rgb, f0, material.hcm, LoHm, roughL);
 
-            vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL);// * max(1.0 - sunF, 0.0);
-            //sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo, material.scattering, NoVm, diffuseNoL, LoHm, roughL);
-            sunDiffuse *= skyLightColorFinal * shadowFinal;// * skyLight2;
+            vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * max(1.0 - sunF, 0.0);
+            sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo, material.scattering, NoVm, NoLm, LoHm, roughL);
+            diffuse += sunDiffuse * skyLightColorFinal * shadowFinal;// * skyLight2;
 
             #ifdef SSS_ENABLED
                 if (material.scattering > 0.0 && shadowSSS > 0.0) {
                     // Transmission
                     vec3 sssAlbedo = material.albedo.rgb;
-                    if (dot(sssAlbedo, sssAlbedo) > EPSILON)
-                        sssAlbedo = normalize(sssAlbedo);
+
+                    #ifdef SSS_NORMALIZE_ALBEDO
+                        float lum = luminance(sssAlbedo);
+                        if (lum > EPSILON) {
+                            sssAlbedo = normalize(sssAlbedo) * pow(lum, 0.5);
+                        }
+                    #endif
+
+                    vec3 sssDiffuseLight = sssAlbedo * shadowSSS * skyLightColorFinal * skyLight2 * max(1.0 - sunF, 0.0);
                     
                     //sssAlbedo *= sssAlbedo;
-                    vec3 sssDiffuseLight = sssAlbedo * shadowSSS * skyLightColorFinal * skyLight2;
 
-                    float extDistF = (sssDist / SSS_MAXDIST) * material.scattering;
-                    sssDiffuseLight *= exp(-4.0 * extDistF * (1.2 - material.albedo.rgb));
+                    //float extDistF = (sssDist / SSS_MAXDIST) * material.scattering;
+                    //sssDiffuseLight *= exp(-4.0 * extDistF * (1.2 - material.albedo.rgb));
 
                     float VoL = dot(-viewDir, viewLightDir);
                     //sssDiffuseLight *= BiLambertianPlatePhaseFunction(-NoV, 0.6);
-                    float scatter = mix(0.2, 0.9, material.scattering);
-                    float inScatter = material.scattering * ComputeVolumetricScattering(NoL, -0.5);
-                    float outScatter = 0.5 * ComputeVolumetricScattering(VoL, scatter);
+                    //float scatter = mix(0.2, 0.9, material.scattering);
+                    float inScatter = 0.7 * ComputeVolumetricScattering(VoL, 0.55);
+                    float outScatter = 0.5 * ComputeVolumetricScattering(VoL, -0.15);
 
                     //sssDiffuseLight *= 2.0 * saturate(inScatter) * saturate(outScatter);
                     //sssDiffuseLight *= exp(-extDistF);
 
-                    sunDiffuse += sssDiffuseLight * (saturate(inScatter) + saturate(outScatter)) * (0.1 * SSS_STRENGTH);// * max(NoL, 0.0);
+                    diffuse += material.scattering * sssDiffuseLight * saturate(inScatter + outScatter) * (0.1 * SSS_STRENGTH);// * max(NoL, 0.0);
                 }
             #endif
 
-            diffuse += sunDiffuse * max(1.0 - sunF, 0.0);// * material.albedo.a;
+            //diffuse += sunDiffuse;// * max(1.0 - sunF, 0.0);// * material.albedo.a;
 
             if (NoLm > EPSILON) {
                 float NoHm = max(dot(viewNormal, halfDir), 0.0);
 
-                vec3 sunSpec = GetSpecularBRDF(sunF, NoVm, NoLm, NoHm, roughL) * skyLightColorFinal * skyLight2 * shadowFinal * final.a;
+                vec3 sunSpec = GetSpecularBRDF(sunF, NoVm, NoLm, NoHm, roughL) * skyLightColorFinal * skyLight2 * shadowFinal;// * final.a;
                 
                 specular += sunSpec;// * material.albedo.a;
 
@@ -533,19 +539,21 @@
 
                     #ifdef VL_ENABLED
                         if (isEyeInWater != 1) {
-                            vec3 nearPos = -viewDir * lightData.transparentScreenDepthLinear;
-                            vec3 farPos = -viewDir * refractOpaqueScreenDepthLinear;
+                            vec3 nearViewPos = -viewDir * lightData.transparentScreenDepthLinear;
+                            vec3 farViewPos = -viewDir * refractOpaqueScreenDepthLinear;
 
-                            mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
-                            vec3 shadowViewStart = (matViewToShadowView * vec4(nearPos, 1.0)).xyz;
-                            vec3 shadowViewEnd = (matViewToShadowView * vec4(farPos, 1.0)).xyz;
+                            // mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
+                            // vec3 shadowViewStart = (matViewToShadowView * vec4(nearPos, 1.0)).xyz;
+                            // vec3 shadowViewEnd = (matViewToShadowView * vec4(farPos, 1.0)).xyz;
 
-                            vlColor *= GetWaterVolumetricLighting(lightData, shadowViewStart, shadowViewEnd);
+                            vlColor = GetWaterVolumetricLighting(lightData, nearViewPos, farViewPos);
                         }
                     #endif
 
-                    vec3 waterFogColor = GetWaterFogColor(-viewDir, lightData.sunTransmittance, lightData.sunTransmittanceEye, vlColor);
-                    ApplyWaterFog(refractColor, waterFogColor, waterViewDepthFinal);
+                    if (isEyeInWater != 1) {
+                        vec3 waterFogColor = GetWaterFogColor(-viewDir, lightData.sunTransmittance, lightData.sunTransmittanceEye, vlColor);
+                        ApplyWaterFog(refractColor, waterFogColor, waterViewDepthFinal);
+                    }
                     
                     #ifndef WATER_FANCY
                         refractColor = mix(refractColor, diffuse, material.albedo.a);
@@ -564,7 +572,7 @@
                     float waterLightDist = waterViewDepth + lightData.waterShadowDepth;
 
                     vec3 absorption = exp(-extinctionInv * waterViewDepth);
-                    diffuse *= absorption;
+                    vec3 refractColor = diffuse * absorption;
                     //float scatterAmount = exp(-WATER_SCATTER_RATE * waterViewDepth);
 
                     //vec3 scatterColor = WATER_SCATTER_COLOR * lightData.sunTransmittanceEye;// * skyLight2;// * shadowFinal;
@@ -576,10 +584,12 @@
                         : lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepthLinear;
 
                     vec3 waterFogColor = GetWaterFogColor(-viewDir, lightData.sunTransmittance, lightData.sunTransmittanceEye, WATER_SCATTER_COLOR);
-                    float waterFogF = ApplyWaterFog(diffuse, waterFogColor, lightDist);
+                    float waterFogF = ApplyWaterFog(refractColor, waterFogColor, lightDist);
                     
+                    diffuse = mix(refractColor, diffuse, material.albedo.a);
+
                     //float alphaF = exp(-0.2 * WATER_ABSROPTION_RATE * waterViewDepth);
-                    final.a = waterFogF;//min(final.a + (1.0 - saturate(alphaF)), 1.0);// * (1.0 - material.albedo.a);// * max(1.0 - final.a, 0.0);
+                    final.a = min(final.a + waterFogF, 1.0);// * (1.0 - material.albedo.a);// * max(1.0 - final.a, 0.0);
                 #endif
 
                 ambient = vec3(0.0);
@@ -630,7 +640,7 @@
         occlusion *= SHADOW_BRIGHTNESS;
 
         //diffuse *= 1.0 - saturate(specF);
-        //return vec4(ambient * occlusion, 1.0);
+        //return vec4(diffuse, 1.0);
 
         final.rgb = final.rgb * (ambient * occlusion)
             + diffuse + emissive
@@ -658,14 +668,15 @@
             vec3 vlColor = WATER_SCATTER_COLOR;
 
             #ifdef VL_ENABLED
-                vec3 nearPos = -viewDir * near;
-                vec3 farPos = -viewDir * min(lightDist, WATER_FOG_DIST);
+                vec3 nearViewPos = -viewDir * near;
+                //vec3 farPos = -viewDir * lightDist;
+                vec3 farViewPos = -viewDir * min(lightDist, WATER_FOG_DIST);
 
-                mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
-                vec3 shadowViewStart = (matViewToShadowView * vec4(nearPos, 1.0)).xyz;
-                vec3 shadowViewEnd = (matViewToShadowView * vec4(farPos, 1.0)).xyz;
+                // mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
+                // vec3 shadowViewStart = (matViewToShadowView * vec4(nearPos, 1.0)).xyz;
+                // vec3 shadowViewEnd = (matViewToShadowView * vec4(farPos, 1.0)).xyz;
 
-                vlColor *= GetWaterVolumetricLighting(lightData, shadowViewStart, shadowViewEnd);
+                vlColor = GetWaterVolumetricLighting(lightData, nearViewPos, farViewPos);
             #endif
 
             vec3 waterFogColor = GetWaterFogColor(-viewDir, lightData.sunTransmittance, lightData.sunTransmittanceEye, vlColor);

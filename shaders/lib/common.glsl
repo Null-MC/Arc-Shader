@@ -69,7 +69,7 @@ const bool colortex12Clear = false;
 #define WATER_WAVE_DEPTH 1.0
 #define WATER_RESOLUTION 2048
 #define REFRACTION_STRENGTH 20 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80]
-#define WATER_NORMAL_STRENGTH 0.6
+#define WATER_NORMAL_STRENGTH 0.4
 
 //#define WATER_SCATTER_RATE 1.8
 #define WATER_ABSROPTION_RATE 1.0
@@ -103,6 +103,7 @@ const bool colortex12Clear = false;
 #define SHADOW_PENUMBRA_SCALE 20.0
 #define SHADOW_BASIC_BIAS 0.035
 //#define SHADOW_DISTORTED_BIAS 0.0016
+#define SHADOW_CONTACT 1 // [0 1 2]
 #define SHADOW_CSM_FIT_FARSCALE 1.1
 #define SHADOW_CSM_FITSCALE 0.1
 #define CSM_PLAYER_ID 0
@@ -120,6 +121,7 @@ const bool colortex12Clear = false;
 #define SSS_MAXDIST 6 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
 #define SSS_PCF_SIZE 0.04 // [0.02 0.04 0.06 0.08 0.1 0.2 0.3 0.4 0.5 0.6 0.8 1.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
+#define SSS_NORMALIZE_ALBEDO
 
 
 // Material Parallax Options
@@ -192,20 +194,16 @@ const bool colortex12Clear = false;
 #define IS_OPTIFINE
 #define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24]
 //#define DEBUG_EXPOSURE_METERS
-//#define IRIS_FEATURE_SEPARATE_HW_SAMPLERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
 #define PARTICLE_OPACITY 0.8
-//#define WETNESS_SMOOTH_NORMAL
 #define HCM_LAZANYI
 #define METAL_AMBIENT 1.0
-#define SHADOW_CONTACT 1 // [0 1 2]
 //#define SHADOW_CONTACT_DITHER
 //#define SKY_DITHER
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
-#define PHYSICSMOD_ENABLED
+//#define PHYSICSMOD_ENABLED
 //#define WATER_REFRACT_HACK
-//#define SSR_STEPS 128 // [128 256 512]
 
 #if SSR_QUALITY == 0
     #define SSR_SCALE 4

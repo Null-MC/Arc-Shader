@@ -169,7 +169,7 @@ vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunTransmittance, con
         waterFogColor *= pow3(eyeLight);
     #endif
 
-    waterFogColor += 0.002*WATER_COLOR.rgb * sunTransmittanceEye * GetSunLux() * pow3(eyeLight);
+    waterFogColor += 0.1*WATER_COLOR.rgb * sunTransmittanceEye * GetSunLux() * pow3(eyeLight);
 
     return waterFogColor;
 }

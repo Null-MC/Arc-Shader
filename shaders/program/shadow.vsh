@@ -19,6 +19,7 @@ flat out int materialId;
 #endif
 
 #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_ENABLED)
+    out vec3 viewPos;
     flat out mat3 matViewTBN;
 #endif
 
@@ -155,7 +156,7 @@ void main() {
     #endif
 
     //vec4 viewPos = shadowModelView * pos;
-    vec4 viewPos = gl_ModelViewMatrix * vec4(localPos, 1.0);
+    viewPos = (gl_ModelViewMatrix * vec4(localPos, 1.0)).xyz;
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         cascadeSizes[0] = GetCascadeDistance(0);
@@ -177,7 +178,7 @@ void main() {
         gl_Position.xy = gl_Position.xy * 0.5 + shadowCascadePos;
         gl_Position.xy = gl_Position.xy * 2.0 - 1.0;
     #else
-        gl_Position = gl_ProjectionMatrix * viewPos;
+        gl_Position = gl_ProjectionMatrix * vec4(viewPos, 1.0);
 
         #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
             gl_Position.xyz = distort(gl_Position.xyz);

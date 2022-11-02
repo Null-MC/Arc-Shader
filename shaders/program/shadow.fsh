@@ -42,6 +42,7 @@ flat in int materialId;
 #endif
 
 #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_ENABLED)
+    in vec3 viewPos;
     flat in mat3 matViewTBN;
 #endif
 
@@ -150,7 +151,13 @@ void main() {
             float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
             vec2 waterWorldPos = waterScale * (localPos.xz + cameraPosition.xz);
 
-            float depth = GetWaves(waterWorldPos, waveSpeed, WATER_OCTAVES_FAR) * WATER_WAVE_DEPTH * WATER_NORMAL_STRENGTH;
+            int octaves = WATER_OCTAVES_FAR;
+            #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
+                float viewDist = length(viewPos);
+                octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, saturate(viewDist / 200.0)));
+            #endif
+
+            float depth = GetWaves(waterWorldPos, waveSpeed, octaves) * WATER_WAVE_DEPTH * WATER_NORMAL_STRENGTH;
             vec3 waterPos = vec3(waterWorldPos.x, waterWorldPos.y, depth);
 
             viewNormal = -normalize(

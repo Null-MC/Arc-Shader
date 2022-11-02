@@ -116,8 +116,12 @@
     }
 #endif
 
-vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd) {
+vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 nearViewPos, const in vec3 farViewPos) {
     //return GetVolumetricFactor(lightData, shadowViewStart, shadowViewEnd) * rayLen;
+
+    mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
+    vec3 shadowViewStart = (matViewToShadowView * vec4(nearViewPos, 1.0)).xyz;
+    vec3 shadowViewEnd = (matViewToShadowView * vec4(farViewPos, 1.0)).xyz;
 
     vec3 rayVector = shadowViewEnd - shadowViewStart;
     float rayLength = length(rayVector);
@@ -130,17 +134,19 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 shad
 
     //const float maxStep = WATER_FOG_DIST / VL_SAMPLE_COUNT;
     //int stepCount = max(int(ceil(rayLength / WATER_FOG_DIST * VL_SAMPLE_COUNT)), 1);
-    const int stepCount = VL_SAMPLE_COUNT;
+    //const int stepCount = VL_SAMPLE_COUNT;
 
-    float stepLength = rayLength / stepCount;
+    float stepLength = rayLength / VL_SAMPLE_COUNT;
     vec3 rayStep = rayDirection * stepLength;
     vec3 accumF = vec3(0.0);
     float lightSample, transparentDepth;
 
-    vec3 rayStart = shadowViewStart;
+    //vec3 rayStart = shadowViewStart;
+
+    vec3 viewStep = (farViewPos - nearViewPos) / VL_SAMPLE_COUNT;
 
     #ifdef VL_DITHER
-        rayStart += rayStep * GetScreenBayerValue();
+        shadowViewStart += rayStep * GetScreenBayerValue();
     #endif
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -151,8 +157,8 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 shad
         const float MaxShadowDist = 256.0;
     #endif
 
-    for (int i = 1; i <= stepCount; i++) {
-        vec3 currentShadowViewPos = rayStart + i * rayStep;
+    for (int i = 1; i <= VL_SAMPLE_COUNT; i++) {
+        vec3 currentShadowViewPos = shadowViewStart + i * rayStep;
         transparentDepth = 1.0;
 
         vec3 waterShadowPos;
@@ -200,11 +206,15 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 shad
         float waterLightDist = max((waterShadowPos.z - transparentDepth) * MaxShadowDist, 0.0);
         //waterLightDist = min(waterLightDist, WATER_FOG_DIST);
 
+        vec3 traceViewPos = nearViewPos + i * viewStep;
+        waterLightDist += length(traceViewPos.z);
+
         const vec3 extinctionInv = 1.0 - WATER_ABSORB_COLOR;
         vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterLightDist * extinctionInv);
 
-        accumF += lightSample * absorption * max(1.0 - waterF, 0.0);
+        float shit = max(1.0 - waterF, 0.0);
+        accumF += lightSample * absorption * shit;
     }
 
-    return (accumF / stepCount);// * min(rayLength / WATER_FOG_DIST, 1.0);
+    return (accumF / VL_SAMPLE_COUNT);// * min(rayLength / WATER_FOG_DIST, 1.0);
 }
