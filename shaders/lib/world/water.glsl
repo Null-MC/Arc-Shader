@@ -21,7 +21,7 @@ float GetWaves(const in vec2 position, const in float waveSpeed, const in int it
     float phase = 6.0;//2.0*PI;
     float accumWeight = 0.0;//maxWeight;
 
-    float time = 4.0 * (frameTimeCounter / 3.6);
+    float time = (frameTimeCounter / 3.6) * 4.0;
     vec2 pos = position * 0.5;
 
     for (int i = 0; i < iterations; i++) {

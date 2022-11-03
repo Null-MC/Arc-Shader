@@ -40,6 +40,7 @@ in vec4 at_tangent;
 
 uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
+uniform mat4 gbufferModelView;
 uniform vec3 cameraPosition;
 
 uniform float rainStrength;
@@ -68,7 +69,7 @@ uniform float far;
         uniform mat4 gbufferPreviousModelView;
         uniform mat4 gbufferPreviousProjection;
     #else
-        uniform mat4 gbufferModelView;
+        //uniform mat4 gbufferModelView;
         uniform mat4 gbufferProjection;
     #endif
 
@@ -155,8 +156,8 @@ void main() {
         }
     #endif
 
-    //vec4 viewPos = shadowModelView * pos;
-    viewPos = (gl_ModelViewMatrix * vec4(localPos, 1.0)).xyz;
+    vec4 shadowViewPos = gl_ModelViewMatrix * vec4(localPos, 1.0);
+    viewPos = (gbufferModelView * vec4(localPos, 1.0)).xyz;
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         cascadeSizes[0] = GetCascadeDistance(0);
@@ -172,13 +173,13 @@ void main() {
 
         int shadowCascade = GetShadowCascade(matShadowProjections);
         shadowCascadePos = GetShadowCascadeClipPos(shadowCascade);
-        gl_Position = matShadowProjections[shadowCascade] * viewPos;
+        gl_Position = matShadowProjections[shadowCascade] * shadowViewPos;
 
         gl_Position.xy = gl_Position.xy * 0.5 + 0.5;
         gl_Position.xy = gl_Position.xy * 0.5 + shadowCascadePos;
         gl_Position.xy = gl_Position.xy * 2.0 - 1.0;
     #else
-        gl_Position = gl_ProjectionMatrix * vec4(viewPos, 1.0);
+        gl_Position = gl_ProjectionMatrix * shadowViewPos;
 
         #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
             gl_Position.xyz = distort(gl_Position.xyz);

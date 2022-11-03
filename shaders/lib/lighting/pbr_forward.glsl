@@ -98,24 +98,28 @@
                             float waterDepth = max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepth, 0.0);
                             GetWaterParallaxCoord(waterTex, water_dFdXY, tanViewDir, viewDist, waterDepth);
 
-                            const float waterParallaxDepth = WATER_WAVE_DEPTH / (2.0*WATER_RADIUS);
-                            float pomDist = (1.0 - waterTex.z) / max(-tanViewDir.z, 0.01);// * waterParallaxDepth;
+                            //const float waterParallaxDepth = WATER_WAVE_DEPTH / (2.0*WATER_RADIUS);
+                            float pomDist = isEyeInWater == 1 ? waterTex.z : (1.0 - waterTex.z);
+                            pomDist /= max(-tanViewDir.z, 0.01);
+                            pomDist *= WATER_WAVE_DEPTH;
 
                             if (pomDist > 0.0) {
+                                vec3 viewDir = normalize(viewPosFinal);
+                                vec3 newViewPosFinal = viewPosFinal + viewDir * pomDist;// * waterParallaxDepth;
+                                float fragDepth = 0.5 * ((-gbufferProjection[2].z*-newViewPosFinal.z + gbufferProjection[3].z) / -newViewPosFinal.z) + 0.5;
+
                                 #if defined PARALLAX_ENABLED && defined PARALLAX_DEPTH_WRITE
-                                    float shit = viewPosFinal.z - pomDist;
-                                    gl_FragDepth = 0.5 * ((-gbufferProjection[2].z*-shit + gbufferProjection[3].z) / -shit) + 0.5;
-                                    
-                                    viewPosFinal.z -= pomDist * waterParallaxDepth;
+                                    viewPosFinal = newViewPosFinal;
+                                    gl_FragDepth = fragDepth;
                                 #endif
 
-                                float depth = viewPos.z - pomDist * waterParallaxDepth;
-                                lightData.transparentScreenDepth = 0.5 * ((-gbufferProjection[2].z*-depth + gbufferProjection[3].z) / -depth) + 0.5;
-                                lightData.transparentScreenDepthLinear = linearizeDepthFast(lightData.transparentScreenDepth, near, far);
+                                //float depth = viewPos.z - pomDist * waterParallaxDepth;
+                                lightData.transparentScreenDepth = fragDepth;
+                                lightData.transparentScreenDepthLinear = linearizeDepthFast(fragDepth, near, far);
                             }
                         }
 
-                        float depth = textureGrad(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1]).r;
+                        depth = textureGrad(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1]).r;
                         float depthX = textureGradOffset(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1], ivec2(1, 0)).r;
                         float depthY = textureGradOffset(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1], ivec2(0, 1)).r;
 
@@ -176,7 +180,7 @@
                         float pomDist = (1.0 - traceCoordDepth.z) / max(-tanViewDir.z, 0.00001);
 
                         if (pomDist > 0.0) {
-                            float depth = -viewPos.z + pomDist * PARALLAX_DEPTH;
+                            float depth = length(viewPos) + pomDist * PARALLAX_DEPTH;
                             gl_FragDepth = 0.5 * (-gbufferProjection[2].z*depth + gbufferProjection[3].z) / depth + 0.5;
                         }
                     #endif
