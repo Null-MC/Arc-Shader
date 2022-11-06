@@ -90,10 +90,11 @@ void main() {
 
         lum = max(exp2(lum) - EPSILON, 0.0) * exposure;
 
-        float threshold = BLOOM_THRESHOLD;
-        if (isEyeInWater == 1) threshold *= 6.0;
+        float threshold = isEyeInWater == 1 ? BLOOM_THRESHOLD_WATER : BLOOM_THRESHOLD;
+        float power = isEyeInWater == 1 ? BLOOM_POWER_WATER : BLOOM_POWER;
+        //if (isEyeInWater == 1) threshold = 1.0 - (0.75 * (1.0 - threshold));
 
-        lum = pow(lum * threshold, BLOOM_POWER) * 10.0;// * exp2(3.0 + 0.5*tile);
+        lum = pow(lum * threshold, power) * 10.0;// * exp2(3.0 + 0.5*tile);
         //lum = min(lum, 1.0);
         lum = lum / (lum + 1.0);
         ChangeLuminance(final, lum);

@@ -339,10 +339,10 @@
                     vec3 sssDiffuseLight = sssAlbedo * shadowSSS * skyLightColorFinal * max(1.0 - sunFInverse, 0.0);
                     
                     float VoL = dot(viewDir, viewLightDir);
-                    float inScatter = ComputeVolumetricScattering(VoL, mix(0.1, 0.5, material.scattering));
-                    float outScatter = ComputeVolumetricScattering(VoL, mix(-0.08, -0.3, material.scattering));
+                    float inScatter = ComputeVolumetricScattering(VoL, mix(0.4, 0.7, material.scattering));
+                    float outScatter = 3.0*ComputeVolumetricScattering(VoL, mix(-0.3, -0.1, material.scattering));
 
-                    diffuse += material.scattering * sssDiffuseLight * (max(inScatter, 0.0) + max(outScatter, 0.0)) * (0.01 * SSS_STRENGTH);// * max(NoL, 0.0);
+                    diffuse += material.scattering * sssDiffuseLight * min(max(inScatter, 0.0) + max(outScatter, 0.0), 1.0) * max(-NoL, 0.0) * (0.01 * SSS_STRENGTH);// * max(NoL, 0.0);
                 }
             #endif
 
