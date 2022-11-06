@@ -30,21 +30,23 @@ vec3 undistort(const in vec3 v) {
 }
 
 
-#if SHADOW_TYPE == SHADOW_TYPE_BASIC
-    float GetShadowBias(const in float geoNoL) {
-        float range = min(shadowDistance, far * SHADOW_CSM_FIT_FARSCALE);
-        float shadowResScale = range / shadowMapSize;
-        float bias = SHADOW_BASIC_BIAS * shadowResScale * SHADOW_BIAS_SCALE;
-        //shadowPos.z -= min(bias / abs(geoNoL), 0.1);
-        return min(bias / abs(geoNoL), 0.1);
-    }
-#elif SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+#if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
     float GetShadowBias(const in float geoNoL, const in float distortFactor) {
         //shadowPos.z -= SHADOW_DISTORTED_BIAS * SHADOW_BIAS_SCALE * (distortFactor * distortFactor) / abs(geoNoL);
         //float df2 = distortFactor;//*distortFactor;
-        float biasZ = 0.0128 / 256.0;//SHADOW_DISTORTED_BIAS * df2;
-        float biasXY = shadowDistance * shadowPixelSize * 0.03 * max(distortFactor, 0.6);
-        return mix(biasXY, biasZ, geoNoL) * SHADOW_BIAS_SCALE;
+
+        const float minBias = 0.0001;
+        const float biasZ = 0.0001;
+        float biasXY = 0.5 * shadowPixelSize;
+        return (minBias + mix(biasXY, biasZ, saturate(geoNoL))) * (SHADOW_BIAS_SCALE * 0.01);
+    }
+#else
+    float GetShadowBias(const in float geoNoL) {
+        float range = min(shadowDistance, far * SHADOW_CSM_FIT_FARSCALE);
+        float shadowResScale = range / shadowMapSize;
+        float bias = SHADOW_BASIC_BIAS * shadowResScale * (SHADOW_BIAS_SCALE * 0.01);
+        //shadowPos.z -= min(bias / abs(geoNoL), 0.1);
+        return min(bias / abs(geoNoL), 0.1);
     }
 #endif
 
