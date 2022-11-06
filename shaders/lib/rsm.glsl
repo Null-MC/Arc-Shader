@@ -96,7 +96,9 @@ float SampleDepth(const in ivec2 itex) {
         uvec2 data = texelFetch(shadowcolor1, iuv, 0).rg;
 
         vec3 ray = samplePos - shadowViewPos;
-        vec3 rayDir = normalize(ray);
+        //ray.z *= 0.5;
+        float rayLength = length(ray);
+        vec3 rayDir = ray / rayLength;
 
         vec3 sampleNormal = unpackUnorm4x8(data.g).rgb;
         sampleNormal = normalize(sampleNormal * 2.0 - 1.0);
@@ -111,7 +113,8 @@ float SampleDepth(const in ivec2 itex) {
 
         //float weight = dot(rsmPoissonDisk[i], rsmPoissonDisk[i]);
         //weight = max(1.0 - weight, 0.0) / length(ray);
-        float weight = 1.0 - saturate(length(ray) / RSM_FILTER_SIZE);
+        float weight = saturate(rayLength / RSM_FILTER_SIZE);
+        weight = 1.0 - pow3(weight);
 
         shading += sampleColor * weight;
     }

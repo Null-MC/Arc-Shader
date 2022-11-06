@@ -22,12 +22,7 @@ vec4 BasicLighting(const in LightData lightData) {
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #if defined SHADOW_PARTICLES || (!defined RENDER_TEXTURED && !defined RENDER_WEATHER)
             if (shadow > EPSILON) {
-                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    shadow *= GetShadowing(lightData);
-                #else
-                    shadow *= GetShadowing(lightData);
-                #endif
-
+                shadow *= GetShadowing(lightData);
                 skyLight = max(skyLight, shadow);
             }
 
@@ -35,7 +30,7 @@ vec4 BasicLighting(const in LightData lightData) {
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                     shadowColor = GetShadowColor(lightData);
                 #else
-                    shadowColor = GetShadowColor(lightData);
+                    shadowColor = GetShadowColor(lightData.shadowPos.xy);
                 #endif
             #endif
         #endif
@@ -92,33 +87,30 @@ vec4 BasicLighting(const in LightData lightData) {
         final.a = albedo.a * mix(WEATHER_OPACITY * 0.01, 1.0, saturate(max(rainSnowSunVL, rainSnowMoonVL)));
     #endif
 
-    //float fogFactor = ApplyFog(final, viewPos, lightData, EPSILON);
     float fogFactor;
     vec3 fogColorFinal;
     GetFog(lightData, viewPos, fogColorFinal, fogFactor);
 
-    ApplyFog(final, fogColorFinal, fogFactor, 1.0/255.0);
-
     #ifdef SKY_ENABLED
         vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
-        vec3 vlColor = GetVanillaSkyScattering(viewDir, lightData.skyLightLevels, sunColorFinal, moonColor);
+        vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
 
-        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined VL_ENABLED && (defined VL_PARTICLES || (!defined RENDER_TEXTURED && !defined RENDER_WEATHER))
-            // mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
-            // vec3 shadowViewStart = (matViewToShadowView * vec4(vec3(0.0, 0.0, -near), 1.0)).xyz;
-            // vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
-            vec3 viewNear = viewDir * near;
-
-            #ifdef SHADOW_COLOR
-                vlColor *= GetVolumetricLightingColor(lightData, viewNear, viewPos);
-            #else
-                vlColor *= GetVolumetricLighting(lightData, viewNear, viewPos);
-            #endif
-        #else
-            vlColor *= fogFactor;
+        #ifndef VL_ENABLED
+            vec3 fogColorLinear = RGBToLinear(fogColor);
+            fogColorFinal += lightColor * fogColorLinear;
         #endif
+    #endif
 
-        final.rgb += vlColor;
+    ApplyFog(final, fogColorFinal, fogFactor, 1.0/255.0);
+
+    #if defined SKY_ENABLED && defined VL_ENABLED
+        vec3 viewNear = viewDir * near;
+
+        // #ifdef SHADOW_COLOR
+        //     final.rgb += GetVolumetricLightingColor(lightData, viewNear, viewPos, lightColor);
+        // #else
+            final.rgb += GetVolumetricLighting(lightData, viewNear, viewPos, lightColor);
+        //#endif
     #endif
 
     return final;

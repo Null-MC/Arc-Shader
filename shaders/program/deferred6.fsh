@@ -353,11 +353,11 @@ void main() {
                     vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
                     vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
 
-                    #ifdef SHADOW_COLOR
-                        color += GetVolumetricLightingColor(lightData, viewNear, viewFar, lightColor);
-                    #else
+                    //#ifdef SHADOW_COLOR
+                    //    color += GetVolumetricLightingColor(lightData, viewNear, viewFar, lightColor);
+                    //#else
                         color += GetVolumetricLighting(lightData, viewNear, viewFar, lightColor);
-                    #endif
+                    //#endif
                 #endif
 
                 outColor1 = log2(luminance(color) + EPSILON);

@@ -1,66 +1,66 @@
-#ifdef SHADOW_COLOR
-    vec3 GetVolumetricColor(LightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd) {
-        vec3 rayVector = shadowViewEnd - shadowViewStart;
-        float rayLength = length(rayVector);
+// #ifdef SHADOW_COLOR
+//     vec3 GetVolumetricColor(LightData lightData, const in vec3 shadowViewStart, const in vec3 shadowViewEnd) {
+//         vec3 rayVector = shadowViewEnd - shadowViewStart;
+//         float rayLength = length(rayVector);
 
-        vec3 rayDirection = rayVector / rayLength;
-        float stepLength = rayLength / (VL_SAMPLE_COUNT + 1.0);
-        vec3 rayStep = rayDirection * stepLength;
-        vec3 accumCol = vec3(0.0);
-        float accumF = 0.0;
+//         vec3 rayDirection = rayVector / rayLength;
+//         float stepLength = rayLength / (VL_SAMPLE_COUNT + 1.0);
+//         vec3 rayStep = rayDirection * stepLength;
+//         vec3 accumCol = vec3(0.0);
+//         float accumF = 0.0;
 
-        #ifdef VL_DITHER
-            vec3 ditherOffset = rayStep * GetScreenBayerValue();
-        #endif
+//         #ifdef VL_DITHER
+//             vec3 ditherOffset = rayStep * GetScreenBayerValue();
+//         #endif
 
-        for (int i = 1; i <= VL_SAMPLE_COUNT; i++) {
-            vec3 currentShadowViewPos = shadowViewStart + i * rayStep;
+//         for (int i = 1; i <= VL_SAMPLE_COUNT; i++) {
+//             vec3 currentShadowViewPos = shadowViewStart + i * rayStep;
 
-            #ifdef VL_DITHER
-                currentShadowViewPos += ditherOffset;
-            #endif
+//             #ifdef VL_DITHER
+//                 currentShadowViewPos += ditherOffset;
+//             #endif
 
-            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                for (int i = 0; i < 4; i++) {
-                    lightData.shadowPos[i] = (lightData.matShadowProjection[i] * vec4(currentShadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                    lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + lightData.shadowTilePos[i];
-                }
+//             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+//                 for (int i = 0; i < 4; i++) {
+//                     lightData.shadowPos[i] = (lightData.matShadowProjection[i] * vec4(currentShadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+//                     lightData.shadowPos[i].xy = lightData.shadowPos[i].xy * 0.5 + lightData.shadowTilePos[i];
+//                 }
 
-                float depthSample = CompareNearestOpaqueDepth(lightData, vec2(0.0));
-            #else
-                lightData.shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
+//                 float depthSample = CompareNearestOpaqueDepth(lightData, vec2(0.0));
+//             #else
+//                 lightData.shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
 
-                #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                    lightData.shadowPos.xyz = distort(lightData.shadowPos.xyz);
-                #endif
+//                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+//                     lightData.shadowPos.xyz = distort(lightData.shadowPos.xyz);
+//                 #endif
 
-                lightData.shadowPos.xyz = lightData.shadowPos.xyz * 0.5 + 0.5;
+//                 lightData.shadowPos.xyz = lightData.shadowPos.xyz * 0.5 + 0.5;
 
-                float depthSample = CompareOpaqueDepth(lightData.shadowPos, vec2(0.0), 0.0);
-            #endif
+//                 float depthSample = CompareOpaqueDepth(lightData.shadowPos, vec2(0.0), 0.0);
+//             #endif
 
-            accumF += depthSample;
+//             accumF += depthSample;
 
-            if (depthSample > EPSILON) {
-                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData, vec2(0.0), lightData.transparentShadowCascade);
-                #else
-                    lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos, vec2(0.0));
-                #endif
+//             if (depthSample > EPSILON) {
+//                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+//                     lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData, vec2(0.0), lightData.transparentShadowCascade);
+//                 #else
+//                     lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos, vec2(0.0));
+//                 #endif
 
-                vec3 shadowColor = GetShadowColor(lightData);
-                if (dot(shadowColor, shadowColor) > EPSILON) {
-                    shadowColor = RGBToLinear(shadowColor);
-                    accumCol += normalize(shadowColor);// * depthSample;
-                }
-            }
-        }
+//                 vec3 shadowColor = GetShadowColor(lightData);
+//                 if (dot(shadowColor, shadowColor) > EPSILON) {
+//                     shadowColor = RGBToLinear(shadowColor);
+//                     accumCol += normalize(shadowColor);// * depthSample;
+//                 }
+//             }
+//         }
 
-        if (dot(accumCol, accumCol) > EPSILON) accumCol = normalize(accumCol)*2.0;
+//         if (dot(accumCol, accumCol) > EPSILON) accumCol = normalize(accumCol)*2.0;
 
-        return vec3(accumF / VL_SAMPLE_COUNT) * accumCol;
-    }
-#else
+//         return vec3(accumF / VL_SAMPLE_COUNT) * accumCol;
+//     }
+// #else
     vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, const in vec3 viewFar, const in vec3 lightColor) {
         mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
         vec3 shadowViewStart = (matViewToShadowView * vec4(viewNear, 1.0)).xyz;
@@ -72,8 +72,8 @@
         vec3 rayDirection = rayVector / rayLength;
         float stepLength = rayLength / (VL_SAMPLE_COUNT + 1.0);
         vec3 rayStep = rayDirection * stepLength;
-        //float accumF = 0.0;
         vec3 accumColor = vec3(0.0);
+        float accumF = 0.0;
 
         vec3 fogColorLinear = RGBToLinear(fogColor);
 
@@ -106,28 +106,48 @@
                 float sampleF = CompareOpaqueDepth(shadowPos, vec2(0.0), 0.0);
             #endif
 
+            vec3 sampleColor = lightColor;
+
+            #ifdef SHADOW_COLOR
+                if (sampleF > EPSILON) {
+                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                        float transparentShadowDepth = GetNearestTransparentDepth(lightData, vec2(0.0), lightData.transparentShadowCascade);
+                    #else
+                        float transparentShadowDepth = SampleTransparentDepth(shadowPos, vec2(0.0));
+                    #endif
+
+                    if (shadowPos.z - transparentShadowDepth >= EPSILON) {
+                        vec3 shadowColor = GetShadowColor(shadowPos.xy);
+                        shadowColor = normalize(shadowColor) * 3.0;
+                        sampleColor *= shadowColor;
+                    }
+                }
+            #endif
+
             vec3 traceViewPos = viewNear + i * viewStep;
             float fogF = saturate(length(traceViewPos) / min(fogEnd, far)); //GetVanillaFogFactor(traceViewPos);
-            vec3 sampleColor = lightColor * mix(vec3(1.0), fogColorLinear, fogF);
+            sampleColor *= mix(vec3(1.0), fogColorLinear, fogF);
 
             accumColor += sampleF * sampleColor;
         }
 
+        //accumF += sampleF;
+
         return accumColor / VL_SAMPLE_COUNT;
     }
-#endif
+//#endif
 
-#ifdef SHADOW_COLOR
-    vec3 GetVolumetricLightingColor(const in LightData lightData, const in vec3 viewNear, const in vec3 viewFar, const in vec3 lightColor) {
-        float rayLen = min(length(viewFar - viewNear) / min(far, fogEnd), 1.0);
-        return GetVolumetricColor(lightData, viewNear, viewFar, lightColor) * rayLen;
-    }
-#else
+// #ifdef SHADOW_COLOR
+//     vec3 GetVolumetricLightingColor(const in LightData lightData, const in vec3 viewNear, const in vec3 viewFar, const in vec3 lightColor) {
+//         float rayLen = min(length(viewFar - viewNear) / min(far, fogEnd), 1.0);
+//         return GetVolumetricColor(lightData, viewNear, viewFar, lightColor) * rayLen;
+//     }
+// #else
     vec3 GetVolumetricLighting(const in LightData lightData, const in vec3 viewNear, const in vec3 viewFar, const in vec3 lightColor) {
         float rayLen = min(length(viewFar - viewNear) / min(far, fogEnd), 1.0);
         return GetVolumetricFactor(lightData, viewNear, viewFar, lightColor) * rayLen;
     }
-#endif
+//#endif
 
 vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 nearViewPos, const in vec3 farViewPos, const in vec3 lightColor) {
     mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;

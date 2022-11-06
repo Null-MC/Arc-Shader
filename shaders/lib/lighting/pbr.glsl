@@ -146,8 +146,8 @@
                     shadow *= GetShadowing(lightData);
 
                 #ifdef SHADOW_COLOR
-                    shadowColor = GetShadowColor(lightData);
-                    shadowColor = RGBToLinear(shadowColor);
+                    shadowColor = GetShadowColor(lightData.shadowPos.xy);
+                    //shadowColor = RGBToLinear(shadowColor);
                 #endif
 
                 #ifdef SSS_ENABLED
@@ -342,7 +342,7 @@
                     float inScatter = ComputeVolumetricScattering(VoL, mix(0.1, 0.5, material.scattering));
                     float outScatter = ComputeVolumetricScattering(VoL, mix(-0.08, -0.3, material.scattering));
 
-                    diffuse += material.scattering * sssDiffuseLight * (max(inScatter, 0.0) + max(outScatter, 0.0)) * (0.1 * SSS_STRENGTH);// * max(NoL, 0.0);
+                    diffuse += material.scattering * sssDiffuseLight * (max(inScatter, 0.0) + max(outScatter, 0.0)) * (0.01 * SSS_STRENGTH);// * max(NoL, 0.0);
                 }
             #endif
 
@@ -642,16 +642,9 @@
                 #endif
             #endif
 
-            #ifdef SKY_ENABLED
-                #ifdef VL_ENABLED
-                    vec3 viewNear = viewDir * near;
-
-                    #ifdef SHADOW_COLOR
-                        final.rgb += GetVolumetricLightingColor(lightData, viewNear, viewPos, lightColor);
-                    #else
-                        final.rgb += GetVolumetricLighting(lightData, viewNear, viewPos, lightColor);
-                    #endif
-                #endif
+            #if defined SKY_ENABLED && defined VL_ENABLED
+                vec3 viewNear = viewDir * near;
+                final.rgb += GetVolumetricLighting(lightData, viewNear, viewPos, lightColor);
             #endif
         }
 
