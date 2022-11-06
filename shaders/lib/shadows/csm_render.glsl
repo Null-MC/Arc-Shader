@@ -120,21 +120,21 @@
         return depthNearest;
     }
 
-    float GetNearestTransparentDepth(const in LightData lightData, const in vec2 blockOffset, out int cascade) {
+    float GetNearestTransparentDepth(const in vec3 shadowPos[4], const in vec2 shadowTilePos[4], const in vec2 blockOffset, out int cascade) {
         cascade = -1;
         float depthNearest = 1.0;
         for (int i = 0; i < 4; i++) {
-            vec2 clipMin = lightData.shadowTilePos[i] + 2.0 * shadowPixelSize;
-            vec2 clipMax = lightData.shadowTilePos[i] + 0.5 - 4.0 * shadowPixelSize;
+            vec2 clipMin = shadowTilePos[i] + 2.0 * shadowPixelSize;
+            vec2 clipMax = shadowTilePos[i] + 0.5 - 4.0 * shadowPixelSize;
 
-            if (lightData.shadowPos[i].x < clipMin.x || lightData.shadowPos[i].x >= clipMax.x
-             || lightData.shadowPos[i].y < clipMin.y || lightData.shadowPos[i].y >= clipMax.y) continue;
+            if (shadowPos[i].x < clipMin.x || shadowPos[i].x >= clipMax.x
+             || shadowPos[i].y < clipMin.y || shadowPos[i].y >= clipMax.y) continue;
 
             vec2 shadowProjectionSize = 2.0 / matShadowProjections_scale[i].xy;
             vec2 pixelPerBlockScale = cascadeTexSize / shadowProjectionSize;
             vec2 finalPixelOffset = blockOffset * pixelPerBlockScale * shadowPixelSize;
 
-            float texDepth = SampleTransparentDepth(lightData.shadowPos[i].xy, finalPixelOffset);
+            float texDepth = SampleTransparentDepth(shadowPos[i].xy, finalPixelOffset);
 
             if (texDepth < depthNearest) {
                 depthNearest = texDepth;
@@ -232,7 +232,7 @@
                     blockOffset *= dither;
                 #endif
 
-                shadow += 1.0 - CompareNearestOpaqueDepth(lightData, blockOffset);
+                shadow += 1.0 - CompareNearestOpaqueDepth(lightData.shadowPos, lightData.shadowTilePos, lightData.shadowBias, blockOffset);
             }
 
             return shadow / sampleCount;
@@ -251,7 +251,7 @@
             for (int i = 0; i < sampleCount; i++) {
                 int sampleCascade;
                 vec2 blockOffset = poissonDisk[i] * blockRadius;
-                float texDepth = GetNearestOpaqueDepth(lightData, blockOffset, sampleCascade);
+                float texDepth = GetNearestOpaqueDepth(lightData.shadowPos, lightData.shadowTilePos, blockOffset, sampleCascade);
 
                 if (texDepth < lightData.shadowPos[sampleCascade].z - lightData.shadowBias[sampleCascade]) {
                     avgBlockerDistance += texDepth;
@@ -322,7 +322,7 @@
                 for (int i = 0; i < sampleCount; i++) {
                     int cascade;
                     vec2 blockOffset = poissonDisk[i] * blockRadius;
-                    float texDepth = GetNearestOpaqueDepth(lightData, blockOffset, cascade);
+                    float texDepth = GetNearestOpaqueDepth(lightData.shadowPos, lightData.shadowTilePos, blockOffset, cascade);
 
                     //vec2 shadowProjectionSize = 2.0 / vec2(matShadowProjections[cascade][0].x, matShadowProjections[cascade][1].y);
                     vec2 shadowProjectionSize = 2.0 / matShadowProjections_scale[cascade].xy;
@@ -349,7 +349,7 @@
             // PCF + PCSS
             float GetShadowSSS(const in LightData lightData, const in float materialSSS, out float traceDist) {
                 int cascade;
-                float texDepth = GetNearestOpaqueDepth(lightData, vec2(0.0), cascade);
+                float texDepth = GetNearestOpaqueDepth(lightData.shadowPos, lightData.shadowTilePos, vec2(0.0), cascade);
                 traceDist = max(lightData.shadowPos[cascade].z + lightData.shadowBias[cascade] - texDepth, 0.0) * 3.0 * far;
                 float blockRadius = SSS_PCF_SIZE * saturate(traceDist / SSS_MAXDIST) * (1.0 - 0.85*materialSSS);
 

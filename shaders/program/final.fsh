@@ -144,7 +144,7 @@ out vec3 outColor0;
     }
 #endif
 
-#if DEBUG_VIEW == 0
+#if DEBUG_VIEW == DEBUG_VIEW_NONE || DEBUG_VIEW == DEBUG_VIEW_WHITEWORLD
     mat4 GetSaturationMatrix(const in float saturation) {
         const vec3 luminance = vec3(0.3086, 0.6094, 0.0820);
         
@@ -179,7 +179,7 @@ out vec3 outColor0;
             color += bloom;// / sqrt(bloomTileCount);
         #endif
 
-        float whitePoint = 1.0;
+        float whitePoint = 2.0;
         color = ApplyTonemap(color, whitePoint);
 
         #if CAMERA_SATURATION != 100

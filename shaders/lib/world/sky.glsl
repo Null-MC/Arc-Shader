@@ -29,6 +29,10 @@ vec2 GetSkyLightLevels() {
         dot(upDir, moonLightDir));
 }
 
+float GetMoonPhaseLevel() {
+    return moonPhaseLevels[abs(moonPhase - 4)];
+}
+
 float GetSunLightLevel(const in float skyLightLevel) {
     //float rainLevel = 1.0 - 0.85 * rainStrength;
 
@@ -43,13 +47,13 @@ float GetSunLightLevel(const in float skyLightLevel) {
 
 float GetMoonLightLevel(const in float skyLightLevel) {
     //float rainLevel = 1.0 - 0.9 * rainStrength;
-    float moonPhaseLevel = moonPhaseLevels[abs(moonPhase-4)];
+    //float moonPhaseLevel = moonPhaseLevels[abs(moonPhase-4)];
 
     //float angularDiameter = mix(0.49, 0.55, max(skyLightLevel, 0.0));
     //return GetSolidAngle(angularDiameter) * moonPhaseLevel;
 
     // TODO: This angle is wrong and sucks
-    return pow(max(skyLightLevel, 0.0), 0.4) * moonPhaseLevel;
+    return pow(max(skyLightLevel, 0.0), 0.4);// * moonPhaseLevel;
 
     //return pow4(max(cos(clamp(pow4(x), -PI, PI)), 0)) * moonPhaseLevel;
 }
@@ -80,23 +84,25 @@ float GetSunLux() {
     return mix(SunLux, SunOvercastLux, rainStrength);
 }
 
+float GetMoonLux() {
+    float moonPhaseLevel = GetMoonPhaseLevel();
+    return mix(MoonLux, MoonOvercastLux, rainStrength) * moonPhaseLevel;
+}
+
 float GetSunLightLux(const in float skyLightLevel) {
     return GetSunLightLevel(skyLightLevel) * GetSunLux();
 }
 
 vec3 GetSunLightLuxColor(const in float temp, const in float skyLightLevel) {
-    float lux = mix(SunLux, SunOvercastLux, rainStrength);
-    return GetSunLightColor(temp, skyLightLevel) * lux;
+    return GetSunLightColor(temp, skyLightLevel) * GetSunLux();
 }
 
 float GetMoonLightLux(const in float skyLightLevel) {
-    float lux = mix(MoonLux, MoonOvercastLux, rainStrength);
-    return GetMoonLightLevel(skyLightLevel) * lux;
+    return GetMoonLightLevel(skyLightLevel) * GetMoonLux();
 }
 
 vec3 GetMoonLightLuxColor(const in float temp, const in float skyLightLevel) {
-    float lux = mix(MoonLux, MoonOvercastLux, rainStrength);
-    return GetMoonLightColor(temp, skyLightLevel) * lux;
+    return GetMoonLightColor(temp, skyLightLevel) * GetMoonLux();
 }
 
 vec3 GetSkyLightLuxColor(const in vec2 skyLightLevels) {
@@ -145,17 +151,23 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
         //float skyLumen = 8000;// sunSkyLumen + moonSkyLumen;
 
         float lightLevel = saturate(skyLightLevels.x);
-        lightLevel = smoothstep(0.1, 0.6, lightLevel) * 16000.0 + 200.0;
+        float dayNightF = smoothstep(0.1, 0.6, lightLevel);
+        float skyLumen = mix(NightSkyLumen, DaySkyLumen, dayNightF);
         
-        vec3 skyColorLinear = RGBToLinear(skyColor) * lightLevel * skyTint;
-        vec3 fogColorLinear = RGBToLinear(fogColor) * lightLevel * 0.8 * skyTint;
+        vec3 skyColorLinear = RGBToLinear(skyColor);
+        if (dot(skyColorLinear, skyColorLinear) < EPSILON) skyColorLinear = vec3(1.0);
+        skyColorLinear = normalize(skyColorLinear);
 
-        #ifdef RENDER_SKYBASIC
-            if (isEyeInWater == 1) {
-                // TODO: change fogColor to water
-                fogColorLinear = vec3(0.0178, 0.0566, 0.0754);
-            }
-        #endif
+        vec3 fogColorLinear = RGBToLinear(fogColor);
+        if (dot(fogColorLinear, fogColorLinear) < EPSILON) fogColorLinear = vec3(1.0);
+        fogColorLinear = normalize(fogColorLinear) * 0.8;
+
+        // #ifdef RENDER_SKYBASIC
+        //     if (isEyeInWater == 1) {
+        //         // TODO: change fogColor to water
+        //         fogColorLinear = vec3(0.0178, 0.0566, 0.0754);
+        //     }
+        // #endif
 
         fogColorLinear *= 1.0 - 0.8 * rainStrength;
 
@@ -167,17 +179,26 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
 
         float VoUm = max(dot(viewDir, upDir), 0.0);
         float skyFogFactor = GetVanillaSkyFog(VoUm, 0.25);
-        return mix(skyColorLinear, fogColorLinear, skyFogFactor);
+        return mix(skyColorLinear, fogColorLinear, skyFogFactor) * skyLumen;// * skyTint;
     }
 
     vec3 GetVanillaSkyLux(const in vec3 viewDir) {
-        vec2 skyLightLevels = GetSkyLightLevels();
-        float sunLightLux = GetSunLightLux(skyLightLevels.x);
-        float moonLightLux = GetMoonLightLux(skyLightLevels.y);
-        float skyLux = sunLightLux + moonLightLux;
+        //float sunLightLux = GetSunLightLux(skyLightLevels.x);
+        //float moonLightLux = GetMoonLightLux(skyLightLevels.y);
+        //float skyLux = sunLightLux + moonLightLux;
 
-        vec3 skyColorLinear = RGBToLinear(skyColor) * skyTint;
-        vec3 fogColorLinear = RGBToLinear(fogColor) * 0.8 * skyTint;
+        vec2 skyLightLevels = GetSkyLightLevels();
+        float lightLevel = saturate(skyLightLevels.x);
+        float dayNightF = smoothstep(0.1, 0.6, lightLevel);
+        float skyLux = mix(GetMoonLux(), GetSunLux(), dayNightF);
+        
+        vec3 skyColorLinear = RGBToLinear(skyColor);
+        if (dot(skyColorLinear, skyColorLinear) < EPSILON) skyColorLinear = vec3(1.0);
+        skyColorLinear = normalize(skyColorLinear);
+
+        vec3 fogColorLinear = RGBToLinear(fogColor);
+        if (dot(fogColorLinear, fogColorLinear) < EPSILON) fogColorLinear = vec3(1.0);
+        fogColorLinear = normalize(fogColorLinear) * 0.8;
 
         #ifdef RENDER_SKYBASIC
             if (isEyeInWater == 1) {

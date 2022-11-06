@@ -196,7 +196,11 @@ uniform int fogShape;
     #include "/lib/world/scattering.glsl"
     #include "/lib/world/porosity.glsl"
     #include "/lib/lighting/basic.glsl"
+#endif
 
+#include "/lib/world/fog.glsl"
+
+#ifdef SKY_ENABLED
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #if SHADOW_PCF_SAMPLES == 12
             #include "/lib/sampling/poisson_12.glsl"
@@ -223,8 +227,6 @@ uniform int fogShape;
         #include "/lib/shadows/contact.glsl"
     #endif
 #endif
-
-#include "/lib/world/fog.glsl"
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     #include "/lib/ssr.glsl"

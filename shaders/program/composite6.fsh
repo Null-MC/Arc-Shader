@@ -15,6 +15,7 @@ uniform sampler2D depthtex0;
 
 uniform float viewWidth;
 uniform float viewHeight;
+uniform int isEyeInWater;
 
 #include "/lib/camera/bloom.glsl"
 
@@ -89,7 +90,10 @@ void main() {
 
         lum = max(exp2(lum) - EPSILON, 0.0) * exposure;
 
-        lum = pow(lum * BLOOM_THRESHOLD, BLOOM_POWER) * 10.0;// * exp2(3.0 + 0.5*tile);
+        float threshold = BLOOM_THRESHOLD;
+        if (isEyeInWater == 1) threshold *= 6.0;
+
+        lum = pow(lum * threshold, BLOOM_POWER) * 10.0;// * exp2(3.0 + 0.5*tile);
         //lum = min(lum, 1.0);
         lum = lum / (lum + 1.0);
         ChangeLuminance(final, lum);

@@ -66,10 +66,10 @@ const bool colortex12Clear = false;
 #define WATER_OCTAVES_FAR 12
 #define WATER_OCTAVES_VERTEX 8
 #define WATER_PARALLAX_SAMPLES 64
-#define WATER_WAVE_DEPTH 1.0
+#define WATER_WAVE_DEPTH 0.5
 #define WATER_RESOLUTION 2048
-#define REFRACTION_STRENGTH 20 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80]
-#define WATER_NORMAL_STRENGTH 0.4
+#define REFRACTION_STRENGTH 50 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 85 100]
+#define WATER_NORMAL_STRENGTH 0.1
 
 //#define WATER_SCATTER_RATE 1.8
 #define WATER_ABSROPTION_RATE 1.0
@@ -121,7 +121,7 @@ const bool colortex12Clear = false;
 #define SSS_MAXDIST 6 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
 #define SSS_PCF_SIZE 0.04 // [0.02 0.04 0.06 0.08 0.1 0.2 0.3 0.4 0.5 0.6 0.8 1.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
-#define SSS_NORMALIZE_ALBEDO
+//#define SSS_NORMALIZE_ALBEDO
 
 
 // Material Parallax Options
@@ -148,9 +148,9 @@ const bool colortex12Clear = false;
 //#define EXPOSURE_POINT 0.2
 #define EXPOSURE_SPEED_UP 0.8
 #define EXPOSURE_SPEED_DOWN 0.5
-#define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
+#define TONEMAP 11 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
 
-#define CAMERA_BRIGHTNESS 80 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
+#define CAMERA_BRIGHTNESS 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define CAMERA_SATURATION 100 // [0 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 
 
@@ -174,8 +174,8 @@ const bool colortex12Clear = false;
 #define VL_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 175 200 225 250 275 300 350 400 450 500 600 700 800 900]
 #define VL_SAMPLE_COUNT 30 // [15 30 60 90]
 //#define VL_PARTICLES
-#define G_SCATTERING_CLEAR 0.2
-#define G_SCATTERING_NIGHT 0.50
+#define G_SCATTERING_CLEAR 0.1
+#define G_SCATTERING_NIGHT 0.6
 //#define G_SCATTERING_HUMID 0.08
 #define G_SCATTERING_RAIN 0.06
 #define G_SCATTERING_WATER 0.16
@@ -192,7 +192,7 @@ const bool colortex12Clear = false;
 
 // Debug Options
 #define IS_OPTIFINE
-#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25]
 //#define DEBUG_EXPOSURE_METERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
 #define PARTICLE_OPACITY 0.8
@@ -233,24 +233,24 @@ const bool colortex12Clear = false;
 #define GAMMA 2.2
 
 const float sunLumen = 24e8;
-const float moonLumen = 8000.0;
-const float StarLumen = 1200.0;
+const float moonLumen = 1200.0;
+const float StarLumen = 800.0;
 //const float BlockLightLumen = 2000;
 const float EmissionLumens = 1.0e5;
 
 const float SunLux = 64000.0;
 const float SunOvercastLux = 22000; //600.0;
-const float MoonLux = 60.0;
-const float MoonOvercastLux = 2.0;
+const float MoonLux = 14.0;
+const float MoonOvercastLux = 4.0;
 const float BlockLightLux = 12800.0; // 9k
-const float DaySkyLux = 30000.0;
-const float NightSkyLux = 200.0;
-const float MinWorldLux = 12.0;
+//const float DaySkyLux = 30000.0;
+//const float NightSkyLux = 200.0;
+const float MinWorldLux = 8.0;
 
-const float DaySkyLumen = 9000.0;
-const float DaySkyOvercastLumen = 6000.0;
-const float NightSkyLumen = 1200.0;
-const float NightSkyOvercastLumen = 60.0;
+const float DaySkyLumen = 6000.0;
+const float DaySkyOvercastLumen = 2000.0;
+const float NightSkyLumen = 4.0;
+const float NightSkyOvercastLumen = 1.0;
 
 const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.2;
 const vec4 WATER_COLOR = vec4(0.139, 0.271, 0.313, 0.1);

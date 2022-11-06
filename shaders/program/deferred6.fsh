@@ -161,7 +161,11 @@ uniform float fogEnd;
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
     #include "/lib/world/porosity.glsl"
+#endif
 
+#include "/lib/world/fog.glsl"
+
+#ifdef SKY_ENABLED
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #if SHADOW_PCF_SAMPLES == 12
             #include "/lib/sampling/poisson_12.glsl"
@@ -191,8 +195,6 @@ uniform float fogEnd;
         #include "/lib/shadows/contact.glsl"
     #endif
 #endif
-
-#include "/lib/world/fog.glsl"
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     #include "/lib/ssr.glsl"
@@ -323,35 +325,47 @@ void main() {
 
     // SKY
     if (screenDepth == 1.0) {
+        vec3 viewDir = normalize(viewPos);
+
         if (isEyeInWater == 1) {
-            vec3 viewDir = normalize(viewPos);
-            vec3 vlColor = WATER_SCATTER_COLOR;
+            vec3 waterLightColor = GetWaterScatterColor(viewDir, lightData.sunTransmittanceEye);
+            color = GetWaterFogColor(viewDir, lightData.sunTransmittanceEye, waterLightColor);
 
             #ifdef VL_ENABLED
                 vec3 nearPos = viewDir * near;
-                vec3 farPos = viewDir * min(far, WATER_FOG_DIST);
+                vec3 farPos = viewDir * min(far, 2.0 * WATER_FOG_DIST);
 
-                mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
-                vec3 shadowViewStart = (matViewToShadowView * vec4(nearPos, 1.0)).xyz;
-                vec3 shadowViewEnd = (matViewToShadowView * vec4(farPos, 1.0)).xyz;
-
-                vlColor *= GetWaterVolumetricLighting(lightData, shadowViewStart, shadowViewEnd);
+                color += GetWaterVolumetricLighting(lightData, nearPos, farPos, waterLightColor);
             #endif
 
-            color = GetWaterFogColor(viewDir, lightData.sunTransmittance, lightData.sunTransmittanceEye, vlColor);
-
             outColor1 = log2(luminance(color) + EPSILON);
-
             color = clamp(color * exposure, 0.0, 65000.0);
         }
         else {
             #ifdef SKY_ENABLED
-                color = texelFetch(BUFFER_HDR, iTex, 0).rgb;
-                outColor1 = texelFetch(BUFFER_LUMINANCE, iTex, 0).r;
+                color = texelFetch(BUFFER_HDR, iTex, 0).rgb / exposure;
+                //outColor1 = texelFetch(BUFFER_LUMINANCE, iTex, 0).r;
+
+                #if defined VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+                    vec3 viewNear = viewDir * near;
+                    vec3 viewFar = viewDir * far;
+
+                    vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
+                    vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
+
+                    #ifdef SHADOW_COLOR
+                        color += GetVolumetricLightingColor(lightData, viewNear, viewFar, lightColor);
+                    #else
+                        color += GetVolumetricLighting(lightData, viewNear, viewFar, lightColor);
+                    #endif
+                #endif
+
+                outColor1 = log2(luminance(color) + EPSILON);
+                color = clamp(color * exposure, 0.0, 65000.0);
             #else
                 color = RGBToLinear(fogColor) * 100.0;
-                outColor1 = log2(luminance(color) + EPSILON);
 
+                outColor1 = log2(luminance(color) + EPSILON);
                 color = clamp(color * exposure, 0.0, 65000.0);
             #endif
         }

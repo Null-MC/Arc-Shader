@@ -41,7 +41,7 @@ flat in int materialId;
     //flat in float matEmissive;
 #endif
 
-#if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_ENABLED)
+#if defined RSM_ENABLED || defined WATER_FANCY
     in vec3 viewPos;
     flat in mat3 matViewTBN;
 #endif
@@ -146,7 +146,7 @@ void main() {
         if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && materialId == 100) {
             float windSpeed = GetWindSpeed();
             float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
-            float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
+             float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
 
             float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
             vec2 waterWorldPos = waterScale * (localPos.xz + cameraPosition.xz);
@@ -157,8 +157,10 @@ void main() {
                 octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, saturate(viewDist / 200.0)));
             #endif
 
-            float depth = GetWaves(waterWorldPos, waveSpeed, octaves) * WATER_WAVE_DEPTH * WATER_NORMAL_STRENGTH;
-            vec3 waterPos = vec3(waterWorldPos.x, waterWorldPos.y, depth);
+            float waveDepth = GetWaveDepth(skyLight);
+
+            float finalDepth = GetWaves(waterWorldPos, waveSpeed, octaves) * waveDepth * WATER_NORMAL_STRENGTH;
+            vec3 waterPos = vec3(waterWorldPos.x, waterWorldPos.y, finalDepth);
 
             viewNormal = -normalize(
                 cross(

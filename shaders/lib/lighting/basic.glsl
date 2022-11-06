@@ -45,22 +45,23 @@
                     #endif
 
                     if (posY > EPSILON) {// || (abs(gl_Normal.y) < EPSILON && true)) {
-                        float windSpeed = GetWindSpeed();
-                        float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
+                        //float windSpeed = GetWindSpeed();
+                        //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
+                        float waveDepth = GetWaveDepth(skyLight);
                         
                         float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
                         vec2 waterWorldPos = waterWorldScale * (pos.xz + cameraPosition.xz);
-                        float depth = GetWaves(waterWorldPos, waveSpeed, WATER_OCTAVES_VERTEX);
-                        pos.y -= (1.0 - depth) * WATER_WAVE_DEPTH * posY;
+                        float depth = GetWaves(waterWorldPos, waveDepth, WATER_OCTAVES_VERTEX);
+                        pos.y -= (1.0 - depth) * waveDepth * posY;
 
                         #ifndef WATER_FANCY
                             vec2 waterWorldPosX = waterWorldPos + vec2(waterWorldScale, 0.0);
-                            float depthX = GetWaves(waterWorldPosX, waveSpeed, WATER_OCTAVES_VERTEX);
-                            vec3 pX = vec3(1.0, 0.0, (depthX - depth) * WATER_WAVE_DEPTH);
+                            float depthX = GetWaves(waterWorldPosX, waveDepth, WATER_OCTAVES_VERTEX);
+                            vec3 pX = vec3(1.0, 0.0, (depthX - depth) * waveDepth);
 
                             vec2 waterWorldPosY = waterWorldPos + vec2(0.0, waterWorldScale);
-                            float depthY = GetWaves(waterWorldPosY, waveSpeed, WATER_OCTAVES_VERTEX);
-                            vec3 pY = vec3(0.0, 1.0, (depthY - depth) * WATER_WAVE_DEPTH);
+                            float depthY = GetWaves(waterWorldPosY, waveDepth, WATER_OCTAVES_VERTEX);
+                            vec3 pY = vec3(0.0, 1.0, (depthY - depth) * waveDepth);
 
                             normal = normalize(cross(pX, pY)).xzy;
                         #endif
@@ -139,22 +140,28 @@
             vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
 
             //vec3 sunLightLux = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
-            float sunLux = GetSunLux();
-            vec3 sunLight = lightData.sunTransmittance;
+            vec3 sunLight = lightData.sunTransmittance * GetSunLux();
             sunLight *= dot(normal, sunLightDir) * 0.1 + 0.3;
 
-            vec3 moonLightLux = GetMoonLightLuxColor(skyLightTemp.y, 1.0);
+            vec3 moonLightLux = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);
             moonLightLux *= dot(normal, moonLightDir) * 0.1 + 0.3;
 
             // float skyLux = skyLightLevels.x * DaySkyLux + skyLightLevels.y * NightSkyLux;
             // vec3 skyLightColorLux = RGBToLinear(skyColor) * skyLux;
             // skyLightColorLux *= saturate(dot(normal, upDir) * 0.3 + 0.6);
 
-            vec3 skyColorLinear = RGBToLinear(skyColor) * skyTint;
-            sunLight += 0.4 * skyColorLinear * lightData.sunTransmittanceEye;
+            vec3 skyColorLux = RGBToLinear(skyColor);// * skyTint;
+            if (dot(skyColorLux, skyColorLux) < EPSILON) skyColorLux = vec3(1.0);
+            skyColorLux = normalize(skyColorLux);
+
+            //vec2 skyLightLevels = GetSkyLightLevels();
+            float lightLevel = saturate(skyLightLevels.x);
+            float dayNightF = smoothstep(0.1, 0.6, lightLevel);
+            float skyLux = mix(GetMoonLux(), GetSunLux(), dayNightF) + MinWorldLux;
+            skyColorLux *= 0.4 * skyLux;
 
             //return MinWorldLux + sunLightLux + moonLightLux;
-            return sunLight * sunLux + moonLightLux;
+            return sunLight + moonLightLux + skyColorLux;
         }
     #endif
 #endif

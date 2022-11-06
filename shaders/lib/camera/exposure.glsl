@@ -8,9 +8,9 @@ float GetEV100(const in float avgLum) {
     return GetEV100(avgLum, S, K);
 }
 
-float GetExposureKeyValue(const in float avgLum) {
-    return 1.03 - 2.0 / (2.0 + log(avgLum + 1.0));
-}
+// float GetExposureKeyValue(const in float avgLum) {
+//     return 1.03 - 2.0 / (2.0 + log(avgLum + 1.0));
+// }
 
 float GetExposure(const in float EV100) {
     float brightnessF = 0.01 * CAMERA_BRIGHTNESS; //3.0 - 2.0*screenBrightness;

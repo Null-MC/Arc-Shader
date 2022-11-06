@@ -81,11 +81,10 @@ vec3 tonemap_ACESFit2(const in vec3 color) {
     return pow(clamp(m2 * (a / b), 0.0, 1.0), vec3(1.0 / 2.2));
 }
 
-vec3 tonemap_FilmicHejl2015(const in vec3 hdr, const in float whitePoint) {
-    vec4 vh = vec4(hdr, whitePoint);    // pack: [r, g, b, w]
-    vec4 va = 1.425 * vh + 0.05;
-    vec4 vf = (vh * va + 0.004) / (vh * (va + 0.55) + 0.0491) - 0.0821;
-    return vf.rgb / vf.www;
+vec3 tonemap_FilmicHejl2015(const in vec3 hdr) {
+    vec3 va = 1.425 * hdr + 0.05;
+    vec3 vf = ((hdr * va + 0.004) / ((hdr * (va + 0.55) + 0.0491))) - 0.0821;
+    return vf / 0.918;
 }
 
 vec3 tonemap_Burgess(const in vec3 color) {
@@ -134,7 +133,7 @@ vec3 ApplyTonemap(const in vec3 color, const in float whitePoint) {
 #elif TONEMAP == TONEMAP_ACESFit2
     return tonemap_ACESFit2(color);
 #elif TONEMAP == TONEMAP_FilmicHejl2015
-    return tonemap_FilmicHejl2015(color, whitePoint);
+    return tonemap_FilmicHejl2015(color);
 #elif TONEMAP == TONEMAP_Burgess
     return tonemap_Burgess(color);
 #elif TONEMAP == TONEMAP_BurgessModified

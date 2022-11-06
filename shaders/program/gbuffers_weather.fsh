@@ -31,6 +31,7 @@ flat in vec3 blockLightColor;
     flat in vec3 sunTransmittanceEye;
 
     uniform sampler2D colortex9;
+    uniform usampler2D shadowcolor1;
 
     uniform vec3 upPosition;
     uniform vec3 sunPosition;
@@ -58,9 +59,9 @@ flat in vec3 blockLightColor;
                 uniform sampler2D shadowcolor0;
             #endif
 
-            #if defined SSS_ENABLED && defined SHADOW_COLOR
-                uniform usampler2D shadowcolor1;
-            #endif
+            // #if defined SSS_ENABLED && defined SHADOW_COLOR
+            //     uniform usampler2D shadowcolor1;
+            // #endif
 
             uniform mat4 shadowModelView;
 
@@ -111,6 +112,7 @@ uniform int fogMode;
 #include "/lib/depth.glsl"
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/lighting/light_data.glsl"
+#include "/lib/lighting/brdf.glsl"
 
 #ifdef HANDLIGHT_ENABLED
     #include "/lib/lighting/basic_handlight.glsl"

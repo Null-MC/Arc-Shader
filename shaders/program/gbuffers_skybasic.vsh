@@ -53,10 +53,10 @@ uniform int moonPhase;
 void main() {
     gl_Position = ftransform();
 
-    float starFactor = pow(gl_Color.r, GAMMA) * float(gl_Color.r == gl_Color.g && gl_Color.g == gl_Color.b && gl_Color.r > 0.0);
+    float starFactor = float(gl_Color.r == gl_Color.g && gl_Color.g == gl_Color.b && gl_Color.r > 0.0);
     
-    float starTemp = mix(5300, 6000, starFactor);
-    starData = blackbody(starTemp) * starFactor * StarLumen;
+    //float starTemp = mix(5300, 6000, starFactor);
+    starData = blackbody(4000) * starFactor * StarLumen;
 
     vec2 skyLightLevels = GetSkyLightLevels();
     vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);

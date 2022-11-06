@@ -57,7 +57,7 @@
         #endif
 
         #ifndef RENDER_WATER
-            if (colorMap.a < alphaTestRef) discard;
+            if (colorMap.a < 10.0/255.0) discard;
         #endif
 
         colorMap.rgb *= glcolor.rgb;
@@ -66,6 +66,10 @@
             colorMap.rgb = mix(colorMap.rgb, entityColor.rgb, entityColor.a);
 
             // TODO: fix lightning?
+        #endif
+
+        #if DEBUG_VIEW == DEBUG_VIEW_WHITEWORLD
+            colorMap.rgb = vec3(1.0);
         #endif
 
         //if (dot(viewNormal, viewNormal) < 0.1)

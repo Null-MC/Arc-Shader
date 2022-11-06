@@ -82,6 +82,8 @@
 
                 float depth, depthX, depthY;
                 vec3 waterPos;
+                
+                float waveDepth = GetWaveDepth(lightData.skyLight);
 
                 #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
                     const float waterWorldScale = rcp(2.0*WATER_RADIUS);
@@ -96,12 +98,12 @@
 
                         if (viewDist < WATER_RADIUS && tanViewDir.z < 0.0) {
                             float waterDepth = max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepth, 0.0);
-                            GetWaterParallaxCoord(waterTex, water_dFdXY, tanViewDir, viewDist, waterDepth);
+                            GetWaterParallaxCoord(waterTex, water_dFdXY, tanViewDir, viewDist, waterDepth, lightData.skyLight);
 
                             //const float waterParallaxDepth = WATER_WAVE_DEPTH / (2.0*WATER_RADIUS);
                             float pomDist = isEyeInWater == 1 ? waterTex.z : (1.0 - waterTex.z);
                             pomDist /= max(-tanViewDir.z, 0.01);
-                            pomDist *= WATER_WAVE_DEPTH;
+                            pomDist *= waveDepth;
 
                             if (pomDist > 0.0) {
                                 vec3 viewDir = normalize(viewPosFinal);
@@ -126,7 +128,7 @@
                         float dx = depthX - depth;
                         float dy = depthY - depth;
 
-                        const float waterParallaxDepth = 8.0 * (WATER_WAVE_DEPTH / (2.0*WATER_RADIUS));
+                        float waterParallaxDepth = 8.0 * (waveDepth / (2.0*WATER_RADIUS));
                         const float waterPixelSize = rcp(WATER_RESOLUTION);
 
                         material.normal = normalize(cross(
@@ -143,12 +145,13 @@
                     #endif
 
                     float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
-                    float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
+                    //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
+                    //float waveStrength = GetWaveDepth(windSpeed, skyLight);
 
                     float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
                     vec2 waterWorldPos = waterScale * (localPos.xz + cameraPosition.xz);
 
-                    depth = GetWaves(waterWorldPos, waveSpeed, octaves) * WATER_WAVE_DEPTH * WATER_NORMAL_STRENGTH;
+                    depth = GetWaves(waterWorldPos, waveDepth, octaves) * waveDepth * WATER_NORMAL_STRENGTH;
                     waterPos = vec3(waterWorldPos.x, waterWorldPos.y, depth);
 
                     material.normal = normalize(
@@ -259,6 +262,10 @@
             }
         #endif
 
+        #if DEBUG_VIEW == DEBUG_VIEW_WHITEWORLD
+            material.albedo.rgb = vec3(1.0);
+        #endif
+
         vec3 _viewNormal = normalize(viewNormal);
         vec3 _viewTangent = normalize(viewTangent);
         vec3 _viewBinormal = normalize(cross(_viewTangent, _viewNormal) * tangentW);
@@ -292,8 +299,8 @@
                     #endif
                 }
 
-                lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData, vec2(0.0), lightData.opaqueShadowCascade);
-                lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData, vec2(0.0), lightData.transparentShadowCascade);
+                lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData.shadowPos, lightData.shadowTilePos, vec2(0.0), lightData.opaqueShadowCascade);
+                lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData.shadowPos, lightData.shadowTilePos, vec2(0.0), lightData.transparentShadowCascade);
 
                 //float minOpaqueDepth = min(lightData.shadowPos[lightData.opaqueShadowCascade].z, lightData.opaqueShadowDepth);
                 //lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 4.0 * far;

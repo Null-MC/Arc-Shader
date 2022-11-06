@@ -92,21 +92,27 @@ vec4 BasicLighting(const in LightData lightData) {
         final.a = albedo.a * mix(WEATHER_OPACITY * 0.01, 1.0, saturate(max(rainSnowSunVL, rainSnowMoonVL)));
     #endif
 
-    float fogFactor = ApplyFog(final, viewPos, lightData, EPSILON);
+    //float fogFactor = ApplyFog(final, viewPos, lightData, EPSILON);
+    float fogFactor;
+    vec3 fogColorFinal;
+    GetFog(lightData, viewPos, fogColorFinal, fogFactor);
+
+    ApplyFog(final, fogColorFinal, fogFactor, 1.0/255.0);
 
     #ifdef SKY_ENABLED
         vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
         vec3 vlColor = GetVanillaSkyScattering(viewDir, lightData.skyLightLevels, sunColorFinal, moonColor);
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined VL_ENABLED && (defined VL_PARTICLES || (!defined RENDER_TEXTURED && !defined RENDER_WEATHER))
-            mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
-            vec3 shadowViewStart = (matViewToShadowView * vec4(vec3(0.0, 0.0, -near), 1.0)).xyz;
-            vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
+            // mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
+            // vec3 shadowViewStart = (matViewToShadowView * vec4(vec3(0.0, 0.0, -near), 1.0)).xyz;
+            // vec3 shadowViewEnd = (matViewToShadowView * vec4(viewPos, 1.0)).xyz;
+            vec3 viewNear = viewDir * near;
 
             #ifdef SHADOW_COLOR
-                vlColor *= GetVolumetricLightingColor(lightData, shadowViewStart, shadowViewEnd);
+                vlColor *= GetVolumetricLightingColor(lightData, viewNear, viewPos);
             #else
-                vlColor *= GetVolumetricLighting(lightData, shadowViewStart, shadowViewEnd);
+                vlColor *= GetVolumetricLighting(lightData, viewNear, viewPos);
             #endif
         #else
             vlColor *= fogFactor;

@@ -136,20 +136,21 @@ void main() {
         if (materialId == 100) {
             float windSpeed = GetWindSpeed();
             float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
+            float waveDepth = GetWaveDepth(skyLight);
             
             float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
             vec2 waterWorldPos = waterWorldScale * (localPos.xz + cameraPosition.xz);
             float depth = GetWaves(waterWorldPos, waveSpeed, WATER_OCTAVES_VERTEX);
-            localPos.y -= (1.0 - depth) * WATER_WAVE_DEPTH;
+            localPos.y -= (1.0 - depth) * waveDepth;
 
             #ifndef WATER_FANCY
                 vec2 waterWorldPosX = waterWorldPos + vec2(waterWorldScale, 0.0);
                 float depthX = GetWaves(waterWorldPosX, waveSpeed, WATER_OCTAVES_VERTEX);
-                vec3 pX = vec3(1.0, 0.0, (depthX - depth) * WATER_WAVE_DEPTH);
+                vec3 pX = vec3(1.0, 0.0, (depthX - depth) * waveDepth);
 
                 vec2 waterWorldPosY = waterWorldPos + vec2(0.0, waterWorldScale);
                 float depthY = GetWaves(waterWorldPosY, waveSpeed, WATER_OCTAVES_VERTEX);
-                vec3 pY = vec3(0.0, 1.0, (depthY - depth) * WATER_WAVE_DEPTH);
+                vec3 pY = vec3(0.0, 1.0, (depthY - depth) * waveDepth);
 
                 normal = normalize(cross(pX, pY)).xzy;
             #endif
@@ -157,7 +158,10 @@ void main() {
     #endif
 
     vec4 shadowViewPos = gl_ModelViewMatrix * vec4(localPos, 1.0);
-    viewPos = (gbufferModelView * vec4(localPos, 1.0)).xyz;
+
+    #if defined WATER_FANCY && defined VL_ENABLED
+        viewPos = (gbufferModelView * vec4(localPos, 1.0)).xyz;
+    #endif
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         cascadeSizes[0] = GetCascadeDistance(0);

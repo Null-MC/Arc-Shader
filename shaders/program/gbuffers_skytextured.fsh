@@ -40,9 +40,14 @@ void main() {
     }
     else if (renderStage == MC_RENDER_STAGE_MOON) {
         lumF += moonLumen;
-        color *= moonLightLumColor * moonLightLevel * 0.1;
+        color *= moonLightLumColor;// * moonLightLevel * 0.1;
         lum *= moonLightLevel;
     }
+    // else if (renderStage == MC_RENDER_STAGE_CUSTOM_SKY) {
+    //     lumF = 10000.0;
+    //     //color = vec3(1000.0, 0.0, 0.0);
+    //     //lum = 10.0;
+    // }
 
     float alpha = saturate(lum);
 

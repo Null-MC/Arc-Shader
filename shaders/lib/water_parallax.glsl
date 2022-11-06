@@ -1,5 +1,6 @@
-void GetWaterParallaxCoord(inout vec3 coordDepth, const in mat2 dFdXY, const in vec3 tanViewDir, const in float viewDist, const in float waterDepth) {
-    const float waterParallaxDepth = WATER_WAVE_DEPTH / (2.0*WATER_RADIUS);
+void GetWaterParallaxCoord(inout vec3 coordDepth, const in mat2 dFdXY, const in vec3 tanViewDir, const in float viewDist, const in float waterDepth, const in float skyLight) {
+    float waveDepth = GetWaveDepth(skyLight);
+    float waterParallaxDepth = waveDepth / (2.0*WATER_RADIUS);
 
     float viewDistF = saturate(viewDist / WATER_RADIUS);
     //viewDistF = min(1.0 - viewDistF, viewDistF*40.0);
@@ -38,7 +39,7 @@ void GetWaterParallaxCoord(inout vec3 coordDepth, const in mat2 dFdXY, const in 
 
         float traceDepth = i * stepDepth;
 
-        float dist2 = saturate((viewDist + (traceDepth / -tanViewDir.z * WATER_WAVE_DEPTH)) / WATER_RADIUS);
+        float dist2 = saturate((viewDist + (traceDepth / -tanViewDir.z * waveDepth)) / WATER_RADIUS);
 
         if (isEyeInWater == 1) {
             if (traceDepth >= min(texDepth, 1.0 - dist2)) break;

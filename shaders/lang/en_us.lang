@@ -373,6 +373,7 @@ value.DEBUG_VIEW.21=Prev Depth Tiles
 value.DEBUG_VIEW.22=Ambient Occlusion
 value.DEBUG_VIEW.23=BRDF LUT
 value.DEBUG_VIEW.24=Sun-Transmission LUT
+value.DEBUG_VIEW.25=White-World
 
 option.DEBUG_EXPOSURE_METERS=Exposure Meters
 option.DEBUG_EXPOSURE_METERS.comment=When enabled, two bars will be shown on the left screen edge. - The average luminance is the first bar in red. - The EV value is the second bar in green.

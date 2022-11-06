@@ -70,7 +70,7 @@ void main() {
     vec4 colorMap = texture(gtexture, texcoord);
     colorMap.rgb = RGBToLinear(colorMap.rgb);// * glcolor.rgb);
 
-    if (colorMap.a < alphaTestRef) discard;
+    if (colorMap.a < 10.0/255.0) discard;
 
     float viewDist = length(viewPos);
     vec3 viewDir = normalize(viewPos);

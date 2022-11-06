@@ -17,7 +17,8 @@ float GetScatteringFactor(const in float sunLightLevel) {
 }
 
 vec3 GetVanillaSkyScattering(const in vec3 viewDir, const in vec2 skyLightLevels, const in vec3 sunColor, const in vec3 moonColor) {
-    float scattering_G = GetScatteringFactor(skyLightLevels.x);
+    float sunLightLevel = saturate(skyLightLevels.x);
+    float scattering_G = GetScatteringFactor(sunLightLevel);
 
     #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
         vec3 sunDir = GetFixedSunPosition();
@@ -36,6 +37,8 @@ vec3 GetVanillaSkyScattering(const in vec3 viewDir, const in vec2 skyLightLevels
         saturate(sunScattering) * sunColor +
         saturate(moonScattering) * moonColor;
 
-    if (isEyeInWater == 1) vlColor *= WATER_COLOR.rgb;
+    //if (isEyeInWater == 1) vlColor *= WATER_COLOR.rgb;
+    // else vlColor *= RGBToLinear(skyColor);
+
     return vlColor * (0.01 * VL_STRENGTH);
 }

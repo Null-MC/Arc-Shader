@@ -22,6 +22,7 @@ void main() {
 
     float windSpeed = GetWindSpeed();
     float waveSpeed = GetWaveSpeed(windSpeed, 1.0); // TODO: skylight not available!
+    //float waveDepth = GetWaveDepth();
 
-    outColor0 = GetWaves(pos, waveSpeed, WATER_OCTAVES_NEAR);
+    outColor0 = GetWaves(pos, 1.0, WATER_OCTAVES_NEAR);
 }
