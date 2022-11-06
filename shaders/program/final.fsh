@@ -234,11 +234,14 @@ void main() {
     #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SHADOW
         // Deferred Shadow
         color = texelFetch(BUFFER_DEFERRED2, iuv, 0).rgb;
+    #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_COLOR
+        // Shadow Color
+        color = textureLod(shadowcolor0, texcoord, 0).rgb;
+        color = LinearToRGB(color);
     #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_NORMAL
         // Shadow Normal
         uint data = textureLod(shadowcolor1, texcoord, 0).g;
         color = unpackUnorm4x8(data).rgb;
-    //DEBUG_VIEW_SHADOW_NORMAL
     #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_SSS
         // Shadow SSS
         #ifdef SHADOW_COLOR

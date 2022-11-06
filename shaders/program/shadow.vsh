@@ -51,6 +51,10 @@ uniform float far;
     uniform int worldTime;
 #endif
 
+#if defined WATER_FANCY && !defined WORLD_NETHER
+    flat out int waterMask;
+#endif
+
 #if MC_VERSION >= 11700 && (defined IS_OPTIFINE || defined IRIS_FEATURE_CHUNK_OFFSET)
     uniform vec3 chunkOffset;
 #else
@@ -131,29 +135,40 @@ void main() {
         }
     #endif
 
+    waterMask = 0;
     materialId = int(mc_Entity.x + 0.5);
     #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
         if (materialId == 100) {
-            float windSpeed = GetWindSpeed();
-            float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
-            float waveDepth = GetWaveDepth(skyLight);
-            
-            float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
-            vec2 waterWorldPos = waterWorldScale * (localPos.xz + cameraPosition.xz);
-            float depth = GetWaves(waterWorldPos, waveSpeed, WATER_OCTAVES_VERTEX);
-            localPos.y -= (1.0 - depth) * waveDepth;
-
-            #ifndef WATER_FANCY
-                vec2 waterWorldPosX = waterWorldPos + vec2(waterWorldScale, 0.0);
-                float depthX = GetWaves(waterWorldPosX, waveSpeed, WATER_OCTAVES_VERTEX);
-                vec3 pX = vec3(1.0, 0.0, (depthX - depth) * waveDepth);
-
-                vec2 waterWorldPosY = waterWorldPos + vec2(0.0, waterWorldScale);
-                float depthY = GetWaves(waterWorldPosY, waveSpeed, WATER_OCTAVES_VERTEX);
-                vec3 pY = vec3(0.0, 1.0, (depthY - depth) * waveDepth);
-
-                normal = normalize(cross(pX, pY)).xzy;
+            #if MC_VERSION >= 11700
+                float vY = -at_midBlock.y / 64.0;
+                float posY = saturate(vY + 0.5) * (1.0 - step(0.5, vY + EPSILON));
+            #else
+                float posY = step(EPSILON, gl_Normal.y);
             #endif
+
+            if (posY > EPSILON) {
+                waterMask = 1;
+                //float windSpeed = GetWindSpeed();
+                //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
+                float waveDepth = GetWaveDepth(skyLight);
+                
+                float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
+                vec2 waterWorldPos = waterWorldScale * (localPos.xz + cameraPosition.xz);
+                float depth = GetWaves(waterWorldPos, waveDepth, WATER_OCTAVES_VERTEX);
+                localPos.y -= (1.0 - depth) * waveDepth;
+
+                #ifndef WATER_FANCY
+                    vec2 waterWorldPosX = waterWorldPos + vec2(waterWorldScale, 0.0);
+                    float depthX = GetWaves(waterWorldPosX, waveDepth, WATER_OCTAVES_VERTEX);
+                    vec3 pX = vec3(1.0, 0.0, (depthX - depth) * waveDepth);
+
+                    vec2 waterWorldPosY = waterWorldPos + vec2(0.0, waterWorldScale);
+                    float depthY = GetWaves(waterWorldPosY, waveDepth, WATER_OCTAVES_VERTEX);
+                    vec3 pY = vec3(0.0, 1.0, (depthY - depth) * waveDepth);
+
+                    normal = normalize(cross(pX, pY)).xzy;
+                #endif
+            }
         }
     #endif
 

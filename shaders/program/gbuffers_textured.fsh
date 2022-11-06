@@ -115,7 +115,7 @@ uniform int fogMode;
 #include "/lib/depth.glsl"
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/lighting/light_data.glsl"
-#include "/lib/lighting/brdf.glsl"
+#include "/lib/lighting/fresnel.glsl"
 
 #ifdef SKY_ENABLED
     #include "/lib/world/scattering.glsl"
@@ -147,7 +147,7 @@ uniform int fogMode;
         #include "/lib/shadows/basic_render.glsl"
     #endif
 
-    #if defined VL_ENABLED && defined VL_PARTICLES
+    #if defined VL_ENABLED //&& defined VL_PARTICLES
         #include "/lib/lighting/volumetric.glsl"
     #endif
 #endif

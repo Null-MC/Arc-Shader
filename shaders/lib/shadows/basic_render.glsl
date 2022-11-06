@@ -32,7 +32,8 @@
             //if (lightData.shadowPos.z - lightData.transparentShadowDepth < EPSILON) return vec3(1.0);
 
             vec3 color = textureLod(shadowcolor0, shadowPos, 0).rgb;
-            return RGBToLinear(color);
+            //color = RGBToLinear(color);
+            return color;
         }
     #endif
 

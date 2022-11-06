@@ -69,6 +69,8 @@ uniform int renderStage;
 #endif
 
 #if defined WATER_FANCY && !defined WORLD_NETHER
+    flat in int waterMask;
+
     uniform sampler2D BUFFER_WATER_WAVES;
 
     uniform vec3 cameraPosition;
@@ -121,11 +123,12 @@ void main() {
             lightColor.rgb = vec3(1.0);
         }
         else {
-            lightColor.rgb = mix(vec3(1.0), lightColor.rgb, sqrt(max(lightColor.a, EPSILON)));
-            lightColor.rgb = mix(lightColor.rgb, vec3(0.0), pow2(lightColor.a));
+            //lightColor.rgb = mix(vec3(1.0), lightColor.rgb, sqrt(max(lightColor.a, EPSILON)));
+            //lightColor.rgb = mix(lightColor.rgb, vec3(0.0), pow2(lightColor.a));
+            //lightColor.rgb *= 1.0 - pow2(lightColor.a);
         }
 
-        lightColor.rgb = LinearToRGB(lightColor.rgb);
+        //lightColor.rgb = LinearToRGB(lightColor.rgb);
         outColor0 = lightColor;
     #endif
 
@@ -143,10 +146,11 @@ void main() {
     #endif
 
     #if defined WATER_FANCY && !defined WORLD_NETHER && !defined WORLD_END
-        if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && materialId == 100) {
-            float windSpeed = GetWindSpeed();
+        if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && waterMask == 1) {
+            //float windSpeed = GetWindSpeed();
             float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
-             float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
+            //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
+            float waveDepth = GetWaveDepth(skyLight);
 
             float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
             vec2 waterWorldPos = waterScale * (localPos.xz + cameraPosition.xz);
@@ -157,9 +161,7 @@ void main() {
                 octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, saturate(viewDist / 200.0)));
             #endif
 
-            float waveDepth = GetWaveDepth(skyLight);
-
-            float finalDepth = GetWaves(waterWorldPos, waveSpeed, octaves) * waveDepth * WATER_NORMAL_STRENGTH;
+            float finalDepth = GetWaves(waterWorldPos, waveDepth, octaves) * waveDepth * WATER_NORMAL_STRENGTH;
             vec3 waterPos = vec3(waterWorldPos.x, waterWorldPos.y, finalDepth);
 
             viewNormal = -normalize(

@@ -171,6 +171,7 @@ uniform int fogShape;
 #include "/lib/material/hcm.glsl"
 #include "/lib/material/material.glsl"
 #include "/lib/material/material_reader.glsl"
+#include "/lib/lighting/fresnel.glsl"
 #include "/lib/lighting/brdf.glsl"
 
 #ifdef PARALLAX_ENABLED

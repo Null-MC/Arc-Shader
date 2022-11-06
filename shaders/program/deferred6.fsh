@@ -150,6 +150,7 @@ uniform float fogEnd;
 #include "/lib/material/hcm.glsl"
 #include "/lib/material/material.glsl"
 #include "/lib/material/material_reader.glsl"
+#include "/lib/lighting/fresnel.glsl"
 #include "/lib/lighting/brdf.glsl"
 
 #if defined SSAO_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE)
