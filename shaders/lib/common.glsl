@@ -148,7 +148,7 @@ const bool colortex12Clear = false;
 //#define EXPOSURE_POINT 0.2
 #define EXPOSURE_SPEED_UP 1.0
 #define EXPOSURE_SPEED_DOWN 0.7
-#define TONEMAP 8 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
+#define TONEMAP 1 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
 
 #define CAMERA_BRIGHTNESS 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define CAMERA_SATURATION 100 // [0 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
@@ -168,7 +168,7 @@ const bool colortex12Clear = false;
 #define BLOOM_THRESHOLD 0.14
 #define BLOOM_THRESHOLD_WATER 0.12
 #define BLOOM_POWER 2.4
-#define BLOOM_POWER_WATER 1.8
+#define BLOOM_POWER_WATER 1.6
 #define BLOOM_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define BLOOM_LOD_MAX 0 // [0 1 2 3 4 5 6 7 8 9]
 #define VL_ENABLED
@@ -176,10 +176,10 @@ const bool colortex12Clear = false;
 #define VL_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 175 200 225 250 275 300 350 400 450 500 600 700 800 900]
 #define VL_SAMPLE_COUNT 30 // [15 30 60 90]
 //#define VL_PARTICLES
-#define G_SCATTERING_CLEAR 0.1
-#define G_SCATTERING_NIGHT 0.6
+#define G_SCATTERING_CLEAR 0.4
+#define G_SCATTERING_NIGHT 0.65
 //#define G_SCATTERING_HUMID 0.08
-#define G_SCATTERING_RAIN 0.06
+#define G_SCATTERING_RAIN 0.16
 #define G_SCATTERING_WATER 0.16
 #define G_SCATTERING_CLOUDS 0.32
 #define G_SCATTERING_RAIN_CLOUDS 0.48
@@ -250,7 +250,7 @@ const float BlockLightLux = 12800.0; // 9k
 const float MinWorldLux = 8.0;
 
 const float DaySkyLumen = 6000.0;
-const float DaySkyOvercastLumen = 2000.0;
+const float DaySkyOvercastLumen = 1000.0;
 const float NightSkyLumen = 4.0;
 const float NightSkyOvercastLumen = 1.0;
 

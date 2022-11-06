@@ -34,8 +34,8 @@ void main() {
     float lumF = 0.0;
 
     if (renderStage == MC_RENDER_STAGE_SUN) {
-        lumF += sunLumen;// * sunLightLevel;//luminance(sunTransmittanceLum);
-        color *= sunTransmittance * 10000.0;
+        lumF += sunLumen;
+        color *= sunTransmittance * 1.0e6;//sunLumen
         lum *= sunLightLevel;
     }
     else if (renderStage == MC_RENDER_STAGE_MOON) {

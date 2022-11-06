@@ -139,6 +139,7 @@
                 #endif
 
                     vec3 viewUp = normalize(upPosition);
+                    if (isEyeInWater == 1) viewUp = -viewUp;
                     if (dot(viewNormal, viewUp) > EPSILON) {
                         int octaves = WATER_OCTAVES_FAR;
                         #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
