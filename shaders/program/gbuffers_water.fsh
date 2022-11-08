@@ -200,6 +200,8 @@ uniform int fogShape;
 #endif
 
 #include "/lib/world/fog.glsl"
+#include "/lib/sky/clouds.glsl"
+#include "/lib/sky/stars.glsl"
 
 #ifdef SKY_ENABLED
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE

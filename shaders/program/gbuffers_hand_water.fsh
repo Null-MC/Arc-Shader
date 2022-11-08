@@ -105,6 +105,8 @@ uniform ivec2 atlasSize;
 
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
+
+uniform float frameTimeCounter;
 uniform ivec2 eyeBrightnessSmooth;
 uniform ivec2 eyeBrightness;
 uniform int heldBlockLightValue;
@@ -175,6 +177,8 @@ uniform int fogShape;
 #endif
 
 #include "/lib/world/fog.glsl"
+#include "/lib/sky/clouds.glsl"
+#include "/lib/sky/stars.glsl"
 
 #ifdef SKY_ENABLED
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE

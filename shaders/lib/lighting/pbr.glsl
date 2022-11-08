@@ -30,7 +30,7 @@
 
 #ifdef RENDER_FRAG
     #ifdef SKY_ENABLED
-        vec3 GetSkyReflectionColor(const in LightData lightData, const in vec3 viewDir, const in vec3 reflectDir) {
+        vec3 GetSkyReflectionColor(const in LightData lightData, const in vec3 localPos, const in vec3 viewDir, const in vec3 reflectDir) {
             #ifdef RENDER_WATER
                 if (materialId == 100 && isEyeInWater == 1) {
                     vec3 waterLightColor = GetWaterScatterColor(viewDir, lightData.sunTransmittanceEye);
@@ -43,6 +43,20 @@
             vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor;
             vec3 vlColor = GetVanillaSkyScattering(viewDir, lightData.skyLightLevels, sunColorFinal, moonColor);
             skyColor += vlColor * RGBToLinear(fogColor);
+
+            vec3 localReflectDir = mat3(gbufferModelViewInverse) * reflectDir;
+            vec3 starF = GetStarLight(normalize(localReflectDir));
+            skyColor += starF * StarLumen;
+
+            // TODO: clouds
+            //float cloudF = GetCloudFactor(cameraPosition, localPos);
+            float cloudF = GetCloudFactor(cameraPosition + localPos, localReflectDir);
+
+            vec3 upDir = normalize(upPosition);
+            float horizonFogF = 1.0 - abs(dot(viewDir, upDir));
+            cloudF *= 1.0 - pow(horizonFogF, 8.0);
+
+            skyColor = mix(skyColor, vec3(0.0), cloudF);
 
             // darken lower horizon
             vec3 downDir = normalize(-upPosition);
@@ -58,6 +72,8 @@
         vec3 viewDir = normalize(viewPos);
         float viewDist = length(viewPos);
 
+        vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+
         #ifdef RENDER_DEFERRED
             vec2 screenUV = texcoord;
         #else
@@ -65,6 +81,8 @@
         #endif
 
         #ifdef SKY_ENABLED
+            vec3 sunColor = lightData.sunTransmittance * GetSunLux();
+            vec3 skyLightColorFinal = (sunColor + moonColor);// * shadowColor;
             vec3 viewLightDir = normalize(shadowLightPosition);
             float NoL = dot(viewNormal, viewLightDir);
 
@@ -94,7 +112,7 @@
                 if (materialId != 100 && materialId != 101) {
             #endif
                 if (wetnessFinal > EPSILON) {
-                    vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
+                    vec3 waterLocalPos = localPos + cameraPosition;
                     float noiseHigh = 1.0 - textureLod(noisetex, 0.24*localPos.xz, 0).r;
                     float noiseLow = 1.0 - textureLod(noisetex, 0.03*localPos.xz, 0).r;
 
@@ -126,6 +144,17 @@
             shadow *= step(EPSILON, lightData.geoNoL);
             shadow *= step(EPSILON, NoL);
 
+            #ifdef SHADOW_CLOUD
+                vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
+                vec3 upDir = normalize(upPosition);
+
+                float cloudF = 1.0 - GetCloudFactor(cameraPosition + localPos, localLightDir);
+                float horizonFogF = 1.0 - max(dot(localLightDir, upDir), 0.0);
+
+                cloudF *= 1.0 - pow(horizonFogF, 8.0);
+                skyLightColorFinal *= pow2(cloudF);
+            #endif
+
             float contactShadow = 1.0;
             float contactLightDist = 0.0;
             #if SHADOW_CONTACT != SHADOW_CONTACT_NONE
@@ -148,6 +177,7 @@
                 #ifdef SHADOW_COLOR
                     shadowColor = GetShadowColor(lightData.shadowPos.xy);
                     //shadowColor = RGBToLinear(shadowColor);
+                    skyLightColorFinal *= shadowColor;
                 #endif
 
                 #ifdef SSS_ENABLED
@@ -200,8 +230,7 @@
 
             if (smoothness > EPSILON) {
                 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-                    vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
-                    vec3 viewPosPrev = (gbufferPreviousModelView * vec4(localPos - previousCameraPosition, 1.0)).xyz;
+                    vec3 viewPosPrev = (gbufferPreviousModelView * vec4(localPos + cameraPosition - previousCameraPosition, 1.0)).xyz;
 
                     vec3 localReflectDir = mat3(gbufferModelViewInverse) * reflectDir;
                     vec3 reflectDirPrev = mat3(gbufferPreviousModelView) * localReflectDir;
@@ -212,16 +241,16 @@
 
                     vec4 roughReflectColor = GetReflectColor(BUFFER_DEPTH_PREV, viewPosPrev, reflectDirPrev, lod);
 
-                    reflectColor = (roughReflectColor.rgb / exposure) * roughReflectColor.a;
+                    reflectColor = roughReflectColor.rgb * roughReflectColor.a;
 
                     #ifdef SKY_ENABLED
                         if (roughReflectColor.a + EPSILON < 1.0) {
-                            vec3 skyReflectColor = GetSkyReflectionColor(lightData, viewDir, reflectDir) * skyLight3;
+                            vec3 skyReflectColor = GetSkyReflectionColor(lightData, localPos, viewDir, reflectDir) * skyLight3;
                             reflectColor += skyReflectColor * (1.0 - roughReflectColor.a);
                         }
                     #endif
                 #elif REFLECTION_MODE == REFLECTION_MODE_SKY && defined SKY_ENABLED
-                    reflectColor = GetSkyReflectionColor(lightData, viewDir, reflectDir) * skyLight3;
+                    reflectColor = GetSkyReflectionColor(lightData, localPos, viewDir, reflectDir) * skyLight3;
                 #endif
             }
         #endif
@@ -283,8 +312,8 @@
             float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength);// * SHADOW_BRIGHTNESS;
             vec3 skyAmbient = GetSkyAmbientLight(lightData, viewNormal) * ambientBrightness;
 
-            vec3 sunColor = lightData.sunTransmittance * GetSunLux();
-            vec3 skyLightColorFinal = (sunColor + moonColor) * shadowColor;
+            // vec3 sunColor = lightData.sunTransmittance * GetSunLux();
+            // vec3 skyLightColorFinal = (sunColor + moonColor) * shadowColor;
 
             bool applyWaterAbsorption = isEyeInWater == 1;
 
@@ -642,10 +671,10 @@
                 #endif
             #endif
 
-            #if defined SKY_ENABLED && defined VL_ENABLED
-                vec3 viewNear = viewDir * near;
-                final.rgb += GetVolumetricLighting(lightData, viewNear, viewPos, lightColor);
-            #endif
+            // #if defined SKY_ENABLED && defined VL_ENABLED
+            //     vec3 viewNear = viewDir * near;
+            //     final.rgb += GetVolumetricLighting(lightData, viewNear, viewPos, lightColor);
+            // #endif
         }
 
         return final;

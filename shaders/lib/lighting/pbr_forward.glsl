@@ -60,6 +60,7 @@
 
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
         float viewDist = length(viewPos) - near;
+        vec3 viewDir = normalize(viewPos);
 
         #if defined PARALLAX_ENABLED && defined PARALLAX_DEPTH_WRITE
             gl_FragDepth = gl_FragCoord.z;
@@ -106,7 +107,7 @@
                             pomDist *= waveDepth;
 
                             if (pomDist > 0.0) {
-                                vec3 viewDir = normalize(viewPosFinal);
+                                // vec3 viewDir = normalize(viewPosFinal);
                                 vec3 newViewPosFinal = viewPosFinal + viewDir * pomDist;// * waterParallaxDepth;
                                 float fragDepth = 0.5 * ((-gbufferProjection[2].z*-newViewPosFinal.z + gbufferProjection[3].z) / -newViewPosFinal.z) + 0.5;
 
@@ -340,6 +341,21 @@
             #endif
         #endif
 
-        return PbrLighting2(material, lightData, viewPosFinal);
+        vec4 finalColor = PbrLighting2(material, lightData, viewPosFinal);
+
+        #if defined SKY_ENABLED && defined VL_ENABLED
+            if (isEyeInWater != 1) {
+                vec3 viewNear = viewDir * near;
+                vec3 viewFar = viewDir * min(length(viewPos), far);
+
+                vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
+                vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
+
+                finalColor.rgb += GetVolumetricLighting(lightData, viewNear, viewFar, lightColor);
+                // TODO: increase alpha with VL
+            }
+        #endif
+
+        return finalColor;
     }
 #endif

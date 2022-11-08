@@ -21,6 +21,14 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
         shadowViewStart += rayStep * GetScreenBayerValue();
     #endif
 
+    #ifdef SHADOW_CLOUD
+        vec3 viewLightDir = normalize(shadowLightPosition);
+        vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
+
+        vec3 upDir = normalize(upPosition);
+        float horizonFogF = 1.0 - abs(dot(viewLightDir, upDir));
+    #endif
+
     for (int i = 1; i <= VL_SAMPLE_COUNT; i++) {
         vec3 currentShadowViewPos = shadowViewStart + i * rayStep;
 
@@ -42,6 +50,29 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
             shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
 
             float sampleF = CompareOpaqueDepth(shadowPos, vec2(0.0), 0.0);
+        #endif
+
+        #ifdef SHADOW_CLOUD
+            vec3 localPos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
+            float cloudF = 0.0;
+
+            if (localLightDir.y <= 0.0) {
+                // if (cameraPosition.y + localPos.y > CLOUD_PLANE_Y_LEVEL) {
+                //     cloudF = 1.0 - GetCloudFactor(cameraPosition + localPos, localLightDir);
+                //     //float horizonFogF = 1.0 - max(dot(viewLightDir, upDir), 0.0);
+                //     //cloudF *= 1.0 - pow(horizonFogF, 2.0);
+                // }
+                cloudF = 1.0;
+            }
+            else {
+                if (cameraPosition.y + localPos.y < CLOUD_PLANE_Y_LEVEL) {
+                    cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
+                    //float horizonFogF = 1.0 - max(dot(viewLightDir, upDir), 0.0);
+                }
+            }
+
+            cloudF *= 1.0 - pow(horizonFogF, 8.0);
+            sampleF *= pow(1.0 - cloudF, 2.0);
         #endif
 
         vec3 sampleColor = lightColor;
@@ -112,6 +143,14 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
         const float MaxShadowDist = 256.0;
     #endif
 
+    #ifdef SHADOW_CLOUD
+        vec3 viewLightDir = normalize(shadowLightPosition);
+        vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
+
+        vec3 upDir = normalize(upPosition);
+        float horizonFogF = 1.0 - abs(dot(viewLightDir, upDir));
+    #endif
+
     for (int i = 1; i <= VL_SAMPLE_COUNT; i++) {
         vec3 currentShadowViewPos = shadowViewStart + i * rayStep;
         transparentDepth = 1.0;
@@ -148,6 +187,23 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
                 transparentDepth = SampleTransparentDepth(shadowPos, vec2(0.0));
 
             waterShadowPos = shadowPos.xyz;
+        #endif
+
+        #ifdef SHADOW_CLOUD
+            vec3 localPos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
+            float cloudF = 0.0;
+
+            if (localLightDir.y <= 0.0) {
+                cloudF = 1.0;
+            }
+            else {
+                //if (cameraPosition.y + localPos.y < CLOUD_PLANE_Y_LEVEL) {
+                cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
+                //}
+            }
+
+            cloudF *= 1.0 - pow(horizonFogF, 8.0);
+            lightSample *= pow(1.0 - cloudF, 3.0);
         #endif
 
         // sample normal, get fresnel, darken

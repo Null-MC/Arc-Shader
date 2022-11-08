@@ -58,7 +58,12 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         vec2 alphaXY = saturate(10.0 * abs(vec2(0.5) - tracePos.xy) - 4.0);
         alpha = 1.0 - pow(maxOf(alphaXY), 8.0);
 
-        color = textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, lod).rgb;
+        color = textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, lod).rgb / exposure;
+        //vec4 sampleColorLum = textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, lod);
+        //float lum = texelFetch(BUFFER_LUMINANCE, itex, 0).r;
+        //color = sampleColorLum.rgb;
+        //float lum = exp2(sampleColorLum.a);
+        //setLuminance(color, lum);
     }
 
     return vec4(color, alpha);

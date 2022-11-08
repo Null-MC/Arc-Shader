@@ -152,7 +152,9 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
 
         float lightLevel = saturate(skyLightLevels.x);
         float dayNightF = smoothstep(0.1, 0.6, lightLevel);
-        float skyLumen = mix(NightSkyLumen, DaySkyLumen, dayNightF);
+        float daySkyLumenFinal = mix(DaySkyLumen, DaySkyOvercastLumen, rainStrength);
+        float nightSkyLumenFinal = mix(NightSkyLumen, NightSkyOvercastLumen, rainStrength);
+        float skyLumen = mix(nightSkyLumenFinal, daySkyLumenFinal, dayNightF);
         
         vec3 skyColorLinear = RGBToLinear(skyColor);
         if (dot(skyColorLinear, skyColorLinear) < EPSILON) skyColorLinear = vec3(1.0);

@@ -1,19 +1,19 @@
-shadowcolor0	RGBA8		1.0   light-color OR sss*
-shadowcolor1	RG32UI		1.0   R: rsm-color; G: normal-XYZ, sss*
+shadowcolor0	RGBA8			1.0   	light-color OR sss*
+shadowcolor1	RG32UI			1.0   	R: rsm-color; G: normal-XYZ, sss*
 
-colortex2		RGBA32		1.0   deferred= R: color; G: normal; B: specular; A: lighting
-colortex3		R16F		1.0	  AO
-colortex4		RGB16F		1.0   pre-exposed HDR scene
-colortex5		RGBA16F		0.25	  HDR previous frame [RGB: pre-exposed HDR, A: Log Luminance]
-colortex6		R16F		0.25   Log Luminance
+colortex2		RGBA32			1.0   	deferred= R: color; G: normal; B: specular; A: lighting
+colortex3		R16F			1.0	  	AO
+colortex4		R11F_G11F_B10F	1.0   	pre-exposed HDR scene
+colortex5		RGBA16F			0.25	HDR previous frame [RGB: pre-exposed HDR, A: Log Luminance]
+colortex6		R16F			0.25   	Log Luminance
 
-colortex7		RGB16F		1.0   HDR transparent / bloom tiles
-colortex8		RGB16F		*     RSM color
-colortex9		R32F		*     RSM depth
-colortex11		R16F		2048  Water Waves
-colortex12		R32F		0.25   Depth Tiles
+colortex7		R11F_G11F_B10F	1.0   	HDR transparent / bloom tiles
+colortex8		RGB16F			 *     	RSM color
+colortex9		R32F			 *     	RSM depth
+colortex11		R16F			2048  	Water Waves
+colortex12		R32F			0.25  	Depth Tiles
 
-colortex10		n/a			256   BRDF LUT
+colortex10		n/a				256   	BRDF LUT
 
 
 

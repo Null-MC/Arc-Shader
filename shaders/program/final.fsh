@@ -161,7 +161,8 @@ out vec3 outColor0;
 
     vec3 GetFinalColor() {
         ivec2 itex = ivec2(texcoord * vec2(viewWidth, viewHeight));
-        vec3 color = texelFetch(BUFFER_HDR, itex, 0).rgb;// * exposure;
+        vec3 color = texelFetch(BUFFER_HDR, itex, 0).rgb;
+        //float lum = texelFetch(BUFFER_LUMINANCE, itex, 0).r;
 
         #ifdef BLOOM_ENABLED
             vec3 bloom = vec3(0.0);
@@ -179,7 +180,7 @@ out vec3 outColor0;
             color += bloom;// / sqrt(bloomTileCount);
         #endif
 
-        float whitePoint = 2.0;
+        float whitePoint = 1.0;
         color = ApplyTonemap(color, whitePoint);
 
         #if CAMERA_SATURATION != 100
@@ -193,8 +194,10 @@ out vec3 outColor0;
             RenderLuminanceMeters(color, averageLuminance, EV100);
         #endif
 
-        float b = GetScreenBayerValue();
-        color *= (254.0/255.0) + b * (2.0/255.0);
+        #ifdef DITHER_FINAL
+            float b = GetScreenBayerValue();
+            color *= (254.0/255.0) + b * (2.0/255.0);
+        #endif
 
         return color;
     }

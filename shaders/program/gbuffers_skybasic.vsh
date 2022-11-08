@@ -5,9 +5,8 @@
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
 
-out vec3 starData;
 flat out vec3 sunTransmittanceEye;
-flat out vec3 sunColor;
+//flat out vec3 sunColor;
 flat out vec3 moonColor;
 flat out float exposure;
 
@@ -53,15 +52,10 @@ uniform int moonPhase;
 void main() {
     gl_Position = ftransform();
 
-    float starFactor = float(gl_Color.r == gl_Color.g && gl_Color.g == gl_Color.b && gl_Color.r > 0.0);
-    
-    //float starTemp = mix(5300, 6000, starFactor);
-    starData = blackbody(4000) * starFactor * StarLumen;
-
     vec2 skyLightLevels = GetSkyLightLevels();
     vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
     moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
-    sunColor = blackbody(5500.0);
+    //sunColor = blackbody(5500.0);
 
     sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
 

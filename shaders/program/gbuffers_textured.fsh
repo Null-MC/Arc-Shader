@@ -70,7 +70,10 @@ flat in vec3 blockLightColor;
                 uniform mat4 shadowProjection;
             #endif
 
-            #if defined VL_ENABLED && defined VL_PARTICLES
+            #if defined VL_ENABLED //&& defined VL_PARTICLES
+                uniform sampler2D noisetex;
+            
+                uniform mat4 shadowModelViewInverse;
                 uniform float viewWidth;
                 uniform float viewHeight;
             #endif
@@ -148,6 +151,7 @@ uniform int fogMode;
     #endif
 
     #if defined VL_ENABLED //&& defined VL_PARTICLES
+        #include "/lib/sky/clouds.glsl"
         #include "/lib/lighting/volumetric.glsl"
     #endif
 #endif

@@ -3,10 +3,10 @@ const float sunPathRotation = -30; // [-60 -50 -40 -30 -20 -15 -10 -5 0 5 10 15 
 /*
 const int colortex2Format = RGBA32UI;
 const int colortex3Format = R16F;
-const int colortex4Format = RGB16F;
+const int colortex4Format = R11F_G11F_B10F;
 const int colortex5Format = RGBA16F;
 const int colortex6Format = R16F;
-const int colortex7Format = RGB16F;
+const int colortex7Format = R11F_G11F_B10F;
 const int colortex8Format = RGB16F;
 const int colortex9Format = R32F;
 const int colortex11Format = R16F;
@@ -77,7 +77,7 @@ const bool colortex12Clear = false;
 
 
 // Atmosphere Options
-#define ATMOSPHERE_TYPE 0 // [0 1]
+//#define ATMOSPHERE_TYPE 0 // [0 1]
 //#define LIGHTLEAK_FIX
 //#define ATMOSFOG_ENABLED
 //#define CAVEFOG_ENABLED
@@ -197,6 +197,7 @@ const bool colortex12Clear = false;
 #define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25]
 //#define DEBUG_EXPOSURE_METERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
+#define DITHER_FINAL
 #define PARTICLE_OPACITY 0.8
 #define HCM_LAZANYI
 #define METAL_AMBIENT 1.0
@@ -206,6 +207,11 @@ const bool colortex12Clear = false;
 #define AF_SAMPLES 16.0
 //#define PHYSICSMOD_ENABLED
 //#define WATER_REFRACT_HACK
+#define CLOUD_PLANE_Y_LEVEL 180.0
+#define CLOUD_POW_CLEAR 1.6
+#define CLOUD_POW_RAIN 0.3
+#define SHADOW_CLOUD
+
 
 #if SSR_QUALITY == 0
     #define SSR_SCALE 4
@@ -236,12 +242,12 @@ const bool colortex12Clear = false;
 
 const float sunLumen = 24e8;
 const float moonLumen = 1200.0;
-const float StarLumen = 800.0;
+const float StarLumen = 80.0;
 //const float BlockLightLumen = 2000;
 const float EmissionLumens = 1.0e5;
 
 const float SunLux = 64000.0;
-const float SunOvercastLux = 22000; //600.0;
+const float SunOvercastLux = 32000; //600.0;
 const float MoonLux = 14.0;
 const float MoonOvercastLux = 4.0;
 const float BlockLightLux = 12800.0; // 9k
@@ -250,7 +256,7 @@ const float BlockLightLux = 12800.0; // 9k
 const float MinWorldLux = 8.0;
 
 const float DaySkyLumen = 6000.0;
-const float DaySkyOvercastLumen = 1000.0;
+const float DaySkyOvercastLumen = 600.0;
 const float NightSkyLumen = 4.0;
 const float NightSkyOvercastLumen = 1.0;
 
