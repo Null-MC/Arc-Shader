@@ -27,6 +27,9 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
 
         vec3 upDir = normalize(upPosition);
         float horizonFogF = 1.0 - abs(dot(viewLightDir, upDir));
+
+        float cloudVis = GetCloudFactor(cameraPosition, localLightDir);
+        cloudVis = mix(cloudVis, 1.0, horizonFogF);
     #endif
 
     for (int i = 1; i <= VL_SAMPLE_COUNT; i++) {
@@ -53,26 +56,29 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
         #endif
 
         #ifdef SHADOW_CLOUD
-            vec3 localPos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
-            float cloudF = 0.0;
-
+            // when light is shining upwards
             if (localLightDir.y <= 0.0) {
-                // if (cameraPosition.y + localPos.y > CLOUD_PLANE_Y_LEVEL) {
-                //     cloudF = 1.0 - GetCloudFactor(cameraPosition + localPos, localLightDir);
-                //     //float horizonFogF = 1.0 - max(dot(viewLightDir, upDir), 0.0);
-                //     //cloudF *= 1.0 - pow(horizonFogF, 2.0);
-                // }
-                cloudF = 1.0;
+                sampleF = 0.0;
             }
+            // when light is shining downwards
             else {
+                vec3 localPos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
+
+                // when trace pos is below clouds, darken by cloud shadow
                 if (cameraPosition.y + localPos.y < CLOUD_PLANE_Y_LEVEL) {
-                    cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
-                    //float horizonFogF = 1.0 - max(dot(viewLightDir, upDir), 0.0);
+                    float cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
+
+                    float horizonFogF = 1.0 - max(dot(localLightDir, vec3(0.0, 1.0, 0.0)), 0.0);
+                    cloudF = mix(cloudF, 1.0, horizonFogF);
+
+                    sampleF *= 1.0 - cloudF;
+                }
+                // [only when camera is below clouds]
+                // when trace pos is above clouds, darken by visibility
+                else if (cameraPosition.y < CLOUD_PLANE_Y_LEVEL) {
+                    sampleF *= 1.0 - cloudVis;
                 }
             }
-
-            cloudF *= 1.0 - pow(horizonFogF, 8.0);
-            sampleF *= pow(1.0 - cloudF, 2.0);
         #endif
 
         vec3 sampleColor = lightColor;

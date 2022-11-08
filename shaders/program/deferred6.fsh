@@ -243,6 +243,9 @@ void main() {
     lightData.opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
     lightData.opaqueScreenDepthLinear = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
 
+    lightData.transparentScreenDepth = 1.0;
+    lightData.transparentScreenDepthLinear = far;
+
     vec2 viewSize = vec2(viewWidth, viewHeight);
     vec3 clipPos = vec3(texcoord, lightData.opaqueScreenDepth) * 2.0 - 1.0;
     vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
@@ -252,7 +255,7 @@ void main() {
 
     #ifdef SKY_ENABLED
         vec3 upDir = normalize(upPosition);
-        float horizonFogF = 1.0 - abs(dot(viewDir, upDir));
+        //float horizonFogF = 1.0 - abs(dot(viewDir, upDir));
 
         lightData.skyLightLevels = skyLightLevels;
         lightData.sunTransmittanceEye = sunTransmittanceEye;
@@ -338,7 +341,7 @@ void main() {
     #endif
 
     // SKY
-    if (lightData.opaqueScreenDepth == 1.0) {
+    if (lightData.opaqueScreenDepth > 1.0 - EPSILON) {
         lightData.skyLight = 1.0;
 
         // vec3 viewDir = normalize(viewPos);
@@ -364,17 +367,21 @@ void main() {
                 vec3 localDir = normalize(localPos);
 
                 if (localDir.y > 0.0) {
+                    float starHorizonFogF = 1.0 - abs(dot(viewDir, upDir));
                     vec3 starF = GetStarLight(localDir);
-                    starF *= 1.0 - pow(horizonFogF, 12.0);
+                    starF *= 1.0 - pow(starHorizonFogF, 12.0);
                     color += starF * StarLumen;
                 }
 
-                vec3 cloudColor = 0.004 * GetSunTransmittance(colortex7, CLOUD_PLANE_Y_LEVEL, skyLightLevels.x) * GetSunLux();
-                cloudColor *= 1.0 - rainStrength;
+                // if (cameraPosition.y < CLOUD_PLANE_Y_LEVEL && localDir.y > 0.0) {
+                //     vec3 cloudColor = 0.004 * GetSunTransmittance(colortex7, CLOUD_PLANE_Y_LEVEL, skyLightLevels.x) * GetSunLux();
+                //     cloudColor *= 1.0 - rainStrength;
 
-                float cloudF = GetCloudFactor(cameraPosition, localPos);
-                cloudF *= 1.0 - pow(horizonFogF, 8.0);
-                color = mix(color, cloudColor, cloudF);
+                //     float cloudF = GetCloudFactor(cameraPosition, localDir);
+                //     float cloudHorizonFogF = 1.0 - abs(localDir.y);
+                //     cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
+                //     color = mix(color, cloudColor, cloudF);
+                // }
 
                 // vec3 viewLightDir = normalize(shadowLightPosition);
                 // vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
@@ -401,41 +408,67 @@ void main() {
         //lightData.opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
         //lightData.opaqueScreenDepthLinear = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
 
-        lightData.transparentScreenDepth = 0.0; // TODO: delinearize far?
-        lightData.transparentScreenDepthLinear = far; // This doesn't work here!
+        // lightData.transparentScreenDepth = 0.0; // TODO: delinearize far?
+        // lightData.transparentScreenDepthLinear = far; // This doesn't work here!
         
         PbrMaterial material;
         PopulateMaterial(material, colorMap.rgb, normalMap, specularMap);
 
         color = PbrLighting2(material, lightData, viewPos).rgb;
 
-        #ifdef SKY_ENABLED
-            vec3 localViewDir = normalize(localPos);
-            //vec2 pos = localPos.xz + (localViewDir.xz / localViewDir.y) * (CLOUD_PLANE_Y_LEVEL - localPos.y);
-            //float cloudDist = (CLOUD_PLANE_Y_LEVEL - localPos.y) / localViewDir.y;
-            vec3 cloudPos;
-            cloudPos.y = CLOUD_PLANE_Y_LEVEL - (cameraPosition.y + localPos.y);
-            cloudPos.xz = localPos.xz + (localPos.xz / localPos.y) * cloudPos.y;
+        // #ifdef SKY_ENABLED
+        //     vec3 localViewDir = normalize(localPos);
+        //     //vec2 pos = localPos.xz + (localViewDir.xz / localViewDir.y) * (CLOUD_PLANE_Y_LEVEL - localPos.y);
+        //     //float cloudDist = (CLOUD_PLANE_Y_LEVEL - localPos.y) / localViewDir.y;
+        //     vec3 cloudPos;
+        //     cloudPos.y = CLOUD_PLANE_Y_LEVEL - (cameraPosition.y + localPos.y);
+        //     cloudPos.xz = localPos.xz + (localPos.xz / localPos.y) * cloudPos.y;
 
-            // TODO: this isn't working!
-            if (dot(cloudPos, cloudPos) < dot(viewPos, viewPos)) {
-                // TODO: move this out further so it's not duplicated above?
-                float cloudF = GetCloudFactor(cameraPosition, localViewDir);
-                cloudF *= 1.0 - pow(horizonFogF, 8.0);
-                color = mix(color, vec3(0.0), cloudF);
-            }
-        #endif
+        //     // TODO: this isn't working!
+        //     if (dot(cloudPos, cloudPos) < dot(viewPos, viewPos)) {
+        //         // TODO: move this out further so it's not duplicated above?
+        //         float cloudF = GetCloudFactor(cameraPosition, localViewDir);
+        //         //cloudF *= 1.0 - pow(horizonFogF, 8.0);
+        //         color = mix(color, vec3(0.0), cloudF);
+        //     }
+        // #endif
     }
 
-    #if defined SKY_ENABLED && defined VL_ENABLED
+    #ifdef SKY_ENABLED
         if (isEyeInWater != 1) {
-            vec3 viewNear = viewDir * near;
-            vec3 viewFar = viewDir * min(length(viewPos), far);
+            vec3 localViewDir = normalize(localPos);
 
-            vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
-            vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
+            vec3 cloudPos;
+            cloudPos.y = CLOUD_PLANE_Y_LEVEL - (cameraPosition.y + localPos.y);
+            cloudPos.xz = cameraPosition.xz + localPos.xz + (localViewDir.xz / localViewDir.y) * cloudPos.y;
+            cloudPos -= cameraPosition;
 
-            color += GetVolumetricLighting(lightData, viewNear, viewFar, lightColor);
+            vec3 cloudColor = 0.004 * GetSunTransmittance(colortex7, CLOUD_PLANE_Y_LEVEL, skyLightLevels.x) * GetSunLux();
+            cloudColor *= 1.0 - rainStrength;
+
+            float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
+
+            float shit = CLOUD_PLANE_Y_LEVEL - (cameraPosition.y + localPos.y);
+            shit *= sign(CLOUD_PLANE_Y_LEVEL - cameraPosition.y);
+
+            if (minDepth > 1.0 - EPSILON || shit < 0.0) {
+                float cloudF = GetCloudFactor(cameraPosition, localViewDir);
+
+                float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
+                cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
+
+                color = mix(color, vec3(0.0), cloudF);
+            }
+
+            #ifdef VL_ENABLED
+                vec3 viewNear = viewDir * near;
+                vec3 viewFar = viewDir * min(length(viewPos), far);
+
+                vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
+                vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
+
+                color += GetVolumetricLighting(lightData, viewNear, viewFar, lightColor);
+            #endif
         }
     #endif
 

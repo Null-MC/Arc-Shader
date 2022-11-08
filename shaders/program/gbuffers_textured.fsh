@@ -43,6 +43,7 @@ flat in vec3 blockLightColor;
 
     #ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;
+        uniform float frameTimeCounter;
     
         #if SHADOW_TYPE != SHADOW_TYPE_NONE
             uniform sampler2D shadowtex0;

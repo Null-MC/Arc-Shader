@@ -148,11 +148,12 @@
                 vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
                 vec3 upDir = normalize(upPosition);
 
-                float cloudF = 1.0 - GetCloudFactor(cameraPosition + localPos, localLightDir);
-                float horizonFogF = 1.0 - max(dot(localLightDir, upDir), 0.0);
+                float cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
 
-                cloudF *= 1.0 - pow(horizonFogF, 8.0);
-                skyLightColorFinal *= cloudF;
+                float horizonFogF = 1.0 - max(dot(localLightDir, upDir), 0.0);
+                cloudF = mix(cloudF, rainStrength, horizonFogF);
+
+                skyLightColorFinal *= 1.0 - cloudF;
             #endif
 
             float contactShadow = 1.0;

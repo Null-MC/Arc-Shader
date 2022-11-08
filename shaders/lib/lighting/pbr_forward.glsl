@@ -343,16 +343,38 @@
 
         vec4 finalColor = PbrLighting2(material, lightData, viewPosFinal);
 
-        #if defined SKY_ENABLED && defined VL_ENABLED
+        #ifdef SKY_ENABLED
             if (isEyeInWater != 1) {
-                vec3 viewNear = viewDir * near;
-                vec3 viewFar = viewDir * min(length(viewPos), far);
+                vec3 localViewDir = normalize(localPos);
 
-                vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
-                vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
+                vec3 cloudPos;
+                cloudPos.y = CLOUD_PLANE_Y_LEVEL - (cameraPosition.y + localPos.y);
+                cloudPos.xz = localPos.xz + (localPos.xz / localPos.y) * cloudPos.y;
 
-                finalColor.rgb += GetVolumetricLighting(lightData, viewNear, viewFar, lightColor);
-                // TODO: increase alpha with VL
+                vec3 cloudColor = 0.004 * GetSunTransmittance(colortex9, CLOUD_PLANE_Y_LEVEL, skyLightLevels.x) * GetSunLux();
+                cloudColor *= 1.0 - rainStrength;
+
+                // TODO: this isn't working!
+                if (dot(cloudPos, cloudPos) < dot(viewPos, viewPos)) {
+                    float cloudF = GetCloudFactor(cameraPosition, localViewDir);
+
+                    float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
+                    cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
+
+                    finalColor.rgb = mix(finalColor.rgb, vec3(0.0), cloudF);
+                    // TODO: mix opacity?
+                }
+
+                #ifdef VL_ENABLED
+                    vec3 viewNear = viewDir * near;
+                    vec3 viewFar = viewDir * min(length(viewPos), far);
+
+                    vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
+                    vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
+
+                    finalColor.rgb += GetVolumetricLighting(lightData, viewNear, viewFar, lightColor);
+                    // TODO: increase alpha with VL
+                #endif
             }
         #endif
 
