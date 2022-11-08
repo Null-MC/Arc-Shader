@@ -15,15 +15,16 @@ float GetCloudFactor(const in vec3 localPos, const in vec3 localViewDir) {
 	vec2 p4 = pos + vec2(4.0, 4.0) * time;
 
 	float cloudF = 0.0;
-	cloudF += 0.8 * textureLod(noisetex, p1 * 0.0001, 0).r;
-	cloudF += 0.4 * textureLod(noisetex, p2 * 0.0004, 0).r;
-	cloudF += 0.2 * textureLod(noisetex, p3 * 0.0016, 0).r;
-	cloudF += 0.1 * textureLod(noisetex, p4 * 0.0064, 0).r;
+	cloudF += 1.6 * textureLod(noisetex, p1 * 0.0001, 0).r - 0.1;
+	cloudF += 0.8 * textureLod(noisetex, p2 * 0.0004, 0).r - 0.05;
+	cloudF += 0.4 * textureLod(noisetex, p3 * 0.0016, 0).r - 0.025;
+	cloudF += 0.2 * textureLod(noisetex, p4 * 0.0064, 0).r - 0.0125;
 
+	cloudF = saturate(cloudF);
     //float cloudPow = mix(CLOUD_POW_CLEAR, CLOUD_POW_RAIN, rainStrength);
     //cloudF = pow(cloudF, cloudPow);
-    cloudF = pow(cloudF, mix(0.8, 0.3, rainStrength));
-    cloudF = smoothstep(0.0, 1.0, cloudF);
+    cloudF = pow(cloudF, mix(1.5, 0.5, rainStrength));
+    //cloudF = smoothstep(0.0, 1.0, cloudF);
 
 	return cloudF;
 }

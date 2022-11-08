@@ -28,7 +28,8 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
         vec3 upDir = normalize(upPosition);
         float horizonFogF = 1.0 - abs(dot(viewLightDir, upDir));
 
-        float cloudVis = GetCloudFactor(cameraPosition, localLightDir);
+        vec3 localPos = (gbufferModelViewInverse * vec4(viewFar, 1.0)).xyz;
+        float cloudVis = GetCloudFactor(cameraPosition + localPos, localLightDir);
         cloudVis = mix(cloudVis, 1.0, horizonFogF);
     #endif
 
@@ -196,21 +197,24 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
         #endif
 
         #ifdef SHADOW_CLOUD
-            vec3 localPos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
-            float cloudF = 0.0;
-
+            // when light is shining upwards
             if (localLightDir.y <= 0.0) {
-                cloudF = 1.0;
+                lightSample = 0.0;
             }
+            // when light is shining downwards
             else {
-                //if (cameraPosition.y + localPos.y < CLOUD_PLANE_Y_LEVEL) {
-                cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
-                //}
-            }
+                vec3 localPos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
 
-            cloudF *= 1.0 - pow(horizonFogF, 8.0);
-            //lightSample *= pow(1.0 - cloudF, 2.0);
-            lightSample *= 1.0 - cloudF;
+                // when trace pos is below clouds, darken by cloud shadow
+                if (cameraPosition.y + localPos.y < CLOUD_PLANE_Y_LEVEL) {
+                    float cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
+
+                    float horizonFogF = 1.0 - max(dot(localLightDir, vec3(0.0, 1.0, 0.0)), 0.0);
+                    cloudF = mix(cloudF, 1.0, horizonFogF);
+
+                    lightSample *= 1.0 - cloudF;
+                }
+            }
         #endif
 
         // sample normal, get fresnel, darken

@@ -149,11 +149,8 @@
                 vec3 upDir = normalize(upPosition);
 
                 float cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
-
                 float horizonFogF = 1.0 - max(dot(localLightDir, upDir), 0.0);
-                cloudF = mix(cloudF, 1.0, horizonFogF);
-
-                skyLightColorFinal *= 1.0 - cloudF;
+                skyLightColorFinal *= 1.0 - mix(cloudF, 1.0, horizonFogF);
             #endif
 
             float contactShadow = 1.0;
