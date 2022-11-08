@@ -151,7 +151,7 @@
                 float cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
 
                 float horizonFogF = 1.0 - max(dot(localLightDir, upDir), 0.0);
-                cloudF = mix(cloudF, rainStrength, horizonFogF);
+                cloudF = mix(cloudF, 1.0, horizonFogF);
 
                 skyLightColorFinal *= 1.0 - cloudF;
             #endif
