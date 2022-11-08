@@ -158,7 +158,7 @@
             float lightLevel = saturate(skyLightLevels.x);
             float dayNightF = smoothstep(0.1, 0.6, lightLevel);
             float skyLux = mix(GetMoonLux(), GetSunLux(), dayNightF) + MinWorldLux;
-            skyColorLux *= 0.4 * skyLux;
+            skyColorLux *= mix(0.4, 0.02, rainStrength) * skyLux;
 
             //return MinWorldLux + sunLightLux + moonLightLux;
             return sunLight + moonLightLux + skyColorLux;

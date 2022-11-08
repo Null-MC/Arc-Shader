@@ -152,7 +152,7 @@
                 float horizonFogF = 1.0 - max(dot(localLightDir, upDir), 0.0);
 
                 cloudF *= 1.0 - pow(horizonFogF, 8.0);
-                skyLightColorFinal *= pow2(cloudF);
+                skyLightColorFinal *= cloudF;
             #endif
 
             float contactShadow = 1.0;

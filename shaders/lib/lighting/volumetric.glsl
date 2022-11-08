@@ -203,7 +203,8 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
             }
 
             cloudF *= 1.0 - pow(horizonFogF, 8.0);
-            lightSample *= pow(1.0 - cloudF, 3.0);
+            //lightSample *= pow(1.0 - cloudF, 2.0);
+            lightSample *= 1.0 - cloudF;
         #endif
 
         // sample normal, get fresnel, darken

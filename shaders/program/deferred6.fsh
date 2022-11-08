@@ -167,8 +167,12 @@ uniform float fogEnd;
 #endif
 
 #include "/lib/world/fog.glsl"
-#include "/lib/sky/clouds.glsl"
-#include "/lib/sky/stars.glsl"
+
+#ifdef SKY_ENABLED
+    #include "/lib/sky/clouds.glsl"
+    #include "/lib/sky/clouds_robobo.glsl"
+    #include "/lib/sky/stars.glsl"
+#endif
 
 #ifdef SKY_ENABLED
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -365,20 +369,17 @@ void main() {
                     color += starF * StarLumen;
                 }
 
+                vec3 cloudColor = 0.004 * GetSunTransmittance(colortex7, CLOUD_PLANE_Y_LEVEL, skyLightLevels.x) * GetSunLux();
+                cloudColor *= 1.0 - rainStrength;
+
                 float cloudF = GetCloudFactor(cameraPosition, localPos);
-
                 cloudF *= 1.0 - pow(horizonFogF, 8.0);
-                color = mix(color, vec3(0.0), cloudF);
+                color = mix(color, cloudColor, cloudF);
 
-                // #if defined VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                //     vec3 viewNear = viewDir * near;
-                //     vec3 viewFar = viewDir * far;
-
-                //     vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
-                //     vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
-
-                //     color += GetVolumetricLighting(lightData, viewNear, viewFar, lightColor);
-                // #endif
+                // vec3 viewLightDir = normalize(shadowLightPosition);
+                // vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
+                // vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
+                // calculateVolumetricClouds(color, localPos, localLightDir, 0.0, sunColorFinal);
             #else
                 color = RGBToLinear(fogColor) * 100.0;
             #endif
