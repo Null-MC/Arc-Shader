@@ -155,10 +155,11 @@
             skyColorLux = normalize(skyColorLux);
 
             //vec2 skyLightLevels = GetSkyLightLevels();
-            float lightLevel = saturate(skyLightLevels.x);
-            float dayNightF = smoothstep(0.1, 0.6, lightLevel);
+            float lightLevel = saturate(0.08 + 0.92 * skyLightLevels.x);
+            float dayNightF = smoothstep(0.0, 1.0, lightLevel);
+            //float dayNightF = 1.0 - pow(1.0 - lightLevel, 2.0);
             float skyLux = mix(GetMoonLux(), GetSunLux(), dayNightF) + MinWorldLux;
-            skyColorLux *= mix(0.4, 0.02, rainStrength) * skyLux;
+            skyColorLux *= mix(0.4, 0.01, wetness) * skyLux;
 
             //return MinWorldLux + sunLightLux + moonLightLux;
             return sunLight + moonLightLux + skyColorLux;

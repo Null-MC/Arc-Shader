@@ -207,7 +207,7 @@ const bool colortex12Clear = false;
 #define AF_SAMPLES 16.0
 //#define PHYSICSMOD_ENABLED
 //#define WATER_REFRACT_HACK
-#define CLOUD_PLANE_Y_LEVEL 180.0
+#define CLOUD_PLANE_Y_LEVEL 128.0
 #define CLOUD_POW_CLEAR 1.6
 #define CLOUD_POW_RAIN 0.3
 #define SHADOW_CLOUD

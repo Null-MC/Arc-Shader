@@ -445,16 +445,17 @@ void main() {
 
             float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
 
-            float shit = CLOUD_PLANE_Y_LEVEL - (cameraPosition.y + localPos.y);
-            shit *= sign(CLOUD_PLANE_Y_LEVEL - cameraPosition.y);
+            float cloudDepthTest = CLOUD_PLANE_Y_LEVEL - (cameraPosition.y + localPos.y);
+            cloudDepthTest *= sign(CLOUD_PLANE_Y_LEVEL - cameraPosition.y);
 
-            if (minDepth > 1.0 - EPSILON || shit < 0.0) {
+            if (minDepth > 1.0 - EPSILON || cloudDepthTest < 0.0) {
                 float cloudF = GetCloudFactor(cameraPosition, localViewDir);
 
                 float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
                 cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
 
-                vec3 cloudColor = GetCloudColor();
+                vec3 cloudColor = GetCloudColor(skyLightLevels);
+
                 cloudF = smoothstep(0.0, 1.0, cloudF);
                 color = mix(color, cloudColor, cloudF);
             }

@@ -347,18 +347,18 @@
             if (isEyeInWater != 1) {
                 vec3 localViewDir = normalize(localPos);
 
-                vec3 cloudPos;
-                cloudPos.y = CLOUD_PLANE_Y_LEVEL - (cameraPosition.y + localPos.y);
-                cloudPos.xz = localPos.xz + (localPos.xz / localPos.y) * cloudPos.y;
+                float cloudDepthTest = CLOUD_PLANE_Y_LEVEL - (cameraPosition.y + localPos.y);
+                cloudDepthTest *= sign(CLOUD_PLANE_Y_LEVEL - cameraPosition.y);
 
-                // TODO: this isn't working!
-                if (dot(cloudPos, cloudPos) < dot(viewPos, viewPos)) {
+                if (cloudDepthTest < 0.0) {
                     float cloudF = GetCloudFactor(cameraPosition, localViewDir);
 
                     float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
                     cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
 
-                    vec3 cloudColor = cloudColor();
+                    vec3 cloudColor = GetCloudColor(skyLightLevels);
+
+                    cloudF = smoothstep(0.0, 1.0, cloudF);
                     finalColor.rgb = mix(finalColor.rgb, cloudColor, cloudF);
                     // TODO: mix opacity?
                 }
