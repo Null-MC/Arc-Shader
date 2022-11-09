@@ -58,12 +58,10 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         vec2 alphaXY = saturate(10.0 * abs(vec2(0.5) - tracePos.xy) - 4.0);
         alpha = 1.0 - pow(maxOf(alphaXY), 8.0);
 
-        color = textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, lod).rgb / exposure;
-        //vec4 sampleColorLum = textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, lod);
-        //float lum = texelFetch(BUFFER_LUMINANCE, itex, 0).r;
-        //color = sampleColorLum.rgb;
-        //float lum = exp2(sampleColorLum.a);
-        //setLuminance(color, lum);
+        // This is a weird idea to cleanup reflection noise by
+        // mixing 75% of the exact pixel, and 25% of the mipmap
+        color = 0.75 * textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, 0).rgb / exposure;
+        color += 0.25 * textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, lod).rgb / exposure;
     }
 
     return vec4(color, alpha);

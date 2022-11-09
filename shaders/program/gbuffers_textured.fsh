@@ -150,15 +150,16 @@ uniform int fogMode;
         #include "/lib/shadows/basic.glsl"
         #include "/lib/shadows/basic_render.glsl"
     #endif
-
-    #if defined VL_ENABLED //&& defined VL_PARTICLES
-        #include "/lib/sky/clouds.glsl"
-        #include "/lib/lighting/volumetric.glsl"
-    #endif
 #endif
 
 #include "/lib/world/sun.glsl"
 #include "/lib/world/fog.glsl"
+
+#if defined SKY_ENABLED && defined VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE //&& defined VL_PARTICLES
+    #include "/lib/sky/clouds.glsl"
+    #include "/lib/lighting/volumetric.glsl"
+#endif
+
 #include "/lib/lighting/basic.glsl"
 #include "/lib/lighting/basic_forward.glsl"
 

@@ -65,20 +65,21 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
             else {
                 vec3 localPos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
 
+                float cloudF;
                 // when trace pos is below clouds, darken by cloud shadow
                 if (cameraPosition.y + localPos.y < CLOUD_PLANE_Y_LEVEL) {
-                    float cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
+                    cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
 
-                    float horizonFogF = 1.0 - max(dot(localLightDir, vec3(0.0, 1.0, 0.0)), 0.0);
+                    float horizonFogF = 1.0 - max(localLightDir.y, 0.0);
                     cloudF = mix(cloudF, 1.0, horizonFogF);
-
-                    sampleF *= 1.0 - cloudF;
                 }
-                // [only when camera is below clouds]
+                // only when camera is below clouds
                 // when trace pos is above clouds, darken by visibility
                 else if (cameraPosition.y < CLOUD_PLANE_Y_LEVEL) {
-                    sampleF *= 1.0 - cloudVis;
+                    cloudF = cloudVis;
                 }
+
+                sampleF *= 1.0 - cloudF;
             }
         #endif
 

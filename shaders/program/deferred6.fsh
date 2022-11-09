@@ -170,7 +170,7 @@ uniform float fogEnd;
 
 #ifdef SKY_ENABLED
     #include "/lib/sky/clouds.glsl"
-    #include "/lib/sky/clouds_robobo.glsl"
+    //#include "/lib/sky/clouds_robobo.glsl"
     #include "/lib/sky/stars.glsl"
 #endif
 
@@ -255,7 +255,6 @@ void main() {
 
     #ifdef SKY_ENABLED
         vec3 upDir = normalize(upPosition);
-        //float horizonFogF = 1.0 - abs(dot(viewDir, upDir));
 
         lightData.skyLightLevels = skyLightLevels;
         lightData.sunTransmittanceEye = sunTransmittanceEye;
@@ -344,8 +343,6 @@ void main() {
     if (lightData.opaqueScreenDepth > 1.0 - EPSILON) {
         lightData.skyLight = 1.0;
 
-        // vec3 viewDir = normalize(viewPos);
-
         if (isEyeInWater == 1) {
             vec3 waterLightColor = GetWaterScatterColor(viewDir, lightData.sunTransmittanceEye);
             color = GetWaterFogColor(viewDir, lightData.sunTransmittanceEye, waterLightColor);
@@ -356,9 +353,6 @@ void main() {
 
                 color += GetWaterVolumetricLighting(lightData, nearPos, farPos, waterLightColor);
             #endif
-
-            //outColor1 = log2(luminance(color) + EPSILON);
-            //color = clamp(color * exposure, 0.0, 65000.0);
         }
         else {
             #ifdef SKY_ENABLED
@@ -372,21 +366,6 @@ void main() {
                     starF *= 1.0 - pow(starHorizonFogF, 12.0);
                     color += starF * StarLumen;
                 }
-
-                // if (cameraPosition.y < CLOUD_PLANE_Y_LEVEL && localDir.y > 0.0) {
-                //     vec3 cloudColor = 0.004 * GetSunTransmittance(colortex7, CLOUD_PLANE_Y_LEVEL, skyLightLevels.x) * GetSunLux();
-                //     cloudColor *= 1.0 - rainStrength;
-
-                //     float cloudF = GetCloudFactor(cameraPosition, localDir);
-                //     float cloudHorizonFogF = 1.0 - abs(localDir.y);
-                //     cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
-                //     color = mix(color, cloudColor, cloudF);
-                // }
-
-                // vec3 viewLightDir = normalize(shadowLightPosition);
-                // vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
-                // vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
-                // calculateVolumetricClouds(color, localPos, localLightDir, 0.0, sunColorFinal);
             #else
                 color = RGBToLinear(fogColor) * 100.0;
             #endif
@@ -404,34 +383,11 @@ void main() {
         lightData.skyLight = lightingMap.y;
         lightData.geoNoL = lightingMap.z * 2.0 - 1.0;
         lightData.parallaxShadow = lightingMap.w;
-
-        //lightData.opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
-        //lightData.opaqueScreenDepthLinear = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
-
-        // lightData.transparentScreenDepth = 0.0; // TODO: delinearize far?
-        // lightData.transparentScreenDepthLinear = far; // This doesn't work here!
         
         PbrMaterial material;
         PopulateMaterial(material, colorMap.rgb, normalMap, specularMap);
 
         color = PbrLighting2(material, lightData, viewPos).rgb;
-
-        // #ifdef SKY_ENABLED
-        //     vec3 localViewDir = normalize(localPos);
-        //     //vec2 pos = localPos.xz + (localViewDir.xz / localViewDir.y) * (CLOUD_PLANE_Y_LEVEL - localPos.y);
-        //     //float cloudDist = (CLOUD_PLANE_Y_LEVEL - localPos.y) / localViewDir.y;
-        //     vec3 cloudPos;
-        //     cloudPos.y = CLOUD_PLANE_Y_LEVEL - (cameraPosition.y + localPos.y);
-        //     cloudPos.xz = localPos.xz + (localPos.xz / localPos.y) * cloudPos.y;
-
-        //     // TODO: this isn't working!
-        //     if (dot(cloudPos, cloudPos) < dot(viewPos, viewPos)) {
-        //         // TODO: move this out further so it's not duplicated above?
-        //         float cloudF = GetCloudFactor(cameraPosition, localViewDir);
-        //         //cloudF *= 1.0 - pow(horizonFogF, 8.0);
-        //         color = mix(color, vec3(0.0), cloudF);
-        //     }
-        // #endif
     }
 
     #ifdef SKY_ENABLED

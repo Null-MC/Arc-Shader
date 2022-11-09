@@ -207,7 +207,7 @@ const bool colortex12Clear = false;
 #define AF_SAMPLES 16.0
 //#define PHYSICSMOD_ENABLED
 //#define WATER_REFRACT_HACK
-#define CLOUD_PLANE_Y_LEVEL 128.0
+#define CLOUD_PLANE_Y_LEVEL 180.0
 #define CLOUD_POW_CLEAR 1.6
 #define CLOUD_POW_RAIN 0.3
 #define SHADOW_CLOUD
@@ -247,7 +247,7 @@ const float StarLumen = 80.0;
 const float EmissionLumens = 1.0e5;
 
 const float SunLux = 64000.0;
-const float SunOvercastLux = 64000.0; //600.0;
+const float SunOvercastLux = 32000.0; //600.0;
 const float MoonLux = 14.0;
 const float MoonOvercastLux = 4.0;
 const float BlockLightLux = 12800.0; // 9k
@@ -256,7 +256,7 @@ const float BlockLightLux = 12800.0; // 9k
 const float MinWorldLux = 8.0;
 
 const float DaySkyLumen = 6000.0;
-const float DaySkyOvercastLumen = 4000.0;
+const float DaySkyOvercastLumen = 1200.0;
 const float NightSkyLumen = 4.0;
 const float NightSkyOvercastLumen = 1.0;
 
