@@ -443,9 +443,6 @@ void main() {
             cloudPos.xz = cameraPosition.xz + localPos.xz + (localViewDir.xz / localViewDir.y) * cloudPos.y;
             cloudPos -= cameraPosition;
 
-            vec3 cloudColor = 0.004 * GetSunTransmittance(colortex7, CLOUD_PLANE_Y_LEVEL, skyLightLevels.x) * GetSunLux();
-            cloudColor *= 1.0 - rainStrength;
-
             float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
 
             float shit = CLOUD_PLANE_Y_LEVEL - (cameraPosition.y + localPos.y);
@@ -457,7 +454,9 @@ void main() {
                 float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
                 cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
 
-                color = mix(color, vec3(0.0), cloudF);
+                vec3 cloudColor = GetCloudColor();
+                cloudF = smoothstep(0.0, 1.0, cloudF);
+                color = mix(color, cloudColor, cloudF);
             }
 
             #ifdef VL_ENABLED

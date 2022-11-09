@@ -30,3 +30,8 @@ float GetCloudFactor(const in vec3 localPos, const in vec3 localViewDir) {
 
 	return cloudF;
 }
+
+vec3 GetCloudColor() {
+    vec3 cloudColor = GetSunTransmittance(colortex7, CLOUD_PLANE_Y_LEVEL, skyLightLevels.x) * GetSunLux();
+    return vec3(0.248, 0.225, 0.273) * cloudColor * (1.0 - rainStrength);
+}

@@ -351,9 +351,6 @@
                 cloudPos.y = CLOUD_PLANE_Y_LEVEL - (cameraPosition.y + localPos.y);
                 cloudPos.xz = localPos.xz + (localPos.xz / localPos.y) * cloudPos.y;
 
-                vec3 cloudColor = 0.004 * GetSunTransmittance(colortex9, CLOUD_PLANE_Y_LEVEL, skyLightLevels.x) * GetSunLux();
-                cloudColor *= 1.0 - rainStrength;
-
                 // TODO: this isn't working!
                 if (dot(cloudPos, cloudPos) < dot(viewPos, viewPos)) {
                     float cloudF = GetCloudFactor(cameraPosition, localViewDir);
@@ -361,7 +358,8 @@
                     float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
                     cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
 
-                    finalColor.rgb = mix(finalColor.rgb, vec3(0.0), cloudF);
+                    vec3 cloudColor = cloudColor();
+                    finalColor.rgb = mix(finalColor.rgb, cloudColor, cloudF);
                     // TODO: mix opacity?
                 }
 
