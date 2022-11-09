@@ -629,7 +629,7 @@
             + diffuse + emissive
             + (specular + iblSpec) * specularTint;
 
-        final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
+        //final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
 
         float fogFactor;
         if (isEyeInWater == 1) {

@@ -114,6 +114,7 @@ uniform ivec2 atlasSize;
 uniform float near;
 uniform float far;
 
+uniform float frameTimeCounter;
 uniform ivec2 eyeBrightnessSmooth;
 uniform ivec2 eyeBrightness;
 uniform int isEyeInWater;
@@ -149,7 +150,7 @@ uniform int fogShape;
 #if defined WATER_FANCY && !defined WORLD_NETHER
     uniform sampler2D BUFFER_WATER_WAVES;
 
-    uniform float frameTimeCounter;
+    //uniform float frameTimeCounter;
 #endif
 
 #if MC_VERSION >= 11900
