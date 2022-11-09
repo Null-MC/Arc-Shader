@@ -5,7 +5,7 @@
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
 
-/* RENDERTARGETS: */
+/* RENDERTARGETS: 0 */
 
 
 void main() {
