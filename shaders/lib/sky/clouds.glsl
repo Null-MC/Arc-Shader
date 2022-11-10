@@ -14,7 +14,7 @@ float GetCloudFactor(const in vec3 localPos, const in vec3 localViewDir) {
 	vec2 p3 = pos + vec2(8.0, 4.0) * time;
 	vec2 p4 = pos + vec2(4.0, 4.0) * time;
 
-	float threshold = mix(0.12, 0.03, wetness);
+	float threshold = mix(0.18, 0.03, wetness);
 
 	float cloudF = 0.0;
 	cloudF += 1.000 * textureLod(noisetex, p1 * 0.0001, 0).r - 1.000*threshold;
@@ -25,7 +25,7 @@ float GetCloudFactor(const in vec3 localPos, const in vec3 localViewDir) {
 	cloudF = saturate(cloudF);
     //float cloudPow = mix(CLOUD_POW_CLEAR, CLOUD_POW_RAIN, rainStrength);
     //cloudF = pow(cloudF, cloudPow);
-    cloudF = pow(cloudF, mix(0.6, 0.2, wetness));
+    cloudF = pow(cloudF, mix(0.8, 0.2, wetness));
     //cloudF = smoothstep(0.0, 1.0, cloudF);
 
 	return cloudF;
@@ -39,7 +39,7 @@ vec3 GetCloudColor(const in vec2 skyLightLevels) {
 	#endif
 
     vec3 cloudColor = sunTransmittance * GetSunLux();
-    cloudColor *= 0.35 * vec3(0.248, 0.225, 0.273);
+    cloudColor *= vec3(0.248, 0.225, 0.273);
     cloudColor *= 1.0 - wetness;
 
     float lightLevel = saturate(0.08 + 0.92 * skyLightLevels.x);

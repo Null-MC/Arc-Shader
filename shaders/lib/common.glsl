@@ -73,7 +73,7 @@ const bool colortex12Clear = false;
 
 //#define WATER_SCATTER_RATE 1.8
 #define WATER_ABSROPTION_RATE 1.0
-#define WATER_FOG_DIST 16.0
+#define WATER_FOG_DIST 24.0
 
 
 // Atmosphere Options

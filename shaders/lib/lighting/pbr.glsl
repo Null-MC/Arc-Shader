@@ -120,7 +120,9 @@
                     wetnessFinal = smoothstep(0.0, 1.0, wetnessFinal);
                     wetnessFinal *= (1.0 - noiseHigh * noiseLow) * (1.0 - shit) + shit;
 
-                    albedo *= GetWetnessDarkening(wetnessFinal, material.porosity);
+                    float darkenWetness = wetnessFinal;
+                    if (isEyeInWater == 1) darkenWetness = 1.0;
+                    albedo *= GetWetnessDarkening(darkenWetness, material.porosity);
 
                     float surfaceWetness = GetSurfaceWetness(wetnessFinal, material.porosity);
                     smoothness = mix(smoothness, WATER_SMOOTH, surfaceWetness);

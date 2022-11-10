@@ -349,7 +349,7 @@ void main() {
 
             #ifdef VL_ENABLED
                 vec3 nearPos = viewDir * near;
-                vec3 farPos = viewDir * min(far, 2.0 * WATER_FOG_DIST);
+                vec3 farPos = viewDir * min(far, WATER_FOG_DIST);
 
                 color += GetWaterVolumetricLighting(lightData, nearPos, farPos, waterLightColor);
             #endif
