@@ -194,6 +194,7 @@ const bool colortex12Clear = false;
 
 // Debug Options
 #define IS_OPTIFINE
+//#define PHYSICSMOD_ENABLED
 #define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25]
 //#define DEBUG_EXPOSURE_METERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
@@ -205,7 +206,6 @@ const bool colortex12Clear = false;
 //#define SKY_DITHER
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
-//#define PHYSICSMOD_ENABLED
 //#define WATER_REFRACT_HACK
 #define CLOUD_PLANE_Y_LEVEL 180.0
 #define CLOUD_POW_CLEAR 1.6
@@ -243,16 +243,13 @@ const bool colortex12Clear = false;
 const float sunLumen = 24e8;
 const float moonLumen = 1200.0;
 const float StarLumen = 80.0;
-//const float BlockLightLumen = 2000;
 const float EmissionLumens = 1.0e5;
 
 const float SunLux = 64000.0;
-const float SunOvercastLux = 32000.0; //600.0;
+const float SunOvercastLux = 32000.0;
 const float MoonLux = 14.0;
 const float MoonOvercastLux = 4.0;
-const float BlockLightLux = 12800.0; // 9k
-//const float DaySkyLux = 30000.0;
-//const float NightSkyLux = 200.0;
+const float BlockLightLux = 12800.0;
 const float MinWorldLux = 8.0;
 
 const float DaySkyLumen = 6000.0;

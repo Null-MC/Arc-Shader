@@ -225,15 +225,13 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
         uint data = textureLod(shadowcolor1, waterShadowPos.xy, 0).g;
         vec3 normal = unpackUnorm4x8(data).xyz * 2.0 - 1.0;
         normal = normalize(normal);
-        //vec3 normal = RestoreNormalZ(normalXY) * 0.5 + 0.5;
-
-        vec3 lightDir = vec3(0.0, 0.0, 1.0);//normalize(shadowLightPosition);
-        float NoL = max(dot(normal, lightDir), 0.0);
+        float NoL = max(normal.z, 0.0);
+        
         float waterF = F_schlick(NoL, 0.02, 1.0);
 
         float waterLightDist = max((waterShadowPos.z - transparentDepth) * MaxShadowDist, 0.0);
 
-        vec3 traceViewPos = nearViewPos + i * viewStep;
+        vec3 traceViewPos = i * viewStep;
         float traceDist = length(traceViewPos.z);
         waterLightDist += traceDist;
 
@@ -244,5 +242,5 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
         accumF += lightSample * invF * lightColor * absorption;
     }
 
-    return (accumF / VL_SAMPLE_COUNT) * (viewRayLength / (2.0 * WATER_FOG_DIST));
+    return (accumF / VL_SAMPLE_COUNT) * (viewRayLength / WATER_FOG_DIST);
 }

@@ -545,12 +545,12 @@
                         ApplyWaterFog(refractColor, waterFogColor, waterViewDepthFinal);
 
                         #ifdef VL_ENABLED
-                            if (isEyeInWater != 1) {
-                                vec3 nearViewPos = viewDir * lightData.transparentScreenDepthLinear;
-                                vec3 farViewPos = viewDir * refractOpaqueScreenDepthLinear;
+                            //if (lightData.transparentScreenDepthLinear < refractOpaqueScreenDepthLinear) {
+                                float dist = clamp(refractOpaqueScreenDepthLinear - lightData.transparentScreenDepthLinear, 0.0, WATER_FOG_DIST);
+                                vec3 farViewPos = viewPos + viewDir * dist;
 
-                                refractColor += GetWaterVolumetricLighting(lightData, nearViewPos, farViewPos, waterLightColor);
-                            }
+                                refractColor += GetWaterVolumetricLighting(lightData, viewPos, farViewPos, waterLightColor);
+                            //}
                         #endif
                     }
                     
@@ -645,7 +645,7 @@
 
             #ifdef VL_ENABLED
                 vec3 nearViewPos = viewDir * near;
-                vec3 farViewPos = viewDir * min(viewDist, WATER_FOG_DIST * 2.0);
+                vec3 farViewPos = viewDir * min(viewDist, WATER_FOG_DIST);
 
                 final.rgb += GetWaterVolumetricLighting(lightData, nearViewPos, farViewPos, waterLightColor);
             #endif
