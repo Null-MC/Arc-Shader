@@ -13,7 +13,7 @@ float GetWaveSpeed(const in float windSpeed, const in float skyLight) {
 }
 
 float GetWaveDepth(const in float skyLight) {
-    return mix(0.65, 1.0, rainStrength) * skyLight;
+    return mix(0.5, 1.0, rainStrength) * skyLight;
 }
 
 float GetWaves(const in vec2 position, const in float strength, const in int iterations) {
