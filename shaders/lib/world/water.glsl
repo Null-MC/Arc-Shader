@@ -13,14 +13,14 @@ float GetWaveSpeed(const in float windSpeed, const in float skyLight) {
 }
 
 float GetWaveDepth(const in float skyLight) {
-    return mix(0.5, 1.0, rainStrength) * skyLight;
+    return mix(0.65, 1.0, rainStrength) * skyLight;
 }
 
 float GetWaves(const in vec2 position, const in float strength, const in int iterations) {
     float weight = 1.0;//max(waveSpeed, 0.3) + 0.1;
     float maxWeight = 0.0;//max(1.0 - 0.2*waveSpeed, 0.0);
 
-    float dragF = mix(0.028, 0.066, strength);
+    float dragF = mix(0.024, 0.066, strength);
 
     float iter = 0.0;
     float speed = 2.0;
@@ -38,7 +38,8 @@ float GetWaves(const in vec2 position, const in float strength, const in int ite
         accumWeight += waveDX.x * weight;
         maxWeight += weight;
 
-        weight = mix(weight, 0.0, 0.2);
+        //weight = mix(weight, 0.0, 0.17);
+        weight *= 0.83;
 
         iter += 12.0;
         phase *= 1.18;

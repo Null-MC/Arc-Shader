@@ -129,10 +129,11 @@ uniform int fogShape;
     uniform float darknessFactor;
 #endif
 
-//#ifdef IS_OPTIFINE
-    uniform float eyeHumidity;
-    uniform float biomeWetness;
-//#endif
+uniform float eyeHumidity;
+uniform float biomeWetness;
+uniform vec3 waterScatterColor;
+uniform vec3 waterAbsorbColor;
+uniform float waterFogDistSmooth;
 
 #if defined SHADOW_CONTACT || REFLECTION_MODE == REFLECTION_MODE_SCREEN
     uniform mat4 gbufferProjectionInverse;

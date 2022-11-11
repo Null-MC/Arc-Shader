@@ -167,17 +167,16 @@ vec3 GetWaterScatterColor(const in vec3 viewDir, const in vec3 sunTransmittanceE
     #endif
 }
 
-vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunTransmittanceEye, const in vec3 waterScatterColor) {
+vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunTransmittanceEye, const in vec3 vlColor) {
     #ifdef SKY_ENABLED
         float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
+        vec3 waterFogColor = vec3(0.0);
 
         #if defined SKY_ENABLED && !defined VL_ENABLED
-            vec3 waterFogColor = 0.1 * waterScatterColor * pow3(eyeLight);
-        #else
-            vec3 waterFogColor = vec3(0.0);
+            waterFogColor += 0.2 * waterScatterColor * vlColor * pow3(eyeLight);
         #endif
 
-        waterFogColor += 0.002*WATER_COLOR.rgb * sunTransmittanceEye * GetSunLuxColor() * pow3(eyeLight);
+        //waterFogColor += 0.01 * waterAbsorbColor * sunTransmittanceEye * GetSunLux() * pow2(eyeLight);
 
         return waterFogColor;
     #else
@@ -186,8 +185,8 @@ vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunTransmittanceEye, 
 }
 
 float ApplyWaterFog(inout vec3 color, const in vec3 fogColor, const in float viewDist) {
-    float waterFogEnd = WATER_FOG_DIST;//min(fogEnd, WATER_FOG_DIST);
-    float fogFactor = GetFogFactor(viewDist, 0.0, waterFogEnd, 0.48);
+    //float waterFogEnd = WATER_FOG_DIST;//min(fogEnd, WATER_FOG_DIST);
+    float fogFactor = GetFogFactor(viewDist, 0.0, waterFogDistSmooth, 0.54);
     color = mix(color, fogColor, fogFactor);
     return fogFactor;
 }

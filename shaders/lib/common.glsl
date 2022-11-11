@@ -66,13 +66,13 @@ const bool colortex12Clear = false;
 #define WATER_OCTAVES_FAR 12
 #define WATER_OCTAVES_VERTEX 8
 #define WATER_PARALLAX_SAMPLES 64
-#define WATER_WAVE_DEPTH 0.5
+#define WATER_WAVE_DEPTH 1.0
 #define WATER_RESOLUTION 2048
 #define REFRACTION_STRENGTH 50 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 85 100]
-#define WATER_NORMAL_STRENGTH 0.1
 
+#define WATER_NORMAL_STRENGTH 0.15
 //#define WATER_SCATTER_RATE 1.8
-#define WATER_ABSROPTION_RATE 1.0
+#define WATER_ABSROPTION_RATE 0.5
 #define WATER_FOG_DIST 24.0
 
 
@@ -83,7 +83,7 @@ const bool colortex12Clear = false;
 //#define CAVEFOG_ENABLED
 #define WEATHER_OPACITY 40 // [10 20 30 40 50 60 70 80 90 100]
 #define ATMOS_EXTINCTION 0.0025
-#define SUN_TEMP 4800.0
+#define SUN_TEMP 5500.0
 
 
 // Shadow Options
@@ -208,7 +208,8 @@ const bool colortex12Clear = false;
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
 //#define WATER_REFRACT_HACK
-#define CLOUD_PLANE_Y_LEVEL 180.0
+#define CLOUD_Y_LEVEL 180.0
+#define CLOUD_HORIZON_POWER 3.0
 #define CLOUD_POW_CLEAR 1.6
 #define CLOUD_POW_RAIN 0.3
 #define SHADOW_CLOUD
@@ -231,9 +232,8 @@ const bool colortex12Clear = false;
 // INTERNAL
 #define TITLE
 #define SEA_LEVEL 62
-//#define CLOUD_LEVEL 128
 #define ATMOSPHERE_LEVEL 320
-#define WATER_SMOOTH 0.92
+#define WATER_SMOOTH 1.0
 #define IOR_AIR 1.000293
 #define IOR_WATER 1.333
 #define PI 3.1415926538
@@ -260,8 +260,6 @@ const float NightSkyOvercastLumen = 1.0;
 
 const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.2;
 const vec4 WATER_COLOR = vec4(0.139, 0.271, 0.313, 0.1);
-const vec3 WATER_SCATTER_COLOR = vec3(0.304, 0.626, 0.646);
-const vec3 WATER_ABSORB_COLOR = vec3(0.625, 0.793, 0.838);
 const vec3 CLOUD_COLOR = vec3(0.248, 0.225, 0.273);
 
 const vec3 minLight = vec3(0.01);

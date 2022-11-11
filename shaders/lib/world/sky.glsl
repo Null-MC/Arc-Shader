@@ -80,22 +80,10 @@ vec3 GetMoonLightColor(const in float temp, const in float skyLightLevel) {
     return blackbody(temp) * GetMoonLightLevel(skyLightLevel);
 }
 
-// float GetSunLux() {
-//     return mix(SunLux, SunOvercastLux, rainStrength);
-// }
-
 float GetMoonLux() {
     float moonPhaseLevel = GetMoonPhaseLevel();
     return mix(MoonLux, MoonOvercastLux, rainStrength) * moonPhaseLevel;
 }
-
-// float GetSunLightLux(const in float skyLightLevel) {
-//     return GetSunLightLevel(skyLightLevel) * GetSunLux();
-// }
-
-// vec3 GetSunLightLuxColor(const in float temp, const in float skyLightLevel) {
-//     return GetSunLightColor(temp, skyLightLevel) * GetSunLux();
-// }
 
 float GetMoonLightLux(const in float skyLightLevel) {
     return GetMoonLightLevel(skyLightLevel) * GetMoonLux();
@@ -104,15 +92,6 @@ float GetMoonLightLux(const in float skyLightLevel) {
 vec3 GetMoonLightLuxColor(const in float temp, const in float skyLightLevel) {
     return GetMoonLightColor(temp, skyLightLevel) * GetMoonLux();
 }
-
-// vec3 GetSkyLightLuxColor(const in vec2 skyLightLevels) {
-//     vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
-
-//     vec3 sunLuxColor = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
-//     vec3 moonLuxColor = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);
-
-//     return sunLuxColor + moonLuxColor;
-// }
 
 float GetSunLightLuminance(const in float skyLightLevel) {
     float luminance = mix(DaySkyLumen, DaySkyOvercastLumen, rainStrength);
@@ -156,6 +135,9 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
         float nightSkyLumenFinal = mix(NightSkyLumen, NightSkyOvercastLumen, rainStrength);
         float skyLumen = mix(nightSkyLumenFinal, daySkyLumenFinal, dayNightF);
         
+        // Darken atmosphere
+        skyLumen *= 1.0 - saturate((cameraPosition.y - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL));
+
         vec3 skyColorLinear = RGBToLinear(skyColor);
         if (dot(skyColorLinear, skyColorLinear) < EPSILON) skyColorLinear = vec3(1.0);
         skyColorLinear = normalize(skyColorLinear);

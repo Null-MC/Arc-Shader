@@ -38,21 +38,21 @@
                 }
             #endif
 
-            vec3 localReflectDir = mat3(gbufferModelViewInverse) * reflectDir;
+            vec3 localReflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDir);
             vec3 skyColor = GetVanillaSkyLuminance(reflectDir);
             float horizonFogF = 1.0 - abs(localReflectDir.y);
 
             vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor;
-            vec3 vlColor = GetVanillaSkyScattering(viewDir, lightData.skyLightLevels, sunColorFinal, moonColor);
-            vlColor *= 1.0 - pow(horizonFogF, 8.0);
+            vec3 vlColor = GetVanillaSkyScattering(reflectDir, lightData.skyLightLevels, sunColorFinal, moonColor);
+            //vlColor *= 1.0 - pow(horizonFogF, 8.0);
             skyColor += vlColor * RGBToLinear(fogColor);
 
             vec3 starF = GetStarLight(normalize(localReflectDir));
             skyColor += starF * StarLumen;
 
-            vec3 cloudColor = GetCloudColor(skyLightLevels);
+            vec3 cloudColor = GetCloudColor(lightData.skyLightLevels);
             float cloudF = GetCloudFactor(cameraPosition + localPos, localReflectDir);
-            cloudF = mix(cloudF, 0.0, 1.0 - pow(horizonFogF, 8.0));
+            cloudF = mix(cloudF, 0.0, pow(horizonFogF, CLOUD_HORIZON_POWER));
             skyColor = mix(skyColor, cloudColor, cloudF);
 
             // darken lower horizon
@@ -279,6 +279,7 @@
         vec3 diffuse = albedo * blockLightDiffuse;
         vec3 specular = vec3(0.0);
         float occlusion = lightData.occlusion * material.occlusion;
+        vec3 waterExtinctionInv = 1.0 - waterAbsorbColor;
 
         #if defined SSAO_ENABLED && !defined RENDER_WATER && !defined RENDER_HAND_WATER
             occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, 0.5 * viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, 0.9);
@@ -328,8 +329,8 @@
             if (applyWaterAbsorption) {
                 float waterLightDist = max(lightData.opaqueScreenDepthLinear + lightData.waterShadowDepth, 0.0);
 
-                const vec3 extinctionInv = 1.0 - WATER_ABSORB_COLOR;
-                vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterLightDist * extinctionInv);
+                //const vec3 extinctionInv = 1.0 - WATER_ABSORB_COLOR;
+                vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterLightDist * waterExtinctionInv);
                 //if (lightData.waterShadowDepth < EPSILON) absorption = vec3(0.0);
 
                 skyAmbient *= absorption;
@@ -349,7 +350,9 @@
 
             ambient += skyAmbient;
 
+            //LoHm = min(LoHm * 1.2, 1.0);
             vec3 sunF = GetFresnel(material.albedo.rgb, f0, material.hcm, LoHm, roughL);
+            //sunF = min(sunF * 1.1, 1.0);
 
             vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * max(1.0 - sunF, 0.0);
             sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo, material.scattering, NoVm, NoLm, LoHm, roughL);
@@ -372,7 +375,7 @@
                     vec3 sssDiffuseLight = sssAlbedo * shadowSSS * skyLightColorFinal * max(1.0 - sunFInverse, 0.0);
                     
                     float VoL = dot(viewDir, viewLightDir);
-                    float inScatter = ComputeVolumetricScattering(VoL, mix(0.4, 0.7, material.scattering));
+                    float inScatter = 0.6*ComputeVolumetricScattering(VoL, mix(0.4, 0.6, material.scattering));
                     float outScatter = 3.0*ComputeVolumetricScattering(VoL, mix(-0.3, -0.1, material.scattering));
 
                     diffuse += material.scattering * sssDiffuseLight * min(max(inScatter, 0.0) + max(outScatter, 0.0), 1.0) * max(-NoL, 0.0) * (0.01 * SSS_STRENGTH);// * max(NoL, 0.0);
@@ -392,8 +395,6 @@
 
         #if defined RENDER_WATER && !defined WORLD_NETHER && !defined WORLD_END
             if (materialId == 100 || materialId == 101) {
-                const vec3 extinctionInv = 1.0 - WATER_ABSORB_COLOR;
-
                 #if WATER_REFRACTION != WATER_REFRACTION_NONE
                     float waterRefractEta = isEyeInWater == 1
                         ? IOR_WATER / IOR_AIR
@@ -405,6 +406,9 @@
                     float refractOpaqueScreenDepthLinear = lightData.opaqueScreenDepthLinear;
                     vec3 refractColor = vec3(0.0);
                     vec2 refractUV = screenUV;
+
+                    //float outNoL = max(dot(-viewNormal, -refractDir), 0.0);
+                    //float outF = 0.0;//F_schlick(outNoL, 0.02, 1.0);
 
                     if (dot(refractDir, refractDir) > EPSILON) {
                         #if REFRACTION_STRENGTH > 0
@@ -535,9 +539,12 @@
                             waterLightDist = 2.0 * waterViewDepthFinal;
                     #endif
 
-                    vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterLightDist * extinctionInv);
+                    vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterLightDist * waterExtinctionInv);
 
                     refractColor *= absorption;
+
+                    refractColor *= max(1.0 - sunF, 0.0);
+                    //refractColor *= max(1.0 - iblF, 0.0);
 
                     if (isEyeInWater != 1) {
                         vec3 waterLightColor = GetWaterScatterColor(viewDir, lightData.sunTransmittanceEye);
@@ -546,7 +553,7 @@
 
                         #ifdef VL_ENABLED
                             //if (lightData.transparentScreenDepthLinear < refractOpaqueScreenDepthLinear) {
-                                float dist = clamp(refractOpaqueScreenDepthLinear - lightData.transparentScreenDepthLinear, 0.0, WATER_FOG_DIST);
+                                float dist = clamp(refractOpaqueScreenDepthLinear - lightData.transparentScreenDepthLinear, 0.0, waterFogDistSmooth);
                                 vec3 farViewPos = viewPos + viewDir * dist;
 
                                 refractColor += GetWaterVolumetricLighting(lightData, viewPos, farViewPos, waterLightColor);
@@ -554,12 +561,12 @@
                         #endif
                     }
                     
+                    // TODO: refract out shadowing
+                    refractColor *= max(1.0 - iblF, 0.0);
+
                     #ifndef WATER_FANCY
                         refractColor = mix(refractColor, diffuse, material.albedo.a);
                     #endif
-
-                    refractColor *= max(1.0 - sunF, 0.0);
-                    refractColor *= max(1.0 - iblF, 0.0);
 
                     diffuse = refractColor;
                     final.a = saturate(10.0*waterViewDepthFinal - 0.2);
@@ -570,7 +577,7 @@
 
                     float waterLightDist = waterViewDepth + lightData.waterShadowDepth;
 
-                    vec3 absorption = exp(-extinctionInv * waterViewDepth);
+                    vec3 absorption = exp(-waterViewDepth * waterExtinctionInv);
                     vec3 refractColor = diffuse * absorption;
 
                     float lightDist = isEyeInWater == 1
@@ -645,7 +652,7 @@
 
             #ifdef VL_ENABLED
                 vec3 nearViewPos = viewDir * near;
-                vec3 farViewPos = viewDir * min(viewDist, WATER_FOG_DIST);
+                vec3 farViewPos = viewDir * min(viewDist, waterFogDistSmooth);
 
                 final.rgb += GetWaterVolumetricLighting(lightData, nearViewPos, farViewPos, waterLightColor);
             #endif

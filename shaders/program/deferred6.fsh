@@ -138,10 +138,11 @@ uniform float fogEnd;
     uniform float darknessFactor;
 #endif
 
-//#ifdef IS_OPTIFINE
-    uniform float eyeHumidity;
-    uniform float biomeWetness;
-//#endif
+uniform float eyeHumidity;
+uniform float biomeWetness;
+uniform vec3 waterScatterColor;
+uniform vec3 waterAbsorbColor;
+uniform float waterFogDistSmooth;
 
 #include "/lib/depth.glsl"
 #include "/lib/sampling/bayer.glsl"
@@ -349,7 +350,7 @@ void main() {
 
             #ifdef VL_ENABLED
                 vec3 nearPos = viewDir * near;
-                vec3 farPos = viewDir * min(far, WATER_FOG_DIST);
+                vec3 farPos = viewDir * min(far, waterFogDistSmooth);
 
                 color += GetWaterVolumetricLighting(lightData, nearPos, farPos, waterLightColor);
             #endif
@@ -395,25 +396,25 @@ void main() {
         if (isEyeInWater != 1) {
             vec3 localViewDir = normalize(localPos);
 
-            vec3 cloudPos;
-            cloudPos.y = CLOUD_PLANE_Y_LEVEL - (cameraPosition.y + localPos.y);
-            cloudPos.xz = cameraPosition.xz + localPos.xz + (localViewDir.xz / localViewDir.y) * cloudPos.y;
-            cloudPos -= cameraPosition;
+            // vec3 cloudPos;
+            // cloudPos.y = CLOUD_Y_LEVEL - (cameraPosition.y + localPos.y);
+            // cloudPos.xz = cameraPosition.xz + localPos.xz + (localViewDir.xz / localViewDir.y) * cloudPos.y;
+            // cloudPos -= cameraPosition;
 
             float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
 
-            float cloudDepthTest = CLOUD_PLANE_Y_LEVEL - (cameraPosition.y + localPos.y);
-            cloudDepthTest *= sign(CLOUD_PLANE_Y_LEVEL - cameraPosition.y);
+            float cloudDepthTest = CLOUD_Y_LEVEL - (cameraPosition.y + localPos.y);
+            cloudDepthTest *= sign(CLOUD_Y_LEVEL - cameraPosition.y);
 
             if (minDepth > 1.0 - EPSILON || cloudDepthTest < 0.0) {
                 float cloudF = GetCloudFactor(cameraPosition, localViewDir);
 
                 float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
-                cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
+                //cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
+                cloudF = mix(cloudF, 0.0, pow(cloudHorizonFogF, CLOUD_HORIZON_POWER));
 
                 vec3 cloudColor = GetCloudColor(skyLightLevels);
 
-                cloudF = smoothstep(0.0, 1.0, cloudF);
                 color = mix(color, cloudColor, cloudF);
             }
 

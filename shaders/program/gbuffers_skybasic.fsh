@@ -62,9 +62,6 @@ void main() {
     vec3 viewDir = normalize(viewPos);
     vec3 color = GetVanillaSkyLuminance(viewDir);
 
-    // Darken atmosphere
-    color *= 1.0 - saturate((cameraPosition.y - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL));
-
     #ifndef VL_ENABLED
         vec2 skyLightLevels = GetSkyLightLevels();
         vec3 sunColorFinal = sunTransmittanceEye * sunColor;

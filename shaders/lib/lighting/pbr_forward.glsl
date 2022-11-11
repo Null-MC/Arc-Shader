@@ -139,6 +139,7 @@
                     else {
                 #endif
 
+                #if WATER_WAVE_TYPE != WATER_WAVE_NONE
                     vec3 viewUp = normalize(upPosition);
                     if (isEyeInWater == 1) viewUp = -viewUp;
                     if (dot(viewNormal, viewUp) > EPSILON) {
@@ -170,6 +171,7 @@
                     //else {
                     //    material.normal = viewNormal;
                     //}
+                #endif
 
                 #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
                     }
@@ -347,8 +349,8 @@
             if (isEyeInWater != 1) {
                 vec3 localViewDir = normalize(localPos);
 
-                float cloudDepthTest = CLOUD_PLANE_Y_LEVEL - (cameraPosition.y + localPos.y);
-                cloudDepthTest *= sign(CLOUD_PLANE_Y_LEVEL - cameraPosition.y);
+                float cloudDepthTest = CLOUD_Y_LEVEL - (cameraPosition.y + localPos.y);
+                cloudDepthTest *= sign(CLOUD_Y_LEVEL - cameraPosition.y);
 
                 if (cloudDepthTest < 0.0) {
                     float cloudF = GetCloudFactor(cameraPosition, localViewDir);

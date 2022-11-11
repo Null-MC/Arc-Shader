@@ -1,12 +1,12 @@
 float GetCloudFactor(const in vec3 localPos, const in vec3 localViewDir) {
-	if (localPos.y < CLOUD_PLANE_Y_LEVEL) {
+	if (localPos.y < CLOUD_Y_LEVEL) {
 		if (localViewDir.y <= 0.0) return 0.0;
 	}
 	else {
 		if (localViewDir.y >= 0.0) return 0.0;
 	}
 
-	vec2 pos = localPos.xz + (localViewDir.xz / localViewDir.y) * (CLOUD_PLANE_Y_LEVEL - localPos.y);
+	vec2 pos = localPos.xz + (localViewDir.xz / localViewDir.y) * (CLOUD_Y_LEVEL - localPos.y);
 
 	float time = frameTimeCounter / 3.6;
 	vec2 p1 = pos + vec2(2.0, 8.0) * time;
@@ -26,7 +26,7 @@ float GetCloudFactor(const in vec3 localPos, const in vec3 localViewDir) {
 
     cloudF = pow(cloudF, mix(1.0, 0.4, wetness));
 
-    float cloudMin = mix(0.2, 0.0, wetness);
+    float cloudMin = mix(0.4, 0.0, wetness);
     float cloudMax = mix(1.0, 0.8, wetness);
 	cloudF = smoothstep(cloudMin, cloudMax, cloudF);
 
@@ -35,9 +35,9 @@ float GetCloudFactor(const in vec3 localPos, const in vec3 localViewDir) {
 
 vec3 GetCloudColor(const in vec2 skyLightLevels) {
 	#ifdef RENDER_DEFERRED
-		vec3 sunTransmittance = GetSunTransmittance(colortex7, CLOUD_PLANE_Y_LEVEL, skyLightLevels.x);
+		vec3 sunTransmittance = GetSunTransmittance(colortex7, CLOUD_Y_LEVEL, skyLightLevels.x);
 	#else
-		vec3 sunTransmittance = GetSunTransmittance(colortex9, CLOUD_PLANE_Y_LEVEL, skyLightLevels.x);
+		vec3 sunTransmittance = GetSunTransmittance(colortex9, CLOUD_Y_LEVEL, skyLightLevels.x);
 	#endif
 
     vec3 cloudColor = sunTransmittance * GetSunLuxColor();

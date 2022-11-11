@@ -70,15 +70,17 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
 
                 float cloudF = 1.0;
                 // when trace pos is below clouds, darken by cloud shadow
-                if (cameraPosition.y + localTracePos.y < CLOUD_PLANE_Y_LEVEL) {
+                if (cameraPosition.y + localTracePos.y < CLOUD_Y_LEVEL) {
                     cloudF = GetCloudFactor(cameraPosition + localTracePos, localLightDir);
 
                     //float horizonFogF = 1.0 - max(localLightDir.y, 0.0);
-                    //cloudF = 1.0 - mix(cloudF, 1.0, horizonFogF);
+                    //cloudF = mix(cloudF, 1.0, horizonFogF);
+
+                    cloudF = 1.0 - cloudF;
                 }
                 // only when camera is below clouds
                 // when trace pos is above clouds, darken by visibility
-                else if (cameraPosition.y < CLOUD_PLANE_Y_LEVEL) {
+                else if (cameraPosition.y < CLOUD_Y_LEVEL) {
                     cloudF = cloudVis;
                 }
 
@@ -165,6 +167,8 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
         float horizonFogF = 1.0 - abs(dot(viewLightDir, upDir));
     #endif
 
+    vec3 extinctionInv = 1.0 - waterAbsorbColor;
+
     for (int i = 1; i <= VL_SAMPLE_COUNT; i++) {
         vec3 currentShadowViewPos = shadowViewStart + i * rayStep;
         transparentDepth = 1.0;
@@ -213,11 +217,11 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
                 vec3 localPos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
 
                 // when trace pos is below clouds, darken by cloud shadow
-                if (cameraPosition.y + localPos.y < CLOUD_PLANE_Y_LEVEL) {
+                if (cameraPosition.y + localPos.y < CLOUD_Y_LEVEL) {
                     float cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
 
-                    float horizonFogF = 1.0 - max(localLightDir.y, 0.0);
-                    cloudF = mix(cloudF, 1.0, horizonFogF);
+                    //float horizonFogF = 1.0 - max(localLightDir.y, 0.0);
+                    //cloudF = mix(cloudF, 1.0, horizonFogF);
 
                     lightSample *= 1.0 - cloudF;
                 }
@@ -238,12 +242,11 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
         float traceDist = length(traceViewPos.z);
         waterLightDist += traceDist;
 
-        const vec3 extinctionInv = 1.0 - WATER_ABSORB_COLOR;
         vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterLightDist * extinctionInv);
 
         float invF = max(1.0 - waterF, 0.0);
         accumF += lightSample * invF * lightColor * absorption;
     }
 
-    return (accumF / VL_SAMPLE_COUNT) * (viewRayLength / WATER_FOG_DIST);
+    return (accumF / VL_SAMPLE_COUNT) * (viewRayLength / waterFogDistSmooth);
 }

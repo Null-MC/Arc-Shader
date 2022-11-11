@@ -31,7 +31,9 @@ flat in vec3 blockLightColor;
 
     uniform sampler2D colortex9;
     uniform usampler2D shadowcolor1;
+    uniform sampler2D noisetex;
 
+    uniform float frameTimeCounter;
     uniform vec3 upPosition;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
@@ -70,12 +72,12 @@ flat in vec3 blockLightColor;
             #endif
             
             #if defined VL_ENABLED //&& defined VL_PARTICLES
-                uniform sampler2D noisetex;
+                //uniform sampler2D noisetex;
 
                 //uniform mat4 shadowModelView;
                 //uniform mat4 gbufferModelViewInverse;
                 uniform mat4 shadowModelViewInverse;
-                uniform float frameTimeCounter;
+                //uniform float frameTimeCounter;
                 uniform float viewWidth;
                 uniform float viewHeight;
             #endif
@@ -105,9 +107,10 @@ uniform int fogMode;
     uniform float darknessFactor;
 #endif
 
-//#ifdef IS_OPTIFINE
-    uniform float eyeHumidity;
-//#endif
+uniform float eyeHumidity;
+uniform vec3 waterScatterColor;
+uniform vec3 waterAbsorbColor;
+uniform float waterFogDistSmooth;
 
 #include "/lib/depth.glsl"
 #include "/lib/lighting/blackbody.glsl"
@@ -140,11 +143,11 @@ uniform int fogMode;
 
 #include "/lib/world/scattering.glsl"
 #include "/lib/sky/sun.glsl"
+#include "/lib/sky/clouds.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/world/fog.glsl"
 
 #if defined VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE //&& defined VL_PARTICLES
-    #include "/lib/sky/clouds.glsl"
     #include "/lib/lighting/volumetric.glsl"
 #endif
 
