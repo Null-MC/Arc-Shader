@@ -23,7 +23,7 @@
         #endif
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && (defined RENDER_TERRAIN || defined RENDER_WATER)
-            ApplyHardCodedMaterials();
+            ApplyHardCodedMaterials(matF0, matSSS, matSmooth, matEmissive);
         #endif
     }
 #endif
@@ -33,8 +33,15 @@
         vec3 GetSkyReflectionColor(const in LightData lightData, const in vec3 localPos, const in vec3 viewDir, const in vec3 reflectDir) {
             #ifdef RENDER_WATER
                 if (materialId == 100 && isEyeInWater == 1) {
-                    vec3 waterLightColor = GetWaterScatterColor(viewDir, lightData.sunTransmittanceEye);
-                    return GetWaterFogColor(viewDir, lightData.sunTransmittanceEye, waterLightColor);
+                    vec3 waterLightColor = GetWaterScatterColor(reflectDir, lightData.sunTransmittanceEye);
+                    vec3 waterFogColor = GetWaterFogColor(reflectDir, lightData.sunTransmittanceEye, waterLightColor);
+
+                    //#if defined SKY_ENABLED && !defined VL_ENABLED
+                    float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
+                    waterFogColor += 0.2 * waterScatterColor * waterLightColor * pow3(eyeLight);
+                    //#endif
+
+                    return waterFogColor;
                 }
             #endif
 
@@ -475,8 +482,8 @@
                     else {
                         // TIR
                         refractUV = screenUV;
-                        refractOpaqueScreenDepth = 1.0;
-                        refractOpaqueScreenDepthLinear = 65000;
+                        refractOpaqueScreenDepth = lightData.transparentScreenDepth;
+                        refractOpaqueScreenDepthLinear = lightData.transparentScreenDepthLinear;
                         //refractColor = vec3(10000.0, 0.0, 0.0);
                     }
 

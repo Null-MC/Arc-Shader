@@ -215,7 +215,8 @@ void main() {
 
     #if defined SSS_ENABLED || defined RSM_ENABLED
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-            ApplyHardCodedMaterials();
+            float matF0, matSmooth, matEmissive;
+            ApplyHardCodedMaterials(matF0, matSSS, matSmooth, matEmissive);
         #endif
 
         #if defined PHYSICSMOD_ENABLED && defined SSS_ENABLED

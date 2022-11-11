@@ -1,4 +1,4 @@
-void ApplyHardCodedMaterials() {
+void ApplyHardCodedMaterials(out float matF0, out float matSSS, out float matSmooth, out float matEmissive) {
     matF0 = 0.04;
     matSSS = 0.0;
     matSmooth = 0.0;
