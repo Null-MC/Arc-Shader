@@ -140,7 +140,7 @@
             vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
 
             //vec3 sunLightLux = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
-            vec3 sunLight = lightData.sunTransmittance * GetSunLux();
+            vec3 sunLight = lightData.sunTransmittance * GetSunLuxColor();
             sunLight *= dot(normal, sunLightDir) * 0.1 + 0.3;
 
             vec3 moonLightLux = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);

@@ -160,7 +160,7 @@ uniform float fogEnd;
 #endif
 
 #ifdef SKY_ENABLED
-    #include "/lib/world/sun.glsl"
+    #include "/lib/sky/sun.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
     #include "/lib/world/porosity.glsl"
@@ -360,6 +360,7 @@ void main() {
 
                 vec3 localDir = normalize(localPos);
 
+                // TODO: move to skybasic so it's behind sun/moon
                 if (localDir.y > 0.0) {
                     float starHorizonFogF = 1.0 - abs(dot(viewDir, upDir));
                     vec3 starF = GetStarLight(localDir);
@@ -420,7 +421,7 @@ void main() {
                 vec3 viewNear = viewDir * near;
                 vec3 viewFar = viewDir * min(length(viewPos), far);
 
-                vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
+                vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor;
                 vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
 
                 color += GetVolumetricLighting(lightData, viewNear, viewFar, lightColor);

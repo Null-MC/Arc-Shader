@@ -120,7 +120,7 @@ void GetFog(const in LightData lightData, const in vec3 viewPos, out vec3 fogCol
     #endif
 
     // #if defined SKY_ENABLED && !defined VL_ENABLED
-    //     vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux();// * sunColor
+    //     vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor;
     //     color += maxFactor * GetVanillaSkyScattering(viewDir, lightData.skyLightLevels, sunColorFinal, moonColor);
     // #endif
 
@@ -158,7 +158,7 @@ vec3 GetWaterScatterColor(const in vec3 viewDir, const in vec3 sunTransmittanceE
             ComputeVolumetricScattering(moon_VoL, -0.2);
 
         return 
-            saturate(sunScattering) * sunTransmittanceEye * GetSunLux() +
+            saturate(sunScattering) * sunTransmittanceEye * GetSunLuxColor() +
             saturate(moonScattering) * moonColor;
 
         //return 0.1 * waterFogColor * WATER_SCATTER_COLOR;// * vlColor;
@@ -177,7 +177,7 @@ vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunTransmittanceEye, 
             vec3 waterFogColor = vec3(0.0);
         #endif
 
-        waterFogColor += 0.002*WATER_COLOR.rgb * sunTransmittanceEye * GetSunLux() * pow3(eyeLight);
+        waterFogColor += 0.002*WATER_COLOR.rgb * sunTransmittanceEye * GetSunLuxColor() * pow3(eyeLight);
 
         return waterFogColor;
     #else

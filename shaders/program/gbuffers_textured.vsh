@@ -92,7 +92,7 @@ uniform float blindness;
 #include "/lib/lighting/blackbody.glsl"
 
 #ifdef SKY_ENABLED
-    #include "/lib/world/sun.glsl"
+    #include "/lib/sky/sun.glsl"
     #include "/lib/world/sky.glsl"
 #endif
 
@@ -115,12 +115,10 @@ void main() {
     #ifdef SKY_ENABLED
         skyLightLevels = GetSkyLightLevels();
         vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
-        //sunColor = GetSunLightLuxColor(skyLightTemps.x, skyLightLevels.x);
-        sunColor = blackbody(5500.0);
         moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
-        //skyLightColor = sunColor + moonColor; // TODO: get rid of this variable
+        sunColor = GetSunLuxColor();
 
-        sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);// * sunColor;
+        sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
     #endif
 
     exposure = GetExposure();

@@ -193,7 +193,7 @@ uniform int fogShape;
 #endif
 
 #ifdef SKY_ENABLED
-    #include "/lib/world/sun.glsl"
+    #include "/lib/sky/sun.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
     #include "/lib/world/porosity.glsl"

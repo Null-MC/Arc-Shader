@@ -135,6 +135,7 @@ uniform float blindness;
 #include "/lib/lighting/blackbody.glsl"
 
 #ifdef SKY_ENABLED
+    #include "/lib/sky/sun.glsl"
     #include "/lib/world/sky.glsl"
 #endif
 
@@ -169,7 +170,7 @@ void main() {
         skyLightLevels = GetSkyLightLevels();
         vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
         moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
-        sunColor = blackbody(5500.0);
+        sunColor = GetSunLuxColor();
     #endif
 
     blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;

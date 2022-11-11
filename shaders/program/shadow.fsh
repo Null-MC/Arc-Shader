@@ -164,11 +164,15 @@ void main() {
             float finalDepth = GetWaves(waterWorldPos, waveDepth, octaves) * waveDepth * WATER_NORMAL_STRENGTH;
             vec3 waterPos = vec3(waterWorldPos.x, waterWorldPos.y, finalDepth);
 
-            viewNormal = -normalize(
+            viewNormal = normalize(
                 cross(
                     dFdx(waterPos),
                     dFdy(waterPos))
                 );
+
+            #ifdef IS_OPTIFINE
+                viewNormal = -viewNormal;
+            #endif
         }
     #endif
 

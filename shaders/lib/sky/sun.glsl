@@ -4,3 +4,11 @@ vec3 GetSunTransmittance(const in sampler2D tex, const in float height, const in
     uv.y = saturate((height - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL));
     return textureLod(tex, uv, 0).rgb;
 }
+
+float GetSunLux() {
+    return mix(SunLux, SunOvercastLux, rainStrength);
+}
+
+vec3 GetSunLuxColor() {
+    return GetSunLux() * blackbody(SUN_TEMP);
+}

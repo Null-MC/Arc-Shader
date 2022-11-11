@@ -68,7 +68,7 @@ vec4 BasicLighting(const in LightData lightData) {
         ambient += GetSkyAmbientLight(lightData, viewNormal) * ambientBrightness;
 
         #ifndef RENDER_WEATHER
-            vec3 skyLightColor = lightData.sunTransmittance * GetSunLux() + moonColor;
+            vec3 skyLightColor = lightData.sunTransmittance * sunColor + moonColor;
             diffuse += albedo.rgb * skyLightColor * shadowColor * shadow *skyLight3;
         #endif
     #endif
@@ -87,17 +87,20 @@ vec4 BasicLighting(const in LightData lightData) {
 
     vec3 viewDir = normalize(viewPos);
 
+    #ifdef SKY_ENABLED
+        vec3 sunLightColorEye = lightData.sunTransmittanceEye * sunColor;
+    #endif
+
     #ifdef RENDER_WEATHER
         vec3 sunDir = normalize(sunPosition);
         float sun_VoL = dot(viewDir, sunDir);
-        vec3 sunLightColor = 3.0 * lightData.sunTransmittanceEye * GetSunLux(); // * sunColor;
         float rainSnowSunVL = ComputeVolumetricScattering(sun_VoL, 0.88);
 
         vec3 moonDir = normalize(moonPosition);
         float moon_VoL = dot(viewDir, moonDir);
         float rainSnowMoonVL = ComputeVolumetricScattering(moon_VoL, 0.74);
 
-        final.rgb += albedo.rgb * (max(rainSnowSunVL, 0.0) * sunLightColor + max(rainSnowMoonVL, 0.0) * moonColor) * shadow;
+        final.rgb += albedo.rgb * (max(rainSnowSunVL, 0.0) * 3.0*sunLightColorEye + max(rainSnowMoonVL, 0.0) * moonColor) * shadow;
 
         final.a = albedo.a * rainStrength * mix(WEATHER_OPACITY * 0.01, 1.0, saturate(max(rainSnowSunVL, rainSnowMoonVL)));
     #endif
@@ -107,8 +110,8 @@ vec4 BasicLighting(const in LightData lightData) {
     GetFog(lightData, viewPos, fogColorFinal, fogFactor);
 
     #ifdef SKY_ENABLED
-        vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
-        vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
+        //vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor
+        vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunLightColorEye, moonColor);
 
         #ifndef VL_ENABLED
             vec3 fogColorLinear = RGBToLinear(fogColor);

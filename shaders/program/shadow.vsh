@@ -224,7 +224,7 @@ void main() {
             if (abs(dot(sampleColor, sampleColor) - 3.0) < EPSILON) {
                 materialId = 102;
                 //matSmooth = 0.4;
-                matSSS = 0.8;
+                matSSS = 0.6;
                 //matF0 = 0.02;
             }
         #endif

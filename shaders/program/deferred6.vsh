@@ -83,7 +83,7 @@ uniform int moonPhase;
 #include "/lib/lighting/blackbody.glsl"
 
 #ifdef SKY_ENABLED
-    #include "/lib/world/sun.glsl"
+    #include "/lib/sky/sun.glsl"
     #include "/lib/world/sky.glsl"
 #endif
 
@@ -96,31 +96,11 @@ void main() {
 
     #ifdef SKY_ENABLED
         skyLightLevels = GetSkyLightLevels();
-        //vec3 sunTransmittance = GetSunTransmittance(colortex7, skyLightLevels.x);
-
-        //sunColor = sunTransmittance * GetSunLux();
-
         vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
-        //sunColor = GetSunLightLuxColor(skyLightTemps.x, skyLightLevels.x);
+
+        sunColor = GetSunLuxColor();
+        sunTransmittanceEye = GetSunTransmittance(colortex7, eyeAltitude, skyLightLevels.x);
         moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
-
-        sunColor = blackbody(5500.0);
-
-        sunTransmittanceEye = GetSunTransmittance(colortex7, eyeAltitude, skyLightLevels.x);// * sunColor;
-
-        //skyLightColor = GetSkyLightLuxColor(skyLightLevels);
-        //skyLightColor = sunColor + moonColor; // TODO: get rid of this variable
-
-        // TODO: add lightning check
-        // if (rainStrength > 0.5) {
-        //     // if (all(greaterThan(skyColor, vec3(0.9)))) {
-        //     //     skyLightColor = vec3(60000.0, 0.0, 0.0);
-        //     // }
-        //     if (dot(shadowLightPosition, shadowLightPosition) < 0.1) {
-        //         skyLightColor = vec3(60000.0, 0.0, 0.0);
-        //         skyLightLevels = vec2(1.0, 1.0);
-        //     }
-        // }
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE == SHADOW_TYPE_CASCADED
             cascadeSizes[0] = GetCascadeDistance(0);

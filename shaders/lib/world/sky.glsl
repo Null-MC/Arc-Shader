@@ -80,22 +80,22 @@ vec3 GetMoonLightColor(const in float temp, const in float skyLightLevel) {
     return blackbody(temp) * GetMoonLightLevel(skyLightLevel);
 }
 
-float GetSunLux() {
-    return mix(SunLux, SunOvercastLux, rainStrength);
-}
+// float GetSunLux() {
+//     return mix(SunLux, SunOvercastLux, rainStrength);
+// }
 
 float GetMoonLux() {
     float moonPhaseLevel = GetMoonPhaseLevel();
     return mix(MoonLux, MoonOvercastLux, rainStrength) * moonPhaseLevel;
 }
 
-float GetSunLightLux(const in float skyLightLevel) {
-    return GetSunLightLevel(skyLightLevel) * GetSunLux();
-}
+// float GetSunLightLux(const in float skyLightLevel) {
+//     return GetSunLightLevel(skyLightLevel) * GetSunLux();
+// }
 
-vec3 GetSunLightLuxColor(const in float temp, const in float skyLightLevel) {
-    return GetSunLightColor(temp, skyLightLevel) * GetSunLux();
-}
+// vec3 GetSunLightLuxColor(const in float temp, const in float skyLightLevel) {
+//     return GetSunLightColor(temp, skyLightLevel) * GetSunLux();
+// }
 
 float GetMoonLightLux(const in float skyLightLevel) {
     return GetMoonLightLevel(skyLightLevel) * GetMoonLux();
@@ -105,14 +105,14 @@ vec3 GetMoonLightLuxColor(const in float temp, const in float skyLightLevel) {
     return GetMoonLightColor(temp, skyLightLevel) * GetMoonLux();
 }
 
-vec3 GetSkyLightLuxColor(const in vec2 skyLightLevels) {
-    vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
+// vec3 GetSkyLightLuxColor(const in vec2 skyLightLevels) {
+//     vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
 
-    vec3 sunLuxColor = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
-    vec3 moonLuxColor = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);
+//     vec3 sunLuxColor = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
+//     vec3 moonLuxColor = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);
 
-    return sunLuxColor + moonLuxColor;
-}
+//     return sunLuxColor + moonLuxColor;
+// }
 
 float GetSunLightLuminance(const in float skyLightLevel) {
     float luminance = mix(DaySkyLumen, DaySkyOvercastLumen, rainStrength);
@@ -191,8 +191,8 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
 
         vec2 skyLightLevels = GetSkyLightLevels();
         float lightLevel = saturate(skyLightLevels.x);
-        float dayNightF = smoothstep(0.1, 0.6, lightLevel);
-        float skyLux = mix(GetMoonLux(), GetSunLux(), dayNightF);
+        float dayNightF = smoothstep(0.0, 0.6, lightLevel);
+        vec3 skyLuxColor = mix(vec3(GetMoonLux()), GetSunLuxColor(), dayNightF);
         
         vec3 skyColorLinear = RGBToLinear(skyColor);
         if (dot(skyColorLinear, skyColorLinear) < EPSILON) skyColorLinear = vec3(1.0);
@@ -219,6 +219,6 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
         
         float VoUm = max(dot(viewDir, upDir), 0.0);
         float skyFogFactor = GetVanillaSkyFog(VoUm, 0.25);
-        return mix(skyColorLinear, fogColorLinear, skyFogFactor) * skyLux;
+        return mix(skyColorLinear, fogColorLinear, skyFogFactor) * skyLuxColor;
     }
 #endif

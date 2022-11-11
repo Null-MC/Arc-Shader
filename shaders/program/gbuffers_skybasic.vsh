@@ -6,7 +6,7 @@
 #include "/lib/common.glsl"
 
 flat out vec3 sunTransmittanceEye;
-//flat out vec3 sunColor;
+flat out vec3 sunColor;
 flat out vec3 moonColor;
 flat out float exposure;
 
@@ -44,7 +44,7 @@ uniform int moonPhase;
 #endif
 
 #include "/lib/lighting/blackbody.glsl"
-#include "/lib/world/sun.glsl"
+#include "/lib/sky/sun.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/camera/exposure.glsl"
 
@@ -55,7 +55,7 @@ void main() {
     vec2 skyLightLevels = GetSkyLightLevels();
     vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
     moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
-    //sunColor = blackbody(5500.0);
+    sunColor = GetSunLuxColor();
 
     sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
 

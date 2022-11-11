@@ -83,6 +83,7 @@ const bool colortex12Clear = false;
 //#define CAVEFOG_ENABLED
 #define WEATHER_OPACITY 40 // [10 20 30 40 50 60 70 80 90 100]
 #define ATMOS_EXTINCTION 0.0025
+#define SUN_TEMP 4800.0
 
 
 // Shadow Options
@@ -194,7 +195,7 @@ const bool colortex12Clear = false;
 
 // Debug Options
 #define IS_OPTIFINE
-//#define PHYSICSMOD_ENABLED
+#define PHYSICSMOD_ENABLED
 #define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25]
 //#define DEBUG_EXPOSURE_METERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
@@ -231,7 +232,7 @@ const bool colortex12Clear = false;
 #define TITLE
 #define SEA_LEVEL 62
 //#define CLOUD_LEVEL 128
-#define ATMOSPHERE_LEVEL 256
+#define ATMOSPHERE_LEVEL 320
 #define WATER_SMOOTH 0.92
 #define IOR_AIR 1.000293
 #define IOR_WATER 1.333
@@ -252,7 +253,7 @@ const float MoonOvercastLux = 4.0;
 const float BlockLightLux = 12800.0;
 const float MinWorldLux = 8.0;
 
-const float DaySkyLumen = 6000.0;
+const float DaySkyLumen = 4000.0;
 const float DaySkyOvercastLumen = 1200.0;
 const float NightSkyLumen = 4.0;
 const float NightSkyOvercastLumen = 1.0;
@@ -261,6 +262,7 @@ const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.2;
 const vec4 WATER_COLOR = vec4(0.139, 0.271, 0.313, 0.1);
 const vec3 WATER_SCATTER_COLOR = vec3(0.304, 0.626, 0.646);
 const vec3 WATER_ABSORB_COLOR = vec3(0.625, 0.793, 0.838);
+const vec3 CLOUD_COLOR = vec3(0.248, 0.225, 0.273);
 
 const vec3 minLight = vec3(0.01);
 const float tile_dist_bias_factor = 0.012288;

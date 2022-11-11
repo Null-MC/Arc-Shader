@@ -27,7 +27,6 @@ flat in vec3 blockLightColor;
     flat in vec3 sunColor;
     flat in vec3 moonColor;
     flat in vec2 skyLightLevels;
-    //flat in vec3 skyLightColor;
     flat in vec3 sunTransmittanceEye;
 
     uniform sampler2D colortex9;
@@ -43,9 +42,6 @@ flat in vec3 blockLightColor;
 
     #ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;
-        // flat in vec3 sunColor;
-        // flat in vec3 moonColor;
-        // flat in vec3 skyLightColor;
 
         #if SHADOW_TYPE != SHADOW_TYPE_NONE
             uniform sampler2D shadowtex0;
@@ -143,7 +139,7 @@ uniform int fogMode;
 #endif
 
 #include "/lib/world/scattering.glsl"
-#include "/lib/world/sun.glsl"
+#include "/lib/sky/sun.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/world/fog.glsl"
 

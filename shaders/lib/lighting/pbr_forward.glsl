@@ -50,8 +50,8 @@
         #ifdef SKY_ENABLED
             float worldY = localPos.y + cameraPosition.y;
             lightData.skyLightLevels = skyLightLevels;
-            lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);// * sunColor;
-            lightData.sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);// * sunColor;
+            lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
+            lightData.sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
         #endif
 
         #if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
@@ -367,7 +367,7 @@
                     vec3 viewNear = viewDir * near;
                     vec3 viewFar = viewDir * min(length(viewPos), far);
 
-                    vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
+                    vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor;
                     vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
 
                     finalColor.rgb += GetVolumetricLighting(lightData, viewNear, viewFar, lightColor);

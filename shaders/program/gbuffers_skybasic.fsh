@@ -6,12 +6,13 @@
 #include "/lib/common.glsl"
 
 flat in vec3 sunTransmittanceEye;
-//flat in vec3 sunColor;
+flat in vec3 sunColor;
 flat in vec3 moonColor;
 flat in float exposure;
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferProjectionInverse;
+uniform vec3 cameraPosition;
 uniform float viewWidth;
 uniform float viewHeight;
 uniform vec3 upPosition;
@@ -45,6 +46,7 @@ uniform int moonPhase;
 
 //#include "/lib/sampling/bayer.glsl"
 #include "/lib/lighting/blackbody.glsl"
+#include "/lib/sky/sun.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/world/scattering.glsl"
 
@@ -56,15 +58,18 @@ out float outColor1;
 void main() {
     vec3 clipPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), 1.0) * 2.0 - 1.0;
     vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
-    vec2 skyLightLevels = GetSkyLightLevels();
 
     vec3 viewDir = normalize(viewPos);
     vec3 color = GetVanillaSkyLuminance(viewDir);
-    
-    vec3 sunColorFinal = sunTransmittanceEye * GetSunLux(); // * sunColor
-    vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
+
+    // Darken atmosphere
+    color *= 1.0 - saturate((cameraPosition.y - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL));
 
     #ifndef VL_ENABLED
+        vec2 skyLightLevels = GetSkyLightLevels();
+        vec3 sunColorFinal = sunTransmittanceEye * sunColor;
+        vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
+
         vec3 fogColorLinear = RGBToLinear(fogColor);
         color += lightColor * fogColorLinear;
     #endif

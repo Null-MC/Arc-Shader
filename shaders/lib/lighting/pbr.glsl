@@ -42,7 +42,7 @@
             vec3 skyColor = GetVanillaSkyLuminance(reflectDir);
             float horizonFogF = 1.0 - abs(localReflectDir.y);
 
-            vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor;
+            vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor;
             vec3 vlColor = GetVanillaSkyScattering(viewDir, lightData.skyLightLevels, sunColorFinal, moonColor);
             vlColor *= 1.0 - pow(horizonFogF, 8.0);
             skyColor += vlColor * RGBToLinear(fogColor);
@@ -50,12 +50,9 @@
             vec3 starF = GetStarLight(normalize(localReflectDir));
             skyColor += starF * StarLumen;
 
-            float cloudF = GetCloudFactor(cameraPosition + localPos, localReflectDir);
-            cloudF *= 1.0 - pow(horizonFogF, 8.0);
-
             vec3 cloudColor = GetCloudColor(skyLightLevels);
-
-            cloudF = smoothstep(0.0, 1.0, cloudF);
+            float cloudF = GetCloudFactor(cameraPosition + localPos, localReflectDir);
+            cloudF = mix(cloudF, 0.0, 1.0 - pow(horizonFogF, 8.0));
             skyColor = mix(skyColor, cloudColor, cloudF);
 
             // darken lower horizon
@@ -81,8 +78,8 @@
         #endif
 
         #ifdef SKY_ENABLED
-            vec3 sunColor = lightData.sunTransmittance * GetSunLux();
-            vec3 skyLightColorFinal = (sunColor + moonColor);// * shadowColor;
+            vec3 sunColorFinal = lightData.sunTransmittance * sunColor;
+            vec3 skyLightColorFinal = (sunColorFinal + moonColor);// * shadowColor;
             vec3 viewLightDir = normalize(shadowLightPosition);
             float NoL = dot(viewNormal, viewLightDir);
 
@@ -148,10 +145,9 @@
 
             #ifdef SHADOW_CLOUD
                 vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
-                //vec3 upDir = normalize(upPosition);
 
                 float cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
-                float horizonFogF = pow(1.0 - max(localLightDir.y, 0.0), 8.0);
+                float horizonFogF = pow(1.0 - max(localLightDir.y, 0.0), 2.0);
                 float cloudShadow = 1.0 - mix(cloudF, 1.0, horizonFogF);
                 skyLightColorFinal *= cloudShadow;
             #endif
@@ -312,13 +308,15 @@
         #ifdef SKY_ENABLED
             float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength);// * SHADOW_BRIGHTNESS;
 
-            #ifdef SHADOW_CLOUD
-                ambientBrightness *= cloudShadow;
-            #endif
+            // TODO: Doing direct cloud shadows on ambient causes really fucked results
+            //       At least needs a heavy blur distribution
+            // #ifdef SHADOW_CLOUD
+            //     ambientBrightness *= cloudShadow;
+            // #endif
 
             vec3 skyAmbient = GetSkyAmbientLight(lightData, viewNormal) * ambientBrightness;
 
-            // vec3 sunColor = lightData.sunTransmittance * GetSunLux();
+            // vec3 sunColor = lightData.sunTransmittance * sunColor;
             // vec3 skyLightColorFinal = (sunColor + moonColor) * shadowColor;
 
             bool applyWaterAbsorption = isEyeInWater == 1;
@@ -658,8 +656,8 @@
             GetFog(lightData, viewPos, fogColorFinal, fogFactorFinal);
 
             #ifdef SKY_ENABLED
-                vec3 sunColorFinal = lightData.sunTransmittanceEye * GetSunLux(); // * sunColor
-                vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
+                vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor;
+                vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinalEye, moonColor);
 
                 #ifndef VL_ENABLED
                     vec3 fogColorLinear = RGBToLinear(fogColor);

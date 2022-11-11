@@ -26,11 +26,12 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
         vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
 
         vec3 upDir = normalize(upPosition);
-        float horizonFogF = 1.0 - abs(dot(viewLightDir, upDir));
+        //float horizonFogF = 1.0 - abs(dot(viewLightDir, upDir));
+        float horizonFogF = pow(1.0 - max(localLightDir.y, 0.0), 2.0);
 
-        vec3 localPos = (gbufferModelViewInverse * vec4(viewFar, 1.0)).xyz;
-        float cloudVis = GetCloudFactor(cameraPosition + localPos, localLightDir);
-        cloudVis = mix(cloudVis, 1.0, horizonFogF);
+        vec3 localPosFar = (gbufferModelViewInverse * vec4(viewFar, 1.0)).xyz;
+        float cloudVis = GetCloudFactor(cameraPosition + localPosFar, localLightDir);
+        cloudVis = 1.0 - mix(cloudVis, 1.0, horizonFogF);
     #endif
 
     for (int i = 1; i <= VL_SAMPLE_COUNT; i++) {
@@ -56,6 +57,8 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
             float sampleF = CompareOpaqueDepth(shadowPos, vec2(0.0), 0.0);
         #endif
 
+        vec3 localTracePos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
+
         #ifdef SHADOW_CLOUD
             // when light is shining upwards
             if (localLightDir.y <= 0.0) {
@@ -63,18 +66,15 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
             }
             // when light is shining downwards
             else {
-                vec3 localPos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
+                //vec3 localTracePos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
 
-                float cloudF;
+                float cloudF = 1.0;
                 // when trace pos is below clouds, darken by cloud shadow
-                if (cameraPosition.y + localPos.y < CLOUD_PLANE_Y_LEVEL) {
-                    cloudF = 1.0 - GetCloudFactor(cameraPosition + localPos, localLightDir);
+                if (cameraPosition.y + localTracePos.y < CLOUD_PLANE_Y_LEVEL) {
+                    cloudF = GetCloudFactor(cameraPosition + localTracePos, localLightDir);
 
-                    float horizonFogF = 1.0 - max(localLightDir.y, 0.0);
-                    cloudF *= 1.0 - pow(horizonFogF, 8.0);
-                    cloudF = smoothstep(0.0, 1.0, 1.0 - cloudF);
-                    
-                    //cloudF = mix(cloudF, 1.0, horizonFogF);
+                    //float horizonFogF = 1.0 - max(localLightDir.y, 0.0);
+                    //cloudF = 1.0 - mix(cloudF, 1.0, horizonFogF);
                 }
                 // only when camera is below clouds
                 // when trace pos is above clouds, darken by visibility
@@ -82,7 +82,7 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
                     cloudF = cloudVis;
                 }
 
-                sampleF *= 1.0 - cloudF;
+                sampleF *= cloudF;
             }
         #endif
 
@@ -110,6 +110,9 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
         vec3 traceViewPos = viewNear + i * viewStep;
         float fogF = saturate(length(traceViewPos) / min(fogEnd, far)); //GetVanillaFogFactor(traceViewPos);
         sampleColor *= mix(vec3(1.0), fogColorLinear, fogF);
+
+        float worldTraceHeight = cameraPosition.y + localTracePos.y;
+        sampleF *= 1.0 - saturate((worldTraceHeight - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL));
 
         accumColor += sampleF * sampleColor;
     }
@@ -213,7 +216,7 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
                 if (cameraPosition.y + localPos.y < CLOUD_PLANE_Y_LEVEL) {
                     float cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
 
-                    float horizonFogF = 1.0 - max(dot(localLightDir, vec3(0.0, 1.0, 0.0)), 0.0);
+                    float horizonFogF = 1.0 - max(localLightDir.y, 0.0);
                     cloudF = mix(cloudF, 1.0, horizonFogF);
 
                     lightSample *= 1.0 - cloudF;

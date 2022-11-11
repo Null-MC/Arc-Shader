@@ -123,6 +123,7 @@ uniform int fogMode;
 
 #ifdef SKY_ENABLED
     #include "/lib/world/scattering.glsl"
+    #include "/lib/sky/sun.glsl"
     #include "/lib/world/sky.glsl"
 #endif
 
@@ -152,7 +153,6 @@ uniform int fogMode;
     #endif
 #endif
 
-#include "/lib/world/sun.glsl"
 #include "/lib/world/fog.glsl"
 
 #if defined SKY_ENABLED && defined VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE //&& defined VL_PARTICLES
