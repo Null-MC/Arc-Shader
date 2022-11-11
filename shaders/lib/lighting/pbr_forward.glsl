@@ -83,17 +83,32 @@
 
                 float depth, depthX, depthY;
                 vec3 waterPos;
-                
-                float waveDepth = GetWaveDepth(lightData.skyLight);
+
+                #if WATER_WAVE_TYPE != WATER_WAVE_NONE
+                    float waveDepth = GetWaveDepth(lightData.skyLight);
+
+                    int octaves = WATER_OCTAVES_FAR;
+                    #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
+                        //float viewDist = length(viewPos) - near;
+                        octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, saturate(viewDist / 200.0)));
+                    #endif
+
+                    const float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
+                    vec2 waterWorldPos = waterScale * (localPos.xz + cameraPosition.xz);
+
+                    depth = GetWaves(waterWorldPos, waveDepth, octaves) * waveDepth * WATER_NORMAL_STRENGTH;
+                    waterPos = vec3(waterWorldPos.x, waterWorldPos.y, depth);
+
+                    vec3 waterDX = dFdxFine(waterPos);
+                    vec3 waterDY = dFdyFine(waterPos);
+                #endif
 
                 #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
                     const float waterWorldScale = rcp(2.0*WATER_RADIUS);
                     vec2 waterLocalPos = localPos.xz * waterWorldScale;
 
-                    if (
-                        waterLocalPos.x > -0.5 && waterLocalPos.x < 0.5 &&
-                        waterLocalPos.y > -0.5 && waterLocalPos.y < 0.5
-                    ) {
+                    const float texBoundary = 0.5 - waterPixelSize;
+                    if (clamp(waterLocalPos, vec2(-texBoundary), vec2(texBoundary)) == waterLocalPos) {
                         vec3 waterTex = vec3(waterLocalPos + 0.5, 1.0);
                         mat2 water_dFdXY = mat2(dFdx(waterLocalPos), dFdy(waterLocalPos));
 
@@ -130,7 +145,6 @@
                         float dy = depthY - depth;
 
                         float waterParallaxDepth = 8.0 * (waveDepth / (2.0*WATER_RADIUS));
-                        const float waterPixelSize = rcp(WATER_RESOLUTION);
 
                         material.normal = normalize(cross(
                           vec3(waterPixelSize, 0.0, dx * waterParallaxDepth * WATER_NORMAL_STRENGTH),
@@ -142,28 +156,25 @@
                 #if WATER_WAVE_TYPE != WATER_WAVE_NONE
                     vec3 viewUp = normalize(upPosition);
                     if (isEyeInWater == 1) viewUp = -viewUp;
+
                     if (dot(viewNormal, viewUp) > EPSILON) {
-                        int octaves = WATER_OCTAVES_FAR;
-                        #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
-                            //float viewDist = length(viewPos) - near;
-                            octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, saturate(viewDist / 200.0)));
-                        #endif
+                        // int octaves = WATER_OCTAVES_FAR;
+                        // #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
+                        //     //float viewDist = length(viewPos) - near;
+                        //     octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, saturate(viewDist / 200.0)));
+                        // #endif
 
                         float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
                         //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
                         //float waveStrength = GetWaveDepth(windSpeed, skyLight);
 
-                        float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
-                        vec2 waterWorldPos = waterScale * (localPos.xz + cameraPosition.xz);
+                        //float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
+                        //vec2 waterWorldPos = waterScale * (localPos.xz + cameraPosition.xz);
 
-                        depth = GetWaves(waterWorldPos, waveDepth, octaves) * waveDepth * WATER_NORMAL_STRENGTH;
-                        waterPos = vec3(waterWorldPos.x, waterWorldPos.y, depth);
+                        //depth = GetWaves(waterWorldPos, waveDepth, octaves) * waveDepth * WATER_NORMAL_STRENGTH;
+                        //waterPos = vec3(waterWorldPos.x, waterWorldPos.y, depth);
 
-                        material.normal = normalize(
-                            cross(
-                                dFdxFine(waterPos),
-                                dFdyFine(waterPos))
-                            );
+                        material.normal = normalize(cross(waterDX, waterDY));
 
                         if (isEyeInWater != 1)
                             material.normal = -material.normal;

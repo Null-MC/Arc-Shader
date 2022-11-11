@@ -157,9 +157,9 @@ vec3 GetWaterScatterColor(const in vec3 viewDir, const in vec3 sunTransmittanceE
             ComputeVolumetricScattering(moon_VoL, 0.6) +
             ComputeVolumetricScattering(moon_VoL, -0.2);
 
-        return 
+        return 0.25 * (
             saturate(sunScattering) * sunTransmittanceEye * GetSunLuxColor() +
-            saturate(moonScattering) * moonColor;
+            saturate(moonScattering) * moonColor);
 
         //return 0.1 * waterFogColor * WATER_SCATTER_COLOR;// * vlColor;
     #else
@@ -186,7 +186,7 @@ vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunTransmittanceEye, 
 
 float ApplyWaterFog(inout vec3 color, const in vec3 fogColor, const in float viewDist) {
     //float waterFogEnd = WATER_FOG_DIST;//min(fogEnd, WATER_FOG_DIST);
-    float fogFactor = GetFogFactor(viewDist, 0.0, waterFogDistSmooth, 0.54);
+    float fogFactor = GetFogFactor(viewDist, 0.0, waterFogDistSmooth, 0.25);
     color = mix(color, fogColor, fogFactor);
     return fogFactor;
 }

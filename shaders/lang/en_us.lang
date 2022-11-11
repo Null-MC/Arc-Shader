@@ -329,7 +329,9 @@ suffix.VL_STRENGTH=%
 option.VL_PARTICLES=Particles?
 option.VL_PARTICLES.comment=Adds volumetric lighting to particles. Impact: Heavy
 
-option.VL_SAMPLE_COUNT=Samples
+option.VL_SAMPLES_SKY=Sky Samples
+
+option.VL_SAMPLES_WATER=Water Samples
 
 option.VL_DITHER=Dither?
 

@@ -10,8 +10,12 @@ flat in vec3 sunColor;
 flat in vec3 moonColor;
 flat in float exposure;
 
+uniform sampler2D noisetex;
+
 uniform mat4 gbufferModelView;
+uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjectionInverse;
+uniform float frameTimeCounter;
 uniform vec3 cameraPosition;
 uniform float viewWidth;
 uniform float viewHeight;
@@ -47,6 +51,7 @@ uniform int moonPhase;
 //#include "/lib/sampling/bayer.glsl"
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/sky/sun.glsl"
+#include "/lib/sky/stars.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/world/scattering.glsl"
 
@@ -61,6 +66,16 @@ void main() {
 
     vec3 viewDir = normalize(viewPos);
     vec3 color = GetVanillaSkyLuminance(viewDir);
+
+    vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+    vec3 localDir = normalize(localPos);
+
+    if (localDir.y > 0.0) {
+        float starHorizonFogF = 1.0 - abs(localDir.y);
+        vec3 starF = GetStarLight(localDir);
+        starF *= 1.0 - pow(starHorizonFogF, 12.0);
+        color += starF * StarLumen;
+    }
 
     #ifndef VL_ENABLED
         vec2 skyLightLevels = GetSkyLightLevels();

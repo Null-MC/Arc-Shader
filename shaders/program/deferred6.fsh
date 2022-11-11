@@ -358,16 +358,6 @@ void main() {
         else {
             #ifdef SKY_ENABLED
                 color = texelFetch(BUFFER_HDR, iTex, 0).rgb / exposure;
-
-                vec3 localDir = normalize(localPos);
-
-                // TODO: move to skybasic so it's behind sun/moon
-                if (localDir.y > 0.0) {
-                    float starHorizonFogF = 1.0 - abs(dot(viewDir, upDir));
-                    vec3 starF = GetStarLight(localDir);
-                    starF *= 1.0 - pow(starHorizonFogF, 12.0);
-                    color += starF * StarLumen;
-                }
             #else
                 color = RGBToLinear(fogColor) * 100.0;
             #endif

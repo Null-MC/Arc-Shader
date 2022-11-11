@@ -72,8 +72,8 @@ const bool colortex12Clear = false;
 
 #define WATER_NORMAL_STRENGTH 0.15
 //#define WATER_SCATTER_RATE 1.8
-#define WATER_ABSROPTION_RATE 0.5
-#define WATER_FOG_DIST 24.0
+#define WATER_ABSROPTION_RATE 1.0
+//#define WATER_FOG_DIST 24.0
 
 
 // Atmosphere Options
@@ -175,7 +175,8 @@ const bool colortex12Clear = false;
 #define VL_ENABLED
 #define VL_DITHER
 #define VL_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 175 200 225 250 275 300 350 400 450 500 600 700 800 900]
-#define VL_SAMPLE_COUNT 30 // [15 30 60 90]
+#define VL_SAMPLES_SKY 30 // [15 30 45 60 75 90]
+#define VL_SAMPLES_WATER 8 // [8 16 24 32]
 //#define VL_PARTICLES
 #define G_SCATTERING_CLEAR 0.4
 #define G_SCATTERING_NIGHT 0.65
