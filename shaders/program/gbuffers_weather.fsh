@@ -66,12 +66,12 @@ flat in vec3 blockLightColor;
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 flat in vec3 matShadowProjections_scale[4];
                 flat in vec3 matShadowProjections_translation[4];
-                flat in vec3 shadowPos[4];
-                flat in float shadowBias[4];
                 flat in float cascadeSizes[4];
+                in vec3 shadowPos[4];
+                in float shadowBias[4];
             #else
-                flat in vec4 shadowPos;
-                flat in float shadowBias;
+                in vec4 shadowPos;
+                in float shadowBias;
 
                 uniform mat4 shadowProjection;
             #endif

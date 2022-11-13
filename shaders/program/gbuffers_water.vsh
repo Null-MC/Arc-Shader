@@ -55,9 +55,9 @@ flat out mat2 atlasBounds;
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             flat out vec3 matShadowProjections_scale[4];
             flat out vec3 matShadowProjections_translation[4];
-            flat out vec3 shadowPos[4];
-            flat out float shadowBias[4];
             flat out float cascadeSizes[4];
+            out vec3 shadowPos[4];
+            out float shadowBias[4];
 
             #if SHADER_PLATFORM == PLATFORM_OPTIFINE
                 uniform mat4 gbufferPreviousProjection;
@@ -67,8 +67,8 @@ flat out mat2 atlasBounds;
             uniform mat4 gbufferProjection;
             uniform float near;
         #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            flat out vec4 shadowPos;
-            flat out float shadowBias;
+            out vec4 shadowPos;
+            out float shadowBias;
         #endif
     #endif
 #endif
