@@ -6,6 +6,7 @@
 #include "/lib/common.glsl"
 
 flat out vec3 sunTransmittanceEye;
+flat out vec3 moonTransmittanceEye;
 flat out vec3 sunColor;
 flat out vec3 moonColor;
 flat out float exposure;
@@ -38,13 +39,13 @@ uniform int moonPhase;
     uniform float darknessFactor;
 #endif
 
-#ifdef IS_OPTIFINE
+#if SHADER_PLATFORM == PLATFORM_OPTIFINE
     uniform mat4 gbufferModelView;
     uniform int worldTime;
 #endif
 
 #include "/lib/lighting/blackbody.glsl"
-#include "/lib/sky/sun.glsl"
+#include "/lib/sky/sun_moon.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/camera/exposure.glsl"
 
@@ -52,12 +53,12 @@ uniform int moonPhase;
 void main() {
     gl_Position = ftransform();
 
-    vec2 skyLightLevels = GetSkyLightLevels();
-    vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
-    moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
     sunColor = GetSunLuxColor();
+    moonColor = GetMoonLuxColor() * GetMoonPhaseLevel();
 
+    vec2 skyLightLevels = GetSkyLightLevels();
     sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
+    moonTransmittanceEye = GetMoonTransmittance(colortex9, eyeAltitude, skyLightLevels.y);
 
     exposure = GetExposure();
 }

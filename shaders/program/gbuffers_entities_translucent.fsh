@@ -46,7 +46,7 @@ uniform int entityId;
     uniform float wetness;
 #endif
 
-// #if MC_VERSION >= 11700 && defined IS_OPTIFINE
+// #if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
 //     uniform float alphaTestRef;
 // #endif
     

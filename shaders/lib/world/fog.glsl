@@ -138,47 +138,46 @@ void ApplyFog(inout vec4 color, const in vec3 fogColor, const in float fogFactor
     color.rgb = mix(color.rgb, fogColor, fogFactor);
 }
 
-vec3 GetWaterScatterColor(const in vec3 viewDir, const in vec3 sunTransmittanceEye) {
+vec2 GetWaterScattering(const in vec3 viewDir) {
     #ifdef SKY_ENABLED
-        #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
+        vec2 scatteringF;
+
+        #if SHADER_PLATFORM == PLATFORM_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
             vec3 sunDir = GetFixedSunPosition();
         #else
             vec3 sunDir = normalize(sunPosition);
         #endif
 
         float sun_VoL = dot(viewDir, sunDir);
-        float sunScattering =
+        scatteringF.x =
             ComputeVolumetricScattering(sun_VoL, 0.6) +
             ComputeVolumetricScattering(sun_VoL, -0.2);
 
         vec3 moonDir = normalize(moonPosition);
         float moon_VoL = dot(viewDir, moonDir);
-        float moonScattering =
+        scatteringF.y =
             ComputeVolumetricScattering(moon_VoL, 0.6) +
             ComputeVolumetricScattering(moon_VoL, -0.2);
 
-        return 0.25 * (
-            saturate(sunScattering) * sunTransmittanceEye * GetSunLuxColor() +
-            saturate(moonScattering) * moonColor);
-
-        //return 0.1 * waterFogColor * WATER_SCATTER_COLOR;// * vlColor;
+        return 0.3 * max(scatteringF, vec2(0.0));
     #else
-        return vec3(0.0);
+        return vec2(0.0);
     #endif
 }
 
-vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunTransmittanceEye, const in vec3 vlColor) {
+vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunColorFinal, const in vec3 moonColorFinal, const in vec2 scatteringF) {
     #ifdef SKY_ENABLED
-        float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
+        vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
         vec3 waterFogColor = vec3(0.0);
 
         #if defined SKY_ENABLED && !defined VL_ENABLED
-            waterFogColor += 0.2 * waterScatterColor * vlColor * pow3(eyeLight);
+            waterFogColor += 0.2 * waterScatterColor * lightColor;
+        #else
+            waterFogColor += 0.02 * waterScatterColor * lightColor;
         #endif
 
-        //waterFogColor += 0.01 * waterAbsorbColor * sunTransmittanceEye * GetSunLux() * pow2(eyeLight);
-
-        return waterFogColor;
+        float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
+        return waterFogColor * pow2(eyeLight);
     #else
         return vec3(0.0);
     #endif

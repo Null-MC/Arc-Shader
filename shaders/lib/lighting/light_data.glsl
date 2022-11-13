@@ -7,7 +7,9 @@ struct LightData {
 
     vec2 skyLightLevels;
     vec3 sunTransmittance;
+    vec3 moonTransmittance;
     vec3 sunTransmittanceEye;
+    vec3 moonTransmittanceEye;
 
     float opaqueScreenDepth;
     float opaqueScreenDepthLinear;

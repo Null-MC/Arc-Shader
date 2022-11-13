@@ -44,6 +44,9 @@ const bool colortex12MipmapEnabled = false;
 const bool colortex12Clear = false;
 
 
+#define SHADER_PLATFORM 0 // [0 1]
+
+
 // World Options
 #define ENABLE_WAVING
 #define HANDLIGHT_ENABLED
@@ -77,13 +80,13 @@ const bool colortex12Clear = false;
 
 
 // Atmosphere Options
-//#define ATMOSPHERE_TYPE 0 // [0 1]
 //#define LIGHTLEAK_FIX
 //#define ATMOSFOG_ENABLED
 //#define CAVEFOG_ENABLED
 #define WEATHER_OPACITY 40 // [10 20 30 40 50 60 70 80 90 100]
-#define ATMOS_EXTINCTION 0.0025
+//#define ATMOS_EXTINCTION 0.0025
 #define SUN_TEMP 5500.0
+#define MOON_TEMP 4000.0
 
 
 // Shadow Options
@@ -95,7 +98,7 @@ const bool colortex12Clear = false;
 //#define SHADOW_EXCLUDE_FOLIAGE
 //#define SHADOW_COLOR
 #define SHADOW_DITHER
-//#define SHADOW_PARTICLES
+#define SHADOW_PARTICLES
 #define SHADOW_BIAS_SCALE 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200 210 220 230 240 250]
 #define SHADOW_DISTORT_FACTOR 0.15 // [0.00 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.10 0.11 0.12 0.13 0.14 0.15 0.16 0.17 0.18 0.19 0.20 0.21 0.22 0.23 0.24 0.25 0.26 0.27 0.28 0.29 0.30 0.31 0.32 0.33 0.34 0.35 0.36 0.37 0.38 0.39 0.40 0.41 0.42 0.43 0.44 0.45 0.46 0.47 0.48 0.49 0.50 0.51 0.52 0.53 0.54 0.55 0.56 0.57 0.58 0.59 0.60 0.61 0.62 0.63 0.64 0.65 0.66 0.67 0.68 0.69 0.70 0.71 0.72 0.73 0.74 0.75 0.76 0.77 0.78 0.79 0.80 0.81 0.82 0.83 0.84 0.85 0.86 0.87 0.88 0.89 0.90 0.91 0.92 0.93 0.94 0.95 0.96 0.97 0.98 0.99 1.00]
 #define SHADOW_ENTITY_CASCADE 1 // [0 1 2 3]
@@ -195,10 +198,9 @@ const bool colortex12Clear = false;
 
 
 // Debug Options
-#define IS_OPTIFINE
-#define PHYSICSMOD_ENABLED
 #define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25]
 //#define DEBUG_EXPOSURE_METERS
+//#define PHYSICSMOD_ENABLED
 //#define IRIS_FEATURE_CHUNK_OFFSET
 #define DITHER_FINAL
 #define PARTICLE_OPACITY 0.8
@@ -242,14 +244,14 @@ const bool colortex12Clear = false;
 #define EPSILON 1e-7
 #define GAMMA 2.2
 
-const float sunLumen = 24e8;
-const float moonLumen = 1200.0;
-const float StarLumen = 80.0;
+const float sunLumen = 1.6e9;
+const float moonLumen = 800.0;
+const float StarLumen = 40.0;
 const float EmissionLumens = 1.0e5;
 
 const float SunLux = 64000.0;
 const float SunOvercastLux = 32000.0;
-const float MoonLux = 14.0;
+const float MoonLux = 26.0;
 const float MoonOvercastLux = 4.0;
 const float BlockLightLux = 12800.0;
 const float MinWorldLux = 8.0;
@@ -273,7 +275,7 @@ const float invPI = 1.0 / PI;
 const float wetnessHalflife = 300.0;
 const float drynessHalflife = 10.0;
 
-#if MC_VERSION < 11700 || !defined IS_OPTIFINE
+#if MC_VERSION < 11700 || SHADER_PLATFORM == PLATFORM_IRIS
     const float alphaTestRef = 0.1;
 #endif
 
@@ -320,8 +322,6 @@ const float drynessHalflife = 10.0;
 #ifdef WATER_WAVE_TYPE
 #endif
 #ifdef WATER_REFRACTION
-#endif
-#ifdef ATMOSPHERE_TYPE
 #endif
 #ifdef CAVEFOG_ENABLED
 #endif

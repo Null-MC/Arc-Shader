@@ -32,6 +32,7 @@ flat out float exposure;
     flat out vec2 skyLightLevels;
     //flat out vec3 skyLightColor;
     flat out vec3 sunTransmittanceEye;
+    flat out vec3 moonTransmittanceEye;
     
     uniform sampler2D colortex9;
 
@@ -53,17 +54,22 @@ flat out float exposure;
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             attribute vec3 at_midBlock;
 
-            flat out float cascadeSizes[4];
             flat out vec3 matShadowProjections_scale[4];
             flat out vec3 matShadowProjections_translation[4];
+            flat out vec3 shadowPos[4];
+            flat out float shadowBias[4];
+            flat out float cascadeSizes[4];
 
-            #ifdef IS_OPTIFINE
+            #if SHADER_PLATFORM == PLATFORM_OPTIFINE
                 uniform mat4 gbufferPreviousProjection;
                 uniform mat4 gbufferPreviousModelView;
             #endif
 
             uniform mat4 gbufferProjection;
             uniform float near;
+        #else
+            flat out vec4 shadowPos;
+            flat out float shadowBias;
         #endif
     #endif
 #endif
@@ -99,7 +105,7 @@ uniform float blindness;
 #endif
 
 #include "/lib/lighting/blackbody.glsl"
-#include "/lib/sky/sun.glsl"
+#include "/lib/sky/sun_moon.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/lighting/basic.glsl"
 #include "/lib/camera/exposure.glsl"
@@ -118,12 +124,39 @@ void main() {
         blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
     #endif
 
-    skyLightLevels = GetSkyLightLevels();
-    vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
-    moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
     sunColor = GetSunLuxColor();
+    moonColor = GetMoonLuxColor() * GetMoonPhaseLevel();
+    skyLightLevels = GetSkyLightLevels();
     
     sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
+    moonTransmittanceEye = GetMoonTransmittance(colortex9, eyeAltitude, skyLightLevels.y);
 
     exposure = GetExposure();
+
+    #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos.xyz, 1.0))).xyz;
+
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+            for (int i = 0; i < 4; i++) {
+                mat4 matShadowProjection = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
+                shadowPos[i] = (matShadowProjection * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                shadowBias[i] = GetCascadeBias(geoNoL, i);
+                
+                vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
+                shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
+            }
+        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+            shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
+
+            #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                float distortFactor = getDistortFactor(shadowPos.xy);
+                shadowPos.xyz = distort(shadowPos.xyz, distortFactor);
+                shadowBias = GetShadowBias(geoNoL, distortFactor);
+            #else
+                shadowBias = GetShadowBias(geoNoL);
+            #endif
+
+            shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
+        #endif
+    #endif
 }

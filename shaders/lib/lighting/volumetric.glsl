@@ -1,4 +1,22 @@
-vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, const in vec3 viewFar, const in vec3 lightColor) {
+vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLightLevels, const in vec2 scatteringF) {
+    #ifdef RENDER_DEFERRED
+        vec3 sunTransmittance = GetSunTransmittance(colortex7, worldTraceHeight, skyLightLevels.x);
+        vec3 moonTransmittance = GetMoonTransmittance(colortex7, worldTraceHeight, skyLightLevels.y);
+    #else
+        vec3 sunTransmittance = GetSunTransmittance(colortex9, worldTraceHeight, skyLightLevels.x);
+        vec3 moonTransmittance = GetMoonTransmittance(colortex9, worldTraceHeight, skyLightLevels.y);
+    #endif
+
+    vec3 sampleColor =
+        scatteringF.x * sunTransmittance * sunColor * skyLightLevels.x +
+        scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * moonColor * skyLightLevels.y;
+
+    sampleColor *= 1.0 - saturate((worldTraceHeight - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL));
+
+    return sampleColor;
+}
+
+vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, const in vec3 viewFar, const in vec2 scatteringF) {
     mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
     vec3 shadowViewStart = (matViewToShadowView * vec4(viewNear, 1.0)).xyz;
     vec3 shadowViewEnd = (matViewToShadowView * vec4(viewFar, 1.0)).xyz;
@@ -31,7 +49,8 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
 
         vec3 localPosFar = (gbufferModelViewInverse * vec4(viewFar, 1.0)).xyz;
         float cloudVis = GetCloudFactor(cameraPosition + localPosFar, localLightDir);
-        cloudVis = 1.0 - mix(cloudVis, 1.0, pow(horizonFogF, CLOUD_HORIZON_POWER));
+        //cloudVis = mix(cloudVis, 1.0, pow(horizonFogF, CLOUD_HORIZON_POWER));
+        cloudVis = 1.0 - cloudVis;
     #endif
 
     for (int i = 1; i <= VL_SAMPLES_SKY; i++) {
@@ -88,7 +107,8 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
             }
         #endif
 
-        vec3 sampleColor = lightColor;
+        float worldTraceHeight = cameraPosition.y + localTracePos.y;
+        vec3 sampleColor = GetScatteredLighting(worldTraceHeight, skyLightLevels, scatteringF);
 
         #ifdef SHADOW_COLOR
             if (sampleF > EPSILON) {
@@ -113,9 +133,6 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
         float fogF = saturate(length(traceViewPos) / min(fogEnd, far)); //GetVanillaFogFactor(traceViewPos);
         sampleColor *= mix(vec3(1.0), fogColorLinear, fogF);
 
-        float worldTraceHeight = cameraPosition.y + localTracePos.y;
-        sampleF *= 1.0 - saturate((worldTraceHeight - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL));
-
         accumColor += sampleF * sampleColor;
     }
 
@@ -124,12 +141,12 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
     return accumColor / VL_SAMPLES_SKY;
 }
 
-vec3 GetVolumetricLighting(const in LightData lightData, const in vec3 viewNear, const in vec3 viewFar, const in vec3 lightColor) {
+vec3 GetVolumetricLighting(const in LightData lightData, const in vec3 viewNear, const in vec3 viewFar, const in vec2 scatteringF) {
     float rayLen = min(length(viewFar - viewNear) / min(far, fogEnd), 1.0);
-    return GetVolumetricFactor(lightData, viewNear, viewFar, lightColor) * rayLen;
+    return GetVolumetricFactor(lightData, viewNear, viewFar, scatteringF) * rayLen;
 }
 
-vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 nearViewPos, const in vec3 farViewPos, const in vec3 lightColor) {
+vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 nearViewPos, const in vec3 farViewPos, const in vec2 scatteringF) {
     mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
     vec3 shadowViewStart = (matViewToShadowView * vec4(nearViewPos, 1.0)).xyz;
     vec3 shadowViewEnd = (matViewToShadowView * vec4(farViewPos, 1.0)).xyz;
@@ -207,6 +224,8 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
             waterShadowPos = shadowPos.xyz;
         #endif
 
+        vec3 localTracePos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
+
         #ifdef SHADOW_CLOUD
             // when light is shining upwards
             if (localLightDir.y <= 0.0) {
@@ -214,11 +233,11 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
             }
             // when light is shining downwards
             else {
-                vec3 localPos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
+                //vec3 localPos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
 
                 // when trace pos is below clouds, darken by cloud shadow
-                if (cameraPosition.y + localPos.y < CLOUD_Y_LEVEL) {
-                    float cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
+                if (cameraPosition.y + localTracePos.y < CLOUD_Y_LEVEL) {
+                    float cloudF = GetCloudFactor(cameraPosition + localTracePos, localLightDir);
 
                     //float horizonFogF = 1.0 - max(localLightDir.y, 0.0);
                     //cloudF = mix(cloudF, 1.0, horizonFogF);
@@ -227,6 +246,9 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
                 }
             }
         #endif
+
+        float worldTraceHeight = cameraPosition.y + localTracePos.y;
+        vec3 lightColor = GetScatteredLighting(worldTraceHeight, skyLightLevels, scatteringF);
 
         // sample normal, get fresnel, darken
         uint data = textureLod(shadowcolor1, waterShadowPos.xy, 0).g;

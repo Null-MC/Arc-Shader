@@ -5,15 +5,13 @@
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
 
-in vec2 texcoord;
 in vec4 glcolor;
-//flat in vec2 skyLightLevels;
-flat in vec3 sunTransmittance;
-flat in float sunLightLevel;
-flat in float moonLightLevel;
-//flat in vec3 sunLightLumColor;
-flat in vec3 moonLightLumColor;
+in vec2 texcoord;
 flat in float exposure;
+flat in vec3 sunColor;
+flat in vec3 moonColor;
+flat in vec3 sunTransmittanceEye;
+flat in vec3 moonTransmittanceEye;
 
 uniform sampler2D gtexture;
 
@@ -28,28 +26,27 @@ void main() {
     vec3 color = textureLod(gtexture, texcoord, 0).rgb;
     color = RGBToLinear(color * glcolor.rgb);
 
-    float lum = saturate(luminance(color));
+    float lum = luminance(color);
     if (lum < EPSILON) discard;
+    float alpha = saturate(lum);
 
-    float lumF = 0.0;
+    float lumF = 1.0;
 
     if (renderStage == MC_RENDER_STAGE_SUN) {
-        lumF += sunLumen;
-        color *= sunTransmittance * 1.0e6;//sunLumen
-        lum *= sunLightLevel;
+        lumF = sunLumen;
+        color *= sunColor * sunTransmittanceEye * 1.0e6;//sunLumen
+        lum *= luminance(sunColor * sunTransmittanceEye);
     }
     else if (renderStage == MC_RENDER_STAGE_MOON) {
-        lumF += moonLumen;
-        color *= moonLightLumColor;// * moonLightLevel * 0.1;
-        lum *= moonLightLevel;
+        lumF = moonLumen;
+        color *= moonColor * moonTransmittanceEye * moonLumen;
+        lum *= luminance(moonColor * moonTransmittanceEye);
     }
     // else if (renderStage == MC_RENDER_STAGE_CUSTOM_SKY) {
     //     lumF = 10000.0;
     //     //color = vec3(1000.0, 0.0, 0.0);
     //     //lum = 10.0;
     // }
-
-    float alpha = saturate(lum);
 
     color = clamp(color * exposure, vec3(0.0), vec3(65000));
     outColor0 = vec4(color, alpha);

@@ -55,7 +55,7 @@ uniform float far;
     flat out int waterMask;
 #endif
 
-#if MC_VERSION >= 11700 && (defined IS_OPTIFINE || defined IRIS_FEATURE_CHUNK_OFFSET)
+#if MC_VERSION >= 11700 && (SHADER_PLATFORM != PLATFORM_IRIS || defined IRIS_FEATURE_CHUNK_OFFSET)
     uniform vec3 chunkOffset;
 #else
     uniform mat4 gbufferModelViewInverse;
@@ -68,7 +68,7 @@ uniform float far;
     uniform int entityId;
     uniform float near;
 
-    #ifdef IS_OPTIFINE
+    #if SHADER_PLATFORM == PLATFORM_OPTIFINE
         // NOTE: We are using the previous gbuffer matrices cause the current ones don't work in shadow pass
         uniform mat4 gbufferPreviousModelView;
         uniform mat4 gbufferPreviousProjection;
@@ -135,10 +135,13 @@ void main() {
         }
     #endif
 
-    waterMask = 0;
+    #ifdef WATER_FANCY
+        waterMask = 0;
+    #endif
+
     materialId = int(mc_Entity.x + 0.5);
     #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
-        if (materialId == 100) {
+        if (materialId == MATERIAL_WATER) {
             #if MC_VERSION >= 11700
                 float vY = -at_midBlock.y / 64.0;
                 float posY = saturate(vY + 0.5) * (1.0 - step(0.5, vY + EPSILON));
@@ -147,7 +150,10 @@ void main() {
             #endif
 
             if (posY > EPSILON) {
-                waterMask = 1;
+                #ifdef WATER_FANCY
+                    waterMask = 1;
+                #endif
+                
                 //float windSpeed = GetWindSpeed();
                 //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
                 float waveDepth = GetWaveDepth(skyLight);
@@ -223,9 +229,9 @@ void main() {
             // TODO: PhysicsMod snow?
             vec3 sampleColor = textureLod(gtexture, mc_midTexCoord.xy, 0).rgb;
             if (abs(dot(sampleColor, sampleColor) - 3.0) < EPSILON) {
-                materialId = 102;
+                materialId = MATERIAL_PHYSICS_SNOW;
                 //matSmooth = 0.4;
-                matSSS = 0.6;
+                matSSS = 0.8;
                 //matF0 = 0.02;
             }
         #endif

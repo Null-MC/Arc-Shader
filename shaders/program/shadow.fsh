@@ -56,7 +56,7 @@ uniform sampler2D gtexture;
 uniform mat4 shadowModelViewInverse;
 uniform int renderStage;
 
-#if MC_VERSION >= 11700 && defined IS_OPTIFINE
+#if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
    uniform float alphaTestRef;
 #endif
 
@@ -108,7 +108,7 @@ void main() {
     #endif
 
     vec4 sampleColor;
-    if (materialId == 100 || materialId == 101) {
+    if (materialId == MATERIAL_WATER) {
         sampleColor = WATER_COLOR;
     }
     else {
@@ -170,7 +170,8 @@ void main() {
                     dFdy(waterPos))
                 );
 
-            #ifdef IS_OPTIFINE
+            // This is really weird, not sure who's fault this is
+            #if SHADER_PLATFORM != PLATFORM_IRIS
                 viewNormal = -viewNormal;
             #endif
         }
@@ -190,7 +191,7 @@ void main() {
         #endif
 
         #ifdef PHYSICSMOD_ENABLED
-            if (materialId == 102) {
+            if (materialId == MATERIAL_PHYSICS_SNOW) {
                 sss = matSSS;
             }
         #endif

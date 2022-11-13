@@ -36,13 +36,17 @@ float GetCloudFactor(const in vec3 localPos, const in vec3 localViewDir) {
 vec3 GetCloudColor(const in vec2 skyLightLevels) {
 	#ifdef RENDER_DEFERRED
 		vec3 sunTransmittance = GetSunTransmittance(colortex7, CLOUD_Y_LEVEL, skyLightLevels.x);
+		vec3 moonTransmittance = GetMoonTransmittance(colortex7, CLOUD_Y_LEVEL, skyLightLevels.y);
 	#else
 		vec3 sunTransmittance = GetSunTransmittance(colortex9, CLOUD_Y_LEVEL, skyLightLevels.x);
+		vec3 moonTransmittance = GetMoonTransmittance(colortex9, CLOUD_Y_LEVEL, skyLightLevels.y);
 	#endif
 
-    vec3 cloudColor = sunTransmittance * GetSunLuxColor();
-    cloudColor *= smoothstep(-0.08, 1.0, skyLightLevels.x);
-    cloudColor *= pow(1.0 - wetness, 2.0) * CLOUD_COLOR;
+    vec3 cloudSunColor = sunTransmittance * GetSunLuxColor() * skyLightLevels.x;
+    //cloudSunColor *= smoothstep(-0.08, 1.0, skyLightLevels.x);
 
-    return cloudColor;
+    vec3 cloudMoonColor = moonTransmittance * GetMoonLuxColor() * GetMoonPhaseLevel() * skyLightLevels.y;
+    //cloudSunColor *= smoothstep(-0.08, 1.0, skyLightLevels.y);
+
+    return (cloudSunColor + cloudMoonColor) * pow(1.0 - wetness, 2.0) * CLOUD_COLOR;
 }

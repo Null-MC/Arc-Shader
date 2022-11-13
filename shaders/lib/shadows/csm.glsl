@@ -128,7 +128,7 @@ int GetCascadeForScreenPos(const in vec2 pos) {
         mat4 matShadowProjection = BuildOrthoProjectionMatrix(cascadePaddedSize, cascadePaddedSize, zNear, zFar);
 
         #ifdef SHADOW_CSM_TIGHTEN
-            #ifdef IS_OPTIFINE
+            #if SHADER_PLATFORM == PLATFORM_OPTIFINE
                 mat4 matSceneProjectionRanged = gbufferPreviousProjection;
                 mat4 matSceneModelView = gbufferPreviousModelView;
             #else
@@ -203,7 +203,7 @@ int GetCascadeForScreenPos(const in vec2 pos) {
                 if (mc_Entity.x == 0.0) return vec3(0.0);
             #endif
 
-            #if MC_VERSION >= 11700 && (defined IS_OPTIFINE || defined IRIS_FEATURE_CHUNK_OFFSET)
+            #if MC_VERSION >= 11700 && (SHADER_PLATFORM != PLATFORM_IRIS || defined IRIS_FEATURE_CHUNK_OFFSET)
                 vec3 midBlockPosition = floor(vaPosition + chunkOffset + at_midBlock / 64.0 + fract(cameraPosition));
 
                 #ifdef RENDER_SHADOW

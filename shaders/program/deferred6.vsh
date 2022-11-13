@@ -21,10 +21,11 @@ flat out vec3 blockLightColor;
 #endif
 
 #ifdef SKY_ENABLED
-    flat out vec2 skyLightLevels;
     flat out vec3 sunColor;
     flat out vec3 moonColor;
+    flat out vec2 skyLightLevels;
     flat out vec3 sunTransmittanceEye;
+    flat out vec3 moonTransmittanceEye;
 
     uniform sampler2D colortex7;
 
@@ -45,13 +46,13 @@ flat out vec3 blockLightColor;
             uniform float near;
             uniform float far;
 
-            #if MC_VERSION >= 11700 && (defined IS_OPTIFINE || defined IRIS_FEATURE_CHUNK_OFFSET)
+            #if MC_VERSION >= 11700 && (SHADER_PLATFORM != PLATFORM_IRIS || defined IRIS_FEATURE_CHUNK_OFFSET)
                 uniform vec3 chunkOffset;
             #else
                 uniform mat4 gbufferModelViewInverse;
             #endif
 
-            #ifdef IS_OPTIFINE
+            #if SHADER_PLATFORM == PLATFORM_OPTIFINE
                 // NOTE: We are using the previous gbuffer matrices cause the current ones don't work in shadow pass
                 uniform mat4 gbufferPreviousModelView;
                 uniform mat4 gbufferPreviousProjection;
@@ -83,7 +84,7 @@ uniform int moonPhase;
 #include "/lib/lighting/blackbody.glsl"
 
 #ifdef SKY_ENABLED
-    #include "/lib/sky/sun.glsl"
+    #include "/lib/sky/sun_moon.glsl"
     #include "/lib/world/sky.glsl"
 #endif
 
@@ -95,12 +96,12 @@ void main() {
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
     #ifdef SKY_ENABLED
-        skyLightLevels = GetSkyLightLevels();
-        vec2 skyLightTemps = GetSkyLightTemp(skyLightLevels);
-
         sunColor = GetSunLuxColor();
+        moonColor = GetMoonLuxColor();// * GetMoonPhaseLevel();
+        skyLightLevels = GetSkyLightLevels();
+
         sunTransmittanceEye = GetSunTransmittance(colortex7, eyeAltitude, skyLightLevels.x);
-        moonColor = GetMoonLightLuxColor(skyLightTemps.y, skyLightLevels.y);
+        moonTransmittanceEye = GetMoonTransmittance(colortex7, eyeAltitude, skyLightLevels.y);
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE == SHADOW_TYPE_CASCADED
             cascadeSizes[0] = GetCascadeDistance(0);

@@ -5,10 +5,11 @@
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
 
-flat in vec3 sunTransmittanceEye;
+flat in float exposure;
 flat in vec3 sunColor;
 flat in vec3 moonColor;
-flat in float exposure;
+flat in vec3 sunTransmittanceEye;
+flat in vec3 moonTransmittanceEye;
 
 uniform sampler2D noisetex;
 
@@ -32,25 +33,12 @@ uniform vec3 fogColor;
 uniform vec3 skyColor;
 uniform int moonPhase;
 
-#ifdef IS_OPTIFINE
-    //uniform float eyeHumidity;
+#if SHADER_PLATFORM == PLATFORM_OPTIFINE
     uniform int worldTime;
 #endif
-    //uniform float eyeHumidity;
 
-// #if ATMOSPHERE_TYPE == ATMOSPHERE_TYPE_FANCY
-//     uniform sampler2D noisetex;
-
-//     uniform mat4 gbufferModelViewInverse;
-//     uniform float frameTimeCounter;
-//     uniform float eyeAltitude;
-
-//     #include "/lib/world/atmosphere.glsl"
-// #endif
-
-//#include "/lib/sampling/bayer.glsl"
 #include "/lib/lighting/blackbody.glsl"
-#include "/lib/sky/sun.glsl"
+#include "/lib/sky/sun_moon.glsl"
 #include "/lib/sky/stars.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/world/scattering.glsl"
@@ -80,10 +68,10 @@ void main() {
     #ifndef VL_ENABLED
         vec2 skyLightLevels = GetSkyLightLevels();
         vec3 sunColorFinal = sunTransmittanceEye * sunColor;
-        vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
-
-        vec3 fogColorLinear = RGBToLinear(fogColor);
-        color += lightColor * fogColorLinear;
+        vec3 moonColorFinal = moonTransmittanceEye * moonColor;
+        vec2 scatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
+        vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
+        color += lightColor * RGBToLinear(fogColor);
     #endif
 
     outColor1 = log2(luminance(color) + EPSILON);

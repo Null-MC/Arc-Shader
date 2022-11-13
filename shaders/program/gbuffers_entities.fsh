@@ -9,6 +9,7 @@ in vec2 lmcoord;
 in vec2 texcoord;
 in vec4 glcolor;
 in float geoNoL;
+in vec3 localPos;
 in vec3 viewPos;
 in vec3 viewNormal;
 in vec3 viewTangent;
@@ -39,6 +40,7 @@ uniform sampler2D normals;
 uniform sampler2D specular;
 uniform sampler2D lightmap;
 
+uniform vec3 cameraPosition;
 uniform ivec2 atlasSize;
 uniform vec4 entityColor;
 uniform int entityId;
@@ -48,7 +50,7 @@ uniform int entityId;
     uniform float wetness;
 #endif
 
-#if MC_VERSION >= 11700 && defined IS_OPTIFINE
+#if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
     uniform float alphaTestRef;
 #endif
     
@@ -62,6 +64,10 @@ uniform int entityId;
 // #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
 //     #include "/lib/lighting/directional.glsl"
 // #endif
+
+#ifdef PHYSICSMOD_ENABLED
+    #include "/lib/world/physics_snow.glsl"
+#endif
 
 #include "/lib/material/material.glsl"
 #include "/lib/material/material_reader.glsl"

@@ -16,29 +16,23 @@ float GetScatteringFactor(const in float sunLightLevel) {
     return scattering;
 }
 
-vec3 GetVanillaSkyScattering(const in vec3 viewDir, const in vec2 skyLightLevels, const in vec3 sunColor, const in vec3 moonColor) {
+vec2 GetVanillaSkyScattering(const in vec3 viewDir, const in vec2 skyLightLevels) {
     float sunLightLevel = saturate(skyLightLevels.x);
     float scattering_G = GetScatteringFactor(sunLightLevel);
+    vec2 scatteringF;
 
-    #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
+    #if SHADER_PLATFORM == PLATFORM_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
         vec3 sunDir = GetFixedSunPosition();
     #else
         vec3 sunDir = normalize(sunPosition);
     #endif
 
     float sun_VoL = dot(viewDir, sunDir);
-    float sunScattering = ComputeVolumetricScattering(sun_VoL, scattering_G);
+    scatteringF.x = ComputeVolumetricScattering(sun_VoL, scattering_G);
 
     vec3 moonDir = normalize(moonPosition);
     float moon_VoL = dot(viewDir, moonDir);
-    float moonScattering = ComputeVolumetricScattering(moon_VoL, scattering_G);
+    scatteringF.y = ComputeVolumetricScattering(moon_VoL, scattering_G);
 
-    vec3 vlColor =
-        saturate(sunScattering) * sunColor +
-        saturate(moonScattering) * moonColor;
-
-    //if (isEyeInWater == 1) vlColor *= WATER_COLOR.rgb;
-    // else vlColor *= RGBToLinear(skyColor);
-
-    return vlColor * (0.01 * VL_STRENGTH);
+    return scatteringF * (0.01 * VL_STRENGTH);
 }

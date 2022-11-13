@@ -142,11 +142,6 @@ option.PARALLAX_DEPTH_WRITE.comment=When enabled, the surface depth will also be
 
 screen.ATMOSPHERE_OPTIONS=Atmosphere
 
-option.ATMOSPHERE_TYPE=Type
-option.ATMOSPHERE_TYPE.comment=Fast: a simple vanilla blended sky. Fancy: A realistic computed atmosphere.
-value.ATMOSPHERE_TYPE.0=Fast
-value.ATMOSPHERE_TYPE.1=Fancy
-
 option.sunPathRotation=Sun Angle
 suffix.sunPathRotation=°
 
@@ -348,6 +343,12 @@ option.SSAO_RADIUS=Radius
 option.SSAO_SAMPLES=Sample Count
 
 
+option.SHADER_PLATFORM=Platform
+option.SHADER_PLATFORM.comment=Turn this on if you are using Optifine; turn off for Iris.
+value.SHADER_PLATFORM.0=Optifine
+value.SHADER_PLATFORM.1=Iris
+
+
 option.DEBUG_VIEW=Display
 option.DEBUG_VIEW.comment=Configures which buffer to draw to the screen.
 value.DEBUG_VIEW.0=None
@@ -380,5 +381,5 @@ value.DEBUG_VIEW.25=White-World
 option.DEBUG_EXPOSURE_METERS=Exposure Meters
 option.DEBUG_EXPOSURE_METERS.comment=When enabled, two bars will be shown on the left screen edge. - The average luminance is the first bar in red. - The EV value is the second bar in green.
 
-option.IS_OPTIFINE=Optifine?
-option.IS_OPTIFINE.comment=Turn this on if you are using Optifine; turn off for Iris.
+option.PHYSICSMOD_ENABLED=Physics Mod
+option.PHYSICSMOD_ENABLED.comment=Enable to provide better support when using the Physics mod by Haubna.

@@ -26,7 +26,7 @@ out vec2 texcoord;
     uniform vec3 fogColor;
 
     #include "/lib/lighting/blackbody.glsl"
-    #include "/lib/sky/sun.glsl"
+    #include "/lib/sky/sun_moon.glsl"
     #include "/lib/world/sky.glsl"
 
     float GetEyeBrightnessLuminance() {
@@ -35,11 +35,11 @@ out vec2 texcoord;
         #ifdef SKY_ENABLED
             vec2 skyLightLevels = GetSkyLightLevels();
             vec3 sunTransmittanceEye = GetSunTransmittance(colortex7, eyeAltitude, skyLightLevels.x);
+            vec3 moonTransmittanceEye = GetMoonTransmittance(colortex7, eyeAltitude, skyLightLevels.y);
 
-            float sunLightLux = luminance(sunTransmittanceEye * GetSunLuxColor());
-            float moonLightLux = GetMoonLightLux(skyLightLevels.y);
-
-            float skyLightBrightness = eyeBrightnessLinear.y * (sunLightLux + moonLightLux);
+            float sunLightLum = luminance(sunTransmittanceEye * GetSunLuxColor());
+            float moonLightLum = luminance(moonTransmittanceEye * GetMoonLuxColor()) * GetMoonPhaseLevel();
+            float skyLightBrightness = eyeBrightnessLinear.y * (sunLightLum + moonLightLum);
         #endif
 
         float blockLightBrightness = eyeBrightnessLinear.x;

@@ -74,9 +74,14 @@ flat in mat2 atlasBounds;
         #endif
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            flat in float cascadeSizes[4];
             flat in vec3 matShadowProjections_scale[4];
             flat in vec3 matShadowProjections_translation[4];
+            flat in vec3 shadowPos[4];
+            flat in float shadowBias[4];
+            flat in float cascadeSizes[4];
+        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+            flat in vec4 shadowPos;
+            flat in float shadowBias;
         #endif
     #endif
 #endif
@@ -194,7 +199,7 @@ uniform float waterFogDistSmooth;
 #endif
 
 #ifdef SKY_ENABLED
-    #include "/lib/sky/sun.glsl"
+    #include "/lib/sky/sun_moon.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
     #include "/lib/world/porosity.glsl"

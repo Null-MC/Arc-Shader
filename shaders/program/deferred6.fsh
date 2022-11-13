@@ -14,6 +14,7 @@ flat in vec3 blockLightColor;
     flat in vec3 sunColor;
     flat in vec3 moonColor;
     flat in vec3 sunTransmittanceEye;
+    flat in vec3 moonTransmittanceEye;
 
     uniform sampler2D colortex7;
 
@@ -161,7 +162,7 @@ uniform float waterFogDistSmooth;
 #endif
 
 #ifdef SKY_ENABLED
-    #include "/lib/sky/sun.glsl"
+    #include "/lib/sky/sun_moon.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
     #include "/lib/world/porosity.glsl"
@@ -259,9 +260,11 @@ void main() {
 
         lightData.skyLightLevels = skyLightLevels;
         lightData.sunTransmittanceEye = sunTransmittanceEye;
+        lightData.moonTransmittanceEye = moonTransmittanceEye;
 
         float worldY = localPos.y + cameraPosition.y;
         lightData.sunTransmittance = GetSunTransmittance(colortex7, worldY, skyLightLevels.x);
+        lightData.moonTransmittance = GetMoonTransmittance(colortex7, worldY, skyLightLevels.y);
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
@@ -345,14 +348,17 @@ void main() {
         lightData.skyLight = 1.0;
 
         if (isEyeInWater == 1) {
-            vec3 waterLightColor = GetWaterScatterColor(viewDir, lightData.sunTransmittanceEye);
-            color = GetWaterFogColor(viewDir, lightData.sunTransmittanceEye, waterLightColor);
+            vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor;
+            vec3 moonColorFinal = lightData.moonTransmittanceEye * moonColor;
+            //vec3 waterLightColor = GetWaterScatterColor(viewDir, sunColorFinal, moonColorFinal);
+            vec2 waterScatteringF = GetWaterScattering(viewDir);
+            color = GetWaterFogColor(viewDir, sunColorFinal, moonColorFinal, waterScatteringF);
 
             #ifdef VL_ENABLED
                 vec3 nearPos = viewDir * near;
                 vec3 farPos = viewDir * min(far, waterFogDistSmooth);
 
-                color += GetWaterVolumetricLighting(lightData, nearPos, farPos, waterLightColor);
+                color += GetWaterVolumetricLighting(lightData, nearPos, farPos, waterScatteringF);
             #endif
         }
         else {
@@ -386,11 +392,6 @@ void main() {
         if (isEyeInWater != 1) {
             vec3 localViewDir = normalize(localPos);
 
-            // vec3 cloudPos;
-            // cloudPos.y = CLOUD_Y_LEVEL - (cameraPosition.y + localPos.y);
-            // cloudPos.xz = cameraPosition.xz + localPos.xz + (localViewDir.xz / localViewDir.y) * cloudPos.y;
-            // cloudPos -= cameraPosition;
-
             float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
 
             float cloudDepthTest = CLOUD_Y_LEVEL - (cameraPosition.y + localPos.y);
@@ -412,10 +413,8 @@ void main() {
                 vec3 viewNear = viewDir * near;
                 vec3 viewFar = viewDir * min(length(viewPos), far);
 
-                vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor;
-                vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinal, moonColor);
-
-                color += GetVolumetricLighting(lightData, viewNear, viewFar, lightColor);
+                vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
+                color += GetVolumetricLighting(lightData, viewNear, viewFar, skyScatteringF);
             #endif
         }
     #endif

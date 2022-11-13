@@ -1,19 +1,4 @@
-vec4 BasicLighting(const in LightData lightData) {
-    vec4 albedo = texture(gtexture, texcoord);
-    if (albedo.a < (0.5/255.0)) discard;
-
-    //#if !defined RENDER_TEXTURED && !defined RENDER_WEATHER
-    //    if (albedo.a < alphaTestRef) discard;
-    //#endif
-
-    albedo.rgb = RGBToLinear(albedo.rgb * glcolor.rgb);
-
-    #ifdef RENDER_TEXTURED
-        albedo.a *= PARTICLE_OPACITY;
-    #else
-        albedo.a *= WEATHER_OPACITY * 0.01;
-    #endif
-
+vec4 BasicLighting(const in LightData lightData, const in vec4 albedo) {
     float shadow = step(EPSILON, lightData.geoNoL);
     //shadow *= step(1.0 / 32.0, lightData.skyLight);
 
@@ -68,7 +53,9 @@ vec4 BasicLighting(const in LightData lightData) {
         ambient += GetSkyAmbientLight(lightData, viewNormal) * ambientBrightness;
 
         #ifndef RENDER_WEATHER
-            vec3 skyLightColor = lightData.sunTransmittance * sunColor + moonColor;
+            vec3 sunColorFinal = lightData.sunTransmittance * sunColor;// * GetSunLux();
+            vec3 moonColorFinal = lightData.moonTransmittance * moonColor * GetMoonPhaseLevel();// * GetMoonLux();
+            vec3 skyLightColor = sunColorFinal + moonColorFinal;
             diffuse += albedo.rgb * skyLightColor * shadowColor * shadow *skyLight3;
         #endif
     #endif
@@ -88,7 +75,8 @@ vec4 BasicLighting(const in LightData lightData) {
     vec3 viewDir = normalize(viewPos);
 
     #ifdef SKY_ENABLED
-        vec3 sunLightColorEye = lightData.sunTransmittanceEye * sunColor;
+        vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor;
+        vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * GetMoonPhaseLevel();
     #endif
 
     #ifdef RENDER_WEATHER
@@ -100,8 +88,11 @@ vec4 BasicLighting(const in LightData lightData) {
         float moon_VoL = dot(viewDir, moonDir);
         float rainSnowMoonVL = ComputeVolumetricScattering(moon_VoL, 0.74);
 
-        final.rgb += albedo.rgb * (max(rainSnowSunVL, 0.0) * 3.0*sunLightColorEye + max(rainSnowMoonVL, 0.0) * moonColor) * shadow;
+        vec3 weatherLightColor = 3.0 * (
+            max(rainSnowSunVL, 0.0) * sunColorFinalEye +
+            max(rainSnowMoonVL, 0.0) * moonColorFinalEye);
 
+        final.rgb += albedo.rgb * weatherLightColor * shadow;
         final.a = albedo.a * rainStrength * mix(WEATHER_OPACITY * 0.01, 1.0, saturate(max(rainSnowSunVL, rainSnowMoonVL)));
     #endif
 
@@ -110,12 +101,11 @@ vec4 BasicLighting(const in LightData lightData) {
     GetFog(lightData, viewPos, fogColorFinal, fogFactor);
 
     #ifdef SKY_ENABLED
-        //vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor
-        vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunLightColorEye, moonColor);
+        vec2 scatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
 
         #ifndef VL_ENABLED
-            vec3 fogColorLinear = RGBToLinear(fogColor);
-            fogColorFinal += lightColor * fogColorLinear;
+            vec3 lightColor = scatteringF.x * sunColorFinalEye + scatteringF.y * moonColorFinalEye;
+            fogColorFinal += lightColor * RGBToLinear(fogColor);
         #endif
     #endif
 
@@ -124,7 +114,7 @@ vec4 BasicLighting(const in LightData lightData) {
     #if defined SKY_ENABLED && defined VL_ENABLED
         vec3 viewNear = viewDir * near;
 
-        final.rgb += GetVolumetricLighting(lightData, viewNear, viewPos, lightColor);
+        final.rgb += GetVolumetricLighting(lightData, viewNear, viewPos, scatteringF);
     #endif
 
     return final;

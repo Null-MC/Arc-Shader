@@ -31,14 +31,19 @@
 #ifdef RENDER_FRAG
     #ifdef SKY_ENABLED
         vec3 GetSkyReflectionColor(const in LightData lightData, const in vec3 localPos, const in vec3 viewDir, const in vec3 reflectDir) {
+            vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor;
+            vec3 moonColorFinal = lightData.moonTransmittanceEye * moonColor;
+
             #ifdef RENDER_WATER
-                if (materialId == 100 && isEyeInWater == 1) {
-                    vec3 waterLightColor = GetWaterScatterColor(reflectDir, lightData.sunTransmittanceEye);
-                    vec3 waterFogColor = GetWaterFogColor(reflectDir, lightData.sunTransmittanceEye, waterLightColor);
+                if (materialId == MATERIAL_WATER && isEyeInWater == 1) {
+                    vec2 waterScatteringF = GetWaterScattering(reflectDir);
+                    //vec3 waterLightColor = GetWaterScatterColor(reflectDir, sunColorFinal, moonColorFinal);
+                    vec3 waterFogColor = GetWaterFogColor(reflectDir, sunColorFinal, moonColorFinal, waterScatteringF);
 
                     //#if defined SKY_ENABLED && !defined VL_ENABLED
                     float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
-                    waterFogColor += 0.2 * waterScatterColor * waterLightColor * pow3(eyeLight);
+                    vec3 vlColor = waterScatteringF.x * sunColorFinal + waterScatteringF.y * moonColorFinal;
+                    waterFogColor += 0.2 * waterScatterColor * vlColor * pow3(eyeLight);
                     //#endif
 
                     return waterFogColor;
@@ -49,12 +54,9 @@
             vec3 skyColor = GetVanillaSkyLuminance(reflectDir);
             float horizonFogF = 1.0 - abs(localReflectDir.y);
 
-            vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor;
-            vec3 vlColor = GetVanillaSkyScattering(reflectDir, lightData.skyLightLevels, sunColorFinal, moonColor);
-            //vlColor *= 1.0 - pow(horizonFogF, 8.0);
-            //vlColor = mix(vlColor, 0.0, horizonFogF);
-            vlColor *= 1.0 - horizonFogF;
-            skyColor += vlColor * RGBToLinear(fogColor);
+            vec2 scatteringF = GetVanillaSkyScattering(reflectDir, lightData.skyLightLevels);
+            vec3 vlColor = RGBToLinear(fogColor) * (scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal);
+            skyColor += vlColor * (1.0 - horizonFogF);
 
             vec3 starF = GetStarLight(normalize(localReflectDir));
             skyColor += starF * StarLumen;
@@ -87,8 +89,13 @@
         #endif
 
         #ifdef SKY_ENABLED
+            vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor * max(lightData.skyLightLevels.x, 0.0);
+            vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * max(lightData.skyLightLevels.y, 0.0);
+
             vec3 sunColorFinal = lightData.sunTransmittance * sunColor;
-            vec3 skyLightColorFinal = (sunColorFinal + moonColor);// * shadowColor;
+            vec3 moonColorFinal = lightData.moonTransmittance * moonColor;
+            vec3 skyLightColorFinal = (sunColorFinal + moonColorFinal);
+
             vec3 viewLightDir = normalize(shadowLightPosition);
             float NoL = dot(viewNormal, viewLightDir);
 
@@ -115,12 +122,12 @@
             float wetnessFinal = biomeWetness * GetDirectionalWetness(viewNormal, skyLight);
 
             #ifdef RENDER_WATER
-                if (materialId != 100 && materialId != 101) {
+                if (materialId != MATERIAL_WATER) {
             #endif
                 if (wetnessFinal > EPSILON) {
                     vec3 waterLocalPos = localPos + cameraPosition;
-                    float noiseHigh = 1.0 - textureLod(noisetex, 0.24*localPos.xz, 0).r;
-                    float noiseLow = 1.0 - textureLod(noisetex, 0.03*localPos.xz, 0).r;
+                    float noiseHigh = 1.0 - textureLod(noisetex, 0.24*waterLocalPos.xz, 0).r;
+                    float noiseLow = 1.0 - textureLod(noisetex, 0.03*waterLocalPos.xz, 0).r;
 
                     float shit = 0.78*wetnessFinal;
                     wetnessFinal = smoothstep(0.0, 1.0, wetnessFinal);
@@ -302,7 +309,7 @@
             if (any(greaterThan(reflectColor, vec3(EPSILON)))) {
                 vec2 envBRDF = textureLod(BUFFER_BRDF_LUT, vec2(NoVm, rough), 0).rg;
 
-                #ifndef IS_OPTIFINE
+                #if SHADER_PLATFORM == PLATFORM_IRIS
                     envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
                 #endif
 
@@ -332,7 +339,7 @@
             bool applyWaterAbsorption = isEyeInWater == 1;
 
             #ifdef RENDER_WATER
-                if (materialId == 100 || materialId == 101) applyWaterAbsorption = false;
+                if (materialId == MATERIAL_WATER) applyWaterAbsorption = false;
             #endif
 
             if (applyWaterAbsorption) {
@@ -403,7 +410,10 @@
         #endif
 
         #if defined RENDER_WATER && !defined WORLD_NETHER && !defined WORLD_END
-            if (materialId == 100 || materialId == 101) {
+            if (materialId == MATERIAL_WATER) {
+                //vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor;
+                //vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor;
+                
                 #if WATER_REFRACTION != WATER_REFRACTION_NONE
                     float waterRefractEta = isEyeInWater == 1
                         ? IOR_WATER / IOR_AIR
@@ -556,8 +566,8 @@
                     //refractColor *= max(1.0 - iblF, 0.0);
 
                     if (isEyeInWater != 1) {
-                        vec3 waterLightColor = GetWaterScatterColor(viewDir, lightData.sunTransmittanceEye);
-                        vec3 waterFogColor = GetWaterFogColor(viewDir, lightData.sunTransmittanceEye, waterLightColor);
+                        vec2 waterScatteringF = GetWaterScattering(viewDir);
+                        vec3 waterFogColor = GetWaterFogColor(viewDir, sunColorFinalEye, moonColorFinalEye, waterScatteringF);
                         ApplyWaterFog(refractColor, waterFogColor, waterViewDepthFinal);
 
                         #ifdef VL_ENABLED
@@ -565,7 +575,7 @@
                                 float dist = clamp(refractOpaqueScreenDepthLinear - lightData.transparentScreenDepthLinear, 0.0, waterFogDistSmooth);
                                 vec3 farViewPos = viewPos + viewDir * dist;
 
-                                refractColor += GetWaterVolumetricLighting(lightData, viewPos, farViewPos, waterLightColor);
+                                refractColor += GetWaterVolumetricLighting(lightData, viewPos, farViewPos, waterScatteringF);
                             //}
                         #endif
                     }
@@ -593,8 +603,9 @@
                         ? min(lightData.opaqueScreenDepthLinear, lightData.transparentScreenDepthLinear)
                         : lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepthLinear;
 
-                    vec3 waterLightColor = GetWaterScatterColor(viewDir, lightData.sunTransmittanceEye);
-                    vec3 waterFogColor = GetWaterFogColor(viewDir, lightData.sunTransmittanceEye, waterLightColor);
+                    //vec3 waterLightColor = GetWaterScatterColor(viewDir, lightData.sunTransmittanceEye);
+                    vec2 waterScatteringF = GetWaterScattering(viewDir);
+                    vec3 waterFogColor = GetWaterFogColor(viewDir, sunColorFinalEye, moonColorFinalEye, waterScatteringF);
                     float waterFogF = ApplyWaterFog(refractColor, waterFogColor, lightDist);
                     
                     diffuse = mix(refractColor, diffuse, material.albedo.a);
@@ -614,7 +625,7 @@
                 ApplyHandLighting(handDiffuse, handSpecular, material.albedo.rgb, f0, material.hcm, material.scattering, viewNormal, viewPos.xyz, -viewDir, NoVm, roughL);
 
                 #ifdef RENDER_WATER
-                    if (materialId != 100) {
+                    if (materialId != MATERIAL_WATER) {
                         diffuse += handDiffuse;
                         final.a = min(final.a + luminance(handSpecular) * exposure, 1.0);
                     }
@@ -655,15 +666,17 @@
 
         float fogFactor;
         if (isEyeInWater == 1) {
-            vec3 waterLightColor = GetWaterScatterColor(viewDir, lightData.sunTransmittanceEye);
-            vec3 waterFogColor = GetWaterFogColor(viewDir, lightData.sunTransmittanceEye, waterLightColor);
+            //vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor;
+            //vec3 moonColorFinal = lightData.moonTransmittanceEye * moonColor;
+            vec2 waterScatteringF = GetWaterScattering(viewDir);
+            vec3 waterFogColor = GetWaterFogColor(viewDir, sunColorFinalEye, moonColorFinalEye, waterScatteringF);
             ApplyWaterFog(final.rgb, waterFogColor, viewDist);
 
             #ifdef VL_ENABLED
                 vec3 nearViewPos = viewDir * near;
                 vec3 farViewPos = viewDir * min(viewDist, waterFogDistSmooth);
 
-                final.rgb += GetWaterVolumetricLighting(lightData, nearViewPos, farViewPos, waterLightColor);
+                final.rgb += GetWaterVolumetricLighting(lightData, nearViewPos, farViewPos, waterScatteringF);
             #endif
         }
         else {
@@ -672,12 +685,13 @@
             GetFog(lightData, viewPos, fogColorFinal, fogFactorFinal);
 
             #ifdef SKY_ENABLED
-                vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor;
-                vec3 lightColor = GetVanillaSkyScattering(viewDir, skyLightLevels, sunColorFinalEye, moonColor);
+                //vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor;
+                vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
 
                 #ifndef VL_ENABLED
-                    vec3 fogColorLinear = RGBToLinear(fogColor);
-                    fogColorFinal += lightColor * fogColorLinear;
+                    fogColorFinal += RGBToLinear(fogColor) * (
+                        skyScatteringF.x * sunColorFinalEye +
+                        skyScatteringF.y * moonColorFinalEye);
                 #endif
             #endif
 

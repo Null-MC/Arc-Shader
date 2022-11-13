@@ -12,19 +12,19 @@
         bool skipParallax = isMissingTangent || isMissingNormal;
 
         #ifdef RENDER_ENTITIES
-            if (entityId == 101 || entityId == 102) skipParallax = true;
+            if (entityId == MATERIAL_ITEM_FRAME || entityId == MATERIAL_PHYSICS_SNOW) skipParallax = true;
         #else
-            if (materialId == 110) skipParallax = true;
+            if (materialId == MATERIAL_LAVA) skipParallax = true;
         #endif
 
         vec2 atlasCoord = texcoord;
+        float viewDist = length(viewPos);
 
         #ifdef PARALLAX_ENABLED
             float texDepth = 1.0;
             vec3 traceCoordDepth = vec3(1.0);
             vec3 tanViewDir = normalize(tanViewPos);
 
-            float viewDist = length(viewPos);
             if (!skipParallax && viewDist < PARALLAX_DISTANCE) {
                 atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, viewDist, texDepth, traceCoordDepth);
                 normalMap = textureGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]);
@@ -223,9 +223,17 @@
         // }
 
         #if defined RENDER_ENTITIES && defined PHYSICSMOD_ENABLED
-            if (materialId == 102) {
-                colorMap.rgb = LinearToRGB(vec3(0.575, 0.724, 0.758));
-                specularMap = vec4(0.4, 0.02, 0.92, 1.0);
+            if (materialId == MATERIAL_PHYSICS_SNOW) {
+                colorMap.rgb = LinearToRGB(PHYSICS_SNOW_COLOR);
+
+                float sss = GetPhysicsSnowScattering(localPos);
+                float smoothness = GetPhysicsSnowSmooth(localPos);
+                normal = GetPhysicsSnowNormal(localPos, normal, viewDist);
+
+                specularMap.r = 1.0 - smoothness;
+                specularMap.g = 0.02;
+                specularMap.b = (65.0/255.0) + (190.0/255.0) * sss;
+                specularMap.a = 1.0;
             }
         #endif
 

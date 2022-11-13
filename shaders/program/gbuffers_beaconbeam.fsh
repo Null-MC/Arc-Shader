@@ -22,7 +22,7 @@ in vec3 tanViewPos;
 
 uniform sampler2D gtexture;
 
-#if MC_VERSION >= 11700 && defined IS_OPTIFINE
+#if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
     uniform float alphaTestRef;
 #endif
 

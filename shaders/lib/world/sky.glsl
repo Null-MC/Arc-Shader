@@ -1,6 +1,6 @@
-const float[5] moonPhaseLevels = float[](0.50, 0.65, 0.80, 0.90, 1.00);
+//const float[5] moonPhaseLevels = float[](0.50, 0.65, 0.80, 0.90, 1.00);
 
-#if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
+#if SHADER_PLATFORM == PLATFORM_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
     // by BuilderBoy
     vec3 GetFixedSunPosition() {
         const vec2 sunRotationData = vec2(cos(sunPathRotation * 0.01745329251994), -sin(sunPathRotation * 0.01745329251994));
@@ -16,7 +16,7 @@ const float[5] moonPhaseLevels = float[](0.50, 0.65, 0.80, 0.90, 1.00);
 vec2 GetSkyLightLevels() {
     vec3 moonLightDir = normalize(moonPosition);
 
-    #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
+    #if SHADER_PLATFORM == PLATFORM_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
         vec3 upDir = gbufferModelView[1].xyz;
         vec3 sunLightDir = GetFixedSunPosition();
     #else
@@ -29,88 +29,88 @@ vec2 GetSkyLightLevels() {
         dot(upDir, moonLightDir));
 }
 
-float GetMoonPhaseLevel() {
-    return moonPhaseLevels[abs(moonPhase - 4)];
-}
+// float GetMoonPhaseLevel() {
+//     return moonPhaseLevels[abs(moonPhase - 4)];
+// }
 
-float GetSunLightLevel(const in float skyLightLevel) {
-    //float rainLevel = 1.0 - 0.85 * rainStrength;
+// float GetSunLightLevel(const in float skyLightLevel) {
+//     //float rainLevel = 1.0 - 0.85 * rainStrength;
 
-    //float angularDiameter = mix(0.526, 0.545, max(skyLightLevel, 0.0));
-    //return GetSolidAngle(angularDiameter);
+//     //float angularDiameter = mix(0.526, 0.545, max(skyLightLevel, 0.0));
+//     //return GetSolidAngle(angularDiameter);
 
-    // TODO: This angle is wrong and sucks
-    return pow(max(skyLightLevel, 0.0), 0.4);
+//     // TODO: This angle is wrong and sucks
+//     return pow(max(skyLightLevel, 0.0), 0.4);
 
-    //return pow4(max(cos(clamp(pow4(x), -PI, PI)), 0));
-}
+//     //return pow4(max(cos(clamp(pow4(x), -PI, PI)), 0));
+// }
 
-float GetMoonLightLevel(const in float skyLightLevel) {
-    //float rainLevel = 1.0 - 0.9 * rainStrength;
-    //float moonPhaseLevel = moonPhaseLevels[abs(moonPhase-4)];
+// float GetMoonLightLevel(const in float skyLightLevel) {
+//     //float rainLevel = 1.0 - 0.9 * rainStrength;
+//     //float moonPhaseLevel = moonPhaseLevels[abs(moonPhase-4)];
 
-    //float angularDiameter = mix(0.49, 0.55, max(skyLightLevel, 0.0));
-    //return GetSolidAngle(angularDiameter) * moonPhaseLevel;
+//     //float angularDiameter = mix(0.49, 0.55, max(skyLightLevel, 0.0));
+//     //return GetSolidAngle(angularDiameter) * moonPhaseLevel;
 
-    // TODO: This angle is wrong and sucks
-    return pow(max(skyLightLevel, 0.0), 0.4);// * moonPhaseLevel;
+//     // TODO: This angle is wrong and sucks
+//     return pow(max(skyLightLevel, 0.0), 0.4);// * moonPhaseLevel;
 
-    //return pow4(max(cos(clamp(pow4(x), -PI, PI)), 0)) * moonPhaseLevel;
-}
+//     //return pow4(max(cos(clamp(pow4(x), -PI, PI)), 0)) * moonPhaseLevel;
+// }
 
 // returns: x:sun y:moon temp in kelvin
-vec2 GetSkyLightTemp(const in vec2 skyLightLevels) {
-    const float temp_sunrise = 2000; // 2000
-    const float temp_day = 5500; // 5000
-    const float temp_rain = 7600; // 8000
-    const float temp_moon = 4600; // 5500
+// vec2 GetSkyLightTemp(const in vec2 skyLightLevels) {
+//     const float temp_sunrise = 2000; // 2000
+//     const float temp_day = 5500; // 5000
+//     const float temp_rain = 7600; // 8000
+//     const float temp_moon = 4600; // 5500
 
-    float sunElevation = pow(max(skyLightLevels.x, 0.0), 0.5);
-    float sunTemp = mix(temp_sunrise, temp_day, sunElevation);
-    sunTemp = mix(sunTemp, temp_rain, rainStrength);
+//     float sunElevation = pow(max(skyLightLevels.x, 0.0), 0.5);
+//     float sunTemp = mix(temp_sunrise, temp_day, sunElevation);
+//     sunTemp = mix(sunTemp, temp_rain, rainStrength);
 
-    return vec2(sunTemp, temp_moon);
-}
+//     return vec2(sunTemp, temp_moon);
+// }
 
-vec3 GetSunLightColor(const in float temp, const in float skyLightLevel) {
-    return blackbody(temp) * GetSunLightLevel(skyLightLevel);
-}
+// vec3 GetSunLightColor(const in float temp, const in float skyLightLevel) {
+//     return blackbody(temp) * GetSunLightLevel(skyLightLevel);
+// }
 
-vec3 GetMoonLightColor(const in float temp, const in float skyLightLevel) {
-    return blackbody(temp) * GetMoonLightLevel(skyLightLevel);
-}
+// vec3 GetMoonLightColor(const in float temp, const in float skyLightLevel) {
+//     return blackbody(temp) * GetMoonLightLevel(skyLightLevel);
+// }
 
-float GetMoonLux() {
-    float moonPhaseLevel = GetMoonPhaseLevel();
-    return mix(MoonLux, MoonOvercastLux, rainStrength) * moonPhaseLevel;
-}
+// float GetMoonLux() {
+//     float moonPhaseLevel = GetMoonPhaseLevel();
+//     return mix(MoonLux, MoonOvercastLux, rainStrength) * moonPhaseLevel;
+// }
 
-float GetMoonLightLux(const in float skyLightLevel) {
-    return GetMoonLightLevel(skyLightLevel) * GetMoonLux();
-}
+// float GetMoonLightLux(const in float skyLightLevel) {
+//     return GetMoonLightLevel(skyLightLevel) * GetMoonLux();
+// }
 
-vec3 GetMoonLightLuxColor(const in float temp, const in float skyLightLevel) {
-    return GetMoonLightColor(temp, skyLightLevel) * GetMoonLux();
-}
+// vec3 GetMoonLightLuxColor(const in float temp, const in float skyLightLevel) {
+//     return GetMoonLightColor(temp, skyLightLevel) * GetMoonLux();
+// }
 
-float GetSunLightLuminance(const in float skyLightLevel) {
-    float luminance = mix(DaySkyLumen, DaySkyOvercastLumen, rainStrength);
-    return GetSunLightLevel(skyLightLevel) * luminance;
-}
+// float GetSunLightLuminance(const in float skyLightLevel) {
+//     float luminance = mix(DaySkyLumen, DaySkyOvercastLumen, rainStrength);
+//     return GetSunLightLevel(skyLightLevel) * luminance;
+// }
 
-float GetMoonLightLuminance(const in float skyLightLevel) {
-    float luminance = mix(NightSkyLumen, NightSkyOvercastLumen, rainStrength);
-    return GetMoonLightLevel(skyLightLevel) * luminance;
-}
+// float GetMoonLightLuminance(const in float skyLightLevel) {
+//     float luminance = mix(NightSkyLumen, NightSkyOvercastLumen, rainStrength);
+//     return GetMoonLightLevel(skyLightLevel) * luminance;
+// }
 
-float GetSkyLightLuminance(const in vec2 skyLightLevels) {
-    vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
+// float GetSkyLightLuminance(const in vec2 skyLightLevels) {
+//     vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
 
-    float sunLum = GetSunLightLuminance(skyLightLevels.x);
-    float moonLum = GetMoonLightLuminance(skyLightLevels.y);
+//     float sunLum = GetSunLightLuminance(skyLightLevels.x);
+//     float moonLum = GetMoonLightLuminance(skyLightLevels.y);
 
-    return sunLum + moonLum;
-}
+//     return sunLum + moonLum;
+// }
 
 #ifdef RENDER_FRAG
     #ifdef WORLD_OVERWORLD
@@ -155,7 +155,7 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
 
         fogColorLinear *= 1.0 - 0.8 * rainStrength;
 
-        #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
+        #if SHADER_PLATFORM == PLATFORM_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
             vec3 upDir = gbufferModelView[1].xyz;
         #else
             vec3 upDir = normalize(upPosition);
@@ -193,7 +193,7 @@ float GetSkyLightLuminance(const in vec2 skyLightLevels) {
 
         fogColorLinear *= 1.0 - 0.8 * rainStrength;
 
-        #if defined IS_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED)
+        #if SHADER_PLATFORM == PLATFORM_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED)
             vec3 upDir = gbufferModelView[1].xyz;
         #else
             vec3 upDir = normalize(upPosition);

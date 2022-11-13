@@ -12,6 +12,7 @@ out vec2 lmcoord;
 out vec2 texcoord;
 out vec4 glcolor;
 out float geoNoL;
+out vec3 localPos;
 out vec3 viewPos;
 out vec3 viewNormal;
 out vec3 viewTangent;
@@ -54,7 +55,7 @@ void main() {
 
     materialId = entityId;
 
-    vec3 localPos = gl_Vertex.xyz;
+    localPos = gl_Vertex.xyz;
     BasicVertex(localPos);
     
     // No PBR for lightning
@@ -65,7 +66,7 @@ void main() {
         // Hack for PhysicsMod snow
         vec3 sampleColor = textureLod(gtexture, mc_midTexCoord.xy, 0).rgb;
         if (abs(dot(sampleColor, sampleColor) - 3.0) < EPSILON) {
-            materialId = 102;
+            materialId = MATERIAL_PHYSICS_SNOW;
         }
     #endif
 }
