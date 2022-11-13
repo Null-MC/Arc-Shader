@@ -230,7 +230,7 @@
                 float smoothness = GetPhysicsSnowSmooth(localPos);
                 normal = GetPhysicsSnowNormal(localPos, normal, viewDist);
 
-                specularMap.r = 1.0 - smoothness;
+                specularMap.r = smoothness;
                 specularMap.g = 0.02;
                 specularMap.b = (65.0/255.0) + (190.0/255.0) * sss;
                 specularMap.a = 1.0;

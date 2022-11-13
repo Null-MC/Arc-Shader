@@ -7,8 +7,8 @@
 #define UI3 uvec3(UI0, UI1, 2798796415U)
 #define UIF (1.0 / float(0xffffffffU))
 
-#define PHYSICS_SNOW_NOISE 0.04
-#define PHYSICS_SNOW_RESOLUTION 128 // [16 32 64 128]
+#define PHYSICS_SNOW_NOISE 0.06
+#define PHYSICS_SNOW_RESOLUTION 64 // [16 32 64 128]
 
 const vec3 PHYSICS_SNOW_COLOR = vec3(0.373, 0.485, 0.510);
 
@@ -156,5 +156,5 @@ float GetPhysicsSnowScattering(const in vec3 worldPos) {
 
 float GetPhysicsSnowSmooth(const in vec3 worldPos) {
 	float v = 1.0 - fbm(worldPos * 0.6);
-	return saturate(0.3 + 0.3 * v);
+	return saturate(0.2 + 0.3 * v);
 }
