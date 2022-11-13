@@ -18,7 +18,7 @@ flat out int materialId;
     //flat out float matEmissive;
 #endif
 
-#if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_ENABLED)
+#if defined RSM_ENABLED || defined WATER_FANCY
     out vec3 viewPos;
     flat out mat3 matViewTBN;
 #endif
@@ -135,13 +135,18 @@ void main() {
         }
     #endif
 
+    materialId = int(mc_Entity.x + 0.5);
+
     #ifdef WATER_FANCY
         waterMask = 0;
     #endif
 
-    materialId = int(mc_Entity.x + 0.5);
-    #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
-        if (materialId == MATERIAL_WATER) {
+    if (materialId == MATERIAL_WATER) {
+        #ifdef WATER_FANCY
+            waterMask = 1;
+        #endif
+
+        #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
             #if MC_VERSION >= 11700
                 float vY = -at_midBlock.y / 64.0;
                 float posY = saturate(vY + 0.5) * (1.0 - step(0.5, vY + EPSILON));
@@ -150,10 +155,6 @@ void main() {
             #endif
 
             if (posY > EPSILON) {
-                #ifdef WATER_FANCY
-                    waterMask = 1;
-                #endif
-                
                 //float windSpeed = GetWindSpeed();
                 //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
                 float waveDepth = GetWaveDepth(skyLight);
@@ -175,8 +176,8 @@ void main() {
                     normal = normalize(cross(pX, pY)).xzy;
                 #endif
             }
-        }
-    #endif
+        #endif
+    }
 
     vec4 shadowViewPos = gl_ModelViewMatrix * vec4(localPos, 1.0);
 

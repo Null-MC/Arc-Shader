@@ -7,6 +7,7 @@
 #define UI3 uvec3(UI0, UI1, 2798796415U)
 #define UIF (1.0 / float(0xffffffffU))
 
+#define PHYSICS_SNOW_NOISE 0.04
 #define PHYSICS_SNOW_RESOLUTION 128 // [16 32 64 128]
 
 const vec3 PHYSICS_SNOW_COLOR = vec3(0.373, 0.485, 0.510);
@@ -116,34 +117,32 @@ float fbm(in vec3 p) {
 }
 
 vec3 GetPhysicsSnowNormal(const in vec3 worldPos, const in vec3 geoNormal, const in float viewDist) {
-	const float NOISE = 0.08;
-
 	vec3 randomNormal, finalNormal;
 	float weight;
 
 	randomNormal = hash33((worldPos - 0.5) * 0.5 * 16.0);
 	randomNormal *= sign(dot(randomNormal, geoNormal));
-	weight = NOISE * saturate(1.0 - viewDist / 120.0);
+	weight = PHYSICS_SNOW_NOISE * saturate(1.0 - viewDist / 120.0);
 	finalNormal = mix(geoNormal, randomNormal, weight);
 
 	#if PHYSICS_SNOW_RESOLUTION >= 32
 		randomNormal = hash33((worldPos - 0.5) * 0.5 * 32.0);
 		randomNormal *= sign(dot(randomNormal, geoNormal));
-		weight = NOISE * saturate(1.0 - viewDist / 60.0);
+		weight = PHYSICS_SNOW_NOISE * saturate(1.0 - viewDist / 60.0);
 		finalNormal = mix(finalNormal, randomNormal, weight);
 	#endif
 
 	#if PHYSICS_SNOW_RESOLUTION >= 64
 		randomNormal = hash33((worldPos - 0.5) * 0.5 * 64.0);
 		randomNormal *= sign(dot(randomNormal, geoNormal));
-		weight = NOISE * saturate(1.0 - viewDist / 30.0);
+		weight = PHYSICS_SNOW_NOISE * saturate(1.0 - viewDist / 30.0);
 		finalNormal = mix(finalNormal, randomNormal, weight);
 	#endif
 
 	#if PHYSICS_SNOW_RESOLUTION >= 128
 		randomNormal = hash33((worldPos - 0.5) * 0.5 * 128.0);
 		randomNormal *= sign(dot(randomNormal, geoNormal));
-		weight = NOISE * saturate(1.0 - viewDist / 15.0);
+		weight = PHYSICS_SNOW_NOISE * saturate(1.0 - viewDist / 15.0);
 		finalNormal = mix(finalNormal, randomNormal, weight);
 	#endif
 
@@ -152,7 +151,7 @@ vec3 GetPhysicsSnowNormal(const in vec3 worldPos, const in vec3 geoNormal, const
 
 float GetPhysicsSnowScattering(const in vec3 worldPos) {
 	float v = 1.0 - fbm(worldPos * 0.9);
-	return saturate(0.25 + 0.15 * v);
+	return saturate(0.32 + 0.16 * v);
 }
 
 float GetPhysicsSnowSmooth(const in vec3 worldPos) {

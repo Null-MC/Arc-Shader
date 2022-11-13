@@ -88,12 +88,12 @@ uniform int renderStage;
 #endif
 
 /* RENDERTARGETS: 0,1 */
-#if defined SHADOW_COLOR || defined SSS_ENABLED
+//#if defined SHADOW_COLOR || (defined SSS_ENABLED && !defined RSM_ENABLED)
     out vec4 outColor0;
-#endif
-#if defined RSM_ENABLED || (defined SSS_ENABLED && defined SHADOW_COLOR) || (defined WATER_FANCY && defined VL_ENABLED)
+//#endif
+//#if defined RSM_ENABLED || (defined SSS_ENABLED && defined SHADOW_COLOR) || (defined WATER_FANCY && defined VL_ENABLED)
     out uvec2 outColor1;
-#endif
+//#endif
 
 
 void main() {
@@ -138,7 +138,7 @@ void main() {
     }
 
     vec3 viewNormal = vec3(0.0);
-    #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_ENABLED)
+    #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_ENABLED)
         vec2 normalMap = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).rg;
         viewNormal = RestoreNormalZ(normalMap);
 
@@ -177,7 +177,7 @@ void main() {
         }
     #endif
 
-    #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_ENABLED)
+    #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_ENABLED)
         viewNormal = matViewTBN * viewNormal;
     #endif
 
