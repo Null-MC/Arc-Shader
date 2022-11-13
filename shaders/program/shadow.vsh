@@ -12,10 +12,7 @@ out vec3 localPos;
 flat out int materialId;
 
 #ifdef SSS_ENABLED
-    //flat out float matSmooth;
     flat out float matSSS;
-    //flat out float matF0;
-    //flat out float matEmissive;
 #endif
 
 #if defined RSM_ENABLED || defined WATER_FANCY
@@ -121,7 +118,6 @@ void main() {
         }
     #endif
 
-    //vec4 pos = gl_Vertex;
     vec3 normal = gl_Normal;
 
     #if defined ENABLE_WAVING || WATER_WAVE_TYPE == WATER_WAVE_VERTEX
@@ -231,9 +227,7 @@ void main() {
             vec3 sampleColor = textureLod(gtexture, mc_midTexCoord.xy, 0).rgb;
             if (abs(dot(sampleColor, sampleColor) - 3.0) < EPSILON) {
                 materialId = MATERIAL_PHYSICS_SNOW;
-                //matSmooth = 0.4;
                 matSSS = 0.8;
-                //matF0 = 0.02;
             }
         #endif
     #endif

@@ -61,8 +61,9 @@ const bool colortex12Clear = false;
 
 // Water Options
 #define WATER_FANCY
-#define WATER_REFRACTION 1 // [0 1 2]
 #define WATER_WAVE_TYPE 1 // [0 1 2]
+#define WATER_REFRACTION 1 // [0 1 2]
+#define REFRACTION_STRENGTH 50 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 85 100]
 #define WATER_SCALE 18.0
 #define WATER_RADIUS 50
 #define WATER_OCTAVES_NEAR 32
@@ -71,12 +72,8 @@ const bool colortex12Clear = false;
 #define WATER_PARALLAX_SAMPLES 64
 #define WATER_WAVE_DEPTH 1.0
 #define WATER_RESOLUTION 2048
-#define REFRACTION_STRENGTH 50 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 85 100]
-
 #define WATER_NORMAL_STRENGTH 0.15
-//#define WATER_SCATTER_RATE 1.8
 #define WATER_ABSROPTION_RATE 1.0
-//#define WATER_FOG_DIST 24.0
 
 
 // Atmosphere Options
@@ -125,7 +122,7 @@ const bool colortex12Clear = false;
 #define SSS_MAXDIST 10 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
 #define SSS_PCF_SIZE 0.06 // [0.02 0.04 0.06 0.08 0.1 0.2 0.3 0.4 0.5 0.6 0.8 1.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
-//#define SSS_NORMALIZE_ALBEDO
+#define SSS_NORMALIZE_ALBEDO
 
 
 // Material Parallax Options

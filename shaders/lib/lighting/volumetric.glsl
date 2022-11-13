@@ -63,6 +63,9 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
                 shadowPos[i].xy = shadowPos[i].xy * 0.5 + lightData.shadowTilePos[i];
             }
 
+            // TODO
+            //if (saturate(shadowPos.xy) != shadowPos.xy) continue;
+
             float sampleF = CompareNearestOpaqueDepth(shadowPos, lightData.shadowTilePos, lightData.shadowBias, vec2(0.0));
         #else
             vec4 shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
@@ -72,6 +75,8 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
             #endif
 
             shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
+
+            if (saturate(shadowPos.xy) != shadowPos.xy) continue;
 
             float sampleF = CompareOpaqueDepth(shadowPos, vec2(0.0), 0.0);
         #endif
@@ -198,6 +203,9 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
                 shadowPos[i].xy = shadowPos[i].xy * 0.5 + lightData.shadowTilePos[i];
             }
 
+            // TODO
+            //if (saturate(shadowPos.xy) != shadowPos.xy) continue;
+
             lightSample = CompareNearestOpaqueDepth(shadowPos, lightData.shadowTilePos, lightData.shadowBias, vec2(0.0));
 
             int waterOpaqueCascade = -1;
@@ -215,6 +223,8 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
             #endif
 
             shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
+
+            if (saturate(shadowPos.xy) != shadowPos.xy) continue;
 
             lightSample = CompareOpaqueDepth(shadowPos, vec2(0.0), 0.0);
 

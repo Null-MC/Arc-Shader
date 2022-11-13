@@ -135,7 +135,8 @@
 
                     float darkenWetness = wetnessFinal;
                     if (isEyeInWater == 1) darkenWetness = 1.0;
-                    albedo *= GetWetnessDarkening(darkenWetness, material.porosity);
+                    //albedo *= GetWetnessDarkening(darkenWetness, material.porosity);
+                    albedo = mix(albedo, pow(albedo, vec3(1.0 + material.porosity)), darkenWetness * material.porosity);
 
                     float surfaceWetness = GetSurfaceWetness(wetnessFinal, material.porosity);
                     smoothness = mix(smoothness, WATER_SMOOTH, surfaceWetness);

@@ -35,10 +35,7 @@ in vec3 localPos;
 flat in int materialId;
 
 #ifdef SSS_ENABLED
-    //flat in float matSmooth;
     flat in float matSSS;
-    //flat in float matF0;
-    //flat in float matEmissive;
 #endif
 
 #if defined RSM_ENABLED || defined WATER_FANCY
@@ -102,9 +99,6 @@ void main() {
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         vec2 screenCascadePos = 2.0 * (gl_FragCoord.xy / shadowMapSize - shadowCascadePos);
         if (saturate(screenCascadePos.xy) != screenCascadePos.xy) discard;
-
-        //if (screenCascadePos.x < 0 || screenCascadePos.x >= 0.5
-        // || screenCascadePos.y < 0 || screenCascadePos.y >= 0.5) discard;
     #endif
 
     vec4 sampleColor;
@@ -116,19 +110,13 @@ void main() {
         sampleColor.rgb = RGBToLinear(sampleColor.rgb * glcolor.rgb);
     }
 
-    #if defined SHADOW_COLOR //|| defined RSM_ENABLED
+    #if defined SHADOW_COLOR
         vec4 lightColor = sampleColor;
 
         if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
             lightColor.rgb = vec3(1.0);
         }
-        else {
-            //lightColor.rgb = mix(vec3(1.0), lightColor.rgb, sqrt(max(lightColor.a, EPSILON)));
-            //lightColor.rgb = mix(lightColor.rgb, vec3(0.0), pow2(lightColor.a));
-            //lightColor.rgb *= 1.0 - pow2(lightColor.a);
-        }
 
-        //lightColor.rgb = LinearToRGB(lightColor.rgb);
         outColor0 = lightColor;
     #endif
 
@@ -141,8 +129,6 @@ void main() {
     #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_ENABLED)
         vec2 normalMap = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).rg;
         viewNormal = RestoreNormalZ(normalMap);
-
-        //sampleColor.rgb *= max(dot(viewNormal, vec3(0.0, 0.0, 1.0)), 0.0);
     #endif
 
     #if defined WATER_FANCY && !defined WORLD_NETHER && !defined WORLD_END
