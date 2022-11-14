@@ -65,9 +65,9 @@ uniform int entityId;
 //     #include "/lib/lighting/directional.glsl"
 // #endif
 
-#ifdef PHYSICSMOD_ENABLED
+//#ifdef PHYSICSMOD_ENABLED
     #include "/lib/world/physics_snow.glsl"
-#endif
+//#endif
 
 #include "/lib/material/material.glsl"
 #include "/lib/material/material_reader.glsl"
@@ -81,13 +81,14 @@ out uvec4 outColor0;
 void main() {
     vec4 colorMap, normalMap, specularMap, lightingMap;
 
-    if (entityId != 100.0)
-        PbrLighting(colorMap, normalMap, specularMap, lightingMap);
-    else {
+    if (entityId == MATERIAL_LIGHTNING_BOLT) {
         colorMap = vec4(1.0);
-        normalMap = vec4(0.0);
+        normalMap = vec4(0.0, 0.0, 1.0, 1.0);
         specularMap = vec4(0.0, 0.0, 0.0, 254.0/255.0);
-        lightingMap = vec4(1.0, 1.0, 1.0, 0.0);
+        lightingMap = vec4(1.0);
+    }
+    else {
+        PbrLighting(colorMap, normalMap, specularMap, lightingMap);
     }
 
     uvec4 data;

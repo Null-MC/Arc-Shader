@@ -197,12 +197,12 @@ const bool colortex12Clear = false;
 // Debug Options
 #define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25]
 //#define DEBUG_EXPOSURE_METERS
-//#define PHYSICSMOD_ENABLED
 //#define IRIS_FEATURE_CHUNK_OFFSET
 #define DITHER_FINAL
 #define PARTICLE_OPACITY 0.8
 #define HCM_LAZANYI
 #define METAL_AMBIENT 1.0
+#define POROSITY_DARKENING 0.6
 //#define SHADOW_CONTACT_DITHER
 //#define SKY_DITHER
 //#define AF_ENABLED

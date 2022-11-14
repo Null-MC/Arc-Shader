@@ -99,6 +99,10 @@ uniform float fogEnd;
 
     uniform vec3 shadowLightPosition;
 
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        uniform vec4 lightningBoltPosition;
+    #endif
+
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         uniform sampler2D shadowtex0;
         uniform sampler2D shadowtex1;
@@ -166,6 +170,10 @@ uniform float waterFogDistSmooth;
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
     #include "/lib/world/porosity.glsl"
+
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        #include "/lib/sky/lightning.glsl"
+    #endif
 #endif
 
 #include "/lib/world/fog.glsl"

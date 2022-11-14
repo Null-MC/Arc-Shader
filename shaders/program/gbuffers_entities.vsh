@@ -58,15 +58,13 @@ void main() {
     localPos = gl_Vertex.xyz;
     BasicVertex(localPos);
     
-    // No PBR for lightning
-    if (entityId != 100.0)
-        PbrVertex(viewPos);
+    if (materialId == MATERIAL_LIGHTNING_BOLT) {
+        // No PBR for lightning
+    }
+    else PbrVertex(viewPos);
 
-    #ifdef PHYSICSMOD_ENABLED
-        // Hack for PhysicsMod snow
-        vec3 sampleColor = textureLod(gtexture, mc_midTexCoord.xy, 0).rgb;
-        if (abs(dot(sampleColor, sampleColor) - 3.0) < EPSILON) {
-            materialId = MATERIAL_PHYSICS_SNOW;
-        }
-    #endif
+    // PhysicsMod snow
+    if (entityId == 829925) {
+        materialId = MATERIAL_PHYSICS_SNOW;
+    }
 }

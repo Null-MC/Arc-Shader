@@ -136,7 +136,7 @@
                     float darkenWetness = wetnessFinal;
                     if (isEyeInWater == 1) darkenWetness = 1.0;
                     //albedo *= GetWetnessDarkening(darkenWetness, material.porosity);
-                    albedo = mix(albedo, pow(albedo, vec3(1.0 + material.porosity)), darkenWetness * material.porosity);
+                    albedo = WetnessDarkenSurface(albedo, material.porosity, darkenWetness);
 
                     float surfaceWetness = GetSurfaceWetness(wetnessFinal, material.porosity);
                     smoothness = mix(smoothness, WATER_SMOOTH, surfaceWetness);
@@ -619,28 +619,34 @@
         #endif
 
         #if defined HANDLIGHT_ENABLED
-            // TODO: Apply to translucents, but not water!
-
             if (heldBlockLightValue + heldBlockLightValue2 > EPSILON) {
                 vec3 handDiffuse, handSpecular;
                 ApplyHandLighting(handDiffuse, handSpecular, material.albedo.rgb, f0, material.hcm, material.scattering, viewNormal, viewPos.xyz, -viewDir, NoVm, roughL);
 
                 #ifdef RENDER_WATER
                     if (materialId != MATERIAL_WATER) {
-                        diffuse += handDiffuse;
-                        final.a = min(final.a + luminance(handSpecular) * exposure, 1.0);
-                    }
-                #else
+                #endif
+
                     diffuse += handDiffuse;
                     final.a = min(final.a + luminance(handSpecular) * exposure, 1.0);
+
+                #ifdef RENDER_WATER
+                    }
                 #endif
 
                 specular += handSpecular;
             }
         #endif
 
-        #if defined SKY_ENABLED && defined RSM_ENABLED && defined RENDER_DEFERRED
-            ambient += rsmColor * skyLightColorFinal;
+        #ifdef SKY_ENABLED
+            #if SHADER_PLATFORM == PLATFORM_IRIS
+                //if (lightningBoltPosition.w > EPSILON)
+                //    ApplyLightning(diffuse, specular, material.albedo.rgb, f0, material.hcm, material.scattering, viewNormal, viewPos.xyz, -viewDir, NoVm, roughL);
+            #endif
+
+            #if defined RSM_ENABLED && defined RENDER_DEFERRED
+                ambient += rsmColor * skyLightColorFinal;
+            #endif
         #endif
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT

@@ -16,6 +16,7 @@ flat in vec3 moonTransmittanceEye;
 uniform sampler2D gtexture;
 
 uniform int renderStage;
+uniform float rainStrength;
 
 /* RENDERTARGETS: 4,6 */
 out vec4 outColor0;
@@ -34,7 +35,7 @@ void main() {
 
     if (renderStage == MC_RENDER_STAGE_SUN) {
         lumF = sunLumen;
-        color *= sunColor * sunTransmittanceEye * 1.0e6;//sunLumen
+        color *= sunColor * sunTransmittanceEye * 100000.0 * (1.0 - 0.7 * rainStrength);//sunLumen
         lum *= luminance(sunColor * sunTransmittanceEye);
     }
     else if (renderStage == MC_RENDER_STAGE_MOON) {

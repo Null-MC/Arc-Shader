@@ -52,6 +52,7 @@ uniform sampler2D gtexture;
 
 uniform mat4 shadowModelViewInverse;
 uniform int renderStage;
+uniform int entityId;
 
 #if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
    uniform float alphaTestRef;
@@ -94,6 +95,13 @@ uniform int renderStage;
 
 
 void main() {
+    if (renderStage == MC_RENDER_STAGE_ENTITIES) {
+        if (entityId == MATERIAL_LIGHTNING_BOLT) {
+            discard;
+            return;
+        }
+    }
+
     mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -176,11 +184,11 @@ void main() {
             sss = GetLabPbr_SSS(specularMapB);
         #endif
 
-        #ifdef PHYSICSMOD_ENABLED
+        //#ifdef PHYSICSMOD_ENABLED
             if (materialId == MATERIAL_PHYSICS_SNOW) {
                 sss = matSSS;
             }
-        #endif
+        //#endif
 
         #ifndef SHADOW_COLOR
             // blending SSS is probably bad, should just ignore transparent

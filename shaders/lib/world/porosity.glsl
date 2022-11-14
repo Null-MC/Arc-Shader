@@ -9,6 +9,6 @@ float GetSurfaceWetness(const in float wetness, const in float porosity) {
     return max(wetness - 0.75*pow2(porosity), 0.0);
 }
 
-float GetWetnessDarkening(const in float wetness, const in float porosity) {
-    return 1.0 - 0.68 * wetness * pow2(porosity);
+vec3 WetnessDarkenSurface(const in vec3 albedo, const in float porosity, const in float wetness) {
+    return pow(albedo, vec3(1.0 + wetness * porosity * POROSITY_DARKENING));
 }

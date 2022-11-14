@@ -42,15 +42,9 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
     #ifdef SHADOW_CLOUD
         vec3 viewLightDir = normalize(shadowLightPosition);
         vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
+        //vec3 localPosFar = (gbufferModelViewInverse * vec4(viewFar, 1.0)).xyz;
 
-        vec3 upDir = normalize(upPosition);
-        //float horizonFogF = 1.0 - abs(dot(viewLightDir, upDir));
-        float horizonFogF = 1.0 - max(localLightDir.y, 0.0);
-
-        vec3 localPosFar = (gbufferModelViewInverse * vec4(viewFar, 1.0)).xyz;
-        float cloudVis = GetCloudFactor(cameraPosition + localPosFar, localLightDir);
-        //cloudVis = mix(cloudVis, 1.0, pow(horizonFogF, CLOUD_HORIZON_POWER));
-        cloudVis = 1.0 - cloudVis;
+        float cloudVis = 1.0 - GetCloudFactor(cameraPosition, localLightDir);
     #endif
 
     for (int i = 1; i <= VL_SAMPLES_SKY; i++) {
@@ -90,25 +84,15 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
             }
             // when light is shining downwards
             else {
-                //vec3 localTracePos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
-
-                float cloudF = 1.0;
                 // when trace pos is below clouds, darken by cloud shadow
                 if (cameraPosition.y + localTracePos.y < CLOUD_Y_LEVEL) {
-                    cloudF = GetCloudFactor(cameraPosition + localTracePos, localLightDir);
-
-                    //float horizonFogF = 1.0 - max(localLightDir.y, 0.0);
-                    cloudF = mix(cloudF, 1.0, horizonFogF);
-
-                    cloudF = 1.0 - cloudF;
+                    sampleF *= 1.0 - GetCloudFactor(cameraPosition + localTracePos, localLightDir);
                 }
                 // only when camera is below clouds
                 // when trace pos is above clouds, darken by visibility
                 else if (cameraPosition.y < CLOUD_Y_LEVEL) {
-                    cloudF = cloudVis;
+                    sampleF *= cloudVis;
                 }
-
-                sampleF *= cloudF;
             }
         #endif
 
@@ -135,13 +119,11 @@ vec3 GetVolumetricFactor(const in LightData lightData, const in vec3 viewNear, c
         #endif
 
         vec3 traceViewPos = viewNear + i * viewStep;
-        float fogF = saturate(length(traceViewPos) / min(fogEnd, far)); //GetVanillaFogFactor(traceViewPos);
+        float fogF = saturate(length(traceViewPos) / min(fogEnd, far));
         sampleColor *= mix(vec3(1.0), fogColorLinear, fogF);
 
         accumColor += sampleF * sampleColor;
     }
-
-    //accumF += sampleF;
 
     return accumColor / VL_SAMPLES_SKY;
 }
@@ -243,16 +225,9 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
             }
             // when light is shining downwards
             else {
-                //vec3 localPos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
-
                 // when trace pos is below clouds, darken by cloud shadow
                 if (cameraPosition.y + localTracePos.y < CLOUD_Y_LEVEL) {
-                    float cloudF = GetCloudFactor(cameraPosition + localTracePos, localLightDir);
-
-                    //float horizonFogF = 1.0 - max(localLightDir.y, 0.0);
-                    //cloudF = mix(cloudF, 1.0, horizonFogF);
-
-                    lightSample *= 1.0 - cloudF;
+                    lightSample *= 1.0 - GetCloudFactor(cameraPosition + localTracePos, localLightDir);
                 }
             }
         #endif
@@ -262,8 +237,8 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
 
         // sample normal, get fresnel, darken
         uint data = textureLod(shadowcolor1, waterShadowPos.xy, 0).g;
-        vec3 normal = unpackUnorm4x8(data).xyz * 2.0 - 1.0;
-        normal = normalize(normal);
+        vec3 normal = unpackUnorm4x8(data).xyz;
+        normal = normalize(normal * 2.0 - 1.0);
         float NoL = max(normal.z, 0.0);
         
         float waterF = F_schlick(NoL, 0.02, 1.0);

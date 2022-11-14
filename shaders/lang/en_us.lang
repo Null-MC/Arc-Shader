@@ -380,6 +380,3 @@ value.DEBUG_VIEW.25=White-World
 
 option.DEBUG_EXPOSURE_METERS=Exposure Meters
 option.DEBUG_EXPOSURE_METERS.comment=When enabled, two bars will be shown on the left screen edge. - The average luminance is the first bar in red. - The EV value is the second bar in green.
-
-option.PHYSICSMOD_ENABLED=Physics Mod
-option.PHYSICSMOD_ENABLED.comment=Enable to provide better support when using the Physics mod by Haubna.

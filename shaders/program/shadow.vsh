@@ -25,10 +25,10 @@ flat out int materialId;
     flat out vec2 shadowCascadePos;
 #endif
 
-#ifdef PHYSICSMOD_ENABLED
+//#ifdef PHYSICSMOD_ENABLED
     uniform sampler2D gtexture;
     in vec4 mc_midTexCoord;
-#endif
+//#endif
 
 in vec4 mc_Entity;
 in vec3 vaPosition;
@@ -39,9 +39,11 @@ uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
 uniform mat4 gbufferModelView;
 uniform vec3 cameraPosition;
+uniform int entityId;
 
 uniform float rainStrength;
 uniform float frameTimeCounter;
+uniform int renderStage;
 uniform float far;
 
 #ifdef ANIM_USE_WORLDTIME
@@ -62,7 +64,7 @@ uniform float far;
 #include "/lib/world/waving.glsl"
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-    uniform int entityId;
+    //uniform int entityId;
     uniform float near;
 
     #if SHADER_PLATFORM == PLATFORM_OPTIFINE
@@ -89,6 +91,13 @@ uniform float far;
 
 
 void main() {
+    if (renderStage == MC_RENDER_STAGE_ENTITIES) {
+        if (entityId == MATERIAL_LIGHTNING_BOLT) {
+            gl_Position = vec4(10.0);
+            return;
+        }
+    }
+
     localPos = gl_Vertex.xyz;
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
@@ -222,13 +231,10 @@ void main() {
             ApplyHardCodedMaterials(matF0, matSSS, matSmooth, matEmissive);
         #endif
 
-        #if defined PHYSICSMOD_ENABLED && defined SSS_ENABLED
-            // TODO: PhysicsMod snow?
-            vec3 sampleColor = textureLod(gtexture, mc_midTexCoord.xy, 0).rgb;
-            if (abs(dot(sampleColor, sampleColor) - 3.0) < EPSILON) {
-                materialId = MATERIAL_PHYSICS_SNOW;
-                matSSS = 0.8;
-            }
-        #endif
+        // PhysicsMod snow
+        if (entityId == 829925) {
+            materialId = MATERIAL_PHYSICS_SNOW;
+            matSSS = 0.8;
+        }
     #endif
 }

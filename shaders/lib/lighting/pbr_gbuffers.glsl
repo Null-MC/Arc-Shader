@@ -222,7 +222,7 @@
         //     occlusion = 1.0;
         // }
 
-        #if defined RENDER_ENTITIES && defined PHYSICSMOD_ENABLED
+        #if defined RENDER_ENTITIES
             if (materialId == MATERIAL_PHYSICS_SNOW) {
                 colorMap.rgb = LinearToRGB(PHYSICS_SNOW_COLOR);
 
