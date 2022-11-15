@@ -61,7 +61,7 @@ void main() {
     if (localDir.y > 0.0) {
         float starHorizonFogF = 1.0 - abs(localDir.y);
         vec3 starF = GetStarLight(localDir);
-        starF *= 1.0 - pow(starHorizonFogF, 12.0);
+        starF *= 1.0 - starHorizonFogF;
         color += starF * StarLumen;
     }
 

@@ -175,8 +175,8 @@ const bool colortex12Clear = false;
 #define VL_ENABLED
 #define VL_DITHER
 #define VL_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 175 200 225 250 275 300 350 400 450 500 600 700 800 900]
-#define VL_SAMPLES_SKY 30 // [15 30 45 60 75 90]
-#define VL_SAMPLES_WATER 8 // [8 16 24 32]
+#define VL_SAMPLES_SKY 8 // [8 16 24 32]
+#define VL_SAMPLES_WATER 4 // [4 8 16 24]
 //#define VL_PARTICLES
 #define G_SCATTERING_CLEAR 0.4
 #define G_SCATTERING_NIGHT 0.65
@@ -202,7 +202,7 @@ const bool colortex12Clear = false;
 #define PARTICLE_OPACITY 0.8
 #define HCM_LAZANYI
 #define METAL_AMBIENT 1.0
-#define POROSITY_DARKENING 0.6
+#define POROSITY_DARKENING 1.0
 //#define SHADOW_CONTACT_DITHER
 //#define SKY_DITHER
 //#define AF_ENABLED
@@ -243,7 +243,7 @@ const bool colortex12Clear = false;
 
 const float sunLumen = 1.6e9;
 const float moonLumen = 800.0;
-const float StarLumen = 40.0;
+const float StarLumen = 200.0;
 const float EmissionLumens = 1.0e5;
 
 const float SunLux = 64000.0;

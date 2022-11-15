@@ -1,8 +1,8 @@
 // https://www.shadertoy.com/view/tdSXzD
 
 vec3 hash33(in vec3 p) {
-    p = fract(p * vec3(443.8975,397.2973, 491.1871));
-    p += dot(p.zxy, p.yxz+19.27);
+    p = fract(p * vec3(443.8975, 397.2973, 491.1871));
+    p += dot(p.zxy, p.yxz + 19.27);
     return fract(vec3(p.x * p.y, p.z*p.x, p.y*p.z));
 }
 
@@ -19,7 +19,7 @@ vec3 GetStarLight(const in vec3 D) {
     vec3 D1 = normalize(D + vec3(1.0, 0.0009*sin(t+6.2831*noise(O1.xz + vec2(0.0, t*0.8))), 0.0));
 
     vec3 c = vec3(0.0);
-    float res = viewWidth * 2.5;
+    float res = viewWidth;
 
 	for (int i = 0; i < 4; i++) {
         vec3 q = fract(D1 * (0.15*res)) - 0.5;

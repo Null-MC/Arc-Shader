@@ -418,6 +418,16 @@ void main() {
             }
 
             #ifdef VL_ENABLED
+                // if (lightData.opaqueScreenDepth + EPSILON < 1.0) {
+                //     float envFogStart = 8.0;
+                //     float envFogEnd = min(fogEnd, far);
+                //     const float envFogDensity = 0.6;
+
+                //     float viewDist = length(viewPos);
+                //     float fogF = GetFogFactor(viewDist, envFogStart, envFogEnd, envFogDensity);
+                //     color *= 1.0 - fogF;
+                // }
+
                 vec3 viewNear = viewDir * near;
                 vec3 viewFar = viewDir * min(length(viewPos), far);
 

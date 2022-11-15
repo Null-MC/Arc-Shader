@@ -59,6 +59,7 @@
             skyColor += vlColor * (1.0 - horizonFogF);
 
             vec3 starF = GetStarLight(normalize(localReflectDir));
+            starF *= 1.0 - horizonFogF;
             skyColor += starF * StarLumen;
 
             vec3 cloudColor = GetCloudColor(lightData.skyLightLevels);
@@ -173,7 +174,7 @@
             float contactLightDist = 0.0;
             #if SHADOW_CONTACT != SHADOW_CONTACT_NONE
                 #if SHADOW_CONTACT == SHADOW_CONTACT_FAR
-                    const float minContactShadowDist = 0.75 * shadowDistance;
+                    const float minContactShadowDist = 0.6 * shadowDistance;
                 #else
                     const float minContactShadowDist = 0.0;
                 #endif
@@ -379,23 +380,31 @@
                 if (material.scattering > 0.0 && shadowSSS > 0.0) {
                     vec3 sssAlbedo = material.albedo.rgb;
 
-                    #ifdef SSS_NORMALIZE_ALBEDO
-                        float lum = luminance(sssAlbedo);
-                        if (lum > EPSILON) {
-                            sssAlbedo = normalize(sssAlbedo) * pow(lum, 0.5);
-                        }
-                    #endif
+                    // #ifdef SSS_NORMALIZE_ALBEDO
+                    //     float lum = luminance(sssAlbedo);
+                    //     if (lum > EPSILON) {
+                    //         sssAlbedo = normalize(sssAlbedo);
+                    //         sssAlbedo = pow(sssAlbedo, vec3(1.0));
+                    //         sssAlbedo *= pow(lum, 2.0);
+                    //         //sssAlbedo *= lum;
+                    //     }
+                    // #endif
 
                     vec3 halfDirInverse = normalize(-viewLightDir + -viewDir);
                     float LoHmInverse = max(dot(-viewLightDir, halfDirInverse), 0.0);
                     vec3 sunFInverse = GetFresnel(material.albedo.rgb, f0, material.hcm, LoHmInverse, roughL);
-                    vec3 sssDiffuseLight = sssAlbedo * shadowSSS * skyLightColorFinal * max(1.0 - sunFInverse, 0.0);
+                    vec3 sssLightColor = shadowSSS * skyLightColorFinal;
                     
                     float VoL = dot(viewDir, viewLightDir);
-                    float inScatter = ComputeVolumetricScattering(VoL, mix(0.4, 0.6, material.scattering));
-                    float outScatter = 4.0*ComputeVolumetricScattering(VoL, mix(-0.3, -0.1, material.scattering));
+                    float inScatter = ComputeVolumetricScattering(VoL, mix(0.0, 0.4, pow2(material.scattering)));
+                    vec3 inLightColor = sssLightColor * sssAlbedo * max(inScatter, 0.0) * max(1.0 - sunFInverse, 0.0);
 
-                    diffuse += material.scattering * sssDiffuseLight * min(max(inScatter, 0.0) + max(outScatter, 0.0), 1.0) * max(-NoL, 0.0) * (0.01 * SSS_STRENGTH);// * max(NoL, 0.0);
+                    //float outScatter = ComputeVolumetricScattering(VoL, mix(0.3, -0.1, material.scattering));
+                    //vec3 outLightColor = max(outScatter, 0.0) * sssLightColor * pow(sssAlbedo, vec3(2.0));
+
+                    vec3 sssDiffuseLight = inLightColor;// + outLightColor;//* max(-NoL, 0.0);
+
+                    diffuse += material.scattering * sssDiffuseLight * (0.01 * SSS_STRENGTH);
                 }
             #endif
 
