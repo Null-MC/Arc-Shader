@@ -75,10 +75,14 @@
         //if (dot(viewNormal, viewNormal) < 0.1)
         //    colorMap.rgb = vec3(1.0, 0.0, 0.0);
 
-        float occlusion = normalMap.b;
         vec3 normal = vec3(0.0, 0.0, 1.0);
         float parallaxShadow = 1.0;
+        float occlusion = 1.0;
         vec2 lm = lmcoord;
+
+        #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
+            occlusion = normalMap.b;
+        #endif
 
         vec4 specularMap = vec4(0.0);
         #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
@@ -200,12 +204,23 @@
         }
 
         vec3 _viewNormal = normalize(viewNormal);
+
+        if (!gl_FrontFacing) {
+            _viewNormal = -_viewNormal;
+        }
+
         if ((isMissingNormal || isMissingTangent) && dot(viewNormal, viewNormal) > 0.1) {
             normal = _viewNormal;
         }
         else {
             vec3 _viewTangent = normalize(viewTangent);
             vec3 _viewBinormal = normalize(cross(_viewTangent, _viewNormal) * tangentW);
+
+            if (!gl_FrontFacing) {
+                _viewTangent = -_viewTangent;
+                _viewBinormal = -_viewBinormal;
+            }
+            
             mat3 matTBN = mat3(_viewTangent, _viewBinormal, _viewNormal);
 
             normal = normalize(matTBN * normal);

@@ -250,6 +250,9 @@
 
                 #if !defined RENDER_WATER && !defined RENDER_HAND_WATER
                     if (material.albedo.a < alphaTestRef) discard;
+                #else
+                    // TODO: Is this helping or hurting performance doing discard on transparent?
+                    if (material.albedo.a < 1.5/255.0) discard;
                 #endif
 
                 //#if MATERIAL_FORMAT != MATERIAL_FORMAT_LABPBR

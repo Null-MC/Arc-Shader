@@ -227,7 +227,7 @@ void main() {
         // Deferred Normal
         uint deferredDataG = texelFetch(BUFFER_DEFERRED, iuv, 0).g;
         vec3 normal = unpackUnorm4x8(deferredDataG).rgb;
-        if (all(greaterThan(normal, vec3(0.0)))) {
+        if (any(greaterThan(normal, vec3(0.0)))) {
             normal = normal * 2.0 - 1.0;
             normal = mat3(gbufferModelViewInverse) * normal;
             normal = normal * 0.5 + 0.5;
