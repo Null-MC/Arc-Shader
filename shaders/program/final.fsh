@@ -105,6 +105,17 @@ uniform float viewHeight;
 #elif DEBUG_VIEW == DEBUG_VIEW_A0
     // Ambient Occlusion
     uniform sampler2D BUFFER_AO;
+
+    #ifdef SSAO_UPSCALE
+        uniform sampler2D depthtex0;
+        uniform sampler2D depthtex1;
+
+        uniform float near;
+        uniform float far;
+
+        #include "/lib/depth.glsl"
+        #include "/lib/sampling/bilateral_gaussian.glsl"
+    #endif
 #elif DEBUG_VIEW == DEBUG_VIEW_LUT_BRDF
     // BRDF LUT
     uniform sampler2D colortex15;
@@ -320,7 +331,15 @@ void main() {
         color = textureLod(BUFFER_DEPTH_PREV, texcoord, 0).rrr;
     #elif DEBUG_VIEW == DEBUG_VIEW_A0
         // Ambient Occlusion
-        color = textureLod(BUFFER_AO, texcoord, 0).rrr;
+        #ifdef SSAO_UPSCALE
+            ivec2 iTex = ivec2(gl_FragCoord.xy);
+            float opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
+            float opaqueScreenDepthLinear = linearizeDepthFast(opaqueScreenDepth, near, far);
+            float occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, 0.5 * viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, 0.9);
+            color = vec3(occlusion);
+        #else
+            color = textureLod(BUFFER_AO, texcoord, 0).rrr;
+        #endif
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_BRDF
         // BRDF LUT
         color.rg = textureLod(colortex15, texcoord, 0).rg;

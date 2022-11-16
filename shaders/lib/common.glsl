@@ -192,6 +192,7 @@ const bool colortex12Clear = false;
 #define SSAO_BIAS 0.02
 #define SSAO_RADIUS 0.2 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
 #define SSAO_MAX_DIST 1.6
+#define SSAO_UPSCALE
 
 
 // Debug Options
@@ -253,7 +254,7 @@ const float MoonOvercastLux = 4.0;
 const float BlockLightLux = 12800.0;
 const float MinWorldLux = 8.0;
 
-const float DaySkyLumen = 4000.0;
+const float DaySkyLumen = 3200.0;
 const float DaySkyOvercastLumen = 1200.0;
 const float NightSkyLumen = 4.0;
 const float NightSkyOvercastLumen = 1.0;

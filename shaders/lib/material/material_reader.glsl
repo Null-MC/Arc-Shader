@@ -18,6 +18,10 @@ float GetLabPbr_Porosity(const in float specularB) {
     return specularB * 4.0 * step(specularB, 0.25);
 }
 
+float GetOldPbr_Porosity(const in float smoothness, const in float metalness) {
+    return (1.0 - smoothness) * (1.0 - metalness);
+}
+
 float GetLabPbr_Emission(const in float specularA) {
     return specularA * step(specularA, 1.0 - EPSILON);
 }
@@ -38,7 +42,7 @@ float GetLabPbr_Emission(const in float specularA) {
             material.occlusion = 1.0;
             material.f0 = saturate(specularMap.g);
             material.hcm = -1;
-            material.porosity = 0.86 * (1.0 - specularMap.g);
+            material.porosity = GetOldPbr_Porosity(specularMap.r, specularMap.g);
         #endif
 
         material.normal = normalize(normalMap.xyz * 2.0 - 1.0);
@@ -77,7 +81,7 @@ float GetLabPbr_Emission(const in float specularA) {
             material.f0 = specularMap.g;
             //material.hcm = specularMap.g >= 0.5 ? 15 : -1;
             material.smoothness = specularMap.r;
-            material.porosity = 1.0 - specularMap.g;
+            material.porosity = GetOldPbr_Porosity(specularMap.r, specularMap.g);
             material.occlusion = 1.0;
             material.hcm = -1;
         #elif MATERIAL_FORMAT == MATERIAL_FORMAT_PATRIX
@@ -92,7 +96,7 @@ float GetLabPbr_Emission(const in float specularA) {
             material.emission = GetLabPbr_Emission(specularMap.a);
             material.f0 = specularMap.g;
             //material.hcm = specularMap.g >= 0.5 ? 15 : -1;
-            material.porosity = 1.0 - specularMap.g;
+            material.porosity = GetOldPbr_Porosity(specularMap.r, specularMap.g);
             material.occlusion = 1.0;
             //material.f0 = 0.04;
             material.hcm = -1;

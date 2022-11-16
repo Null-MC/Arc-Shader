@@ -296,12 +296,18 @@
         vec3 ambient = vec3(MinWorldLux);
         vec3 diffuse = albedo * blockLightDiffuse;
         vec3 specular = vec3(0.0);
-        float occlusion = lightData.occlusion * material.occlusion;
+        float occlusion = lightData.occlusion;
         vec3 waterExtinctionInv = 1.0 - waterAbsorbColor;
 
         #if defined SSAO_ENABLED && !defined RENDER_WATER && !defined RENDER_HAND_WATER
-            occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, 0.5 * viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, 0.9);
+            #ifdef SSAO_UPSCALE
+                occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, 0.5 * viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, 0.9);
+            #else
+                occlusion = textureLod(BUFFER_AO, screenUV, 0).r;
+            #endif
         #endif
+
+        occlusion *= material.occlusion;
 
         vec3 iblF = vec3(0.0);
         vec3 iblSpec = vec3(0.0);
@@ -378,7 +384,7 @@
 
             #ifdef SSS_ENABLED
                 if (material.scattering > 0.0 && shadowSSS > 0.0) {
-                    vec3 sssAlbedo = material.albedo.rgb;
+                    //vec3 sssAlbedo = material.albedo.rgb;
 
                     // #ifdef SSS_NORMALIZE_ALBEDO
                     //     float lum = luminance(sssAlbedo);
@@ -390,21 +396,33 @@
                     //     }
                     // #endif
 
-                    vec3 halfDirInverse = normalize(-viewLightDir + -viewDir);
-                    float LoHmInverse = max(dot(-viewLightDir, halfDirInverse), 0.0);
-                    vec3 sunFInverse = GetFresnel(material.albedo.rgb, f0, material.hcm, LoHmInverse, roughL);
-                    vec3 sssLightColor = shadowSSS * skyLightColorFinal;
+                    //vec3 halfDirInverse = normalize(-viewLightDir + -viewDir);
+                    //float LoHmInverse = max(dot(-viewLightDir, halfDirInverse), 0.0);
+                    //float NoLmInverse = max(dot(-viewNormal, viewLightDir), 0.0);
+                    //float sunFInverse = F_SchlickRoughness(f0, NoLmInverse, roughL);
+                    vec3 sssLightColor = shadowSSS * skyLightColorFinal;// * max(1.0 - sunFInverse, 0.0);
                     
                     float VoL = dot(viewDir, viewLightDir);
-                    float inScatter = ComputeVolumetricScattering(VoL, mix(0.0, 0.4, pow2(material.scattering)));
-                    vec3 inLightColor = sssLightColor * sssAlbedo * max(inScatter, 0.0) * max(1.0 - sunFInverse, 0.0);
+                    float inScatter = ComputeVolumetricScattering(VoL, 0.36);
+                    // vec3 inLightColor = sssLightColor * sssAlbedo * max(inScatter, 0.0);
 
                     //float outScatter = ComputeVolumetricScattering(VoL, mix(0.3, -0.1, material.scattering));
                     //vec3 outLightColor = max(outScatter, 0.0) * sssLightColor * pow(sssAlbedo, vec3(2.0));
 
-                    vec3 sssDiffuseLight = inLightColor;// + outLightColor;//* max(-NoL, 0.0);
+                    //vec3 sssDiffuseLight = inLightColor;// + outLightColor;//* max(-NoL, 0.0);
 
-                    diffuse += material.scattering * sssDiffuseLight * (0.01 * SSS_STRENGTH);
+                    sssDist = max(sssDist / (shadowSSS * SSS_MAXDIST), 0.0001);
+                    vec3 sssExt = CalculateExtinction(material.albedo.rgb, sssDist);
+                    //return vec4(sssExt * sssLightColor, 1.0);
+
+                    vec3 sssDiffuseLight = sssLightColor * sssExt;
+
+                    sssDiffuseLight += GetSkyAmbientLight(lightData, -viewNormal) * occlusion * skyLight2 * SHADOW_BRIGHTNESS;
+
+                    sssDiffuseLight *= albedo * max(inScatter, 0.0);
+
+                    //diffuse *= 1.0 - saturate(inScatter) * (0.01 * SSS_STRENGTH);
+                    diffuse += material.scattering * sssDiffuseLight * NoVm * (0.01 * SSS_STRENGTH);
                 }
             #endif
 

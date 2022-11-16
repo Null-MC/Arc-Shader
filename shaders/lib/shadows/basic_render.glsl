@@ -213,11 +213,11 @@
             float GetShadowSSS(const in LightData lightData, const in float materialSSS, out float lightDist) {
                 lightDist = max(lightData.shadowPos.z + lightData.shadowBias - lightData.opaqueShadowDepth, 0.0) * ShadowMaxDepth;
 
-                float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy);
-                if (shadow_sss < EPSILON) return 0.0;
+                return SampleShadowSSS(lightData.shadowPos.xy);
+                //if (shadow_sss < EPSILON) return 0.0;
 
-                float maxDist = SSS_MAXDIST * shadow_sss;
-                return materialSSS * max(1.0 - lightDist / maxDist, 0.0);
+                //float maxDist = SSS_MAXDIST * shadow_sss;
+                //return shadow_sss;//max(1.0 - lightDist / maxDist, 0.0);
             }
         #endif
     #endif

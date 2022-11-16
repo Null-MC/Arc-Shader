@@ -1,7 +1,7 @@
 float GetDirectionalWetness(const in vec3 normal, const in float skyLight) {
     vec3 viewUpDir = normalize(upPosition);
     float wetness_NoU = dot(normal, viewUpDir) * 0.4 + 0.6;
-    float wetness_skyLight = max((skyLight - (14.0/16.0)) * 16.0, 0.0);
+    float wetness_skyLight = saturate(skyLight * 16.0 - 13.0);
     return wetness * wetness_skyLight * wetness_NoU;
 }
 

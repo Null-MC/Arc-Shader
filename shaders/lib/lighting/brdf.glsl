@@ -136,3 +136,14 @@ float BiLambertianPlatePhaseFunction(in float kd, in float cosTheta) {
     float phase = 2.0 * (-PI * kd * cosTheta + sqrt(1.0 - pow2(cosTheta)) + cosTheta * acos(-cosTheta));
     return phase / (3.0 * pow2(PI));
 }
+
+vec3 CalculateExtinction(const in vec3 apparantColor, const in float scatterDistance) {
+    vec3 apparantColor2 = pow2(apparantColor);
+    vec3 apparantColor3 = apparantColor2 * apparantColor;
+
+    vec3 alpha = vec3(1.0) - exp(-5.09406 * apparantColor + 2.61188 * apparantColor2 - 4.31805 * apparantColor3);
+    vec3 a = apparantColor - vec3(0.8);
+    vec3 s = vec3(1.9) - apparantColor + 3.5 * pow2(a);
+
+    return min(rcp(max(s * scatterDistance, vec3(EPSILON))), 1.0);
+}
