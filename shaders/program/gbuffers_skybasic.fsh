@@ -71,6 +71,9 @@ void main() {
         vec3 moonColorFinal = moonTransmittanceEye * moonColor;
         vec2 scatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
         vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
+
+        //color *= 1.0 - scatteringF.x * max(skyLightLevels.x, 0.0);
+        //color *= 1.0 - scatteringF.y * max(skyLightLevels.y, 0.0);
         color += lightColor * RGBToLinear(fogColor);
     #endif
 

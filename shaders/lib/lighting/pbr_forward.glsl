@@ -285,9 +285,9 @@
             }
         #endif
 
-        #if DEBUG_VIEW == DEBUG_VIEW_WHITEWORLD
-            material.albedo.rgb = vec3(1.0);
-        #endif
+        // #if DEBUG_VIEW == DEBUG_VIEW_WHITEWORLD
+        //     material.albedo.rgb = vec3(1.0);
+        // #endif
 
         vec3 _viewNormal = normalize(viewNormal);
         vec3 _viewTangent = normalize(viewTangent);

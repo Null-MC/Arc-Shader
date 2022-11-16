@@ -68,9 +68,9 @@
             // TODO: fix lightning?
         #endif
 
-        #if DEBUG_VIEW == DEBUG_VIEW_WHITEWORLD
-            colorMap.rgb = vec3(1.0);
-        #endif
+        // #if DEBUG_VIEW == DEBUG_VIEW_WHITEWORLD
+        //     colorMap.rgb = vec3(1.0);
+        // #endif
 
         //if (dot(viewNormal, viewNormal) < 0.1)
         //    colorMap.rgb = vec3(1.0, 0.0, 0.0);
@@ -112,13 +112,10 @@
 
                 if (normalMap.x + normalMap.y > EPSILON) {
                     #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
-                        normal = RestoreNormalZ(normalMap.xy);
+                        normal = GetLabPbr_Normal(normalMap.xy);
                         //normalMap.a = normalMap.b; // move AO to alpha
                     #else
-                        normal = normalMap.xyz;
-                        normal.xy = normal.xy * 2.0 - 1.0;
-                        //normal = normal * 2.0 - 1.0;
-                        normal = normalize(normal);
+                        normal = GetOldPbr_Normal(normalMap.xyz);
                     #endif
                 }
 

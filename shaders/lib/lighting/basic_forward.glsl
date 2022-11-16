@@ -49,7 +49,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo) {
 
     //vec3 skyAmbient = vec3(pow(skyLight, 5.0));
     #ifdef SKY_ENABLED
-        float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength);// * SHADOW_BRIGHTNESS;
+        float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength) * SHADOW_BRIGHTNESS;
         ambient += GetSkyAmbientLight(lightData, viewNormal) * ambientBrightness;
 
         #ifndef RENDER_WEATHER
@@ -69,7 +69,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo) {
     #endif
 
     vec4 final = albedo;
-    final.rgb *= ambient * SHADOW_BRIGHTNESS;
+    final.rgb *= ambient;
     final.rgb += diffuse;
 
     vec3 viewDir = normalize(viewPos);

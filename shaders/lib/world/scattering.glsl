@@ -34,5 +34,5 @@ vec2 GetVanillaSkyScattering(const in vec3 viewDir, const in vec2 skyLightLevels
     float moon_VoL = dot(viewDir, moonDir);
     scatteringF.y = ComputeVolumetricScattering(moon_VoL, scattering_G);
 
-    return scatteringF * (0.01 * VL_STRENGTH);
+    return max(scatteringF, vec2(0.0)) * (0.01 * VL_STRENGTH);
 }

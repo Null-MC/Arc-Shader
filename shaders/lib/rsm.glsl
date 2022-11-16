@@ -83,7 +83,7 @@ float SampleDepth(const in ivec2 itex) {
             #endif
 
             iuv = ivec2(uv * shadowMapSize);
-            clipPos.z = textureLod(shadowtex0, uv, 0).r * 2.0 - 1.0;
+            clipPos.z = texelFetch(shadowtex0, iuv, 0).r * 2.0 - 1.0;
 
             #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                 clipPos.z *= 2.0;
@@ -109,12 +109,15 @@ float SampleDepth(const in ivec2 itex) {
         float NoR1 = max(dot(shadowViewNormal, rayDir), 0.0);
         float NoR2 = max(dot(sampleNormal, -rayDir), 0.0);
 
-        sampleColor *= pow(NoR1 * NoR2, 0.5);
+        sampleColor *= NoR1 * NoR2;
+        //sampleColor *= pow(NoR1 * NoR2, 0.5);
 
         //float weight = dot(rsmPoissonDisk[i], rsmPoissonDisk[i]);
         //weight = max(1.0 - weight, 0.0) / length(ray);
+        
         float weight = saturate(rayLength / RSM_FILTER_SIZE);
-        weight = 1.0 - pow3(weight);
+        //float weight = saturate(abs(ray.z) / RSM_FILTER_SIZE);
+        weight = 1.0 - pow2(weight);
 
         shading += sampleColor * weight;
     }

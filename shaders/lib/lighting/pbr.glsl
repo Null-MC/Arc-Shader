@@ -119,6 +119,10 @@
         float smoothness = material.smoothness;
         float f0 = material.f0;
 
+        #if DEBUG_VIEW == DEBUG_VIEW_WHITEWORLD
+            albedo = vec3(1.0);
+        #endif
+
         #if defined SKY_ENABLED
             float wetnessFinal = biomeWetness * GetDirectionalWetness(viewNormal, skyLight);
 
@@ -378,9 +382,8 @@
             vec3 sunF = GetFresnel(material.albedo.rgb, f0, material.hcm, LoHm, roughL);
             //sunF = min(sunF * 1.1, 1.0);
 
-            vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * max(1.0 - sunF, 0.0);
-            sunDiffuse = GetDiffuseBSDF(sunDiffuse, albedo, material.scattering, NoVm, NoLm, LoHm, roughL);
-            diffuse += sunDiffuse * skyLightColorFinal * shadowFinal;// * skyLight2;
+            vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL);
+            sunDiffuse *= skyLightColorFinal * shadowFinal * max(1.0 - sunF, 0.0);// * skyLight2;
 
             #ifdef SSS_ENABLED
                 if (material.scattering > 0.0 && shadowSSS > 0.0) {
@@ -403,7 +406,7 @@
                     vec3 sssLightColor = shadowSSS * skyLightColorFinal;// * max(1.0 - sunFInverse, 0.0);
                     
                     float VoL = dot(viewDir, viewLightDir);
-                    float inScatter = ComputeVolumetricScattering(VoL, 0.36);
+                    float inScatter = ComputeVolumetricScattering(VoL, 0.2);
                     // vec3 inLightColor = sssLightColor * sssAlbedo * max(inScatter, 0.0);
 
                     //float outScatter = ComputeVolumetricScattering(VoL, mix(0.3, -0.1, material.scattering));
@@ -415,16 +418,18 @@
                     vec3 sssExt = CalculateExtinction(material.albedo.rgb, sssDist);
                     //return vec4(sssExt * sssLightColor, 1.0);
 
-                    vec3 sssDiffuseLight = sssLightColor * sssExt;
+                    vec3 sssDiffuseLight = sssLightColor * sssExt * saturate(2.0 * inScatter);
 
-                    sssDiffuseLight += GetSkyAmbientLight(lightData, -viewNormal) * occlusion * skyLight2 * SHADOW_BRIGHTNESS;
+                    sssDiffuseLight += GetSkyAmbientLight(lightData, viewDir) * occlusion * SHADOW_BRIGHTNESS * skyLight;
 
-                    sssDiffuseLight *= albedo * max(inScatter, 0.0);
+                    sssDiffuseLight *= albedo * material.scattering;
 
-                    //diffuse *= 1.0 - saturate(inScatter) * (0.01 * SSS_STRENGTH);
-                    diffuse += material.scattering * sssDiffuseLight * NoVm * (0.01 * SSS_STRENGTH);
+                    //sunDiffuse = GetDiffuseBSDF(sunDiffuse, sssDiffuseLight, material.scattering, NoVm, NoLm, LoHm, roughL);
+                    sunDiffuse += sssDiffuseLight * NoVm * (0.01 * SSS_STRENGTH);
                 }
             #endif
+
+            diffuse += sunDiffuse;
 
             if (NoLm > EPSILON) {
                 float NoHm = max(dot(viewNormal, halfDir), 0.0);
@@ -719,10 +724,9 @@
             GetFog(lightData, viewPos, fogColorFinal, fogFactorFinal);
 
             #ifdef SKY_ENABLED
-                //vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor;
-                vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
-
                 #ifndef VL_ENABLED
+                    vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
+
                     fogColorFinal += RGBToLinear(fogColor) * (
                         skyScatteringF.x * sunColorFinalEye +
                         skyScatteringF.y * moonColorFinalEye);
@@ -738,11 +742,6 @@
                     ApplyFog(final, fogColorFinal, fogFactorFinal, alphaTestRef);
                 #endif
             #endif
-
-            // #if defined SKY_ENABLED && defined VL_ENABLED
-            //     vec3 viewNear = viewDir * near;
-            //     final.rgb += GetVolumetricLighting(lightData, viewNear, viewPos, lightColor);
-            // #endif
         }
 
         return final;

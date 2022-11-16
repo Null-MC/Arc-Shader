@@ -53,7 +53,7 @@ const bool colortex12Clear = false;
 #define BLOCK_OUTLINE 3 // [0 1 2 3]
 #define BLOCKLIGHT_TEMP 3500 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 0 // [0 10 20 30 40 50 60 70 80 90 100]
-#define SHADOW_BRIGHTNESS 0.10 // [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
+#define SHADOW_BRIGHTNESS 0.06 // [0.00 0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.32 0.48 0.64 1.00]
 #define RAIN_DARKNESS 0.2
 //#define AO_ENABLED
 //#define ANIM_USE_WORLDTIME
@@ -88,8 +88,8 @@ const bool colortex12Clear = false;
 
 // Shadow Options
 #define SHADOW_TYPE 2 // [0 1 2 3]
-#define SHADOW_FILTER 0 // [0 1 2]
-#define SHADOW_PCF_SIZE 0.060 // [0.010 0.020 0.030 0.040 0.050 0.060 0.070 0.080 0.090 0.100 0.110 0.120 0.130 0.140 0.150 0.160 0.170 0.180 0.190 0.200]
+#define SHADOW_FILTER 1 // [0 1 2]
+#define SHADOW_PCF_SIZE 0.040 // [0.010 0.020 0.030 0.040 0.050 0.060 0.070 0.080 0.090 0.100 0.110 0.120 0.130 0.140 0.150 0.160 0.170 0.180 0.190 0.200]
 #define SHADOW_PCF_SAMPLES 12 // [12 24 36]
 //#define SHADOW_EXCLUDE_ENTITIES
 //#define SHADOW_EXCLUDE_FOLIAGE
@@ -149,9 +149,9 @@ const bool colortex12Clear = false;
 //#define EXPOSURE_POINT 0.2
 #define EXPOSURE_SPEED_UP 1.0
 #define EXPOSURE_SPEED_DOWN 0.7
-#define TONEMAP 1 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
+#define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
 
-#define CAMERA_BRIGHTNESS 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
+#define CAMERA_BRIGHTNESS 60 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define CAMERA_SATURATION 100 // [0 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 
 
@@ -175,11 +175,11 @@ const bool colortex12Clear = false;
 #define VL_ENABLED
 #define VL_DITHER
 #define VL_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 175 200 225 250 275 300 350 400 450 500 600 700 800 900]
-#define VL_SAMPLES_SKY 8 // [8 16 24 32]
+#define VL_SAMPLES_SKY 16 // [8 16 24 32]
 #define VL_SAMPLES_WATER 4 // [4 8 16 24]
 //#define VL_PARTICLES
-#define G_SCATTERING_CLEAR 0.4
-#define G_SCATTERING_NIGHT 0.65
+#define G_SCATTERING_CLEAR 0.65
+#define G_SCATTERING_NIGHT 0.4
 //#define G_SCATTERING_HUMID 0.08
 #define G_SCATTERING_RAIN 0.16
 #define G_SCATTERING_WATER 0.16
@@ -254,7 +254,7 @@ const float MoonOvercastLux = 4.0;
 const float BlockLightLux = 12800.0;
 const float MinWorldLux = 8.0;
 
-const float DaySkyLumen = 3200.0;
+const float DaySkyLumen = 4800.0;
 const float DaySkyOvercastLumen = 1200.0;
 const float NightSkyLumen = 4.0;
 const float NightSkyOvercastLumen = 1.0;

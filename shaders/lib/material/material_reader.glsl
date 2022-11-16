@@ -2,6 +2,16 @@ vec3 GetLabPbr_Normal(const in vec2 normalXY) {
     return RestoreNormalZ(normalXY);
 }
 
+vec3 GetOldPbr_Normal(in vec3 normal) {
+    normal = normal * 2.0 - 1.0;
+    //normal.z *= 2.0;
+    return normalize(normal);
+
+    // normal.xy = normal.xy * 2.0 - 1.0;
+    // //normal = normal * 2.0 - 1.0;
+    // normal = normalize(normal);
+}
+
 float GetLabPbr_F0(const in float specularG) {
     return specularG * step(specularG, 0.9);
 }
@@ -75,7 +85,7 @@ float GetLabPbr_Emission(const in float specularA) {
             if (normalMap.x < EPSILON && normalMap.y < EPSILON)
                 material.normal = vec3(0.0, 0.0, 1.0);
             else {
-                material.normal = normalMap * 2.0 - 1.0;
+                material.normal = GetOldPbr_Normal(normalMap);
             }
 
             material.f0 = specularMap.g;
@@ -88,7 +98,7 @@ float GetLabPbr_Emission(const in float specularA) {
             if (normalMap.x < EPSILON && normalMap.y < EPSILON)
                 material.normal = vec3(0.0, 0.0, 1.0);
             else {
-                material.normal = normalMap * 2.0 - 1.0;
+                material.normal = GetOldPbr_Normal(normalMap);
             }
 
             material.smoothness = specularMap.r;
