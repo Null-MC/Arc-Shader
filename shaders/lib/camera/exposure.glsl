@@ -13,7 +13,7 @@ float GetEV100(const in float avgLum) {
 // }
 
 float GetExposure(const in float EV100) {
-    const float brightnessF = 0.6 * (0.01 * CAMERA_BRIGHTNESS);
+    float brightnessF = 0.6 * (0.01 * CAMERA_BRIGHTNESS);
 
     #if MC_VERSION >= 11900
         brightnessF *= 1.0 - 0.9*darknessFactor;
