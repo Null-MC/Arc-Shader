@@ -1,4 +1,4 @@
-#extension GL_ARB_texture_gather : enable
+//#extension GL_ARB_texture_gather : enable
 
 #ifdef RENDER_VERTEX
     void ApplyShadows(const in vec3 localPos, const in vec3 viewDir) {
@@ -26,15 +26,40 @@
             cascadeSizes[2] = GetCascadeDistance(2);
             cascadeSizes[3] = GetCascadeDistance(3);
 
-            GetShadowCascadeProjectionMatrix_AsParts(0, matShadowProjections_scale[0], matShadowProjections_translation[0]);
-            GetShadowCascadeProjectionMatrix_AsParts(1, matShadowProjections_scale[1], matShadowProjections_translation[1]);
-            GetShadowCascadeProjectionMatrix_AsParts(2, matShadowProjections_scale[2], matShadowProjections_translation[2]);
-            GetShadowCascadeProjectionMatrix_AsParts(3, matShadowProjections_scale[3], matShadowProjections_translation[3]);
+            mat4 matShadowProjection0 = GetShadowCascadeProjectionMatrix(0);
+            mat4 matShadowProjection1 = GetShadowCascadeProjectionMatrix(1);
+            mat4 matShadowProjection2 = GetShadowCascadeProjectionMatrix(2);
+            mat4 matShadowProjection3 = GetShadowCascadeProjectionMatrix(3);
+
+            GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection0, matShadowProjections_scale[0], matShadowProjections_translation[0]);
+            GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection1, matShadowProjections_scale[1], matShadowProjections_translation[1]);
+            GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection2, matShadowProjections_scale[2], matShadowProjections_translation[2]);
+            GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection3, matShadowProjections_scale[3], matShadowProjections_translation[3]);
         #ifndef SSS_ENABLED
             }
         #endif
     }
 #endif
+
+float GetCascadeBias(const in float geoNoL, const in int cascade) {
+    vec2 shadowProjectionSize = 2.0 / matShadowProjections_scale[cascade].xy;
+    float maxProjSize = max(shadowProjectionSize.x, shadowProjectionSize.y);
+    float zRangeBias = 0.05 / (3.0 * far);
+
+    maxProjSize = pow(maxProjSize, 1.3);
+
+    #if SHADOW_FILTER == 1
+        float xySizeBias = 0.004 * maxProjSize * shadowPixelSize;// * tile_dist_bias_factor * 4.0;
+    #else
+        float xySizeBias = 0.004 * maxProjSize * shadowPixelSize;// * tile_dist_bias_factor;
+    #endif
+
+    float bias = mix(xySizeBias, zRangeBias, geoNoL) * SHADOW_BIAS_SCALE;
+
+    //bias += pow(1.0 - geoNoL, 16.0);
+
+    return bias;
+}
 
 #ifdef RENDER_FRAG
     const float cascadeTexSize = shadowMapSize * 0.5;
@@ -143,26 +168,6 @@
         }
 
         return depthNearest;
-    }
-
-    float GetCascadeBias(const in float geoNoL, const in int cascade) {
-        vec2 shadowProjectionSize = 2.0 / matShadowProjections_scale[cascade].xy;
-        float maxProjSize = max(shadowProjectionSize.x, shadowProjectionSize.y);
-        float zRangeBias = 0.05 / (3.0 * far);
-
-        maxProjSize = pow(maxProjSize, 1.3);
-
-        #if SHADOW_FILTER == 1
-            float xySizeBias = 0.004 * maxProjSize * shadowPixelSize;// * tile_dist_bias_factor * 4.0;
-        #else
-            float xySizeBias = 0.004 * maxProjSize * shadowPixelSize;// * tile_dist_bias_factor;
-        #endif
-
-        float bias = mix(xySizeBias, zRangeBias, geoNoL) * SHADOW_BIAS_SCALE;
-
-        //bias += pow(1.0 - geoNoL, 16.0);
-
-        return bias;
     }
 
     // returns: [0] when depth occluded, [1] otherwise

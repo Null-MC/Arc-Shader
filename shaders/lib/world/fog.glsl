@@ -77,9 +77,7 @@ void GetFog(const in LightData lightData, const in vec3 viewPos, out vec3 fogCol
     // #endif
 
     #if defined SKY_ENABLED && defined ATMOSFOG_ENABLED
-        float sunLightLevel = GetSunLightLevel(lightData.skyLightLevels.x);
-
-        float customFogFactor = GetCustomFogFactor(viewDist, sunLightLevel);
+        float customFogFactor = GetCustomFogFactor(viewDist, lightData.skyLightLevels.x);
     #endif
 
     float vanillaFogFactor = GetVanillaFogFactor(viewPos);

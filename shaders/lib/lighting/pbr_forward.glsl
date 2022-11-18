@@ -43,7 +43,7 @@
         lightData.opaqueScreenDepthLinear = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
         lightData.transparentScreenDepthLinear = linearizeDepthFast(lightData.transparentScreenDepth, near, far);
 
-        #ifdef AO_ENABLED
+        #if AO_TYPE == AO_TYPE_VANILLA
             lightData.occlusion = pow2(glcolor.a);
         #endif
 

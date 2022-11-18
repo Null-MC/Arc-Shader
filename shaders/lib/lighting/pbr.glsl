@@ -124,39 +124,60 @@
         #endif
 
         #if defined SKY_ENABLED
-            float surfaceWetness = 0.0;
-
             #ifdef RENDER_WATER
                 if (materialId != MATERIAL_WATER) {
             #endif
 
-                if (isEyeInWater == 1) surfaceWetness = 1.0;
-                else if (wetness > EPSILON) {
-                    vec3 waterLocalPos = cameraPosition + localPos;
-                    vec2 waterTex = waterLocalPos.xz + vec2(0.08, 0.02) * waterLocalPos.y;
+                if (isEyeInWater == 1) {
+                    albedo = WetnessDarkenSurface(albedo, material.porosity, 1.0);
+                }
+                else {
+                    if (biomeWetness > EPSILON) {
+                        vec3 waterLocalPos = cameraPosition + localPos;
+                        vec2 waterTex = waterLocalPos.xz + vec2(0.08, 0.02) * waterLocalPos.y;
 
-                    float noise1 = textureLod(noisetex, 0.01*waterTex, 0).r;
-                    float noise2 = 1.0 - textureLod(noisetex, 0.05*waterTex, 0).r;
-                    float noise3 = textureLod(noisetex, 0.20*waterTex, 0).r;
+                        float noise1 = textureLod(noisetex, 0.01*waterTex, 0).r;
+                        float noise2 = 1.0 - textureLod(noisetex, 0.05*waterTex, 0).r;
+                        float noise3 = textureLod(noisetex, 0.20*waterTex, 0).r;
 
-                    float wetnessFinal = GetDirectionalWetness(viewNormal, skyLight);
+                        float wetnessFinal = GetDirectionalWetness(viewNormal, skyLight);
 
-                    float areaWetness = biomeWetness * wetnessFinal * saturate(
-                        1.00 * noise1 + 0.50 * noise2 + 0.25 * noise3);
+                        float areaWetness = biomeWetness * wetnessFinal * saturate(
+                            1.00 * noise1 + 0.50 * noise2 + 0.25 * noise3);
 
-                    float puddleF = smoothstep(0.7, 0.8, areaWetness);// * pow2(wetnessFinal);
+                        float puddleF = smoothstep(0.7, 0.8, areaWetness);// * pow2(wetnessFinal);
 
-                    if (wetnessFinal > EPSILON) {
-                        albedo = WetnessDarkenSurface(albedo, material.porosity, areaWetness);
+                        if (wetnessFinal > EPSILON) {
+                            albedo = WetnessDarkenSurface(albedo, material.porosity, areaWetness);
 
-                        surfaceWetness = GetSurfaceWetness(areaWetness, material.porosity);
-                        surfaceWetness = max(pow(surfaceWetness, 0.5), puddleF);
+                            float surfaceWetness = GetSurfaceWetness(areaWetness, material.porosity);
+                            surfaceWetness = max(pow(surfaceWetness, 0.5), puddleF);
 
-                        viewNormal = mix(viewNormal, viewUpDir, puddleF);
-                        viewNormal = normalize(viewNormal);
+                            viewNormal = mix(viewNormal, viewUpDir, puddleF);
+                            viewNormal = normalize(viewNormal);
 
-                        smoothness = mix(smoothness, WATER_SMOOTH, surfaceWetness);
-                        f0 = mix(f0, 0.02, surfaceWetness * (1.0 - f0));
+                            smoothness = mix(smoothness, WATER_SMOOTH, surfaceWetness);
+                            f0 = mix(f0, 0.02, surfaceWetness * (1.0 - f0));
+                        }
+                    }
+
+                    if (biomeSnow > EPSILON) {
+                        vec3 snowLocalPos = cameraPosition + localPos;
+                        vec2 snowTex = snowLocalPos.xz;// + vec2(0.08, 0.02) * snowLocalPos.y;
+
+                        float noise1 = textureLod(noisetex, 0.01*snowTex, 0).r;
+                        float noise2 = 1.0 - textureLod(noisetex, 0.05*snowTex, 0).r;
+                        float noise3 = textureLod(noisetex, 0.20*snowTex, 0).r;
+
+                        float snowFinal = GetDirectionalSnow(viewNormal, skyLight);
+                        snowFinal = min(snowFinal + (1.0 - lightData.occlusion), 1.0);
+
+                        float areaSnow = saturate(snowFinal * biomeSnow *
+                            (1.00 * noise1 + 0.50 * noise2 + 0.25 * noise3));
+
+                        //areaSnow = areaSnow;
+                        albedo = mix(albedo, SNOW_COLOR, areaSnow);
+                        smoothness = mix(smoothness, 0.48, areaSnow);
                     }
                 }
 
@@ -184,7 +205,7 @@
                 float cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
                 float horizonFogF = pow(1.0 - max(localLightDir.y, 0.0), 2.0);
                 float cloudShadow = 1.0 - mix(cloudF, 1.0, horizonFogF);
-                skyLightColorFinal *= cloudShadow;
+                skyLightColorFinal *= (0.2 + 0.8 * cloudShadow);
             #endif
 
             float contactShadow = 1.0;
@@ -316,7 +337,7 @@
         float occlusion = lightData.occlusion;
         vec3 waterExtinctionInv = 1.0 - waterAbsorbColor;
 
-        #if defined SSAO_ENABLED && !defined RENDER_WATER && !defined RENDER_HAND_WATER
+        #if AO_TYPE == AO_TYPE_SS && !defined RENDER_WATER && !defined RENDER_HAND_WATER
             #ifdef SSAO_UPSCALE
                 occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, 0.5 * viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, 0.9);
             #else
@@ -343,7 +364,8 @@
 
                 float iblFmax = max(max(iblF.x, iblF.y), iblF.z);
                 //final.a += iblFmax * max(1.0 - final.a, 0.0);
-                final.a = min(final.a + iblFmax * exposure * final.a, 1.0);
+                //final.a = min(final.a + iblFmax * exposure * final.a, 1.0);
+                final.a = max(final.a, iblFmax);
             }
         #endif
 

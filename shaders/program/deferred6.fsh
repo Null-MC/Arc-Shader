@@ -40,7 +40,7 @@ flat in vec3 blockLightColor;
     // #endif
 #endif
 
-#ifdef SSAO_ENABLED
+#if AO_TYPE == AO_TYPE_SS
     uniform sampler2D BUFFER_AO;
 #endif
 
@@ -145,6 +145,7 @@ uniform float fogEnd;
 
 uniform float eyeHumidity;
 uniform float biomeWetness;
+uniform float biomeSnow;
 uniform vec3 waterScatterColor;
 uniform vec3 waterAbsorbColor;
 uniform float waterFogDistSmooth;
@@ -161,7 +162,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/lighting/fresnel.glsl"
 #include "/lib/lighting/brdf.glsl"
 
-#if defined SSAO_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE)
+#if AO_TYPE == AO_TYPE_SS || (defined RSM_ENABLED && defined RSM_UPSCALE)
     #include "/lib/sampling/bilateral_gaussian.glsl"
 #endif
 
@@ -261,7 +262,32 @@ void main() {
     vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
     vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
     vec3 viewDir = normalize(viewPos);
+    PbrMaterial material;
     vec3 color;
+
+    // SKY
+    if (lightData.opaqueScreenDepth > 1.0 - EPSILON) {
+        lightData.parallaxShadow = 1.0;
+        lightData.skyLight = 1.0;
+        lightData.blockLight = 1.0;
+        lightData.occlusion = 1.0;
+        lightData.geoNoL = 1.0;
+    }
+    else {
+        uvec4 deferredData = texelFetch(BUFFER_DEFERRED, iTex, 0);
+        vec4 colorMap = unpackUnorm4x8(deferredData.r);
+        vec4 normalMap = unpackUnorm4x8(deferredData.g);
+        vec4 specularMap = unpackUnorm4x8(deferredData.b);
+        vec4 lightingMap = unpackUnorm4x8(deferredData.a);
+        
+        lightData.occlusion = normalMap.a;
+        lightData.blockLight = lightingMap.x;
+        lightData.skyLight = lightingMap.y;
+        lightData.geoNoL = lightingMap.z * 2.0 - 1.0;
+        lightData.parallaxShadow = lightingMap.w;
+        
+        PopulateMaterial(material, colorMap.rgb, normalMap, specularMap);
+    }
 
     #ifdef SKY_ENABLED
         vec3 upDir = normalize(upPosition);
@@ -353,8 +379,6 @@ void main() {
 
     // SKY
     if (lightData.opaqueScreenDepth > 1.0 - EPSILON) {
-        lightData.skyLight = 1.0;
-
         if (isEyeInWater == 1) {
             vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor;
             vec3 moonColorFinal = lightData.moonTransmittanceEye * moonColor;
@@ -378,21 +402,6 @@ void main() {
         }
     }
     else {
-        uvec4 deferredData = texelFetch(BUFFER_DEFERRED, iTex, 0);
-        vec4 colorMap = unpackUnorm4x8(deferredData.r);
-        vec4 normalMap = unpackUnorm4x8(deferredData.g);
-        vec4 specularMap = unpackUnorm4x8(deferredData.b);
-        vec4 lightingMap = unpackUnorm4x8(deferredData.a);
-        
-        lightData.occlusion = normalMap.a;
-        lightData.blockLight = lightingMap.x;
-        lightData.skyLight = lightingMap.y;
-        lightData.geoNoL = lightingMap.z * 2.0 - 1.0;
-        lightData.parallaxShadow = lightingMap.w;
-        
-        PbrMaterial material;
-        PopulateMaterial(material, colorMap.rgb, normalMap, specularMap);
-
         color = PbrLighting2(material, lightData, viewPos).rgb;
     }
 

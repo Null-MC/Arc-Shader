@@ -29,6 +29,7 @@ flat in vec3 blockLightColor;
     flat in vec2 skyLightLevels;
     //flat in vec3 skyLightColor;
     flat in vec3 sunTransmittanceEye;
+    flat in vec3 moonTransmittanceEye;
 
     uniform sampler2D colortex9;
     uniform usampler2D shadowcolor1;
@@ -199,7 +200,9 @@ void main() {
         float worldY = localPos.y + cameraPosition.y;
         lightData.skyLightLevels = skyLightLevels;
         lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
+        lightData.moonTransmittance = GetMoonTransmittance(colortex9, worldY, skyLightLevels.y);
         lightData.sunTransmittanceEye = sunTransmittanceEye;
+        lightData.moonTransmittanceEye = moonTransmittanceEye;
     #endif
 
     #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -220,8 +223,8 @@ void main() {
                 #endif
             }
 
-            lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData, vec2(0.0), lightData.opaqueShadowCascade);
-            lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData, vec2(0.0), lightData.transparentShadowCascade);
+            lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData.shadowPos, lightData.shadowTilePos, vec2(0.0), lightData.opaqueShadowCascade);
+            lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData.shadowPos, lightData.shadowTilePos, vec2(0.0), lightData.transparentShadowCascade);
 
             float minTransparentDepth = min(lightData.shadowPos[lightData.transparentShadowCascade].z, lightData.transparentShadowDepth);
             lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - minTransparentDepth, 0.0) * 3.0 * far;

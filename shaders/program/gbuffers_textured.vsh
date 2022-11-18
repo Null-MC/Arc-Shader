@@ -80,6 +80,12 @@ uniform mat4 gbufferModelViewInverse;
 uniform float screenBrightness;
 uniform float blindness;
 
+#if SHADER_PLATFORM == PLATFORM_OPTIFINE
+    // Use previous-frame matrices in OF cause bugs
+    uniform mat4 gbufferPreviousModelView;
+    uniform mat4 gbufferPreviousProjection;
+#endif
+
 #if MC_VERSION >= 11900
     uniform float darknessFactor;
 #endif

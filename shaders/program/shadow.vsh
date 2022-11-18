@@ -17,6 +17,10 @@ flat out int materialId;
 
 #if defined RSM_ENABLED || defined WATER_FANCY
     out vec3 viewPos;
+    flat out mat3 matShadowViewTBN;
+#endif
+
+#ifdef RSM_ENABLED
     flat out mat3 matViewTBN;
 #endif
 
@@ -218,11 +222,15 @@ void main() {
     #endif
 
     #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_ENABLED)
-        vec3 viewNormal = normalize(gl_NormalMatrix * normal);
-        vec3 viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
-        vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
+        vec3 shadowViewNormal = normalize(gl_NormalMatrix * normal);
+        vec3 shadowViewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
+        vec3 shadowViewBinormal = normalize(cross(shadowViewTangent, shadowViewNormal) * at_tangent.w);
 
-        matViewTBN = mat3(viewTangent, viewBinormal, viewNormal);
+        matShadowViewTBN = mat3(shadowViewTangent, shadowViewBinormal, shadowViewNormal);
+    #endif
+
+    #ifdef RSM_ENABLED
+        matViewTBN = mat3(gbufferModelView) * mat3(shadowModelViewInverse) * matShadowViewTBN;
     #endif
 
     #if defined SSS_ENABLED || defined RSM_ENABLED

@@ -5,6 +5,13 @@ float GetDirectionalWetness(const in vec3 normal, const in float skyLight) {
     return saturate(wetness * smoothstep(-0.2, 1.0, wetness_NoU) - wetness_skyLight);
 }
 
+float GetDirectionalSnow(const in vec3 normal, const in float skyLight) {
+    vec3 viewUpDir = normalize(upPosition);
+    float wetness_NoU = max(dot(normal, viewUpDir), 0.0);
+    float wetness_skyLight = saturate(8.0 * (0.96875 - skyLight));// + (1.0 - occlusion);
+    return saturate(smoothstep(-0.1, 0.6, wetness_NoU) - wetness_skyLight);
+}
+
 float GetSurfaceWetness(const in float wetness, const in float porosity) {
     return saturate(2.0*wetness - porosity);
 }

@@ -182,7 +182,7 @@
                 #endif
             #endif
 
-            #ifdef AO_ENABLED
+            #if AO_TYPE == AO_TYPE_VANILLA
                 occlusion *= pow2(glcolor.a);
             #endif
 
@@ -236,7 +236,7 @@
 
         #if defined RENDER_ENTITIES
             if (materialId == MATERIAL_PHYSICS_SNOW) {
-                colorMap.rgb = LinearToRGB(PHYSICS_SNOW_COLOR);
+                colorMap.rgb = LinearToRGB(SNOW_COLOR);
 
                 float sss = GetPhysicsSnowScattering(localPos);
                 float smoothness = GetPhysicsSnowSmooth(localPos);

@@ -130,10 +130,6 @@ vec3 GetVolumetricLighting(const in LightData lightData, const in vec3 viewNear,
         // float fogF = GetFogFactor(traceViewDist, envFogStart, envFogEnd, envFogDensity);
         // sampleF *= fogF;
 
-        // vec3 traceViewPos = viewNear + i * viewStep;
-        // float fogF = GetVanillaFogFactor(traceViewPos);
-        // sampleColor *= mix(vec3(1.0), fogColorLinear, fogF);
-
         accumColor += sampleF * sampleColor;
     }
 

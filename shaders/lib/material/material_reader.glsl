@@ -4,12 +4,7 @@ vec3 GetLabPbr_Normal(const in vec2 normalXY) {
 
 vec3 GetOldPbr_Normal(in vec3 normal) {
     normal = normal * 2.0 - 1.0;
-    //normal.z *= 2.0;
     return normalize(normal);
-
-    // normal.xy = normal.xy * 2.0 - 1.0;
-    // //normal = normal * 2.0 - 1.0;
-    // normal = normalize(normal);
 }
 
 float GetLabPbr_F0(const in float specularG) {

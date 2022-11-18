@@ -187,7 +187,7 @@ void main() {
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             for (int i = 0; i < 4; i++) {
                 mat4 matShadowProjection = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
-                shadowPos[i] = (lightData.matShadowProjection * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                shadowPos[i] = (matShadowProjection * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
                 
                 vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
                 shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;

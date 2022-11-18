@@ -45,9 +45,7 @@ int GetCascadeForScreenPos(const in vec2 pos) {
         matProj[2][2] = -(zFar + zNear) / (zFar - zNear);
         matProj[3][2] = -(2.0 * zFar * zNear) / (zFar - zNear);
     }
-#endif
 
-#ifdef RENDER_VERTEX
     // size: in world-space units
     mat4 BuildOrthoProjectionMatrix(const in float width, const in float height, const in float zNear, const in float zFar) {
         return mat4(
@@ -178,9 +176,7 @@ int GetCascadeForScreenPos(const in vec2 pos) {
         return matShadowProjection;
     }
 
-    void GetShadowCascadeProjectionMatrix_AsParts(const in int cascade, out vec3 scale, out vec3 translation) {
-        mat4 matProjection = GetShadowCascadeProjectionMatrix(cascade);
-
+    void GetShadowCascadeProjectionMatrix_AsParts(const in mat4 matProjection, out vec3 scale, out vec3 translation) {
         scale.x = matProjection[0][0];
         scale.y = matProjection[1][1];
         scale.z = matProjection[2][2];
@@ -270,12 +266,10 @@ int GetCascadeForScreenPos(const in vec2 pos) {
     }
 #endif
 
-#ifdef RENDER_FRAG
-    mat4 GetShadowCascadeProjectionMatrix_FromParts(const in vec3 scale, const in vec3 translation) {
-        return mat4(
-            vec4(scale.x, 0.0, 0.0, 0.0),
-            vec4(0.0, scale.y, 0.0, 0.0),
-            vec4(0.0, 0.0, scale.z, 0.0),
-            vec4(translation, 1.0));
-    }
-#endif
+mat4 GetShadowCascadeProjectionMatrix_FromParts(const in vec3 scale, const in vec3 translation) {
+    return mat4(
+        vec4(scale.x, 0.0, 0.0, 0.0),
+        vec4(0.0, scale.y, 0.0, 0.0),
+        vec4(0.0, 0.0, scale.z, 0.0),
+        vec4(translation, 1.0));
+}

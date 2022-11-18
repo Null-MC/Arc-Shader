@@ -10,8 +10,6 @@
 #define PHYSICS_SNOW_NOISE 0.06
 #define PHYSICS_SNOW_RESOLUTION 64 // [16 32 64 128]
 
-const vec3 PHYSICS_SNOW_COLOR = vec3(0.373, 0.485, 0.510);
-
 
 vec3 hash33(const in vec3 p) {
 	uvec3 q = uvec3(ivec3(p)) * UI3;

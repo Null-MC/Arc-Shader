@@ -115,17 +115,18 @@ uniform float blindness;
 
 #include "/lib/lighting/blackbody.glsl"
 
-#ifdef SHADOW_ENABLED
-    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        #include "/lib/shadows/csm.glsl"
-        #include "/lib/shadows/csm_render.glsl"
-    #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-        #include "/lib/shadows/basic.glsl"
-        #include "/lib/shadows/basic_render.glsl"
-    #endif
-#endif
 
 #ifdef SKY_ENABLED
+    #ifdef SHADOW_ENABLED
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+            #include "/lib/shadows/csm.glsl"
+            #include "/lib/shadows/csm_render.glsl"
+        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+            #include "/lib/shadows/basic.glsl"
+            #include "/lib/shadows/basic_render.glsl"
+        #endif
+    #endif
+
     #include "/lib/world/sky.glsl"
     #include "/lib/sky/sun_moon.glsl"
 #endif
@@ -169,7 +170,7 @@ void main() {
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             for (int i = 0; i < 4; i++) {
                 mat4 matShadowProjection = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
-                shadowPos[i] = (lightData.matShadowProjection * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                shadowPos[i] = (matShadowProjection * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
                 
                 vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
                 shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;

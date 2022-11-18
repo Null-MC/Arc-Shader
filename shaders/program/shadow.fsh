@@ -40,6 +40,10 @@ flat in int materialId;
 
 #if defined RSM_ENABLED || defined WATER_FANCY
     in vec3 viewPos;
+    flat in mat3 matShadowViewTBN;
+#endif
+
+#ifdef RSM_ENABLED
     flat in mat3 matViewTBN;
 #endif
 
@@ -66,6 +70,10 @@ uniform int entityId;
     uniform sampler2D specular;
 #endif
 
+#ifdef RSM_ENABLED
+    uniform vec3 shadowLightPosition;
+#endif
+
 #if defined WATER_FANCY && !defined WORLD_NETHER
     flat in int waterMask;
 
@@ -83,6 +91,11 @@ uniform int entityId;
 #if defined WATER_FANCY && !defined WORLD_NETHER && !defined WORLD_END
     #include "/lib/world/wind.glsl"
     #include "/lib/world/water.glsl"
+#endif
+
+#ifdef RSM_ENABLED
+    #include "/lib/lighting/fresnel.glsl"
+    #include "/lib/lighting/brdf.glsl"
 #endif
 
 /* RENDERTARGETS: 0,1 */
@@ -133,10 +146,15 @@ void main() {
         sampleColor.a = 1.0;
     }
 
-    vec3 viewNormal = vec3(0.0);
+    vec3 normal = vec3(0.0, 0.0, 1.0);
     #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_ENABLED)
-        vec2 normalMap = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).rg;
-        viewNormal = RestoreNormalZ(normalMap);
+        #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
+            vec2 normalMap = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).rg;
+            normal = GetLabPbr_Normal(normalMap);
+        #else
+            vec3 normalMap = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).rgb;
+            normal = GetOldPbr_Normal(normalMap);
+        #endif
     #endif
 
     #if defined WATER_FANCY && !defined WORLD_NETHER && !defined WORLD_END
@@ -158,7 +176,7 @@ void main() {
             float finalDepth = GetWaves(waterWorldPos, waveDepth, octaves) * waveDepth * WATER_NORMAL_STRENGTH;
             vec3 waterPos = vec3(waterWorldPos.x, waterWorldPos.y, finalDepth);
 
-            viewNormal = normalize(
+            normal = normalize(
                 cross(
                     dFdx(waterPos),
                     dFdy(waterPos))
@@ -166,13 +184,14 @@ void main() {
 
             // This is really weird, not sure who's fault this is
             #if SHADER_PLATFORM != PLATFORM_IRIS
-                viewNormal = -viewNormal;
+                normal = -normal;
             #endif
         }
     #endif
 
     #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_ENABLED)
-        viewNormal = matViewTBN * viewNormal;
+        //vec3 shadowViewNormal = matShadowViewTBN * normal;
+        //vec3 viewNormal = matViewTBN * normal;
     #endif
 
     float sss = 0.0;
@@ -197,12 +216,35 @@ void main() {
     #endif
 
     #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_ENABLED)
-        vec3 rsmColor = mix(vec3(0.0), sampleColor.rgb, sampleColor.a);
-        rsmColor = LinearToRGB(rsmColor);
+        #ifdef RSM_ENABLED
+            vec3 albedo = mix(vec3(0.0), sampleColor.rgb, sampleColor.a);
+            vec2 specularMap = textureGrad(specular, texcoord, dFdXY[0], dFdXY[1]).rg;
+
+            float f0 = GetLabPbr_F0(specularMap.g); // TODO: only for LabPbr!
+            int hcm = GetLabPbr_HCM(specularMap.g); // TODO: only for LabPbr!
+            float roughL = pow2(specularMap.r);
+
+            vec3 viewDir = normalize(-viewPos);
+            vec3 viewNormal = matViewTBN * normal;
+            vec3 viewLightDir = normalize(shadowLightPosition);
+            vec3 halfDir = normalize(viewLightDir + viewDir);
+
+            float NoVm = max(dot(viewNormal, viewDir), 0.0);
+            float LoHm = max(dot(viewLightDir, halfDir), 0.0);
+            float NoLm = max(dot(viewNormal, viewLightDir), 0.0);
+
+            // TODO: diffuse lighting
+            vec3 sunF = GetFresnel(albedo, f0, hcm, LoHm, roughL);
+            vec3 diffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * max(1.0 - sunF, 0.0);
+        #else
+            vec3 diffuse = vec3(0.0);
+        #endif
+        
+        vec3 shadowViewNormal = matShadowViewTBN * normal;
 
         uvec2 data;
-        data.r = packUnorm4x8(vec4(rsmColor, 1.0));
-        data.g = packUnorm4x8(vec4(viewNormal * 0.5 + 0.5, sss));
+        data.r = packUnorm4x8(vec4(LinearToRGB(diffuse), 1.0));
+        data.g = packUnorm4x8(vec4(shadowViewNormal * 0.5 + 0.5, sss));
         outColor1 = data;
     #endif
 }

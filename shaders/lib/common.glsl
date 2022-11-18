@@ -55,7 +55,6 @@ const bool colortex12Clear = false;
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 0 // [0 10 20 30 40 50 60 70 80 90 100]
 #define SHADOW_BRIGHTNESS 0.06 // [0.00 0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.32 0.48 0.64 1.00]
 #define RAIN_DARKNESS 0.2
-//#define AO_ENABLED
 //#define ANIM_USE_WORLDTIME
 
 
@@ -80,7 +79,7 @@ const bool colortex12Clear = false;
 //#define LIGHTLEAK_FIX
 //#define ATMOSFOG_ENABLED
 //#define CAVEFOG_ENABLED
-#define WEATHER_OPACITY 40 // [10 20 30 40 50 60 70 80 90 100]
+#define WEATHER_OPACITY 70 // [10 20 30 40 50 60 70 80 90 100]
 //#define ATMOS_EXTINCTION 0.0025
 #define SUN_TEMP 5500.0
 #define MOON_TEMP 4000.0
@@ -177,7 +176,7 @@ const bool colortex12Clear = false;
 #define VL_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 175 200 225 250 275 300 350 400 450 500 600 700 800 900]
 #define VL_SAMPLES_SKY 16 // [8 16 24 32]
 #define VL_SAMPLES_WATER 4 // [4 8 16 24]
-//#define VL_PARTICLES
+#define VL_PARTICLES
 #define G_SCATTERING_CLEAR 0.65
 #define G_SCATTERING_NIGHT 0.4
 //#define G_SCATTERING_HUMID 0.08
@@ -185,7 +184,7 @@ const bool colortex12Clear = false;
 #define G_SCATTERING_WATER 0.16
 #define G_SCATTERING_CLOUDS 0.32
 #define G_SCATTERING_RAIN_CLOUDS 0.48
-#define SSAO_ENABLED
+#define AO_TYPE 2 // [0 1 2]
 #define SSAO_SAMPLES 16 // [8 16 32]
 #define SSAO_INTENSITY 35 // [5 10 15 20 25 30 35 40 45 50]
 #define SSAO_SCALE 8.0
@@ -248,7 +247,7 @@ const float StarLumen = 200.0;
 const float EmissionLumens = 1.0e5;
 
 const float SunLux = 64000.0;
-const float SunOvercastLux = 32000.0;
+const float SunOvercastLux = 48000.0;
 const float MoonLux = 26.0;
 const float MoonOvercastLux = 4.0;
 const float BlockLightLux = 12800.0;
@@ -262,6 +261,7 @@ const float NightSkyOvercastLumen = 1.0;
 const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.2;
 const vec4 WATER_COLOR = vec4(0.139, 0.271, 0.313, 0.1);
 const vec3 CLOUD_COLOR = vec3(0.248, 0.225, 0.273);
+const vec3 SNOW_COLOR = vec3(0.373, 0.485, 0.510);
 
 const vec3 minLight = vec3(0.01);
 const float tile_dist_bias_factor = 0.012288;
@@ -294,10 +294,6 @@ const float drynessHalflife = 10.0;
     #undef RSM_ENABLED
     //#undef SSS_ENABLED
     #undef VL_ENABLED
-#endif
-
-#ifdef SSAO_ENABLED
-    #undef AO_ENABLED
 #endif
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -354,10 +350,6 @@ const float drynessHalflife = 10.0;
 #ifdef VL_PARTICLES
 #endif
 #ifdef VL_DITHER
-#endif
-#ifdef AO_ENABLED
-#endif
-#ifdef SSAO_ENABLED
 #endif
 
 

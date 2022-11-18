@@ -14,20 +14,19 @@ float GetCloudFactor(const in vec3 localPos, const in vec3 localViewDir) {
 	vec2 p3 = pos + vec2(8.0, 4.0) * time;
 	vec2 p4 = pos + vec2(4.0, 4.0) * time;
 
-	float threshold = 0.0;//mix(0.14, 0.04, wetness);
-
 	float cloudF = 0.0;
-	cloudF += 1.000 * textureLod(noisetex, p1 * 0.0001, 0).r - 1.000*threshold;
-	cloudF += 0.500 * textureLod(noisetex, p2 * 0.0004, 0).r - 0.500*threshold;
-	cloudF += 0.250 * textureLod(noisetex, p3 * 0.0016, 0).r - 0.250*threshold;
-	cloudF += 0.125 * textureLod(noisetex, p4 * 0.0064, 0).r - 0.125*threshold;
+	cloudF += 1.0 * textureLod(noisetex, p1 * 0.0001, 0).r;
+	cloudF -= 0.3 * textureLod(noisetex, p2 * 0.0004, 0).r;
+	cloudF += 0.6 * textureLod(noisetex, p3 * 0.0016, 0).r;
+	cloudF -= 0.1 * textureLod(noisetex, p4 * 0.0064, 0).r;
 
 	cloudF = saturate(cloudF);
 
-    cloudF = pow(cloudF, mix(1.0, 0.4, wetness));
+    //cloudF = pow(cloudF, mix(1.0, 0.5, wetness));
+    cloudF = pow(cloudF, 0.5);
 
-    float cloudMin = mix(0.4, 0.0, wetness);
-    float cloudMax = mix(1.0, 0.8, wetness);
+    float cloudMin = mix(0.50, 0.01, wetness);
+    float cloudMax = mix(0.80, 0.90, wetness);
 	cloudF = smoothstep(cloudMin, cloudMax, cloudF);
 
 	return cloudF;
@@ -48,5 +47,5 @@ vec3 GetCloudColor(const in vec2 skyLightLevels) {
     vec3 cloudMoonColor = moonTransmittance * GetMoonLuxColor() * GetMoonPhaseLevel() * skyLightLevels.y;
     //cloudSunColor *= smoothstep(-0.08, 1.0, skyLightLevels.y);
 
-    return (cloudSunColor + cloudMoonColor) * pow(1.0 - wetness, 2.0) * CLOUD_COLOR;
+    return (cloudSunColor + cloudMoonColor) * pow(1.0 - rainStrength, 2.0) * CLOUD_COLOR;
 }

@@ -92,8 +92,10 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo) {
             max(rainSnowSunVL, 0.0) * sunColorFinalEye +
             max(rainSnowMoonVL, 0.0) * moonColorFinalEye);
 
+        float alpha = mix(WEATHER_OPACITY * 0.01, 1.0, saturate(max(rainSnowSunVL, rainSnowMoonVL)));
+
         final.rgb += albedo.rgb * weatherLightColor * shadow;
-        final.a = albedo.a * rainStrength * mix(WEATHER_OPACITY * 0.01, 1.0, saturate(max(rainSnowSunVL, rainSnowMoonVL)));
+        final.a = albedo.a * rainStrength * alpha;
     #endif
 
     float fogFactor;

@@ -95,7 +95,7 @@ flat in mat2 atlasBounds;
     uniform int heldBlockLightValue2;
 #endif
 
-#ifdef SSAO_ENABLED
+#if AO_TYPE == AO_TYPE_SS
     uniform sampler2D BUFFER_AO;
 #endif
 
@@ -164,6 +164,7 @@ uniform int fogShape;
 
 uniform float eyeHumidity;
 uniform float biomeWetness;
+uniform float biomeSnow;
 uniform vec3 waterScatterColor;
 uniform vec3 waterAbsorbColor;
 uniform float waterFogDistSmooth;

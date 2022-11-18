@@ -117,7 +117,7 @@ float SampleDepth(const in ivec2 itex) {
         
         float weight = saturate(rayLength / RSM_FILTER_SIZE);
         //float weight = saturate(abs(ray.z) / RSM_FILTER_SIZE);
-        weight = 1.0 - pow2(weight);
+        weight = 1.0 - weight;
 
         shading += sampleColor * weight;
     }
