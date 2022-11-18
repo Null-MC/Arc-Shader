@@ -151,7 +151,7 @@ const bool colortex12Clear = false;
 #define EXPOSURE_SPEED_DOWN 0.7
 #define TONEMAP 2 // [0 1 2 3 4 5 6 7 8 9 10 11 12]
 
-#define CAMERA_BRIGHTNESS 60 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
+#define CAMERA_BRIGHTNESS 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define CAMERA_SATURATION 100 // [0 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 
 
@@ -181,7 +181,7 @@ const bool colortex12Clear = false;
 #define G_SCATTERING_CLEAR 0.65
 #define G_SCATTERING_NIGHT 0.4
 //#define G_SCATTERING_HUMID 0.08
-#define G_SCATTERING_RAIN 0.16
+#define G_SCATTERING_RAIN 0.1
 #define G_SCATTERING_WATER 0.16
 #define G_SCATTERING_CLOUDS 0.32
 #define G_SCATTERING_RAIN_CLOUDS 0.48
@@ -203,7 +203,7 @@ const bool colortex12Clear = false;
 #define PARTICLE_OPACITY 0.8
 #define HCM_LAZANYI
 #define METAL_AMBIENT 1.0
-#define POROSITY_DARKENING 1.0
+#define POROSITY_DARKENING 0.7
 //#define SHADOW_CONTACT_DITHER
 //#define SKY_DITHER
 //#define AF_ENABLED
@@ -373,6 +373,7 @@ vec3 saturate(const in vec3 x) {return clamp(x, vec3(0.0), vec3(1.0));}
 
 float minOf(vec2 vec) {return min(vec[0], vec[1]);}
 float minOf(vec3 vec) {return min(min(vec[0], vec[1]), vec[2]);}
+float minOf(vec4 vec) {return min(min(vec[0], vec[1]), min(vec[2], vec[3]));}
 
 float maxOf(vec2 vec) {return max(vec[0], vec[1]);}
 float maxOf(vec3 vec) {return max(max(vec[0], vec[1]), vec[2]);}

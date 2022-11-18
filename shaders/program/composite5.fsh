@@ -76,7 +76,8 @@ void main() {
         float depth = 1.0;
 
         // TODO: replace this with separate depth tiles?
-        depth = textureLod(depthtex0, texcoord, scaleLod).r;
+        //depth = textureLod(depthtex0, texcoord, scaleLod).r;
+        depth = minOf(textureGather(depthtex0, texcoord, 0));
 
         #ifdef SSR_IGNORE_HAND
             float depthT1 = textureLod(depthtex1, texcoord, scaleLod).r;

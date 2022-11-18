@@ -1,14 +1,19 @@
 float GetDirectionalWetness(const in vec3 normal, const in float skyLight) {
     vec3 viewUpDir = normalize(upPosition);
-    float wetness_NoU = dot(normal, viewUpDir) * 0.4 + 0.6;
-    float wetness_skyLight = saturate(skyLight * 16.0 - 13.0);
-    return wetness * wetness_skyLight * wetness_NoU;
+    float wetness_NoU = dot(normal, viewUpDir) * 0.5 + 0.5;
+    float wetness_skyLight = saturate(8.0 * (0.96875 - skyLight));// + (1.0 - occlusion);
+    return saturate(wetness * smoothstep(-0.2, 1.0, wetness_NoU) - wetness_skyLight);
 }
 
 float GetSurfaceWetness(const in float wetness, const in float porosity) {
-    return max(wetness - 0.75*pow2(porosity), 0.0);
+    return saturate(2.0*wetness - porosity);
 }
 
 vec3 WetnessDarkenSurface(const in vec3 albedo, const in float porosity, const in float wetness) {
-    return pow(albedo, vec3(1.0 + wetness * porosity * POROSITY_DARKENING));
+    float f = wetness * porosity;
+    return pow(albedo, vec3(1.0 + f)) * saturate(1.0 - f * POROSITY_DARKENING);
 }
+
+//float GetPuddleFactor() {
+//    return 0.0;
+//}

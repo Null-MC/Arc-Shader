@@ -124,29 +124,66 @@
         #endif
 
         #if defined SKY_ENABLED
-            float wetnessFinal = biomeWetness * GetDirectionalWetness(viewNormal, skyLight);
+            float surfaceWetness = 0.0;
 
             #ifdef RENDER_WATER
                 if (materialId != MATERIAL_WATER) {
             #endif
-                if (wetnessFinal > EPSILON) {
-                    vec3 waterLocalPos = localPos + cameraPosition;
-                    float noiseHigh = 1.0 - textureLod(noisetex, 0.24*waterLocalPos.xz, 0).r;
-                    float noiseLow = 1.0 - textureLod(noisetex, 0.03*waterLocalPos.xz, 0).r;
 
-                    float shit = 0.78*wetnessFinal;
-                    wetnessFinal = smoothstep(0.0, 1.0, wetnessFinal);
-                    wetnessFinal *= (1.0 - noiseHigh * noiseLow) * (1.0 - shit) + shit;
+                if (isEyeInWater == 1) surfaceWetness = 1.0;
+                else if (wetness > EPSILON) {
+                    vec3 waterLocalPos = cameraPosition + localPos;
+                    vec2 waterTex = waterLocalPos.xz + vec2(0.08, 0.02) * waterLocalPos.y;
 
-                    float darkenWetness = wetnessFinal;
-                    if (isEyeInWater == 1) darkenWetness = 1.0;
-                    //albedo *= GetWetnessDarkening(darkenWetness, material.porosity);
-                    albedo = WetnessDarkenSurface(albedo, material.porosity, darkenWetness);
+                    float noise1 = textureLod(noisetex, 0.01*waterTex, 0).r;
+                    float noise2 = 1.0 - textureLod(noisetex, 0.05*waterTex, 0).r;
+                    float noise3 = textureLod(noisetex, 0.20*waterTex, 0).r;
 
-                    float surfaceWetness = GetSurfaceWetness(wetnessFinal, material.porosity);
-                    smoothness = mix(smoothness, WATER_SMOOTH, surfaceWetness);
-                    f0 = mix(f0, 0.02, surfaceWetness * (1.0 - f0));
+                    float wetnessFinal = GetDirectionalWetness(viewNormal, skyLight);
+
+                    float areaWetness = biomeWetness * wetnessFinal * saturate(
+                        1.00 * noise1 + 0.50 * noise2 + 0.25 * noise3);
+
+                    float puddleF = smoothstep(0.7, 0.8, areaWetness);// * pow2(wetnessFinal);
+
+                    //areaWetness = smoothstep(0.0, 1.0, areaWetness);
+                    //areaWetness = pow2(areaWetness);
+
+                    //albedo = mix(albedo, vec3(1.0, 0.0, 0.0), areaWetness);
+                    //albedo = mix(albedo, vec3(0.0, 1.0, 0.0), puddleF * pow2(wetnessFinal));
+
+
+                    if (wetnessFinal > EPSILON) {
+                        //float shit = 0.78*wetnessFinal;
+                        //wetnessFinal *= (1.0 - noiseHigh * noiseLow) * (1.0 - shit) + shit;
+                        //surfaceWetness = smoothstep(0.0, 1.0, wetnessFinal);
+
+                        //float darkenWetness = wetnessFinal;
+                        //if (isEyeInWater == 1) surfaceWetness = 1.0;
+                        albedo = WetnessDarkenSurface(albedo, material.porosity, areaWetness);
+
+                        surfaceWetness = GetSurfaceWetness(areaWetness, material.porosity);
+                        surfaceWetness = max(pow(surfaceWetness, 0.5), puddleF);
+                        //float waterLevel = surfaceWetness;
+
+                        //#ifndef RENDER_ENTITIES
+                            //float puddleF = smoothstep(0.5, 0.51, surfaceWetness);
+                            //float puddleF = GetSurfaceWetness(noiseLow, material.porosity) * wetnessFinal;
+                            //float puddleF = saturate((surfaceWetness - 0.98) * 100.0);
+                            //puddleF = 1.0 - pow2(1.0 - puddleF);
+
+                            //albedo = mix(albedo, vec3(1.0, 0.0, 0.0), puddleF);
+
+                            viewNormal = mix(viewNormal, viewUpDir, puddleF);
+                            viewNormal = normalize(viewNormal);
+
+                        //#endif
+
+                        smoothness = mix(smoothness, WATER_SMOOTH, surfaceWetness);
+                        f0 = mix(f0, 0.02, surfaceWetness * (1.0 - f0));
+                    }
                 }
+
             #ifdef RENDER_WATER
                 }
             #endif
@@ -335,7 +372,7 @@
         #endif
 
         #ifdef SKY_ENABLED
-            float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength);// * SHADOW_BRIGHTNESS;
+            float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength) * SHADOW_BRIGHTNESS;
 
             // TODO: Doing direct cloud shadows on ambient causes really fucked results
             //       At least needs a heavy blur distribution
@@ -385,7 +422,7 @@
             vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL);
             sunDiffuse *= skyLightColorFinal * shadowFinal * max(1.0 - sunF, 0.0);// * skyLight2;
 
-            #ifdef SSS_ENABLED
+            #if defined SSS_ENABLED && defined SKY_ENABLED
                 if (material.scattering > 0.0 && shadowSSS > 0.0) {
                     //vec3 sssAlbedo = material.albedo.rgb;
 
@@ -406,7 +443,7 @@
                     vec3 sssLightColor = shadowSSS * skyLightColorFinal;// * max(1.0 - sunFInverse, 0.0);
                     
                     float VoL = dot(viewDir, viewLightDir);
-                    float inScatter = ComputeVolumetricScattering(VoL, 0.2);
+                    float inScatter = ComputeVolumetricScattering(VoL, 0.16);
                     // vec3 inLightColor = sssLightColor * sssAlbedo * max(inScatter, 0.0);
 
                     //float outScatter = ComputeVolumetricScattering(VoL, mix(0.3, -0.1, material.scattering));
@@ -418,9 +455,9 @@
                     vec3 sssExt = CalculateExtinction(material.albedo.rgb, sssDist);
                     //return vec4(sssExt * sssLightColor, 1.0);
 
-                    vec3 sssDiffuseLight = sssLightColor * sssExt * saturate(2.0 * inScatter);
+                    vec3 sssDiffuseLight = sssLightColor * sssExt * saturate(3.0 * inScatter);
 
-                    sssDiffuseLight += GetSkyAmbientLight(lightData, viewDir) * occlusion * SHADOW_BRIGHTNESS * skyLight;
+                    sssDiffuseLight += GetSkyAmbientLight(lightData, viewDir) * ambientBrightness * occlusion * skyLight2;
 
                     sssDiffuseLight *= albedo * material.scattering;
 
@@ -695,7 +732,7 @@
 
         vec3 emissive = material.albedo.rgb * pow(material.emission, 2.2) * EmissionLumens;
 
-        occlusion *= SHADOW_BRIGHTNESS;
+        //occlusion *= SHADOW_BRIGHTNESS;
 
         final.rgb = final.rgb * (ambient * occlusion)
             + diffuse + emissive

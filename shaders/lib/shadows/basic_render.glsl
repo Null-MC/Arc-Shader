@@ -161,6 +161,7 @@
                 // #endif
 
                 float light = 0.0;
+                float maxWeight = 0.0;
                 for (int i = 0; i < sampleCount; i++) {
                     vec2 pixelOffset = poissonDisk[i] * pixelRadius;
 
@@ -172,10 +173,12 @@
 
                     //if (texDepth < 1.0 - EPSILON)
                     //if (lightData.shadowPos.z - lightData.shadowBias >= texDepth + EPSILON) continue;
+                    float weight = 1.0 - saturate(dot(poissonDisk[i], poissonDisk[i]));
+                    maxWeight += weight;
 
                     if (texDepth < lightData.shadowPos.z + lightData.shadowBias) {
                         float shadow_sss = SampleShadowSSS(lightData.shadowPos.xy + pixelOffset);
-                        light += shadow_sss;
+                        light += shadow_sss * weight;
 
                         // if (shadow_sss >= EPSILON) {
                         //     float maxDist = SSS_MAXDIST * shadow_sss;
@@ -185,11 +188,12 @@
                         // }
                     }
                     else {
-                        light++;
+                        light += weight;
                     }
                 }
 
-                return light / sampleCount;
+                if (maxWeight < EPSILON) return 1.0;
+                return light / maxWeight;
             }
         #endif
 
