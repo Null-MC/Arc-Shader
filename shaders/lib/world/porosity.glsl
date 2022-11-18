@@ -13,7 +13,3 @@ vec3 WetnessDarkenSurface(const in vec3 albedo, const in float porosity, const i
     float f = wetness * porosity;
     return pow(albedo, vec3(1.0 + f)) * saturate(1.0 - f * POROSITY_DARKENING);
 }
-
-//float GetPuddleFactor() {
-//    return 0.0;
-//}

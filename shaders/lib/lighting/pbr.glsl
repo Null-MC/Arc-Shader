@@ -146,38 +146,14 @@
 
                     float puddleF = smoothstep(0.7, 0.8, areaWetness);// * pow2(wetnessFinal);
 
-                    //areaWetness = smoothstep(0.0, 1.0, areaWetness);
-                    //areaWetness = pow2(areaWetness);
-
-                    //albedo = mix(albedo, vec3(1.0, 0.0, 0.0), areaWetness);
-                    //albedo = mix(albedo, vec3(0.0, 1.0, 0.0), puddleF * pow2(wetnessFinal));
-
-
                     if (wetnessFinal > EPSILON) {
-                        //float shit = 0.78*wetnessFinal;
-                        //wetnessFinal *= (1.0 - noiseHigh * noiseLow) * (1.0 - shit) + shit;
-                        //surfaceWetness = smoothstep(0.0, 1.0, wetnessFinal);
-
-                        //float darkenWetness = wetnessFinal;
-                        //if (isEyeInWater == 1) surfaceWetness = 1.0;
                         albedo = WetnessDarkenSurface(albedo, material.porosity, areaWetness);
 
                         surfaceWetness = GetSurfaceWetness(areaWetness, material.porosity);
                         surfaceWetness = max(pow(surfaceWetness, 0.5), puddleF);
-                        //float waterLevel = surfaceWetness;
 
-                        //#ifndef RENDER_ENTITIES
-                            //float puddleF = smoothstep(0.5, 0.51, surfaceWetness);
-                            //float puddleF = GetSurfaceWetness(noiseLow, material.porosity) * wetnessFinal;
-                            //float puddleF = saturate((surfaceWetness - 0.98) * 100.0);
-                            //puddleF = 1.0 - pow2(1.0 - puddleF);
-
-                            //albedo = mix(albedo, vec3(1.0, 0.0, 0.0), puddleF);
-
-                            viewNormal = mix(viewNormal, viewUpDir, puddleF);
-                            viewNormal = normalize(viewNormal);
-
-                        //#endif
+                        viewNormal = mix(viewNormal, viewUpDir, puddleF);
+                        viewNormal = normalize(viewNormal);
 
                         smoothness = mix(smoothness, WATER_SMOOTH, surfaceWetness);
                         f0 = mix(f0, 0.02, surfaceWetness * (1.0 - f0));
