@@ -9,6 +9,7 @@ out vec2 lmcoord;
 out vec2 texcoord;
 out vec4 glcolor;
 out float geoNoL;
+out vec3 localPos;
 out vec3 viewPos;
 out vec3 viewNormal;
 out vec3 viewTangent;
@@ -57,7 +58,7 @@ void main() {
 
     materialId = int(mc_Entity.x + 0.5);
 
-    vec3 localPos = gl_Vertex.xyz;
+    localPos = gl_Vertex.xyz;
     BasicVertex(localPos);
     PbrVertex(viewPos);
 }

@@ -82,20 +82,22 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo) {
     #ifdef RENDER_WEATHER
         vec3 sunDir = normalize(sunPosition);
         float sun_VoL = dot(viewDir, sunDir);
-        float rainSnowSunVL = ComputeVolumetricScattering(sun_VoL, 0.88);
+        float rainSnowSunVL = ComputeVolumetricScattering(sun_VoL, 0.8)
+            + ComputeVolumetricScattering(sun_VoL, -0.2);
 
         vec3 moonDir = normalize(moonPosition);
         float moon_VoL = dot(viewDir, moonDir);
-        float rainSnowMoonVL = ComputeVolumetricScattering(moon_VoL, 0.74);
+        float rainSnowMoonVL = ComputeVolumetricScattering(moon_VoL, 0.8)
+            + ComputeVolumetricScattering(moon_VoL, -0.2);
 
         vec3 weatherLightColor = 3.0 * (
             max(rainSnowSunVL, 0.0) * sunColorFinalEye +
             max(rainSnowMoonVL, 0.0) * moonColorFinalEye);
 
-        float alpha = mix(WEATHER_OPACITY * 0.01, 1.0, saturate(max(rainSnowSunVL, rainSnowMoonVL)));
+        //float alpha = mix(WEATHER_OPACITY * 0.01, 1.0, saturate(max(rainSnowSunVL, rainSnowMoonVL)));
 
         final.rgb += albedo.rgb * weatherLightColor * shadow;
-        final.a = albedo.a * rainStrength * alpha;
+        final.a = albedo.a * rainStrength * (WEATHER_OPACITY * 0.01);
     #endif
 
     float fogFactor;

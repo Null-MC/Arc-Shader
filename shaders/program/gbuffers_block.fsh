@@ -9,6 +9,7 @@ in vec2 lmcoord;
 in vec2 texcoord;
 in vec4 glcolor;
 in float geoNoL;
+in vec3 localPos;
 in vec3 viewPos;
 in vec3 viewNormal;
 in vec3 viewTangent;
@@ -35,13 +36,19 @@ uniform sampler2D gtexture;
 uniform sampler2D normals;
 uniform sampler2D specular;
 uniform sampler2D lightmap;
+uniform sampler2D noisetex;
 
 uniform ivec2 atlasSize;
+uniform vec3 cameraPosition;
+uniform int isEyeInWater;
 
 #ifdef SKY_ENABLED
     uniform vec3 upPosition;
     uniform float wetness;
 #endif
+
+uniform float biomeWetness;
+uniform float biomeSnow;
 
 #if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
     uniform float alphaTestRef;
@@ -53,6 +60,7 @@ uniform ivec2 atlasSize;
     
 #include "/lib/atlas.glsl"
 #include "/lib/sampling/linear.glsl"
+#include "/lib/sampling/noise.glsl"
 
 #ifdef SKY_ENABLED
     #include "/lib/world/porosity.glsl"
@@ -66,6 +74,7 @@ uniform ivec2 atlasSize;
     #include "/lib/lighting/directional.glsl"
 #endif
 
+#include "/lib/material/material.glsl"
 #include "/lib/material/material_reader.glsl"
 #include "/lib/lighting/basic_gbuffers.glsl"
 #include "/lib/lighting/pbr_gbuffers.glsl"

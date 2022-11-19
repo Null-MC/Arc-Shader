@@ -39,8 +39,10 @@ uniform sampler2D gtexture;
 uniform sampler2D normals;
 uniform sampler2D specular;
 uniform sampler2D lightmap;
+uniform sampler2D noisetex;
 
 uniform vec3 cameraPosition;
+uniform int isEyeInWater;
 uniform ivec2 atlasSize;
 uniform vec4 entityColor;
 uniform int entityId;
@@ -50,12 +52,16 @@ uniform int entityId;
     uniform float wetness;
 #endif
 
+uniform float biomeWetness;
+uniform float biomeSnow;
+
 #if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
     uniform float alphaTestRef;
 #endif
     
 #include "/lib/atlas.glsl"
 #include "/lib/sampling/linear.glsl"
+#include "/lib/sampling/noise.glsl"
 
 #ifdef PARALLAX_ENABLED
     #include "/lib/parallax.glsl"
@@ -68,6 +74,10 @@ uniform int entityId;
 //#ifdef PHYSICSMOD_ENABLED
     #include "/lib/world/physics_snow.glsl"
 //#endif
+
+#ifdef SKY_ENABLED
+    #include "/lib/world/porosity.glsl"
+#endif
 
 #include "/lib/material/material.glsl"
 #include "/lib/material/material_reader.glsl"

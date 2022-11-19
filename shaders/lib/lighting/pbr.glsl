@@ -117,74 +117,88 @@
 
         vec3 albedo = material.albedo.rgb;
         float smoothness = material.smoothness;
-        float f0 = material.f0;
+        //float f0 = material.f0;
 
         #if DEBUG_VIEW == DEBUG_VIEW_WHITEWORLD
             albedo = vec3(1.0);
         #endif
 
-        #if defined SKY_ENABLED
-            #ifdef RENDER_WATER
-                if (materialId != MATERIAL_WATER) {
-            #endif
+        // #if defined SKY_ENABLED
+        //     #ifdef RENDER_WATER
+        //         if (materialId != MATERIAL_WATER) {
+        //     #endif
 
-                if (isEyeInWater == 1) {
-                    albedo = WetnessDarkenSurface(albedo, material.porosity, 1.0);
-                }
-                else {
-                    if (biomeWetness > EPSILON) {
-                        vec3 waterLocalPos = cameraPosition + localPos;
-                        vec2 waterTex = waterLocalPos.xz + vec2(0.08, 0.02) * waterLocalPos.y;
+        //         if (isEyeInWater == 1) {
+        //             albedo = WetnessDarkenSurface(albedo, material.porosity, 1.0);
+        //         }
+        //         else {
+        //             #ifdef WETNESS_ENABLED
+        //                 if (biomeWetness > EPSILON) {
+        //                     vec3 waterLocalPos = cameraPosition + localPos;
+        //                     vec2 waterTex = waterLocalPos.xz + vec2(0.08, 0.02) * waterLocalPos.y;
 
-                        float noise1 = textureLod(noisetex, 0.01*waterTex, 0).r;
-                        float noise2 = 1.0 - textureLod(noisetex, 0.05*waterTex, 0).r;
-                        float noise3 = textureLod(noisetex, 0.20*waterTex, 0).r;
+        //                     float noise1 = textureLod(noisetex, 0.01*waterTex, 0).r;
+        //                     float noise2 = 1.0 - textureLod(noisetex, 0.05*waterTex, 0).r;
+        //                     float noise3 = textureLod(noisetex, 0.20*waterTex, 0).r;
 
-                        float wetnessFinal = GetDirectionalWetness(viewNormal, skyLight);
+        //                     float wetnessFinal = GetDirectionalWetness(viewNormal, skyLight);
 
-                        float areaWetness = biomeWetness * wetnessFinal * saturate(
-                            1.00 * noise1 + 0.50 * noise2 + 0.25 * noise3);
+        //                     if (wetnessFinal > EPSILON) {
+        //                         float areaWetness = saturate(biomeWetness * wetnessFinal * 
+        //                             (1.00 * noise1 + 0.50 * noise2 + 0.25 * noise3));
 
-                        float puddleF = smoothstep(0.7, 0.8, areaWetness);// * pow2(wetnessFinal);
+        //                         albedo = WetnessDarkenSurface(albedo, material.porosity, areaWetness);
 
-                        if (wetnessFinal > EPSILON) {
-                            albedo = WetnessDarkenSurface(albedo, material.porosity, areaWetness);
+        //                         float puddleF = smoothstep(0.7, 0.8, areaWetness);// * pow2(wetnessFinal);
 
-                            float surfaceWetness = GetSurfaceWetness(areaWetness, material.porosity);
-                            surfaceWetness = max(pow(surfaceWetness, 0.5), puddleF);
+        //                         viewNormal = mix(viewNormal, viewUpDir, puddleF);
+        //                         viewNormal = normalize(viewNormal);
+                                
+        //                         float surfaceWetness = GetSurfaceWetness(areaWetness, material.porosity);
+        //                         surfaceWetness = max(surfaceWetness, puddleF);
 
-                            viewNormal = mix(viewNormal, viewUpDir, puddleF);
-                            viewNormal = normalize(viewNormal);
+        //                         smoothness = mix(smoothness, WATER_SMOOTH, surfaceWetness);
+        //                         material.f0 = mix(material.f0, 0.02, surfaceWetness * (1.0 - material.f0));
+        //                     }
+        //                 }
+        //             #endif
 
-                            smoothness = mix(smoothness, WATER_SMOOTH, surfaceWetness);
-                            f0 = mix(f0, 0.02, surfaceWetness * (1.0 - f0));
-                        }
-                    }
+        //             #ifdef SNOW_ENABLED
+        //                 if (biomeSnow > EPSILON) {
+        //                     vec3 snowLocalPos = cameraPosition + localPos;
+        //                     vec2 snowTex = snowLocalPos.xz;// + vec2(0.08, 0.02) * snowLocalPos.y;
 
-                    if (biomeSnow > EPSILON) {
-                        vec3 snowLocalPos = cameraPosition + localPos;
-                        vec2 snowTex = snowLocalPos.xz;// + vec2(0.08, 0.02) * snowLocalPos.y;
+        //                     float noise1 = 1.0 - textureLod(noisetex, 0.01*snowTex, 0).r;
+        //                     float noise2 = 1.0 - textureLod(noisetex, 0.05*snowTex, 0).r;
+        //                     float noise3 = textureLod(noisetex, 0.20*snowTex, 0).r;
 
-                        float noise1 = textureLod(noisetex, 0.01*snowTex, 0).r;
-                        float noise2 = 1.0 - textureLod(noisetex, 0.05*snowTex, 0).r;
-                        float noise3 = textureLod(noisetex, 0.20*snowTex, 0).r;
+        //                     float snowFinal = GetDirectionalSnow(viewNormal, skyLight);
+        //                     //snowFinal = min(snowFinal + (1.0 - lightData.occlusion), 1.0);
 
-                        float snowFinal = GetDirectionalSnow(viewNormal, skyLight);
-                        snowFinal = min(snowFinal + (1.0 - lightData.occlusion), 1.0);
+        //                     float areaSnow = saturate(2.0 * snowFinal * biomeSnow *
+        //                         (1.00 * noise1 + 0.50 * noise2 + 0.25 * noise3));
 
-                        float areaSnow = saturate(snowFinal * biomeSnow *
-                            (1.00 * noise1 + 0.50 * noise2 + 0.25 * noise3));
+        //                     albedo = mix(albedo, SNOW_COLOR, areaSnow);
+        //                     smoothness = mix(smoothness, 0.48, areaSnow);
 
-                        //areaSnow = areaSnow;
-                        albedo = mix(albedo, SNOW_COLOR, areaSnow);
-                        smoothness = mix(smoothness, 0.48, areaSnow);
-                    }
-                }
+        //                     if (areaSnow > 0.1) {
+        //                         material.hcm = -1;
+        //                         material.f0 = 0.04;
 
-            #ifdef RENDER_WATER
-                }
-            #endif
-        #endif
+        //                         // TODO: add normal noise
+        //                         uvec2 tex = uvec2(texcoord * atlasBounds[1]);
+        //                         vec3 snowNormal = normalize(hash32(tex));
+        //                         snowNormal *= sign(dot(snowNormal, viewNormal));
+        //                         viewNormal = normalize(mix(viewNormal, snowNormal, 0.2));
+        //                     }
+        //                 }
+        //             #endif
+        //         }
+
+        //     #ifdef RENDER_WATER
+        //         }
+        //     #endif
+        // #endif
 
         float rough = 1.0 - smoothness;
         float roughL = max(rough * rough, 0.005);
@@ -350,7 +364,7 @@
         vec3 iblF = vec3(0.0);
         vec3 iblSpec = vec3(0.0);
         #if REFLECTION_MODE != REFLECTION_MODE_NONE
-            iblF = GetFresnel(material.albedo.rgb, f0, material.hcm, NoVm, roughL);
+            iblF = GetFresnel(material.albedo.rgb, material.f0, material.hcm, NoVm, roughL);
 
             if (any(greaterThan(reflectColor, vec3(EPSILON)))) {
                 vec2 envBRDF = textureLod(BUFFER_BRDF_LUT, vec2(NoVm, rough), 0).rg;
@@ -414,7 +428,7 @@
             ambient += skyAmbient;
 
             //LoHm = min(LoHm * 1.2, 1.0);
-            vec3 sunF = GetFresnel(material.albedo.rgb, f0, material.hcm, LoHm, roughL);
+            vec3 sunF = GetFresnel(material.albedo.rgb, material.f0, material.hcm, LoHm, roughL);
             //sunF = min(sunF * 1.1, 1.0);
 
             vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL);
@@ -688,7 +702,7 @@
         #if defined HANDLIGHT_ENABLED
             if (heldBlockLightValue + heldBlockLightValue2 > EPSILON) {
                 vec3 handDiffuse, handSpecular;
-                ApplyHandLighting(handDiffuse, handSpecular, material.albedo.rgb, f0, material.hcm, material.scattering, viewNormal, viewPos.xyz, -viewDir, NoVm, roughL);
+                ApplyHandLighting(handDiffuse, handSpecular, material.albedo.rgb, material.f0, material.hcm, material.scattering, viewNormal, viewPos.xyz, -viewDir, NoVm, roughL);
 
                 #ifdef RENDER_WATER
                     if (materialId != MATERIAL_WATER) {
@@ -708,7 +722,7 @@
         #ifdef SKY_ENABLED
             #if SHADER_PLATFORM == PLATFORM_IRIS
                 //if (lightningBoltPosition.w > EPSILON)
-                //    ApplyLightning(diffuse, specular, material.albedo.rgb, f0, material.hcm, material.scattering, viewNormal, viewPos.xyz, -viewDir, NoVm, roughL);
+                //    ApplyLightning(diffuse, specular, material.albedo.rgb, material.f0, material.hcm, material.scattering, viewNormal, viewPos.xyz, -viewDir, NoVm, roughL);
             #endif
 
             #if defined RSM_ENABLED && defined RENDER_DEFERRED

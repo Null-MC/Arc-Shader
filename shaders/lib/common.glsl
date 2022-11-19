@@ -55,6 +55,8 @@ const bool colortex12Clear = false;
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 0 // [0 10 20 30 40 50 60 70 80 90 100]
 #define SHADOW_BRIGHTNESS 0.06 // [0.00 0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.32 0.48 0.64 1.00]
 #define RAIN_DARKNESS 0.2
+#define WETNESS_ENABLED
+#define SNOW_ENABLED
 //#define ANIM_USE_WORLDTIME
 
 
@@ -261,7 +263,7 @@ const float NightSkyOvercastLumen = 1.0;
 const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.2;
 const vec4 WATER_COLOR = vec4(0.139, 0.271, 0.313, 0.1);
 const vec3 CLOUD_COLOR = vec3(0.248, 0.225, 0.273);
-const vec3 SNOW_COLOR = vec3(0.373, 0.485, 0.510);
+const vec3 SNOW_COLOR = vec3(0.590, 0.665, 0.682);
 
 const vec3 minLight = vec3(0.01);
 const float tile_dist_bias_factor = 0.012288;

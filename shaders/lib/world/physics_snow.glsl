@@ -1,21 +1,9 @@
 // https://www.shadertoy.com/view/XtBGDG
 // https://www.shadertoy.com/view/3dVXDc
 
-#define UI0 1597334673U
-#define UI1 3812015801U
-//#define UI2 uvec2(UI0, UI1)
-#define UI3 uvec3(UI0, UI1, 2798796415U)
-#define UIF (1.0 / float(0xffffffffU))
-
 #define PHYSICS_SNOW_NOISE 0.06
 #define PHYSICS_SNOW_RESOLUTION 64 // [16 32 64 128]
 
-
-vec3 hash33(const in vec3 p) {
-	uvec3 q = uvec3(ivec3(p)) * UI3;
-	q = (q.x ^ q.y ^ q.z) * UI3;
-	return -1.0 + 2.0 * vec3(q) * UIF;
-}
 
 float noise3D(const in vec3 p) {
 	const vec3 x = vec3(12.9898, 78.233, 128.852);
