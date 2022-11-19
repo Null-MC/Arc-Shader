@@ -79,16 +79,8 @@
             specularMap = vec4(0.0);
         #endif
 
-        //colorMap.rgb = RGBToLinear(colorMap.rgb);
-
-        //vec3 normal = vec3(0.0, 0.0, 1.0);
         float parallaxShadow = 1.0;
-        //float occlusion = 1.0;
         vec2 lm = lmcoord;
-
-        // #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
-        //     material.occlusion = normalMap.b;
-        // #endif
 
         #if defined PARALLAX_SMOOTH_NORMALS && MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
             if (!isMissingNormal && !isMissingTangent) {
@@ -111,7 +103,6 @@
 
                 //normalMap.rgb = TextureGradLinearRGB(normals, uv, dFdXY, f);
                 normalMap.xyz = TexelFetchLinearRGB(normals, iuv, 0, f);
-                //occlusion = normalMap.b;
             }
         #endif
 
@@ -120,15 +111,6 @@
 
         if (!isMissingNormal && !isMissingTangent) {
             #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
-                // if (normalMap.x + normalMap.y > EPSILON) {
-                //     #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
-                //         normal = GetLabPbr_Normal(normalMap.xy);
-                //         //normalMap.a = normalMap.b; // move AO to alpha
-                //     #else
-                //         normal = GetOldPbr_Normal(normalMap);
-                //     #endif
-                // }
-
                 #ifdef PARALLAX_SLOPE_NORMALS
                     float dO = max(texDepth - traceCoordDepth.z, 0.0);
                     if (dO >= 2.0 / 255.0) {
@@ -139,58 +121,12 @@
                         #endif
                     }
                 #endif
-
-                //float skyLight = 0.0;
-                // #if defined SKY_ENABLED && defined WETNESS_SMOOTH_NORMAL && !defined RENDER_ENTITIES
-                //     skyLight = saturate((lmcoord.y - (1.0/16.0 + EPSILON)) / (15.0/16.0));
-                //     float wetnessFinal = GetDirectionalWetness(viewNormal, skyLight);
-
-                //     // TODO: if wet, get additional 3 samples and mix?
-                //     if (wetnessFinal > EPSILON) {
-                //         vec2 uv[4];
-                //         const int wetness_lod = 1;
-                //         vec2 atlasLodSize = atlasSize / exp2(wetness_lod);
-                //         vec2 f = GetLinearCoords(atlasCoord, atlasLodSize, uv);
-
-                //         uv[0] = GetAtlasCoord(GetLocalCoord(uv[0]));
-                //         uv[1] = GetAtlasCoord(GetLocalCoord(uv[1]));
-                //         uv[2] = GetAtlasCoord(GetLocalCoord(uv[2]));
-                //         uv[3] = GetAtlasCoord(GetLocalCoord(uv[3]));
-
-                //         // ivec2 iuv[4];
-                //         // iuv[0] = ivec2(uv[0] * atlasLodSize);
-                //         // iuv[1] = ivec2(uv[1] * atlasLodSize);
-                //         // iuv[2] = ivec2(uv[2] * atlasLodSize);
-                //         // iuv[3] = ivec2(uv[3] * atlasLodSize);
-
-                //         vec3 wetness_normal = TextureLinearRGB(normals, uv, wetness_lod, f);
-
-                //         if (wetness_normal.x + wetness_normal.y > EPSILON) {
-                //             #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
-                //                 wetness_normal = RestoreNormalZ(wetness_normal.xy);
-                //             #else
-                //                 wetness_normal.xy = wetness_normal.xy * 2.0 - 1.0;
-                //                 //wetness_normal = wetness_normal * 2.0 - 1.0;
-                //                 wetness_normal = normalize(wetness_normal);
-                //             #endif
-                //         }
-                //         else wetness_normal = vec3(0.0, 0.0, 1.0);
-
-                //         normal = mix(normal, wetness_normal, wetnessFinal);
-                //         normal = normalize(normal);
-                //     }
-                // #endif
             #else
                 #ifdef RENDER_TERRAIN
-                    //float sss = (0.25 + 0.75 * matSSS) * step(EPSILON, matSSS);
-                    //specularMap = vec4(matSmooth, matF0, sss, 0.0);
-
                     material.f0 = matF0;
                     material.smoothness = matSmooth;
                     material.scattering = matSSS;
                 #else
-                    //specularMap = vec4(0.08, 0.04, 0.0, 0.0);
-
                     material.f0 = 0.04;
                     material.smoothness = 0.08;
                 #endif

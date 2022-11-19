@@ -76,6 +76,7 @@ flat out float exposure;
 
 uniform float screenBrightness;
 uniform vec3 cameraPosition;
+uniform float nightVision;
 uniform float blindness;
 
 #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL

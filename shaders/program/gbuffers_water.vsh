@@ -104,6 +104,7 @@ uniform mat4 gbufferModelViewInverse;
 uniform float screenBrightness;
 uniform vec3 cameraPosition;
 uniform int isEyeInWater;
+uniform float nightVision;
 uniform float blindness;
 
 #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX && !defined WORLD_NETHER

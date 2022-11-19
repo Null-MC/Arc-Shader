@@ -1,4 +1,4 @@
-vec4 BasicLighting(const in LightData lightData, const in vec4 albedo) {
+vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in vec3 viewNormal) {
     float shadow = step(EPSILON, lightData.geoNoL);
     //shadow *= step(1.0 / 32.0, lightData.skyLight);
 
@@ -45,7 +45,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo) {
     float skyLight3 = pow3(skyLight);
 
     vec3 ambient = vec3(MinWorldLux);
-    vec3 diffuse = albedo.rgb * pow5(lightData.blockLight) * blockLightColor;
+    vec3 diffuse = albedo.rgb * pow3(lightData.blockLight) * blockLightColor;
 
     //vec3 skyAmbient = vec3(pow(skyLight, 5.0));
     #ifdef SKY_ENABLED
@@ -56,7 +56,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo) {
             vec3 sunColorFinal = lightData.sunTransmittance * sunColor;// * GetSunLux();
             vec3 moonColorFinal = lightData.moonTransmittance * moonColor * GetMoonPhaseLevel();// * GetMoonLux();
             vec3 skyLightColor = sunColorFinal + moonColorFinal;
-            diffuse += albedo.rgb * skyLightColor * shadowColor * shadow *skyLight3;
+            diffuse += albedo.rgb * lightData.geoNoL * skyLightColor * shadowColor * shadow * skyLight3;
         #endif
     #endif
 

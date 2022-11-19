@@ -15,7 +15,6 @@ uniform sampler2D colortex9;
 
 uniform float screenBrightness;
 uniform float eyeAltitude;
-uniform float blindness;
 
 #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
     uniform sampler2D BUFFER_HDR_PREVIOUS;
@@ -34,6 +33,9 @@ uniform vec3 sunPosition;
 uniform vec3 moonPosition;
 uniform vec3 upPosition;
 uniform int moonPhase;
+
+uniform float nightVision;
+uniform float blindness;
 
 #if MC_VERSION >= 11900
     uniform float darknessFactor;

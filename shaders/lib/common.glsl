@@ -123,7 +123,7 @@ const bool colortex12Clear = false;
 #define SSS_MAXDIST 10 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
 #define SSS_PCF_SIZE 0.06 // [0.02 0.04 0.06 0.08 0.1 0.2 0.3 0.4 0.5 0.6 0.8 1.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
-#define SSS_NORMALIZE_ALBEDO
+//#define SSS_NORMALIZE_ALBEDO
 
 
 // Material Parallax Options
@@ -202,6 +202,8 @@ const bool colortex12Clear = false;
 //#define IRIS_FEATURE_CHUNK_OFFSET
 #define DITHER_FINAL
 #define PARTICLE_OPACITY 0.8
+#define PARTICLE_RESOLUTION 8 // [8 16 32 64 128]
+//#define PARTICLE_ROUNDING
 #define HCM_LAZANYI
 #define METAL_AMBIENT 1.0
 #define POROSITY_DARKENING 0.7
@@ -352,6 +354,8 @@ const float drynessHalflife = 10.0;
 #ifdef VL_PARTICLES
 #endif
 #ifdef VL_DITHER
+#endif
+#ifdef SSS_NORMALIZE_ALBEDO
 #endif
 
 

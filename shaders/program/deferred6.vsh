@@ -69,13 +69,15 @@ flat out vec3 blockLightColor;
 uniform float screenBrightness;
 uniform int heldBlockLightValue;
 uniform int heldBlockLightValue2;
-uniform float blindness;
 
 uniform float rainStrength;
 uniform vec3 sunPosition;
 uniform vec3 moonPosition;
 uniform vec3 upPosition;
 uniform int moonPhase;
+
+uniform float nightVision;
+uniform float blindness;
 
 #if MC_VERSION >= 11900
     uniform float darknessFactor;

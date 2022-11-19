@@ -358,17 +358,12 @@
 
             #if defined SSS_ENABLED && defined SKY_ENABLED
                 if (material.scattering > 0.0 && shadowSSS > 0.0) {
-                    //vec3 sssAlbedo = material.albedo.rgb;
+                    vec3 sssAlbedo = material.albedo.rgb;
 
-                    // #ifdef SSS_NORMALIZE_ALBEDO
-                    //     float lum = luminance(sssAlbedo);
-                    //     if (lum > EPSILON) {
-                    //         sssAlbedo = normalize(sssAlbedo);
-                    //         sssAlbedo = pow(sssAlbedo, vec3(1.0));
-                    //         sssAlbedo *= pow(lum, 2.0);
-                    //         //sssAlbedo *= lum;
-                    //     }
-                    // #endif
+                    #ifdef SSS_NORMALIZE_ALBEDO
+                        if (all(lessThan(sssAlbedo, vec3(EPSILON)))) albedo = vec3(1.0);
+                        albedo = normalize(albedo);
+                    #endif
 
                     //vec3 halfDirInverse = normalize(-viewLightDir + -viewDir);
                     //float LoHmInverse = max(dot(-viewLightDir, halfDirInverse), 0.0);
@@ -393,7 +388,7 @@
 
                     sssDiffuseLight += GetSkyAmbientLight(lightData, viewDir) * ambientBrightness * occlusion * skyLight2;
 
-                    sssDiffuseLight *= albedo * material.scattering;
+                    sssDiffuseLight *= sssAlbedo * material.scattering;
 
                     //sunDiffuse = GetDiffuseBSDF(sunDiffuse, sssDiffuseLight, material.scattering, NoVm, NoLm, LoHm, roughL);
                     sunDiffuse += sssDiffuseLight * NoVm * (0.01 * SSS_STRENGTH);
@@ -415,9 +410,6 @@
 
         #if defined RENDER_WATER && !defined WORLD_NETHER && !defined WORLD_END
             if (materialId == MATERIAL_WATER) {
-                //vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor;
-                //vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor;
-                
                 #if WATER_REFRACTION != WATER_REFRACTION_NONE
                     float waterRefractEta = isEyeInWater == 1
                         ? IOR_WATER / IOR_AIR

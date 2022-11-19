@@ -8,6 +8,8 @@
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
 
+//in vec4 mc_midTexCoord;
+
 out vec2 lmcoord;
 out vec2 texcoord;
 out vec4 glcolor;
@@ -15,6 +17,7 @@ out float geoNoL;
 out vec3 localPos;
 out vec3 viewPos;
 out vec3 viewNormal;
+//flat out mat2 atlasBounds;
 flat out float exposure;
 
 #ifdef HANDLIGHT_ENABLED
@@ -78,13 +81,15 @@ flat out float exposure;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform float screenBrightness;
-uniform float blindness;
 
 #if SHADER_PLATFORM == PLATFORM_OPTIFINE
     // Use previous-frame matrices in OF cause bugs
     uniform mat4 gbufferPreviousModelView;
     uniform mat4 gbufferPreviousProjection;
 #endif
+
+uniform float nightVision;
+uniform float blindness;
 
 #if MC_VERSION >= 11900
     uniform float darknessFactor;

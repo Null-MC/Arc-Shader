@@ -20,6 +20,7 @@ uniform sampler2D BUFFER_HDR;
 
 uniform int heldBlockLightValue;
 uniform float screenBrightness;
+uniform float nightVision;
 uniform float blindness;
 
 #if MC_VERSION >= 11900

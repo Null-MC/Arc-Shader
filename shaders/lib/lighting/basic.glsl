@@ -92,6 +92,16 @@
         viewNormal = normalize(gl_NormalMatrix * normal);
         gl_Position = gl_ProjectionMatrix * vec4(viewPos, 1.0);
 
+        // #ifdef RENDER_TEXTURED
+        //     vec2 coordMid = (gl_TextureMatrix[0] * mc_midTexCoord).xy;
+        //     vec2 coordNMid = texcoord - coordMid;
+
+        //     atlasBounds[0] = min(texcoord, coordMid - coordNMid);
+        //     atlasBounds[1] = abs(coordNMid) * 2.0;
+
+        //     //localCoord = sign(coordNMid) * 0.5 + 0.5;
+        // #endif
+
         #if defined RENDER_TEXTURED || defined RENDER_WEATHER || defined RENDER_BEACONBEAM
             // TODO: extract billboard direction from view matrix?
 

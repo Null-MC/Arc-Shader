@@ -234,7 +234,7 @@ void main() {
         #endif
     #endif
 
-    vec4 color = BasicLighting(lightData, albedo);
+    vec4 color = BasicLighting(lightData, albedo, viewNormal);
 
     vec4 outLuminance = vec4(0.0);
     outLuminance.r = log2(luminance(color.rgb) + EPSILON);

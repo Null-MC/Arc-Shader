@@ -113,6 +113,9 @@ option.SSS_PCF_SIZE.comment=The maximum radius of the PCF blur filter, in blocks
 option.SSS_PCF_SAMPLES=Sample Count
 option.SSS_PCF_SAMPLES.comment=The number of depth samples to use when applying PCF blur.
 
+option.SSS_NORMALIZE_ALBEDO=Normalize
+option.SSS_NORMALIZE_ALBEDO.comment=Prevents the darkening of SSS by albedo. May look better or worse depending on resource pack used.
+
 
 screen.MATERIAL_PARALLAX_OPTIONS=Parallax
 screen.MATERIAL_PARALLAX_OPTIONS.comment=Options for Parallax Occlusion Mapping (POM).

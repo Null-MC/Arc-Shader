@@ -23,12 +23,6 @@ vec3 hash33(const in uvec3 p) {
     return -1.0 + 2.0 * vec3(q) * UIF;
 }
 
-// vec3 hash33(in vec3 p) {
-//     p = fract(p * vec3(443.8975, 397.2973, 491.1871));
-//     p += dot(p.zxy, p.yxz + 19.27);
-//     return fract(vec3(p.x * p.y, p.z*p.x, p.y*p.z));
-// }
-
 float hash12(const in vec2 x) {return hash12(uvec2(x));}
 vec3 hash32(const in vec2 q) {return hash32(uvec2(q));}
 vec3 hash33(const in vec3 p) {return hash33(uvec3(p));}

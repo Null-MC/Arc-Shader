@@ -31,6 +31,8 @@ uniform vec3 moonPosition;
 uniform vec3 upPosition;
 uniform int moonPhase;
 
+uniform float nightVision;
+
 #if MC_VERSION >= 11900
     uniform float darknessFactor;
 #endif

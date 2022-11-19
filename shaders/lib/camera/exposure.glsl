@@ -19,6 +19,8 @@ float GetExposure(const in float EV100) {
         brightnessF *= 1.0 - 0.9*darknessFactor;
     #endif
 
+    brightnessF *= 1.0 + nightVision * 10.0;
+
     return brightnessF * rcp(exp2(EV100));
 }
 

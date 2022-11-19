@@ -103,6 +103,7 @@ uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform float screenBrightness;
 uniform vec3 cameraPosition;
+uniform float nightVision;
 uniform float blindness;
 
 #if MC_VERSION >= 11700 && (SHADER_PLATFORM != PLATFORM_IRIS || defined IRIS_FEATURE_CHUNK_OFFSET)

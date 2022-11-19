@@ -15,6 +15,7 @@ in float geoNoL;
 in vec3 localPos;
 in vec3 viewPos;
 in vec3 viewNormal;
+//flat in mat2 atlasBounds;
 flat in float exposure;
 flat in vec3 blockLightColor;
 
@@ -27,7 +28,6 @@ flat in vec3 blockLightColor;
     flat in vec3 sunColor;
     flat in vec3 moonColor;
     flat in vec2 skyLightLevels;
-    //flat in vec3 skyLightColor;
     flat in vec3 sunTransmittanceEye;
     flat in vec3 moonTransmittanceEye;
 
@@ -188,8 +188,20 @@ void main() {
     lightData.occlusion = 1.0;
     lightData.blockLight = lmcoord.x;
     lightData.skyLight = lmcoord.y;
-    lightData.geoNoL = geoNoL;
     lightData.parallaxShadow = 1.0;
+
+    #ifdef PARTICLE_ROUNDING
+        vec2 localTex = fract(texcoord * PARTICLE_RESOLUTION);
+        localTex.y = 1.0 - localTex.y;
+
+        vec3 _viewNormal = RestoreNormalZ(localTex);
+
+        vec3 lightDir = normalize(shadowLightPosition);
+        lightData.geoNoL = max(dot(_viewNormal, lightDir), 0.0);
+    #else
+        vec3 _viewNormal = normalize(viewNormal);
+        lightData.geoNoL = geoNoL;
+    #endif
 
     lightData.transparentScreenDepth = gl_FragCoord.z;
     lightData.opaqueScreenDepth = texelFetch(depthtex1, ivec2(gl_FragCoord.xy), 0).r;
@@ -243,7 +255,7 @@ void main() {
         #endif
     #endif
 
-    vec4 color = BasicLighting(lightData, albedo);
+    vec4 color = BasicLighting(lightData, albedo, _viewNormal);
 
     vec4 outLuminance = vec4(0.0);
     outLuminance.r = log2(luminance(color.rgb) + EPSILON);
