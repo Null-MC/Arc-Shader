@@ -299,9 +299,31 @@
         
         material.normal = matTBN * material.normal;
 
-        #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
-            ApplyDirectionalLightmap(lightData.blockLight, material.normal);
-        #endif
+        if (materialId != MATERIAL_WATER) {
+            #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
+                ApplyDirectionalLightmap(lightData.blockLight, material.normal);
+            #endif
+
+            if (isEyeInWater == 1) {
+                material.albedo.rgb = WetnessDarkenSurface(material.albedo.rgb, material.porosity, 1.0);
+            }
+
+            #if defined SKY_ENABLED && !defined RENDER_HAND_WATER
+                if (isEyeInWater != 1) {
+                    #ifdef WETNESS_ENABLED
+                        if (biomeWetness > EPSILON) {
+                            ApplyWetness(material, lightData.skyLight);
+                        }
+                    #endif
+
+                    #ifdef SNOW_ENABLED
+                        if (biomeSnow > EPSILON) {
+                            ApplySnow(material, viewDist, lightData.skyLight);
+                        }
+                    #endif
+                }
+            #endif
+        }
 
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             #ifdef SHADOW_DITHER

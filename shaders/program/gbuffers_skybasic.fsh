@@ -37,6 +37,7 @@ uniform int moonPhase;
     uniform int worldTime;
 #endif
 
+#include "/lib/sampling/noise.glsl"
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/sky/sun_moon.glsl"
 #include "/lib/sky/stars.glsl"

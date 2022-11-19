@@ -1,6 +1,6 @@
 // https://www.shadertoy.com/view/tdSXzD
 
-vec3 hash33(in vec3 p) {
+vec3 hash33_stars(in vec3 p) {
     p = fract(p * vec3(443.8975, 397.2973, 491.1871));
     p += dot(p.zxy, p.yxz + 19.27);
     return fract(vec3(p.x * p.y, p.z*p.x, p.y*p.z));
@@ -24,7 +24,7 @@ vec3 GetStarLight(const in vec3 D) {
 	for (int i = 0; i < 4; i++) {
         vec3 q = fract(D1 * (0.15*res)) - 0.5;
         vec3 id = floor(D1 * (0.15*res));
-        vec2 rn = hash33(id).xy;
+        vec2 rn = hash33_stars(id).xy;
         float c2 = 1.0 - smoothstep(0.0, 0.6, length(q));
         c2 *= step(rn.x, 0.0005 + pow2(i) * 0.001);
         c += c2 * (mix(vec3(1.0, 0.49, 0.1), vec3(0.75, 0.9, 1.0), rn.y) * 0.1 + 0.9);

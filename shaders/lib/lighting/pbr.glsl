@@ -117,88 +117,10 @@
 
         vec3 albedo = material.albedo.rgb;
         float smoothness = material.smoothness;
-        //float f0 = material.f0;
 
         #if DEBUG_VIEW == DEBUG_VIEW_WHITEWORLD
             albedo = vec3(1.0);
         #endif
-
-        // #if defined SKY_ENABLED
-        //     #ifdef RENDER_WATER
-        //         if (materialId != MATERIAL_WATER) {
-        //     #endif
-
-        //         if (isEyeInWater == 1) {
-        //             albedo = WetnessDarkenSurface(albedo, material.porosity, 1.0);
-        //         }
-        //         else {
-        //             #ifdef WETNESS_ENABLED
-        //                 if (biomeWetness > EPSILON) {
-        //                     vec3 waterLocalPos = cameraPosition + localPos;
-        //                     vec2 waterTex = waterLocalPos.xz + vec2(0.08, 0.02) * waterLocalPos.y;
-
-        //                     float noise1 = textureLod(noisetex, 0.01*waterTex, 0).r;
-        //                     float noise2 = 1.0 - textureLod(noisetex, 0.05*waterTex, 0).r;
-        //                     float noise3 = textureLod(noisetex, 0.20*waterTex, 0).r;
-
-        //                     float wetnessFinal = GetDirectionalWetness(viewNormal, skyLight);
-
-        //                     if (wetnessFinal > EPSILON) {
-        //                         float areaWetness = saturate(biomeWetness * wetnessFinal * 
-        //                             (1.00 * noise1 + 0.50 * noise2 + 0.25 * noise3));
-
-        //                         albedo = WetnessDarkenSurface(albedo, material.porosity, areaWetness);
-
-        //                         float puddleF = smoothstep(0.7, 0.8, areaWetness);// * pow2(wetnessFinal);
-
-        //                         viewNormal = mix(viewNormal, viewUpDir, puddleF);
-        //                         viewNormal = normalize(viewNormal);
-                                
-        //                         float surfaceWetness = GetSurfaceWetness(areaWetness, material.porosity);
-        //                         surfaceWetness = max(surfaceWetness, puddleF);
-
-        //                         smoothness = mix(smoothness, WATER_SMOOTH, surfaceWetness);
-        //                         material.f0 = mix(material.f0, 0.02, surfaceWetness * (1.0 - material.f0));
-        //                     }
-        //                 }
-        //             #endif
-
-        //             #ifdef SNOW_ENABLED
-        //                 if (biomeSnow > EPSILON) {
-        //                     vec3 snowLocalPos = cameraPosition + localPos;
-        //                     vec2 snowTex = snowLocalPos.xz;// + vec2(0.08, 0.02) * snowLocalPos.y;
-
-        //                     float noise1 = 1.0 - textureLod(noisetex, 0.01*snowTex, 0).r;
-        //                     float noise2 = 1.0 - textureLod(noisetex, 0.05*snowTex, 0).r;
-        //                     float noise3 = textureLod(noisetex, 0.20*snowTex, 0).r;
-
-        //                     float snowFinal = GetDirectionalSnow(viewNormal, skyLight);
-        //                     //snowFinal = min(snowFinal + (1.0 - lightData.occlusion), 1.0);
-
-        //                     float areaSnow = saturate(2.0 * snowFinal * biomeSnow *
-        //                         (1.00 * noise1 + 0.50 * noise2 + 0.25 * noise3));
-
-        //                     albedo = mix(albedo, SNOW_COLOR, areaSnow);
-        //                     smoothness = mix(smoothness, 0.48, areaSnow);
-
-        //                     if (areaSnow > 0.1) {
-        //                         material.hcm = -1;
-        //                         material.f0 = 0.04;
-
-        //                         // TODO: add normal noise
-        //                         uvec2 tex = uvec2(texcoord * atlasBounds[1]);
-        //                         vec3 snowNormal = normalize(hash32(tex));
-        //                         snowNormal *= sign(dot(snowNormal, viewNormal));
-        //                         viewNormal = normalize(mix(viewNormal, snowNormal, 0.2));
-        //                     }
-        //                 }
-        //             #endif
-        //         }
-
-        //     #ifdef RENDER_WATER
-        //         }
-        //     #endif
-        // #endif
 
         float rough = 1.0 - smoothness;
         float roughL = max(rough * rough, 0.005);

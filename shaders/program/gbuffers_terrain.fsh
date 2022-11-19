@@ -73,6 +73,7 @@ uniform float biomeSnow;
 #include "/lib/atlas.glsl"
 #include "/lib/sampling/linear.glsl"
 #include "/lib/sampling/noise.glsl"
+#include "/lib/material/material.glsl"
 
 #ifdef SKY_ENABLED
     #include "/lib/world/porosity.glsl"
@@ -86,7 +87,6 @@ uniform float biomeSnow;
     #include "/lib/lighting/directional.glsl"
 #endif
 
-#include "/lib/material/material.glsl"
 #include "/lib/material/material_reader.glsl"
 #include "/lib/lighting/basic_gbuffers.glsl"
 #include "/lib/lighting/pbr_gbuffers.glsl"
