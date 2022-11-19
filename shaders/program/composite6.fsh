@@ -17,6 +17,8 @@ uniform float viewWidth;
 uniform float viewHeight;
 uniform int isEyeInWater;
 
+uniform float nightVision;
+
 #include "/lib/camera/bloom.glsl"
 
 /* RENDERTARGETS: 7 */
@@ -93,6 +95,9 @@ void main() {
         float threshold = isEyeInWater == 1 ? BLOOM_THRESHOLD_WATER : BLOOM_THRESHOLD;
         float power = isEyeInWater == 1 ? BLOOM_POWER_WATER : BLOOM_POWER;
         //if (isEyeInWater == 1) threshold = 1.0 - (0.75 * (1.0 - threshold));
+
+        threshold = mix(threshold, BLOOM_THRESHOLD_NIGHTVISION, nightVision);
+        power = mix(power, BLOOM_POWER_NIGHTVISION, nightVision);
 
         lum = pow(lum * threshold, power) * 10.0;// * exp2(3.0 + 0.5*tile);
         //lum = min(lum, 1.0);
