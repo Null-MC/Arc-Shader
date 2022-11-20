@@ -403,7 +403,7 @@ void main() {
             #endif
         }
         else if (blindness > EPSILON) {
-            color = RGBToLinear(fogColor) * 100.0;
+            color = GetAreaFogColor();
             // color = GetVanillaSkyLuminance(viewDir);
             // float horizonFogF = 1.0 - abs(localViewDir.y);
 
@@ -419,7 +419,7 @@ void main() {
             #ifdef SKY_ENABLED
                 color = texelFetch(BUFFER_HDR, iTex, 0).rgb / exposure;
             #else
-                color = RGBToLinear(fogColor) * 100.0;
+                color = GetAreaFogColor();
             #endif
         }
     }

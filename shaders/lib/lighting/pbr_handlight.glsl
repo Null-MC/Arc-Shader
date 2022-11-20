@@ -2,11 +2,11 @@ uniform int heldItemId;
 uniform int heldItemId2;
 
 vec3 itemLightColors[5] = vec3[](
-    vec3(1.0, 0.2, 0.0),
-    vec3(0.0, 0.3, 0.9),
-    vec3(0.8, 0.6, 0.2),
-    vec3(0.3, 0.6, 0.8),
-    vec3(0.8, 0.0, 0.7));
+    vec3(0.904, 0.338, 0.237),  // redstone
+    vec3(0.397, 0.738, 0.909),  // soul
+    vec3(0.773, 0.638, 0.368),  // glowing
+    vec3(0.501, 0.838, 0.808),  // sea
+    vec3(0.664, 0.186, 0.793)); // obsidian
 
 
 float GetHandLightAttenuation(const in float lightLevel, const in float lightDist) {
@@ -33,8 +33,10 @@ void _ApplyHandLighting(out vec3 diffuse, out vec3 specular, const in vec3 albed
 
     vec3 handLightColor;
 
-    if (itemId > 0 && itemId <= 5)
-        handLightColor = attenuation * itemLightColors[itemId-1] * BlockLightLux;
+    if (itemId > 0 && itemId <= 5) {
+        vec3 itemColor = itemLightColors[itemId-1];
+        handLightColor = RGBToLinear(itemColor) * BlockLightLux * attenuation;
+    }
     else
         handLightColor = attenuation * blockLightColor;
 

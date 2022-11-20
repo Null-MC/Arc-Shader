@@ -46,13 +46,17 @@ float GetVanillaFogFactor(const in vec3 viewPos) {
     return GetFogFactor(fogDist, fogStart, fogEnd, 1.0);
 }
 
+vec3 GetAreaFogColor() {
+    return RGBToLinear(fogColor) * 200.0;
+}
+
 void GetFog(const in LightData lightData, const in vec3 viewPos, out vec3 fogColorFinal, out float fogFactor) {
     #ifdef SKY_ENABLED
         vec3 viewDir = normalize(viewPos);
         fogColorFinal = GetVanillaSkyLuminance(viewDir);
         //vec2 skyLightLevels = GetSkyLightLevels();
     #else
-        fogColorFinal = RGBToLinear(fogColor) * 100.0;
+        fogColorFinal = GetAreaFogColor();
     #endif
 
     #if MC_VERSION >= 11900
