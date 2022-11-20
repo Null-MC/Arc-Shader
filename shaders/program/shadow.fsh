@@ -53,6 +53,8 @@ flat in int materialId;
 #endif
 
 uniform sampler2D gtexture;
+uniform sampler2D normals;
+uniform sampler2D specular;
 
 uniform mat4 shadowModelViewInverse;
 uniform int renderStage;
@@ -62,13 +64,13 @@ uniform int entityId;
    uniform float alphaTestRef;
 #endif
 
-#if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_ENABLED)
-    uniform sampler2D normals;
-#endif
+// #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_ENABLED)
+//     uniform sampler2D normals;
+// #endif
 
-#ifdef SSS_ENABLED
-    uniform sampler2D specular;
-#endif
+// #ifdef SSS_ENABLED
+//     uniform sampler2D specular;
+// #endif
 
 #ifdef RSM_ENABLED
     uniform vec3 shadowLightPosition;

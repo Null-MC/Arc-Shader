@@ -139,13 +139,13 @@ uniform float fogEnd;
     #endif
 #endif
 
+uniform float blindness;
+
 #if MC_VERSION >= 11900
     uniform float darknessFactor;
 #endif
 
 uniform float eyeHumidity;
-// uniform float biomeWetness;
-// uniform float biomeSnow;
 uniform vec3 waterScatterColor;
 uniform vec3 waterAbsorbColor;
 uniform float waterFogDistSmooth;
@@ -262,7 +262,9 @@ void main() {
     vec3 clipPos = vec3(texcoord, lightData.opaqueScreenDepth) * 2.0 - 1.0;
     vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
     vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+    vec3 localViewDir = normalize(localPos);
     vec3 viewDir = normalize(viewPos);
+
     PbrMaterial material;
     vec3 color;
 
@@ -380,19 +382,38 @@ void main() {
 
     // SKY
     if (lightData.opaqueScreenDepth > 1.0 - EPSILON) {
+        #ifdef SKY_ENABLED
+            vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor;
+            vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor;
+        #endif
+
         if (isEyeInWater == 1) {
-            vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor;
-            vec3 moonColorFinal = lightData.moonTransmittanceEye * moonColor;
-            //vec3 waterLightColor = GetWaterScatterColor(viewDir, sunColorFinal, moonColorFinal);
-            vec2 waterScatteringF = GetWaterScattering(viewDir);
-            color = GetWaterFogColor(viewDir, sunColorFinal, moonColorFinal, waterScatteringF);
+            #ifdef SKY_ENABLED
+                vec2 waterScatteringF = GetWaterScattering(viewDir);
+                color = GetWaterFogColor(viewDir, sunColorFinalEye, moonColorFinalEye, waterScatteringF);
 
-            #ifdef VL_ENABLED
-                vec3 nearPos = viewDir * near;
-                vec3 farPos = viewDir * min(far, waterFogDistSmooth);
+                #ifdef VL_ENABLED
+                    vec3 nearPos = viewDir * near;
+                    vec3 farPos = viewDir * min(far, waterFogDistSmooth);
 
-                color += GetWaterVolumetricLighting(lightData, nearPos, farPos, waterScatteringF);
+                    color += GetWaterVolumetricLighting(lightData, nearPos, farPos, waterScatteringF);
+                #endif
+            #else
+                color = vec3(0.0);
             #endif
+        }
+        else if (blindness > EPSILON) {
+            color = RGBToLinear(fogColor) * 100.0;
+            // color = GetVanillaSkyLuminance(viewDir);
+            // float horizonFogF = 1.0 - abs(localViewDir.y);
+
+            // vec2 scatteringF = GetVanillaSkyScattering(viewDir, lightData.skyLightLevels);
+            // vec3 vlColor = RGBToLinear(fogColor) * (scatteringF.x * sunColorFinalEye + scatteringF.y * moonColorFinalEye);
+            // color += vlColor * (1.0 - horizonFogF);
+
+            // vec3 starF = GetStarLight(normalize(localViewDir));
+            // starF *= 1.0 - horizonFogF;
+            // color += starF * StarLumen;
         }
         else {
             #ifdef SKY_ENABLED
@@ -408,8 +429,6 @@ void main() {
 
     #ifdef SKY_ENABLED
         if (isEyeInWater != 1) {
-            vec3 localViewDir = normalize(localPos);
-
             float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
 
             float cloudDepthTest = CLOUD_Y_LEVEL - (cameraPosition.y + localPos.y);
@@ -423,6 +442,8 @@ void main() {
                 cloudF = mix(cloudF, 0.0, pow(cloudHorizonFogF, CLOUD_HORIZON_POWER));
 
                 vec3 cloudColor = GetCloudColor(skyLightLevels);
+
+                cloudF *= 1.0 - blindness;
 
                 color = mix(color, cloudColor, cloudF);
             }
@@ -439,7 +460,7 @@ void main() {
                 // }
 
                 vec3 viewNear = viewDir * near;
-                vec3 viewFar = viewDir * min(length(viewPos), far);
+                vec3 viewFar = viewDir * min(length(viewPos), fogEnd);
 
                 vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
                 color += GetVolumetricLighting(lightData, viewNear, viewFar, skyScatteringF);

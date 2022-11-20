@@ -59,8 +59,10 @@ uniform sampler2D noisetex;
 uniform vec3 cameraPosition;
 uniform ivec2 atlasSize;
 uniform int isEyeInWater;
-uniform float biomeWetness;
-uniform float biomeSnow;
+uniform float skyWetnessSmooth;
+uniform float skySnowSmooth;
+uniform float biomeWetnessSmooth;
+uniform float biomeSnowSmooth;
 
 #if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
     uniform float alphaTestRef;
@@ -75,10 +77,6 @@ uniform float biomeSnow;
 #include "/lib/sampling/noise.glsl"
 #include "/lib/material/material.glsl"
 
-#ifdef SKY_ENABLED
-    #include "/lib/world/porosity.glsl"
-#endif
-
 #ifdef PARALLAX_ENABLED
     #include "/lib/parallax.glsl"
 #endif
@@ -87,6 +85,7 @@ uniform float biomeSnow;
     #include "/lib/lighting/directional.glsl"
 #endif
 
+#include "/lib/world/porosity.glsl"
 #include "/lib/material/material_reader.glsl"
 #include "/lib/lighting/basic_gbuffers.glsl"
 #include "/lib/lighting/pbr_gbuffers.glsl"

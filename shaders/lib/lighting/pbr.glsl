@@ -670,11 +670,17 @@
         if (isEyeInWater == 1) {
             //vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor;
             //vec3 moonColorFinal = lightData.moonTransmittanceEye * moonColor;
-            vec2 waterScatteringF = GetWaterScattering(viewDir);
-            vec3 waterFogColor = GetWaterFogColor(viewDir, sunColorFinalEye, moonColorFinalEye, waterScatteringF);
+
+            #ifdef SKY_ENABLED
+                vec2 waterScatteringF = GetWaterScattering(viewDir);
+                vec3 waterFogColor = GetWaterFogColor(viewDir, sunColorFinalEye, moonColorFinalEye, waterScatteringF);
+            #else
+                vec3 waterFogColor = vec3(0.0);
+            #endif
+
             ApplyWaterFog(final.rgb, waterFogColor, viewDist);
 
-            #ifdef VL_ENABLED
+            #if defined SKY_ENABLED && defined VL_ENABLED
                 vec3 nearViewPos = viewDir * near;
                 vec3 farViewPos = viewDir * min(viewDist, waterFogDistSmooth);
 

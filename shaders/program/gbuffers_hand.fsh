@@ -49,9 +49,6 @@ uniform vec3 cameraPosition;
 uniform int isEyeInWater;
 uniform ivec2 atlasSize;
 
-uniform float biomeWetness;
-uniform float biomeSnow;
-
 #if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
     uniform float alphaTestRef;
 #endif
@@ -61,10 +58,6 @@ uniform float biomeSnow;
 #include "/lib/sampling/noise.glsl"
 #include "/lib/material/material.glsl"
 
-#ifdef SKY_ENABLED
-    #include "/lib/world/porosity.glsl"
-#endif
-
 #ifdef PARALLAX_ENABLED
     #include "/lib/parallax.glsl"
 #endif
@@ -73,6 +66,7 @@ uniform float biomeSnow;
     #include "/lib/lighting/directional.glsl"
 #endif
 
+#include "/lib/world/porosity.glsl"
 #include "/lib/material/material_reader.glsl"
 #include "/lib/lighting/basic_gbuffers.glsl"
 #include "/lib/lighting/pbr_gbuffers.glsl"

@@ -135,8 +135,6 @@ uniform int fogShape;
 #endif
 
 uniform float eyeHumidity;
-uniform float biomeWetness;
-uniform float biomeSnow;
 uniform vec3 waterScatterColor;
 uniform vec3 waterAbsorbColor;
 uniform float waterFogDistSmooth;
@@ -180,10 +178,10 @@ uniform float waterFogDistSmooth;
     #include "/lib/sky/sun_moon.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
-    #include "/lib/world/porosity.glsl"
     #include "/lib/lighting/basic.glsl"
 #endif
 
+#include "/lib/world/porosity.glsl"
 #include "/lib/world/fog.glsl"
 
 #ifdef SKY_ENABLED

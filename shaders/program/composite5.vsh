@@ -50,7 +50,15 @@ out vec2 texcoord;
 
         blockLightBrightness = pow3(blockLightBrightness) * BlockLightLux;
 
-        return 0.024 * (MinWorldLux + max(blockLightBrightness, skyLightBrightness));
+        float brightnessFinal = MinWorldLux;
+
+        #ifdef SKY_ENABLED
+            brightnessFinal += max(blockLightBrightness, skyLightBrightness);
+        #else
+            brightnessFinal += blockLightBrightness;
+        #endif
+
+        return 0.024 * brightnessFinal;
     }
 #endif
 

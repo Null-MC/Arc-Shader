@@ -52,9 +52,6 @@ uniform int entityId;
     uniform float wetness;
 #endif
 
-uniform float biomeWetness;
-uniform float biomeSnow;
-
 #if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
     uniform float alphaTestRef;
 #endif
@@ -72,14 +69,9 @@ uniform float biomeSnow;
 //     #include "/lib/lighting/directional.glsl"
 // #endif
 
-//#ifdef PHYSICSMOD_ENABLED
-    #include "/lib/world/physics_snow.glsl"
-//#endif
+#include "/lib/world/physics_snow.glsl"
 
-#ifdef SKY_ENABLED
-    #include "/lib/world/porosity.glsl"
-#endif
-
+#include "/lib/world/porosity.glsl"
 #include "/lib/material/material_reader.glsl"
 #include "/lib/lighting/basic_gbuffers.glsl"
 #include "/lib/lighting/pbr_gbuffers.glsl"

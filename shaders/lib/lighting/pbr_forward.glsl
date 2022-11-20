@@ -101,8 +101,8 @@
                     depth = GetWaves(waterWorldPos, waveDepth, octaves) * waveDepth * WATER_NORMAL_STRENGTH;
                     waterPos = vec3(waterWorldPos.x, waterWorldPos.y, depth);
 
-                    vec3 waterDX = dFdxFine(waterPos);
-                    vec3 waterDY = dFdyFine(waterPos);
+                    vec3 waterDX = dFdx(waterPos);
+                    vec3 waterDY = dFdy(waterPos);
                 #endif
 
                 #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
@@ -297,8 +297,6 @@
         vec3 _viewBinormal = normalize(cross(_viewTangent, _viewNormal) * tangentW);
         mat3 matTBN = mat3(_viewTangent, _viewBinormal, _viewNormal);
         
-        material.normal = matTBN * material.normal;
-
         if (materialId != MATERIAL_WATER) {
             #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
                 ApplyDirectionalLightmap(lightData.blockLight, material.normal);
@@ -310,20 +308,21 @@
 
             #if defined SKY_ENABLED && !defined RENDER_HAND_WATER
                 if (isEyeInWater != 1) {
-                    #ifdef WETNESS_ENABLED
-                        if (biomeWetness > EPSILON) {
-                            ApplyWetness(material, lightData.skyLight);
-                        }
+                    vec3 tanUpDir = normalize(upPosition) * matTBN;
+                    float NoU = dot(material.normal, tanUpDir);
+
+                    #if WETNESS_MODE != WEATHER_MODE_NONE
+                        ApplyWetness(material, NoU, lightData.skyLight);
                     #endif
 
-                    #ifdef SNOW_ENABLED
-                        if (biomeSnow > EPSILON) {
-                            ApplySnow(material, viewDist, lightData.skyLight);
-                        }
+                    #if SNOW_MODE != WEATHER_MODE_NONE
+                        ApplySnow(material, NoU, viewDist, lightData.blockLight, lightData.skyLight);
                     #endif
                 }
             #endif
         }
+
+        material.normal = matTBN * material.normal;
 
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             #ifdef SHADOW_DITHER

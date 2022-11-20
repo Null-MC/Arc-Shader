@@ -14,9 +14,9 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     vec2 ssrPixelSize = rcp(viewSize);
 
     if (abs(screenRay.y) > abs(screenRay.x))
-        screenRay *= ssrPixelSize.y;// / abs(screenRay.y);
+        screenRay *= ssrPixelSize.y / abs(screenRay.y);
     else
-        screenRay *= ssrPixelSize.x;// / abs(screenRay.x);
+        screenRay *= ssrPixelSize.x / abs(screenRay.x);
 
     #if SSR_QUALITY == 0
         screenRay *= 3.0;

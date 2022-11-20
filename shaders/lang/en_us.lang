@@ -45,11 +45,17 @@ option.HANDLIGHT_ENABLED.comment=Hand-held items will use the shader for lightin
 option.LIGHTLEAK_FIX=Light-Leak Fix
 option.LIGHTLEAK_FIX.comment=Helps prevent sunlight from leaking into caves and other dark areas; but may also causes over-shadowing in some scenes.
 
-option.WETNESS_ENABLED=Wetness
-option.WETNESS_ENABLED.comment=When enabled and raining, surfaces will appear more wet and form puddles.
+option.WETNESS_MODE=Wetness
+option.WETNESS_MODE.comment=When enabled and raining, surfaces will appear more wet and form puddles.
+value.WETNESS_MODE.0=None
+value.WETNESS_MODE.1=Only Sky
+value.WETNESS_MODE.2=Full
 
-option.SNOW_ENABLED=Snow Buildup
-option.WETNESS_ENABLED.comment=When enabled and snowing, surfaces will show snow accumulation up upward faces.
+option.SNOW_MODE=Snow Buildup
+option.SNOW_MODE.comment=When enabled and snowing, surfaces will show snow accumulation up upward faces.
+value.SNOW_MODE.0=None
+value.SNOW_MODE.1=Only Sky
+value.SNOW_MODE.2=Full
 
 
 screen.WATER_OPTIONS=Water

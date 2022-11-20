@@ -153,35 +153,42 @@
             #endif
         }
 
+        if (isMissingNormal || isMissingTangent) {
+            material.normal = vec3(0.0, 0.0, 1.0);
+        }
+
         vec3 _viewNormal = normalize(viewNormal);
+        vec3 _viewTangent = normalize(viewTangent);
 
-        if (!gl_FrontFacing)
+        if (!gl_FrontFacing) {
             _viewNormal = -_viewNormal;
-
-        if ((isMissingNormal || isMissingTangent) && dot(viewNormal, viewNormal) > 0.1) {
-            material.normal = _viewNormal;
         }
-        else {
-            vec3 _viewTangent = normalize(viewTangent);
-            vec3 _viewBinormal = normalize(cross(_viewTangent, _viewNormal) * tangentW);
 
-            if (!gl_FrontFacing) {
-                _viewTangent = -_viewTangent;
-                _viewBinormal = -_viewBinormal;
+        vec3 _viewBinormal = normalize(cross(_viewTangent, _viewNormal) * tangentW);
+
+        if (!gl_FrontFacing) {
+            _viewTangent = -_viewTangent;
+            _viewBinormal = -_viewBinormal;
+        }
+        
+        mat3 matTBN = mat3(_viewTangent, _viewBinormal, _viewNormal);
+
+        #if defined SKY_ENABLED && !defined RENDER_ENTITIES && !defined RENDER_HAND
+            if (isEyeInWater != 1) {
+                vec3 tanUpDir = normalize(upPosition) * matTBN;
+                float NoU = dot(material.normal, tanUpDir);
+
+                #if WETNESS_MODE != WEATHER_MODE_NONE
+                    ApplyWetness(material, NoU, lm.y);
+                #endif
+
+                #if SNOW_MODE != WEATHER_MODE_NONE
+                    ApplySnow(material, NoU, viewDist, lm.x, lm.y);
+                #endif
             }
-            
-            mat3 matTBN = mat3(_viewTangent, _viewBinormal, _viewNormal);
+        #endif
 
-            material.normal = normalize(matTBN * material.normal);
-        }
-
-        // else {
-        //     // fix sign, map, nametag normals
-        //     vec3 dX = dFdx(viewPos);
-        //     vec3 dY = dFdy(viewPos);
-        //     normal = normalize(cross(dX, dY));
-        //     occlusion = 1.0;
-        // }
+        material.normal = normalize(matTBN * material.normal);
 
         #ifdef RENDER_ENTITIES
             if (materialId == MATERIAL_PHYSICS_SNOW) {
@@ -197,22 +204,6 @@
         if (isEyeInWater == 1) {
             material.albedo.rgb = WetnessDarkenSurface(material.albedo.rgb, material.porosity, 1.0);
         }
-
-        #if defined SKY_ENABLED && !defined RENDER_ENTITIES && !defined RENDER_HAND
-            if (isEyeInWater != 1) {
-                #ifdef WETNESS_ENABLED
-                    if (biomeWetness > EPSILON) {
-                        ApplyWetness(material, lm.y);
-                    }
-                #endif
-
-                #ifdef SNOW_ENABLED
-                    if (biomeSnow > EPSILON) {
-                        ApplySnow(material, viewDist, lm.y);
-                    }
-                #endif
-            }
-        #endif
 
         WriteMaterial(material, colorMap, normalMap, specularMap);
 
