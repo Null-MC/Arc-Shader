@@ -209,7 +209,7 @@ uniform float waterFogDistSmooth;
     #include "/lib/lighting/basic.glsl"
 #endif
 
-#include "/lib/world/porosity.glsl"
+#include "/lib/world/weather.glsl"
 #include "/lib/world/fog.glsl"
 
 #ifdef SKY_ENABLED

@@ -6,29 +6,17 @@ vec3 WetnessDarkenSurface(const in vec3 albedo, const in float porosity, const i
 }
 
 #if !defined RENDER_ENTITIES && !defined RENDER_HAND && !defined RENDER_HAND_WATER
-    void ApplyWetness(inout PbrMaterial material, const in float NoU, const in float skyLight) {
+    void ApplyWetness(inout PbrMaterial material, const in float weatherNoise, const in float NoU, const in float skyLight) {
         if (skyWetnessSmooth < EPSILON && biomeWetnessSmooth < EPSILON) return;
 
-        vec3 waterLocalPos = cameraPosition + localPos;
-        vec2 waterTex = waterLocalPos.xz + vec2(0.08, 0.02) * waterLocalPos.y;
-
-        float noise1 = textureLod(noisetex, 0.01*waterTex, 0).r;
-        float noise2 = 1.0 - textureLod(noisetex, 0.05*waterTex, 0).r;
-        float noise3 = textureLod(noisetex, 0.20*waterTex, 0).r;
-
-        float areaWetness = 1.00 * noise1 + 0.50 * noise2 + 0.25 * noise3;
-
-        //vec3 viewUpDir = normalize(upPosition);
-        //float NoU = dot(material.normal, viewUpDir);
         float upF = smoothstep(-0.2, 1.0, NoU);
-
         float accum = saturate(8.0 * (0.96875 - skyLight));
         float skyWetness = saturate(upF - accum);
 
-        float skyAreaWetness = saturate(saturate(upF - accum) * areaWetness * skyWetnessSmooth);
+        float skyAreaWetness = saturate(saturate(upF - accum) * weatherNoise * skyWetnessSmooth);
 
         #if WETNESS_MODE == WEATHER_MODE_FULL
-            float biomeAreaWetness = upF * saturate(areaWetness - biomeWetnessSmooth) * biomeWetnessSmooth;
+            float biomeAreaWetness = upF * saturate(weatherNoise - biomeWetnessSmooth) * biomeWetnessSmooth;
             float totalAreaWetness = max(biomeAreaWetness, skyAreaWetness);
         #else
             float totalAreaWetness = skyAreaWetness;
@@ -52,40 +40,20 @@ vec3 WetnessDarkenSurface(const in vec3 albedo, const in float porosity, const i
 
     // Snow
 
-    void ApplySnow(inout PbrMaterial material, const in float NoU, const in float viewDist, const in float blockLight, const in float skyLight) {
-        if (skySnowSmooth < EPSILON && biomeSnowSmooth < EPSILON) return;
-
-        vec3 snowLocalPos = cameraPosition + localPos;
-        vec2 snowTex = snowLocalPos.xz + snowLocalPos.y;
-
-        float noise1 = texture(noisetex, 0.01*snowTex).r;
-        float noise2 = 1.0 - texture(noisetex, 0.05*snowTex).r;
-        float noise3 = texture(noisetex, 0.20*snowTex).r;
-
-        float areaSnow = 1.00 * noise1 + 0.50 * noise2 + 0.25 * noise3;
-
-        //float snowFinal = GetDirectionalSnow(material.normal, skyLight);
-        //snowFinal = min(snowFinal + (1.0 - occlusion), 1.0);
-
-
-        //vec3 viewUpDir = normalize(upPosition);
-        //float NoU = dot(material.normal, tanUpDir);
+    void ApplySnow(inout PbrMaterial material, const in float weatherNoise, const in float NoU, const in float viewDist, const in float blockLight, const in float skyLight) {
         float accum = saturate(2.0 * (0.96875 - skyLight));
         float snowFinal = saturate(smoothstep(-0.1, 0.4, NoU));
         snowFinal = pow(snowFinal, 0.5);
 
-        float skySnowFinal = snowFinal * skySnowSmooth * smoothstep(1.0 - skySnowSmooth, 1.0, saturate(areaSnow - accum));
+        float skySnowFinal = snowFinal * skySnowSmooth * smoothstep(1.0 - skySnowSmooth, 1.0, saturate(weatherNoise - accum));
 
         #if SNOW_MODE == WEATHER_MODE_FULL
             float blockLightFalloff = saturate(4.0 * (blockLight - 0.75));
-            float biomeSnowFinal = snowFinal * biomeSnowSmooth * smoothstep(1.0 - biomeSnowSmooth, 1.0, saturate(areaSnow - accum - blockLightFalloff));
+            float biomeSnowFinal = snowFinal * biomeSnowSmooth * smoothstep(1.0 - biomeSnowSmooth, 1.0, saturate(weatherNoise - accum - blockLightFalloff));
             float totalSnow = max(biomeSnowFinal, skySnowFinal);
         #else
             float totalSnow = skySnowFinal;
         #endif
-
-        //totalSnow = smoothstep(0.5, 1.0, totalSnow);
-        //totalSnow = pow(totalSnow, 0.4);
 
         if (totalSnow < EPSILON) return;
 
@@ -106,7 +74,8 @@ vec3 WetnessDarkenSurface(const in vec3 albedo, const in float porosity, const i
         // TODO: offset by at_midBlock pos.xz+y for variation
         // localTex += ;
 
-        vec3 snowPos = vec3(snowLocalPos.xz, snowLocalPos.y + 0.4*areaSnow);
+        vec3 worldPos = cameraPosition + localPos;
+        vec3 snowPos = vec3(worldPos.xz, worldPos.y + 0.4*weatherNoise);
 
         vec3 snowDX = dFdx(snowPos);
         vec3 snowDY = dFdy(snowPos);
@@ -127,5 +96,25 @@ vec3 WetnessDarkenSurface(const in vec3 albedo, const in float porosity, const i
         material.scattering = mix(material.scattering, snowScatter, totalSnow);
 
         material.albedo.a = min(material.albedo.a + totalSnow, 1.0);
+    }
+
+    void ApplyWeather(inout PbrMaterial material, const in float NoU, const in float viewDist, const in float blockLight, const in float skyLight) {
+        vec3 worldPos = cameraPosition + localPos;
+        vec2 weatherTex = worldPos.xz + worldPos.y;
+
+        float noise1 = texture(noisetex, 0.01*weatherTex).r;
+        float noise2 = 1.0 - texture(noisetex, 0.05*weatherTex).r;
+        float noise3 = texture(noisetex, 0.20*weatherTex).r;
+
+        float weatherNoise = 1.00 * noise1 + 0.50 * noise2 + 0.25 * noise3;
+
+        #if WETNESS_MODE != WEATHER_MODE_NONE
+            ApplyWetness(material, weatherNoise, NoU, skyLight);
+        #endif
+
+        #if SNOW_MODE != WEATHER_MODE_NONE
+            if (skySnowSmooth > EPSILON || biomeSnowSmooth > EPSILON)
+                ApplySnow(material, weatherNoise, NoU, viewDist, blockLight, skyLight);
+        #endif
     }
 #endif

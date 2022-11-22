@@ -151,19 +151,26 @@ void main() {
     #endif
 
     if (materialId == MATERIAL_WATER) {
-        #ifdef WATER_FANCY
-            waterMask = 1;
-        #endif
+        // #ifdef WATER_FANCY
+        //     waterMask = 1;
+        // #endif
 
-        #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
-            #if MC_VERSION >= 11700
-                float vY = -at_midBlock.y / 64.0;
-                float posY = saturate(vY + 0.5) * (1.0 - step(0.5, vY + EPSILON));
-            #else
-                float posY = step(EPSILON, gl_Normal.y);
+        // #if MC_VERSION >= 11700
+        //     float vY = -at_midBlock.y / 64.0;
+        //     float posY = saturate(vY + 0.5) * (1.0 - step(0.5, vY + EPSILON));
+        // #else
+        //     float posY = step(EPSILON, gl_Normal.y);
+        // #endif
+
+        //vec3 shadowViewNormal = normalize(gl_NormalMatrix * normal);
+        //vec3 worldNormal = mat3(shadowModelViewInverse) * shadowViewNormal;
+
+        if (gl_Normal.y > 0.5) {
+            #ifdef WATER_FANCY
+                waterMask = 1;
             #endif
-
-            if (posY > EPSILON) {
+            
+            #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
                 //float windSpeed = GetWindSpeed();
                 //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
                 float waveDepth = GetWaveDepth(skyLight);
@@ -184,8 +191,8 @@ void main() {
 
                     normal = normalize(cross(pX, pY)).xzy;
                 #endif
-            }
-        #endif
+            #endif
+        }
     }
 
     vec4 shadowViewPos = gl_ModelViewMatrix * vec4(localPos, 1.0);

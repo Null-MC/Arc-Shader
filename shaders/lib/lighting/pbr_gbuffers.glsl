@@ -173,18 +173,12 @@
         
         mat3 matTBN = mat3(_viewTangent, _viewBinormal, _viewNormal);
 
-        #if defined SKY_ENABLED && !defined RENDER_ENTITIES && !defined RENDER_HAND
+        #if defined SKY_ENABLED && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE) && !defined RENDER_ENTITIES && !defined RENDER_HAND
             if (isEyeInWater != 1) {
                 vec3 tanUpDir = normalize(upPosition) * matTBN;
                 float NoU = dot(material.normal, tanUpDir);
 
-                #if WETNESS_MODE != WEATHER_MODE_NONE
-                    ApplyWetness(material, NoU, lm.y);
-                #endif
-
-                #if SNOW_MODE != WEATHER_MODE_NONE
-                    ApplySnow(material, NoU, viewDist, lm.x, lm.y);
-                #endif
+                ApplyWeather(material, NoU, viewDist, lm.x, lm.y);
             }
         #endif
 

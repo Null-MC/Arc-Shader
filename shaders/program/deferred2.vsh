@@ -12,6 +12,8 @@ uniform float screenBrightness;
 uniform float viewWidth;
 uniform float viewHeight;
 
+uniform float nightVision;
+
 #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
     uniform sampler2D BUFFER_HDR_PREVIOUS;
 #endif

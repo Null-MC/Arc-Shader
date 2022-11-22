@@ -306,18 +306,12 @@
                 material.albedo.rgb = WetnessDarkenSurface(material.albedo.rgb, material.porosity, 1.0);
             }
 
-            #if defined SKY_ENABLED && !defined RENDER_HAND_WATER
+            #if defined SKY_ENABLED && !defined RENDER_HAND_WATER && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE)
                 if (isEyeInWater != 1) {
                     vec3 tanUpDir = normalize(upPosition) * matTBN;
                     float NoU = dot(material.normal, tanUpDir);
 
-                    #if WETNESS_MODE != WEATHER_MODE_NONE
-                        ApplyWetness(material, NoU, lightData.skyLight);
-                    #endif
-
-                    #if SNOW_MODE != WEATHER_MODE_NONE
-                        ApplySnow(material, NoU, viewDist, lightData.blockLight, lightData.skyLight);
-                    #endif
+                    ApplyWeather(material, NoU, viewDist, lightData.blockLight, lightData.skyLight);
                 }
             #endif
         }

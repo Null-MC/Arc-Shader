@@ -171,7 +171,6 @@ uniform float waterFogDistSmooth;
     #include "/lib/sky/sun_moon.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
-    //#include "/lib/world/porosity.glsl"
 
     #if SHADER_PLATFORM == PLATFORM_IRIS
         #include "/lib/sky/lightning.glsl"

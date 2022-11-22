@@ -228,7 +228,7 @@
                     int maxHdrPrevLod = textureQueryLevels(BUFFER_HDR_PREVIOUS);
                     int lod = int(rough * max(maxHdrPrevLod - EPSILON, 0.0));
 
-                    vec4 roughReflectColor = GetReflectColor(BUFFER_DEPTH_PREV, viewPosPrev, reflectDirPrev, lod);
+                    vec4 roughReflectColor = GetReflectColor(BUFFER_DEPTH_PREV, viewPosPrev, reflectDirPrev, rough, lod);
 
                     reflectColor = roughReflectColor.rgb * roughReflectColor.a;
 

@@ -215,7 +215,7 @@ const bool colortex12Clear = false;
 #define AF_SAMPLES 16.0
 //#define WATER_REFRACT_HACK
 #define CLOUD_Y_LEVEL 180.0
-#define CLOUD_HORIZON_POWER 3.0
+#define CLOUD_HORIZON_POWER 1.0
 #define CLOUD_POW_CLEAR 1.6
 #define CLOUD_POW_RAIN 0.3
 #define SHADOW_CLOUD
@@ -260,7 +260,7 @@ const float BlockLightLux = 12800.0;
 const float MinWorldLux = 8.0;
 
 const float DaySkyLumen = 4800.0;
-const float DaySkyOvercastLumen = 1200.0;
+const float DaySkyOvercastLumen = 3200.0;
 const float NightSkyLumen = 4.0;
 const float NightSkyOvercastLumen = 1.0;
 

@@ -85,7 +85,7 @@ uniform float biomeSnowSmooth;
     #include "/lib/lighting/directional.glsl"
 #endif
 
-#include "/lib/world/porosity.glsl"
+#include "/lib/world/weather.glsl"
 #include "/lib/material/material_reader.glsl"
 #include "/lib/lighting/basic_gbuffers.glsl"
 #include "/lib/lighting/pbr_gbuffers.glsl"

@@ -1,5 +1,5 @@
 // returns: rgb=color  a=attenuation
-vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const in vec3 reflectDir, const in int lod) {
+vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const in vec3 reflectDir, const in float rough, const in int lod) {
     vec3 clipPos = unproject(gbufferProjection * vec4(viewPos, 1.0)) * 0.5 + 0.5;
     vec3 reflectClipPos = unproject(gbufferProjection * vec4(viewPos + reflectDir, 1.0)) * 0.5 + 0.5;
 
@@ -33,28 +33,54 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
 
     int i;
     float alpha = 0.0;
+    int level = int(3.99 * rough);
     float texDepth;
     vec3 tracePos;
+    vec3 lastTracePos = clipPos;
     for (i = 1; i <= SSR_MAXSTEPS && alpha < EPSILON; i++) {
-        tracePos = clipPos + i*screenRay;
+        tracePos = lastTracePos + screenRay*exp2(level);
 
         // if (tracePos.z >= 1.0) {
         //     alpha = 1.0;
         //     break;
         // }
 
-        if (clamp(tracePos, clipMin, clipMax) != tracePos) break;
+        if (clamp(tracePos, clipMin, clipMax) != tracePos) {
+            if (level <= 0) break;
+
+            level--;
+            continue;
+        }
 
         ivec2 iuv = ivec2(tracePos.xy * viewSize);
-        if (iuv == iuv_start) continue;
+        if (iuv == iuv_start) {
+            lastTracePos = tracePos;
+            continue;
+        }
 
-        texDepth = texelFetch(depthtex, iuv, 0).r;
-        if (texDepth > 1.0 - EPSILON || texDepth >= tracePos.z) continue;
+        //texDepth = texelFetch(depthtex, iuv, level).r;
+        texDepth = textureLod(depthtex, tracePos.xy, level).r;
 
-        if (screenRay.z > 0.0 && texDepth < clipPos.z) continue;
+        if (texDepth > 1.0 - EPSILON || texDepth >= tracePos.z) {
+            lastTracePos = tracePos;
+            continue;
+        }
+
+        if (screenRay.z > 0.0 && texDepth < clipPos.z) {
+            lastTracePos = tracePos;
+            continue;
+        }
 
         float d = 0.0001*(i*i);
-        if (linearizeDepthFast(texDepth, near, far) > linearizeDepthFast(tracePos.z, near, far) - d) continue;
+        if (linearizeDepthFast(texDepth, near, far) > linearizeDepthFast(tracePos.z, near, far) - d) {
+            lastTracePos = tracePos;
+            continue;
+        }
+
+        if (level > 0) {
+            level--;
+            continue;
+        }
 
         alpha = 1.0;
     }
@@ -67,8 +93,9 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
 
         // This is a weird idea to cleanup reflection noise by
         // mixing 75% of the exact pixel, and 25% of the mipmap
-        color = 0.75 * textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, 0).rgb / exposure;
-        color += 0.25 * textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, lod).rgb / exposure;
+        color = textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, lod).rgb / exposure;
+        //color = 0.75 * textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, 0).rgb / exposure;
+        //color += 0.25 * textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, lod).rgb / exposure;
     }
 
     return vec4(color, alpha);
