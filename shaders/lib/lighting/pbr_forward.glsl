@@ -378,7 +378,7 @@
                     // TODO: mix opacity?
                 }
 
-                #ifdef VL_ENABLED
+                #ifdef VL_SKY_ENABLED
                     vec3 viewNear = viewDir * near;
                     vec3 viewFar = viewDir * min(length(viewPos), far);
                     vec2 scatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);

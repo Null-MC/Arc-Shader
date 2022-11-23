@@ -197,7 +197,7 @@ void main() {
 
     vec4 shadowViewPos = gl_ModelViewMatrix * vec4(localPos, 1.0);
 
-    #if defined WATER_FANCY && defined VL_ENABLED
+    #if defined WATER_FANCY && defined VL_WATER_ENABLED
         viewPos = (gbufferModelView * vec4(localPos, 1.0)).xyz;
     #endif
 
@@ -228,7 +228,7 @@ void main() {
         #endif
     #endif
 
-    #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_ENABLED)
+    #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
         vec3 shadowViewNormal = normalize(gl_NormalMatrix * normal);
         vec3 shadowViewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
         vec3 shadowViewBinormal = normalize(cross(shadowViewTangent, shadowViewNormal) * at_tangent.w);

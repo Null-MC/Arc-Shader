@@ -121,7 +121,7 @@ void GetFog(const in LightData lightData, const in vec3 viewPos, out vec3 fogCol
         fogColorFinal = mix(fogColorFinal, caveFogColor, caveFogFactor);
     #endif
 
-    // #if defined SKY_ENABLED && !defined VL_ENABLED
+    // #if defined SKY_ENABLED && !defined VL_SKY_ENABLED
     //     vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor;
     //     color += maxFactor * GetVanillaSkyScattering(viewDir, lightData.skyLightLevels, sunColorFinal, moonColor);
     // #endif
@@ -172,10 +172,12 @@ vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunColorFinal, const 
         vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
         vec3 waterFogColor = vec3(0.0);
 
-        #if defined SKY_ENABLED && !defined VL_ENABLED
-            waterFogColor += 0.2 * waterScatterColor * lightColor;
-        #else
-            waterFogColor += 0.02 * waterScatterColor * lightColor;
+        #ifdef SKY_ENABLED
+            #ifndef VL_WATER_ENABLED
+                waterFogColor += 1.0 * waterScatterColor * lightColor;
+            #else
+                waterFogColor += 0.08 * waterScatterColor * lightColor;
+            #endif
         #endif
 
         float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);

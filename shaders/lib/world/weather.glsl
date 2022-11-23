@@ -11,27 +11,28 @@ vec3 WetnessDarkenSurface(const in vec3 albedo, const in float porosity, const i
 
         float upF = smoothstep(-0.2, 1.0, NoU);
         float accum = saturate(8.0 * (0.96875 - skyLight));
-        float skyWetness = saturate(upF - accum);
+        //float skyWetness = saturate(upF - accum);
 
-        float skyAreaWetness = saturate(saturate(upF - accum) * weatherNoise * skyWetnessSmooth);
+        float skyAreaWetness = saturate(upF - accum) * weatherNoise * skyWetnessSmooth;
+        //skyAreaWetness = pow(skyAreaWetness, 0.5);
 
         #if WETNESS_MODE == WEATHER_MODE_FULL
-            float biomeAreaWetness = upF * saturate(weatherNoise - biomeWetnessSmooth) * biomeWetnessSmooth;
-            float totalAreaWetness = max(biomeAreaWetness, skyAreaWetness);
+            float biomeAreaWetness = upF * saturate(weatherNoise - (1.0 - biomeWetnessSmooth)) * biomeWetnessSmooth;
+            float totalAreaWetness = saturate(2.0 * max(biomeAreaWetness, skyAreaWetness));
         #else
-            float totalAreaWetness = skyAreaWetness;
+            float totalAreaWetness = saturate(2.0 * skyAreaWetness);
         #endif
 
         if (totalAreaWetness < EPSILON) return;
 
         material.albedo.rgb = WetnessDarkenSurface(material.albedo.rgb, material.porosity, totalAreaWetness);
 
-        float puddleF = smoothstep(0.7, 0.8, totalAreaWetness) * max(NoU, EPSILON);// * pow2(wetnessFinal);
+        float puddleF = smoothstep(0.70, 0.72, totalAreaWetness) * max(NoU, EPSILON);// * pow2(wetnessFinal);
 
         material.normal = mix(material.normal, vec3(0.0, 0.0, 1.0), puddleF);
         material.normal = normalize(material.normal);
         
-        float surfaceWetness = saturate(3.0*totalAreaWetness - material.porosity);
+        float surfaceWetness = saturate(totalAreaWetness - material.porosity);
         surfaceWetness = max(surfaceWetness, puddleF);
 
         material.smoothness = mix(material.smoothness, WATER_SMOOTH, surfaceWetness);

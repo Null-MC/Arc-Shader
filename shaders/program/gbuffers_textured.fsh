@@ -79,7 +79,7 @@ flat in vec3 blockLightColor;
                 uniform mat4 shadowProjection;
             #endif
 
-            #if defined VL_ENABLED //&& defined VL_PARTICLES
+            #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED //&& defined VL_PARTICLES
                 //uniform sampler2D noisetex;
             
                 uniform mat4 shadowModelViewInverse;
@@ -165,7 +165,7 @@ uniform float waterFogDistSmooth;
 
 #include "/lib/world/fog.glsl"
 
-#if defined SKY_ENABLED && defined VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE //&& defined VL_PARTICLES
+#if defined SKY_ENABLED && (defined VL_SKY_ENABLED || defined VL_WATER_ENABLED) && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE //&& defined VL_PARTICLES
     #include "/lib/lighting/volumetric.glsl"
 #endif
 

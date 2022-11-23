@@ -64,7 +64,7 @@ uniform int entityId;
    uniform float alphaTestRef;
 #endif
 
-// #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_ENABLED)
+// #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_WATER_ENABLED)
 //     uniform sampler2D normals;
 // #endif
 
@@ -104,7 +104,7 @@ uniform int entityId;
 //#if defined SHADOW_COLOR || (defined SSS_ENABLED && !defined RSM_ENABLED)
     out vec4 outColor0;
 //#endif
-//#if defined RSM_ENABLED || (defined SSS_ENABLED && defined SHADOW_COLOR) || (defined WATER_FANCY && defined VL_ENABLED)
+//#if defined RSM_ENABLED || (defined SSS_ENABLED && defined SHADOW_COLOR) || (defined WATER_FANCY && defined VL_WATER_ENABLED)
     out uvec2 outColor1;
 //#endif
 
@@ -149,7 +149,7 @@ void main() {
     }
 
     vec3 normal = vec3(0.0, 0.0, 1.0);
-    #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_ENABLED)
+    #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_WATER_ENABLED)
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
             vec2 normalMap = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).rg;
             normal = GetLabPbr_Normal(normalMap);
@@ -178,20 +178,20 @@ void main() {
             float finalDepth = GetWaves(waterWorldPos, waveDepth, octaves) * waveDepth * WATER_NORMAL_STRENGTH;
             vec3 waterPos = vec3(waterWorldPos.x, waterWorldPos.y, finalDepth);
 
-            normal = normalize(
+            normal = -normalize(
                 cross(
                     dFdx(waterPos),
                     dFdy(waterPos))
                 );
 
             // This is really weird, not sure who's fault this is
-            #if SHADER_PLATFORM != PLATFORM_IRIS
-                normal = -normal;
-            #endif
+            // #if SHADER_PLATFORM != PLATFORM_IRIS
+            //     normal = -normal;
+            // #endif
         }
     #endif
 
-    #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_ENABLED)
+    #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_WATER_ENABLED)
         //vec3 shadowViewNormal = matShadowViewTBN * normal;
         //vec3 viewNormal = matViewTBN * normal;
     #endif
@@ -217,7 +217,7 @@ void main() {
         #endif
     #endif
 
-    #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_ENABLED)
+    #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_WATER_ENABLED)
         #ifdef RSM_ENABLED
             vec3 albedo = mix(vec3(0.0), sampleColor.rgb, sampleColor.a);
             vec2 specularMap = textureGrad(specular, texcoord, dFdXY[0], dFdXY[1]).rg;

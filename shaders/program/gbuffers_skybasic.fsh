@@ -66,7 +66,7 @@ void main() {
         color += starF * StarLumen;
     }
 
-    #ifndef VL_ENABLED
+    #ifndef VL_SKY_ENABLED
         vec2 skyLightLevels = GetSkyLightLevels();
         vec3 sunColorFinal = sunTransmittanceEye * sunColor;
         vec3 moonColorFinal = moonTransmittanceEye * moonColor;

@@ -107,7 +107,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
     #ifdef SKY_ENABLED
         vec2 scatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
 
-        #ifndef VL_ENABLED
+        #ifndef VL_SKY_ENABLED
             vec3 lightColor = scatteringF.x * sunColorFinalEye + scatteringF.y * moonColorFinalEye;
             fogColorFinal += lightColor * RGBToLinear(fogColor);
         #endif
@@ -115,7 +115,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
 
     ApplyFog(final, fogColorFinal, fogFactor, 1.0/255.0);
 
-    #if defined SKY_ENABLED && defined VL_ENABLED
+    #if defined SKY_ENABLED && defined VL_SKY_ENABLED
         vec3 viewNear = viewDir * near;
 
         final.rgb += GetVolumetricLighting(lightData, viewNear, viewPos, scatteringF);

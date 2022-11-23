@@ -118,7 +118,7 @@ vec3 GetVolumetricLighting(const in LightData lightData, const in vec3 viewNear,
                 if (shadowPos.z - transparentShadowDepth >= EPSILON) {
                     vec3 shadowColor = GetShadowColor(shadowPos.xy);
 
-                    if (all(greaterThan(shadowColor, vec3(EPSILON)))) shadowColor = vec3(1.0);
+                    if (!any(greaterThan(shadowColor, vec3(EPSILON)))) shadowColor = vec3(1.0);
                     else shadowColor = normalize(shadowColor) * 2.0;
 
                     sampleColor *= shadowColor;

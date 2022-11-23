@@ -195,9 +195,10 @@
             }
         #endif
 
-        if (isEyeInWater == 1) {
-            material.albedo.rgb = WetnessDarkenSurface(material.albedo.rgb, material.porosity, 1.0);
-        }
+        // WARN: disabling until this can be properly integrated out of water!
+        // if (isEyeInWater == 1) {
+        //     material.albedo.rgb = WetnessDarkenSurface(material.albedo.rgb, material.porosity, 1.0);
+        // }
 
         WriteMaterial(material, colorMap, normalMap, specularMap);
 

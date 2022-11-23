@@ -206,7 +206,7 @@ uniform float waterFogDistSmooth;
             #include "/lib/shadows/csm_render.glsl"
         #endif
 
-        #ifdef VL_ENABLED
+        #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
             #include "/lib/lighting/volumetric.glsl"
         #endif
     #endif
@@ -391,7 +391,7 @@ void main() {
                 vec2 waterScatteringF = GetWaterScattering(viewDir);
                 color = GetWaterFogColor(viewDir, sunColorFinalEye, moonColorFinalEye, waterScatteringF);
 
-                #ifdef VL_ENABLED
+                #ifdef VL_WATER_ENABLED
                     vec3 nearPos = viewDir * near;
                     vec3 farPos = viewDir * min(far, waterFogDistSmooth);
 
@@ -447,7 +447,7 @@ void main() {
                 color = mix(color, cloudColor, cloudF);
             }
 
-            #ifdef VL_ENABLED
+            #ifdef VL_SKY_ENABLED
                 // if (lightData.opaqueScreenDepth + EPSILON < 1.0) {
                 //     float envFogStart = 8.0;
                 //     float envFogEnd = min(fogEnd, far);

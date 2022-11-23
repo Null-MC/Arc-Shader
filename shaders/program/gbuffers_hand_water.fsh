@@ -205,7 +205,7 @@ uniform float waterFogDistSmooth;
             #include "/lib/shadows/basic_render.glsl"
         #endif
 
-        #ifdef VL_ENABLED
+        #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
             #include "/lib/lighting/volumetric.glsl"
         #endif
     #endif
