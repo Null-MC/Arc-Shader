@@ -38,8 +38,11 @@ flat in int materialId;
     flat in float matSSS;
 #endif
 
-#if defined RSM_ENABLED || defined WATER_FANCY
+#if defined RSM_ENABLED || (defined WATER_FANCY)
     in vec3 viewPos;
+#endif
+
+#if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
     flat in mat3 matShadowViewTBN;
 #endif
 
@@ -191,11 +194,6 @@ void main() {
         }
     #endif
 
-    #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_WATER_ENABLED)
-        //vec3 shadowViewNormal = matShadowViewTBN * normal;
-        //vec3 viewNormal = matViewTBN * normal;
-    #endif
-
     float sss = 0.0;
     #ifdef SSS_ENABLED
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
@@ -217,7 +215,7 @@ void main() {
         #endif
     #endif
 
-    #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_WATER_ENABLED)
+    #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
         #ifdef RSM_ENABLED
             vec3 albedo = mix(vec3(0.0), sampleColor.rgb, sampleColor.a);
             vec2 specularMap = textureGrad(specular, texcoord, dFdXY[0], dFdXY[1]).rg;
@@ -242,11 +240,16 @@ void main() {
             vec3 diffuse = vec3(0.0);
         #endif
         
-        vec3 shadowViewNormal = matShadowViewTBN * normal;
+        vec3 shadowViewNormal = (matShadowViewTBN * normal) * 0.5 + 0.5;
+    #else
+        vec3 diffuse = vec3(0.0);
+        vec3 shadowViewNormal = vec3(0.0);
+    #endif
 
+    #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_WATER_ENABLED)
         uvec2 data;
         data.r = packUnorm4x8(vec4(LinearToRGB(diffuse), 1.0));
-        data.g = packUnorm4x8(vec4(shadowViewNormal * 0.5 + 0.5, sss));
+        data.g = packUnorm4x8(vec4(shadowViewNormal, sss));
         outColor1 = data;
     #endif
 }

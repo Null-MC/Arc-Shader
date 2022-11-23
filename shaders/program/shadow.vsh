@@ -17,6 +17,9 @@ flat out int materialId;
 
 #if defined RSM_ENABLED || defined WATER_FANCY
     out vec3 viewPos;
+#endif
+
+#if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
     flat out mat3 matShadowViewTBN;
 #endif
 

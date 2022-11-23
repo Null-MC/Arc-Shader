@@ -31,18 +31,18 @@
 #ifdef RENDER_FRAG
     #ifdef SKY_ENABLED
         vec3 GetSkyReflectionColor(const in LightData lightData, const in vec3 localPos, const in vec3 viewDir, const in vec3 reflectDir) {
-            vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor;
-            vec3 moonColorFinal = lightData.moonTransmittanceEye * moonColor;
+            vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor * max(lightData.skyLightLevels.x, 0.0);
+            vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * max(lightData.skyLightLevels.y, 0.0);
 
             #ifdef RENDER_WATER
                 if (materialId == MATERIAL_WATER && isEyeInWater == 1) {
                     vec2 waterScatteringF = GetWaterScattering(reflectDir);
-                    //vec3 waterLightColor = GetWaterScatterColor(reflectDir, sunColorFinal, moonColorFinal);
-                    vec3 waterFogColor = GetWaterFogColor(reflectDir, sunColorFinal, moonColorFinal, waterScatteringF);
+                    //vec3 waterLightColor = GetWaterScatterColor(reflectDir, sunColorFinalEye, moonColorFinalEye);
+                    vec3 waterFogColor = GetWaterFogColor(reflectDir, sunColorFinalEye, moonColorFinalEye, waterScatteringF);
 
                     //#if defined SKY_ENABLED && !defined VL_WATER_ENABLED
                     float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
-                    vec3 vlColor = waterScatteringF.x * sunColorFinal + waterScatteringF.y * moonColorFinal;
+                    vec3 vlColor = waterScatteringF.x * sunColorFinalEye + waterScatteringF.y * moonColorFinalEye;
                     waterFogColor += 0.2 * waterScatterColor * vlColor * pow3(eyeLight);
                     //#endif
 
@@ -54,13 +54,18 @@
             vec3 skyColor = GetVanillaSkyLuminance(reflectDir);
             float horizonFogF = 1.0 - abs(localReflectDir.y);
 
-            vec2 scatteringF = GetVanillaSkyScattering(reflectDir, lightData.skyLightLevels);
-            vec3 vlColor = RGBToLinear(fogColor) * (scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal);
-            skyColor += vlColor * (1.0 - horizonFogF);
-
-            vec3 starF = GetStarLight(normalize(localReflectDir));
+            vec3 starF = GetStarLight(localReflectDir);
             starF *= 1.0 - horizonFogF;
             skyColor += starF * StarLumen;
+
+            vec2 scatteringF = GetVanillaSkyScattering(reflectDir, lightData.skyLightLevels);
+            vec3 vlColor = scatteringF.x * sunColorFinalEye + scatteringF.y * moonColorFinalEye;
+
+            #ifndef VL_SKY_ENABLED
+                vlColor *= RGBToLinear(fogColor);
+            #endif
+
+            skyColor += vlColor;// * (1.0 - horizonFogF);
 
             vec3 cloudColor = GetCloudColor(lightData.skyLightLevels);
             float cloudF = GetCloudFactor(cameraPosition + localPos, localReflectDir);
@@ -164,8 +169,10 @@
                     shadow *= GetShadowing(lightData);
 
                 #ifdef SHADOW_COLOR
-                    shadowColor = GetShadowColor(lightData.shadowPos.xy);
-                    //shadowColor = RGBToLinear(shadowColor);
+                    if (lightData.shadowPos.z - lightData.transparentShadowDepth > lightData.shadowBias)
+                        shadowColor = GetShadowColor(lightData.shadowPos.xy);
+
+                    shadowColor = RGBToLinear(shadowColor);
                     skyLightColorFinal *= shadowColor;
                 #endif
 
@@ -620,6 +627,7 @@
                 #endif
 
                 ambient = vec3(0.0);
+                //return vec4(reflectColor, 1.0);
             }
         #endif
 

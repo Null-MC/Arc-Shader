@@ -53,8 +53,8 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
         ambient += GetSkyAmbientLight(lightData, viewNormal) * ambientBrightness;
 
         #ifndef RENDER_WEATHER
-            vec3 sunColorFinal = lightData.sunTransmittance * sunColor;// * GetSunLux();
-            vec3 moonColorFinal = lightData.moonTransmittance * moonColor * GetMoonPhaseLevel();// * GetMoonLux();
+            vec3 sunColorFinal = lightData.sunTransmittance * sunColor * max(lightData.skyLightLevels.x, 0.0);// * GetSunLux();
+            vec3 moonColorFinal = lightData.moonTransmittance * moonColor * max(lightData.skyLightLevels.y, 0.0) * GetMoonPhaseLevel();// * GetMoonLux();
             vec3 skyLightColor = sunColorFinal + moonColorFinal;
             diffuse += albedo.rgb * lightData.geoNoL * skyLightColor * shadowColor * shadow * skyLight3;
         #endif

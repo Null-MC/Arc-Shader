@@ -150,30 +150,27 @@
             //vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
 
             //vec3 sunLightLux = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
-            vec3 sunColorFinal = lightData.sunTransmittance * GetSunLuxColor();
-            sunColorFinal *= dot(normal, sunLightDir) * 0.1 + 0.3;
+            vec3 sunColorFinal = lightData.sunTransmittance * GetSunLuxColor() * max(skyLightLevels.x, 0.0);
+            vec3 result = sunColorFinal * (dot(normal, sunLightDir) * 0.2 + 0.3);
 
             //vec3 moonLightLux = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);
-            vec3 moonColorFinal = lightData.moonTransmittance * GetMoonLuxColor();
-            moonColorFinal *= dot(normal, moonLightDir) * 0.1 + 0.3;
+            vec3 moonColorFinal = lightData.moonTransmittance * GetMoonLuxColor() * max(skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
+            result += moonColorFinal * (dot(normal, moonLightDir) * 0.2 + 0.3);
 
             // float skyLux = skyLightLevels.x * DaySkyLux + skyLightLevels.y * NightSkyLux;
             // vec3 skyLightColorLux = RGBToLinear(skyColor) * skyLux;
             // skyLightColorLux *= saturate(dot(normal, upDir) * 0.3 + 0.6);
 
             vec3 skyColorLux = RGBToLinear(skyColor);// * skyTint;
-            if (dot(skyColorLux, skyColorLux) < EPSILON) skyColorLux = vec3(1.0);
+            if (all(lessThan(skyColorLux, vec3(EPSILON)))) skyColorLux = vec3(1.0);
             skyColorLux = normalize(skyColorLux);
 
-            //vec2 skyLightLevels = GetSkyLightLevels();
-            float lightLevel = saturate(0.08 + 0.92 * skyLightLevels.x);
-            float dayNightF = smoothstep(0.0, 1.0, lightLevel);
-            //float dayNightF = 1.0 - pow(1.0 - lightLevel, 2.0);
-            float skyLux = mix(GetMoonLux(), GetSunLux(), dayNightF);// + MinWorldLux;
-            skyColorLux *= mix(0.4, 0.01, wetness) * skyLux;
+            result += (sunColorFinal + moonColorFinal) * skyColorLux * mix(0.6, 0.01, wetness);
 
             //return MinWorldLux + sunLightLux + moonLightLux;
-            return sunColorFinal + moonColorFinal + skyColorLux;
+            result += skyColorLux;
+
+            return result;
         }
     #endif
 #endif

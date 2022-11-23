@@ -209,7 +209,7 @@ const bool colortex12Clear = false;
 //#define PARTICLE_ROUNDING
 #define HCM_LAZANYI
 #define METAL_AMBIENT 1.0
-#define POROSITY_DARKENING 0.7
+#define POROSITY_DARKENING 0.8
 //#define SHADOW_CONTACT_DITHER
 //#define SKY_DITHER
 //#define AF_ENABLED

@@ -174,7 +174,7 @@ void main() {
 
     #ifdef SKY_ENABLED
         sunColor = GetSunLuxColor();
-        moonColor = GetMoonLuxColor() * GetMoonPhaseLevel();
+        moonColor = GetMoonLuxColor();// * GetMoonPhaseLevel();
         skyLightLevels = GetSkyLightLevels();
     #endif
 

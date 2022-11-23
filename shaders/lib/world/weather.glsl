@@ -18,22 +18,23 @@ vec3 WetnessDarkenSurface(const in vec3 albedo, const in float porosity, const i
 
         #if WETNESS_MODE == WEATHER_MODE_FULL
             float biomeAreaWetness = upF * saturate(weatherNoise - (1.0 - biomeWetnessSmooth)) * biomeWetnessSmooth;
-            float totalAreaWetness = saturate(2.0 * max(biomeAreaWetness, skyAreaWetness));
+            float totalAreaWetness = saturate(max(biomeAreaWetness, skyAreaWetness));
         #else
-            float totalAreaWetness = saturate(2.0 * skyAreaWetness);
+            float totalAreaWetness = saturate(skyAreaWetness);
         #endif
 
         if (totalAreaWetness < EPSILON) return;
+        //totalAreaWetness = pow(totalAreaWetness, 0.5);
 
         material.albedo.rgb = WetnessDarkenSurface(material.albedo.rgb, material.porosity, totalAreaWetness);
-
-        float puddleF = smoothstep(0.70, 0.72, totalAreaWetness) * max(NoU, EPSILON);// * pow2(wetnessFinal);
-
-        material.normal = mix(material.normal, vec3(0.0, 0.0, 1.0), puddleF);
-        material.normal = normalize(material.normal);
         
-        float surfaceWetness = saturate(totalAreaWetness - material.porosity);
+        float surfaceWetness = saturate(2.0 * totalAreaWetness - material.porosity);
+
+        float puddleF = smoothstep(0.4, 0.5, surfaceWetness) * max(NoU, EPSILON);// * pow2(wetnessFinal);
         surfaceWetness = max(surfaceWetness, puddleF);
+
+        material.normal = mix(material.normal, vec3(0.0, 0.0, 1.0), surfaceWetness);
+        material.normal = normalize(material.normal);
 
         material.smoothness = mix(material.smoothness, WATER_SMOOTH, surfaceWetness);
         material.f0 = mix(material.f0, 0.02, surfaceWetness * (1.0 - material.f0));
@@ -107,7 +108,7 @@ vec3 WetnessDarkenSurface(const in vec3 albedo, const in float porosity, const i
         float noise2 = 1.0 - texture(noisetex, 0.05*weatherTex).r;
         float noise3 = texture(noisetex, 0.20*weatherTex).r;
 
-        float weatherNoise = 1.00 * noise1 + 0.50 * noise2 + 0.25 * noise3;
+        float weatherNoise = noise1 + 0.6 * noise2 + 0.4 * noise3;
 
         #if WETNESS_MODE != WEATHER_MODE_NONE
             ApplyWetness(material, weatherNoise, NoU, skyLight);

@@ -56,7 +56,7 @@ void main() {
     gl_Position = ftransform();
 
     sunColor = GetSunLuxColor();
-    moonColor = GetMoonLuxColor() * GetMoonPhaseLevel();
+    moonColor = GetMoonLuxColor();// * GetMoonPhaseLevel();
 
     vec2 skyLightLevels = GetSkyLightLevels();
     sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);

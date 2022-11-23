@@ -382,8 +382,8 @@ void main() {
     // SKY
     if (lightData.opaqueScreenDepth > 1.0 - EPSILON) {
         #ifdef SKY_ENABLED
-            vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor;
-            vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor;
+            vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor * max(lightData.skyLightLevels.x, 0.0);
+            vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * max(lightData.skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
         #endif
 
         if (isEyeInWater == 1) {

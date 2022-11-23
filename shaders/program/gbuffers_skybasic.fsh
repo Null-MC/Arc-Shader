@@ -68,8 +68,8 @@ void main() {
 
     #ifndef VL_SKY_ENABLED
         vec2 skyLightLevels = GetSkyLightLevels();
-        vec3 sunColorFinal = sunTransmittanceEye * sunColor;
-        vec3 moonColorFinal = moonTransmittanceEye * moonColor;
+        vec3 sunColorFinal = sunTransmittanceEye * sunColor * max(skyLightLevels.x, 0.0);
+        vec3 moonColorFinal = moonTransmittanceEye * moonColor * max(skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
         vec2 scatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
         vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
 

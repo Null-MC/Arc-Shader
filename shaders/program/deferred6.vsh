@@ -100,8 +100,8 @@ void main() {
     #ifdef SKY_ENABLED
         sunColor = GetSunLuxColor();
         moonColor = GetMoonLuxColor();// * GetMoonPhaseLevel();
-        skyLightLevels = GetSkyLightLevels();
 
+        skyLightLevels = GetSkyLightLevels();
         sunTransmittanceEye = GetSunTransmittance(colortex7, eyeAltitude, skyLightLevels.x);
         moonTransmittanceEye = GetMoonTransmittance(colortex7, eyeAltitude, skyLightLevels.y);
 
