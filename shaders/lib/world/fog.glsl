@@ -161,7 +161,7 @@ vec2 GetWaterScattering(const in vec3 viewDir) {
             ComputeVolumetricScattering(moon_VoL, 0.6) +
             ComputeVolumetricScattering(moon_VoL, -0.2);
 
-        return 0.5 * max(scatteringF, vec2(0.0));
+        return max(scatteringF, vec2(0.0));
     #else
         return vec2(0.0);
     #endif
@@ -177,7 +177,7 @@ vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunColorFinal, const 
                 waterFogColor += 1.0 * waterScatterColor * lightColor;
             #else
                 vec3 lightColor = sunColorFinal + moonColorFinal;
-                waterFogColor += 0.02 * waterScatterColor * lightColor;
+                waterFogColor += 0.004 * waterScatterColor * lightColor;
             #endif
         #endif
 
