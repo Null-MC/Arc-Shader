@@ -72,7 +72,7 @@ const bool colortex12Clear = false;
 #define WATER_WAVE_DEPTH 1.0
 #define WATER_RESOLUTION 2048
 #define WATER_NORMAL_STRENGTH 0.15
-#define WATER_ABSROPTION_RATE 0.7
+#define WATER_ABSROPTION_RATE 1.0
 #define VL_WATER_ENABLED
 
 

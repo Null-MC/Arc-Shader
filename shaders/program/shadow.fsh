@@ -149,7 +149,7 @@ void main() {
     }
 
     vec3 normal = vec3(0.0, 0.0, 1.0);
-    #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_WATER_ENABLED)
+    #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
             vec2 normalMap = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).rg;
             normal = GetLabPbr_Normal(normalMap);

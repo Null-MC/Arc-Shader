@@ -161,7 +161,7 @@ vec2 GetWaterScattering(const in vec3 viewDir) {
             ComputeVolumetricScattering(moon_VoL, 0.6) +
             ComputeVolumetricScattering(moon_VoL, -0.2);
 
-        return 0.3 * max(scatteringF, vec2(0.0));
+        return 0.5 * max(scatteringF, vec2(0.0));
     #else
         return vec2(0.0);
     #endif
@@ -169,14 +169,15 @@ vec2 GetWaterScattering(const in vec3 viewDir) {
 
 vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunColorFinal, const in vec3 moonColorFinal, const in vec2 scatteringF) {
     #ifdef SKY_ENABLED
-        vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
         vec3 waterFogColor = vec3(0.0);
 
         #ifdef SKY_ENABLED
             #ifndef VL_WATER_ENABLED
+                vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
                 waterFogColor += 1.0 * waterScatterColor * lightColor;
             #else
-                waterFogColor += 0.08 * waterScatterColor * lightColor;
+                vec3 lightColor = sunColorFinal + moonColorFinal;
+                waterFogColor += 0.02 * waterScatterColor * lightColor;
             #endif
         #endif
 

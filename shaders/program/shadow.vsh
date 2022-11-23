@@ -132,6 +132,7 @@ void main() {
     #endif
 
     vec3 normal = gl_Normal;
+    vec3 shadowViewNormal = normalize(gl_NormalMatrix * normal);
 
     #if defined ENABLE_WAVING || WATER_WAVE_TYPE == WATER_WAVE_VERTEX
         float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
@@ -164,6 +165,13 @@ void main() {
 
         //vec3 shadowViewNormal = normalize(gl_NormalMatrix * normal);
         //vec3 worldNormal = mat3(shadowModelViewInverse) * shadowViewNormal;
+
+        #if SHADER_PLATFORM == PLATFORM_IRIS
+            if (shadowViewNormal.z <= 0.0) {
+                gl_Position = vec4(10.0);
+                return;
+            }
+        #endif
 
         if (gl_Normal.y > 0.5) {
             #ifdef WATER_FANCY
@@ -229,7 +237,7 @@ void main() {
     #endif
 
     #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
-        vec3 shadowViewNormal = normalize(gl_NormalMatrix * normal);
+        //vec3 shadowViewNormal = normalize(gl_NormalMatrix * normal);
         vec3 shadowViewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
         vec3 shadowViewBinormal = normalize(cross(shadowViewTangent, shadowViewNormal) * at_tangent.w);
 
