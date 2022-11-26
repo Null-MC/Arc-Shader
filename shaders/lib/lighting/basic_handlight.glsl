@@ -8,7 +8,7 @@ vec3 _ApplyHandLighting(const in vec3 albedo, const in vec3 lightPos, const in i
     float attenuation = GetHandLightAttenuation(lightLevel, lightDist);
     if (attenuation < EPSILON) return vec3(0.0);
 
-    return albedo * blockLightColor * attenuation;
+    return invPI * albedo * blockLightColor * attenuation;
 }
 
 vec3 ApplyHandLighting(const in vec3 albedo, const in vec3 viewPos) {
