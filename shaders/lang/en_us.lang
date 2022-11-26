@@ -198,6 +198,7 @@ option.shadowDistance.comment=How far away shadows will be rendered.
 
 option.SHADOW_PCF_SIZE=PCF Radius
 option.SHADOW_PCF_SIZE.comment=The radius of the shadow blurring using a block-sized scale.
+suffix.SHADOW_PCF_SIZE=%
 
 option.SHADOW_PCF_SAMPLES=PCF Samples
 option.SHADOW_PCF_SAMPLES.comment=The number of samples to use when blurring.

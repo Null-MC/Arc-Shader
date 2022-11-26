@@ -20,15 +20,15 @@ float GetWaves(const in vec2 position, const in float strength, const in int ite
     float weight = 1.0;//max(waveSpeed, 0.3) + 0.1;
     float maxWeight = 0.0;//max(1.0 - 0.2*waveSpeed, 0.0);
 
-    float dragF = mix(0.048, 0.066, strength);
+    float dragF = 0.086;//mix(0.048, 0.066, strength);
 
     float iter = 0.0;
-    float speed = 2.0;
-    float phase = 6.0;//2.0*PI;
+    float speed = 7.3;
+    float phase = 4.8;//2.0*PI;
     float accumWeight = 0.0;//maxWeight;
 
-    float time = (frameTimeCounter / 3.6) * 3.6;
-    vec2 pos = position * 0.5;
+    float time = frameTimeCounter / 3.6;
+    vec2 pos = position;
 
     for (int i = 0; i < iterations; i++) {
         vec2 direction = vec2(sin(iter), cos(iter));
@@ -42,8 +42,9 @@ float GetWaves(const in vec2 position, const in float strength, const in int ite
         weight *= 0.81;
 
         iter += 12.0;
-        phase *= 1.19;
-        speed *= 1.07;
+        phase *= 1.18;
+        speed *= 1.09;
+        dragF *= 0.86;
     }
 
     return accumWeight / max(maxWeight, EPSILON);

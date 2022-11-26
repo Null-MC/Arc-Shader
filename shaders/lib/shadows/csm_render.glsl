@@ -270,10 +270,12 @@ float GetCascadeBias(const in float geoNoL, const in int cascade) {
         }
 
         float GetShadowing(const in LightData lightData) {
+            const float shadowPcfSize = SHADOW_PCF_SIZE * 0.01;
+
             // blocker search
             int cascade;
             int blockerSampleCount = POISSON_SAMPLES;
-            float blockerDistance = FindBlockerDistance(lightData, SHADOW_PCF_SIZE, blockerSampleCount, cascade);
+            float blockerDistance = FindBlockerDistance(lightData, shadowPcfSize, blockerSampleCount, cascade);
             if (cascade < 0 || blockerDistance <= 0.0) return 1.0;
             if (blockerDistance == 1.0) return 0.0;
 
@@ -281,7 +283,7 @@ float GetCascadeBias(const in float geoNoL, const in int cascade) {
             float penumbraWidth = (lightData.shadowPos[cascade].z - blockerDistance) / blockerDistance;
 
             // percentage-close filtering
-            float blockRadius = min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0) * SHADOW_PCF_SIZE; // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
+            float blockRadius = min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0) * shadowPcfSize; // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
 
             int pcfSampleCount = POISSON_SAMPLES;
             //vec2 pixelRadius = GetPixelRadius(cascade, blockRadius);
@@ -292,11 +294,13 @@ float GetCascadeBias(const in float geoNoL, const in int cascade) {
     #elif SHADOW_FILTER == 1
         // PCF
         float GetShadowing(const in LightData lightData) {
+            const float shadowPcfSize = SHADOW_PCF_SIZE * 0.01;
+            
             int sampleCount = POISSON_SAMPLES;
             //vec2 pixelRadius = GetPixelRadius(cascade, SHADOW_PCF_SIZE);
             //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
-            return 1.0 - GetShadowing_PCF(lightData, SHADOW_PCF_SIZE, sampleCount);
+            return 1.0 - GetShadowing_PCF(lightData, shadowPcfSize, sampleCount);
         }
     #elif SHADOW_FILTER == 0
         // Unfiltered
