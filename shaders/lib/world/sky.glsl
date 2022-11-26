@@ -41,8 +41,7 @@ vec2 GetSkyLightLevels() {
     vec3 GetVanillaSkyLuminance(const in vec3 viewDir) {
         vec2 skyLightLevels = GetSkyLightLevels();
 
-        float lightLevel = saturate(skyLightLevels.x);
-        float dayNightF = smoothstep(0.1, 0.6, lightLevel);
+        float dayNightF = smoothstep(-0.1, 0.6, skyLightLevels.x);
         float daySkyLumenFinal = mix(DaySkyLumen, DaySkyOvercastLumen, rainStrength);
         float nightSkyLumenFinal = mix(NightSkyLumen, NightSkyOvercastLumen, rainStrength);
         float skyLumen = mix(nightSkyLumenFinal, daySkyLumenFinal, dayNightF);

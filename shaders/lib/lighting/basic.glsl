@@ -168,7 +168,7 @@
             result += (sunColorFinal + moonColorFinal) * skyColorLux * mix(0.6, 0.01, wetness);
 
             //return MinWorldLux + sunLightLux + moonLightLux;
-            result += skyColorLux;
+            //result += skyColorLux;
 
             return result;
         }
