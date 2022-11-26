@@ -41,10 +41,10 @@ vec3 GetCloudColor(const in vec2 skyLightLevels) {
 		vec3 moonTransmittance = GetMoonTransmittance(colortex9, CLOUD_Y_LEVEL, skyLightLevels.y);
 	#endif
 
-    vec3 cloudSunColor = sunTransmittance * GetSunLuxColor() * skyLightLevels.x;
+    vec3 cloudSunColor = sunTransmittance * GetSunLuxColor() * smoothstep(-0.06, 0.6, skyLightLevels.x);
     //cloudSunColor *= smoothstep(-0.08, 1.0, skyLightLevels.x);
 
-    vec3 cloudMoonColor = moonTransmittance * GetMoonLuxColor() * GetMoonPhaseLevel() * skyLightLevels.y;
+    vec3 cloudMoonColor = moonTransmittance * GetMoonLuxColor() * GetMoonPhaseLevel() * smoothstep(-0.06, 0.6, skyLightLevels.y);
     //cloudSunColor *= smoothstep(-0.08, 1.0, skyLightLevels.y);
 
     return (cloudSunColor + cloudMoonColor) * pow(1.0 - rainStrength, 2.0) * CLOUD_COLOR;

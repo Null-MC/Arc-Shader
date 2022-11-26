@@ -37,11 +37,13 @@ void main() {
         lumF = sunLumen;
         color *= sunColor * sunTransmittanceEye * 100000.0 * (1.0 - 0.7 * rainStrength);//sunLumen
         lum *= luminance(sunColor * sunTransmittanceEye);
+        alpha *= min(luminance(sunTransmittanceEye), 1.0);
     }
     else if (renderStage == MC_RENDER_STAGE_MOON) {
         lumF = moonLumen;
         color *= moonColor * moonTransmittanceEye * moonLumen;
         lum *= luminance(moonColor * moonTransmittanceEye);
+        alpha *= min(luminance(moonTransmittanceEye), 1.0);
     }
     // else if (renderStage == MC_RENDER_STAGE_CUSTOM_SKY) {
     //     lumF = 10000.0;

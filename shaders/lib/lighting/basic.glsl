@@ -150,11 +150,11 @@
             //vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
 
             //vec3 sunLightLux = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
-            vec3 sunColorFinal = lightData.sunTransmittance * GetSunLuxColor() * max(skyLightLevels.x, 0.0);
+            vec3 sunColorFinal = lightData.sunTransmittance * GetSunLuxColor() * smoothstep(-0.06, 0.6, skyLightLevels.x);
             vec3 result = sunColorFinal * (dot(normal, sunLightDir) * 0.2 + 0.3);
 
             //vec3 moonLightLux = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);
-            vec3 moonColorFinal = lightData.moonTransmittance * GetMoonLuxColor() * max(skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
+            vec3 moonColorFinal = lightData.moonTransmittance * GetMoonLuxColor() * GetMoonPhaseLevel() * smoothstep(-0.06, 0.6, skyLightLevels.y);
             result += moonColorFinal * (dot(normal, moonLightDir) * 0.2 + 0.3);
 
             // float skyLux = skyLightLevels.x * DaySkyLux + skyLightLevels.y * NightSkyLux;

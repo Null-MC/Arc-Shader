@@ -41,7 +41,7 @@ vec2 GetSkyLightLevels() {
     vec3 GetVanillaSkyLuminance(const in vec3 viewDir) {
         vec2 skyLightLevels = GetSkyLightLevels();
 
-        float dayNightF = smoothstep(-0.1, 0.6, skyLightLevels.x);
+        float dayNightF = smoothstep(-0.06, 0.6, skyLightLevels.x);
         float daySkyLumenFinal = mix(DaySkyLumen, DaySkyOvercastLumen, rainStrength);
         float nightSkyLumenFinal = mix(NightSkyLumen, NightSkyOvercastLumen, rainStrength);
         float skyLumen = mix(nightSkyLumenFinal, daySkyLumenFinal, dayNightF);
@@ -72,9 +72,12 @@ vec2 GetSkyLightLevels() {
 
     vec3 GetVanillaSkyLux(const in vec3 viewDir) {
         vec2 skyLightLevels = GetSkyLightLevels();
-        float lightLevel = saturate(skyLightLevels.x);
-        float dayNightF = smoothstep(0.0, 0.6, lightLevel);
-        vec3 skyLuxColor = mix(vec3(GetMoonLux()), GetSunLuxColor(), dayNightF);
+        //float lightLevel = saturate(skyLightLevels.x);
+        //float dayNightF = smoothstep(0.0, 0.6, lightLevel);
+        vec3 sunLuxFinal = GetSunLuxColor() * smoothstep(-0.06, 0.6, skyLightLevels.x);
+        vec3 moonLuxFinal = vec3(GetMoonLux()) * smoothstep(-0.06, 0.6, skyLightLevels.y);
+        //vec3 skyLuxColor = mix(moonLuxFinal, sunLuxFinal, dayNightF);
+        vec3 skyLuxColor = moonLuxFinal + sunLuxFinal;
         
         vec3 skyColorLinear = RGBToLinear(skyColor);
         if (dot(skyColorLinear, skyColorLinear) < EPSILON) skyColorLinear = vec3(1.0);

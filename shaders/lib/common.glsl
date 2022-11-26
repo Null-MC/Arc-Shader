@@ -239,7 +239,7 @@ const bool colortex12Clear = false;
 // INTERNAL
 #define TITLE
 #define SEA_LEVEL 62
-#define ATMOSPHERE_LEVEL 320
+#define ATMOSPHERE_LEVEL 360
 #define WATER_SMOOTH 1.0
 #define IOR_AIR 1.000293
 #define IOR_WATER 1.333
