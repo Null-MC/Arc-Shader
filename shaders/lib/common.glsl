@@ -63,9 +63,9 @@ const bool colortex12Clear = false;
 #define WATER_WAVE_TYPE 1 // [0 1 2]
 #define WATER_REFRACTION 1 // [0 1 2]
 #define REFRACTION_STRENGTH 50 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 85 100]
-#define WATER_SCALE 18.0
+#define WATER_SCALE 32.0
 #define WATER_RADIUS 50
-#define WATER_OCTAVES_NEAR 32
+#define WATER_OCTAVES_NEAR 38
 #define WATER_OCTAVES_FAR 12
 #define WATER_OCTAVES_VERTEX 8
 #define WATER_PARALLAX_SAMPLES 64
@@ -82,7 +82,7 @@ const bool colortex12Clear = false;
 //#define CAVEFOG_ENABLED
 #define WEATHER_OPACITY 70 // [10 20 30 40 50 60 70 80 90 100]
 //#define ATMOS_EXTINCTION 0.0025
-#define SUN_TEMP 5500.0
+#define SUN_TEMP 5000.0
 #define MOON_TEMP 4000.0
 #define WETNESS_MODE 2 // [0 1 2]
 #define SNOW_MODE 2 // [0 1 2]
@@ -260,7 +260,7 @@ const float MoonOvercastLux = 4.0;
 const float BlockLightLux = 12800.0;
 const float MinWorldLux = 8.0;
 
-const float DaySkyLumen = 4800.0;
+const float DaySkyLumen = 6400.0;
 const float DaySkyOvercastLumen = 3200.0;
 const float NightSkyLumen = 4.0;
 const float NightSkyOvercastLumen = 1.0;

@@ -13,7 +13,8 @@ vec3 WetnessDarkenSurface(const in vec3 albedo, const in float porosity, const i
         float accum = saturate(8.0 * (0.96875 - skyLight));
         //float skyWetness = saturate(upF - accum);
 
-        float skyAreaWetness = saturate(upF - accum) * weatherNoise * skyWetnessSmooth;
+        float o = 0.3 * skyWetnessSmooth;
+        float skyAreaWetness = saturate(upF - accum) * (weatherNoise + o) * skyWetnessSmooth * (1.0 - o);
         //skyAreaWetness = pow(skyAreaWetness, 0.5);
 
         #if WETNESS_MODE == WEATHER_MODE_FULL
@@ -30,7 +31,7 @@ vec3 WetnessDarkenSurface(const in vec3 albedo, const in float porosity, const i
         
         float surfaceWetness = saturate(2.0 * totalAreaWetness - material.porosity);
 
-        float puddleF = smoothstep(0.4, 0.5, surfaceWetness) * max(NoU, EPSILON);// * pow2(wetnessFinal);
+        float puddleF = smoothstep(0.65, 0.75, surfaceWetness) * max(NoU, EPSILON);// * pow2(wetnessFinal);
         surfaceWetness = max(surfaceWetness, puddleF);
 
         material.normal = mix(material.normal, vec3(0.0, 0.0, 1.0), surfaceWetness);
@@ -77,18 +78,20 @@ vec3 WetnessDarkenSurface(const in vec3 albedo, const in float porosity, const i
         // localTex += ;
 
         vec3 worldPos = cameraPosition + localPos;
-        vec3 snowPos = vec3(worldPos.xz, worldPos.y + 0.4*weatherNoise);
+        vec3 snowPos = vec3(worldPos.xz, worldPos.y + 0.12*weatherNoise);
 
         vec3 snowDX = dFdx(snowPos);
         vec3 snowDY = dFdy(snowPos);
-        if (!all(lessThan(abs(snowDX), vec3(EPSILON))) && !all(lessThan(abs(snowDY), vec3(EPSILON))))
-            material.normal = mix(material.normal, normalize(cross(snowDY, snowDX)), totalSnow * 2.0 * max(NoU - 0.5, 0.0));
+        if (!all(lessThan(abs(snowDX), vec3(EPSILON))) && !all(lessThan(abs(snowDY), vec3(EPSILON)))) {
+            float s = smoothstep(0.7, 0.9, totalSnow * 2.0 * max(NoU - 0.5, 0.0));
+            material.normal = mix(material.normal, normalize(cross(snowDY, snowDX)), s);
+        }
 
         vec3 snowNormal = normalize(hash32(uvec2(localTex)) * 2.0 - 1.0);
         snowNormal *= sign(dot(snowNormal, material.normal));
 
         float snowDistF = 1.0 - saturate(viewDist / 20.0);
-        material.normal = normalize(mix(material.normal, snowNormal, 0.24 * totalSnow * snowDistF));
+        material.normal = normalize(mix(material.normal, snowNormal, 0.16 * totalSnow * snowDistF));
 
         float smoothNoise = hash12(uvec2(localTex));
         float snowSmooth = 0.16 + 0.64 * pow4(smoothNoise); // TODO: add random offset
