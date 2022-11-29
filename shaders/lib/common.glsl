@@ -47,7 +47,7 @@ const bool colortex12Clear = false;
 #define SHADER_PLATFORM 0 // [0 1]
 
 //#define IRIS_FEATURE_RAWTEX
-//#define IRIS_FEATURE_BIOMECAT
+#define IRIS_FEATURE_BIOMECAT
 
 
 // World Options
