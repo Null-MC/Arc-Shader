@@ -47,7 +47,7 @@ float GetVanillaFogFactor(const in vec3 viewPos) {
 }
 
 vec3 GetAreaFogColor() {
-    return RGBToLinear(fogColor) * 200.0;
+    return RGBToLinear(fogColor) * FOG_AREA_LUMINANCE;
 }
 
 void GetFog(const in LightData lightData, const in vec3 viewPos, out vec3 fogColorFinal, out float fogFactor) {

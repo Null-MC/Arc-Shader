@@ -28,6 +28,8 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
 
     clipPos += screenRay * GetScreenBayerValue();
 
+    float startDepthLinear = linearizeDepthFast(clipPos.z, near, far);
+
     const vec3 clipMin = vec3(0.0);
     const vec3 clipMax = vec3(1.0 - EPSILON);
 
@@ -38,7 +40,8 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     vec3 tracePos;
     vec3 lastTracePos = clipPos;
     for (i = 1; i <= SSR_MAXSTEPS && alpha < EPSILON; i++) {
-        tracePos = lastTracePos + screenRay*exp2(level);
+        float l2 = exp2(level);
+        tracePos = lastTracePos + screenRay*l2;
 
         // if (tracePos.z >= 1.0) {
         //     alpha = 1.0;
@@ -61,21 +64,30 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         //texDepth = texelFetch(depthtex, iuv, level).r;
         texDepth = textureLod(depthtex, tracePos.xy, level).r;
 
-        if (texDepth > 1.0 - EPSILON || texDepth >= tracePos.z) {
+        if (texDepth > 1.0 - EPSILON || texDepth > tracePos.z - EPSILON) {
             lastTracePos = tracePos;
             continue;
         }
 
-        if (screenRay.z > 0.0 && texDepth < clipPos.z) {
+        float texDepthLinear = linearizeDepthFast(texDepth, near, far);
+        float traceDepthLinear = linearizeDepthFast(tracePos.z, near, far);
+
+        // ignore geometry closer than start pos when tracing away
+        // if (screenRay.z > 0.0 && texDepthLinear < startDepthLinear - 1.0) {
+        //     lastTracePos = tracePos;
+        //     continue;
+        // }
+
+        if (texDepthLinear + EPSILON > traceDepthLinear) {
             lastTracePos = tracePos;
             continue;
         }
 
-        float d = 0.0001*(i*i);
-        if (linearizeDepthFast(texDepth, near, far) > linearizeDepthFast(tracePos.z, near, far) - d) {
-            lastTracePos = tracePos;
-            continue;
-        }
+        //float d = 0.0000001*tracePos.z;
+        // if (texDepthLinear < 0.25 * traceDepthLinear) {
+        //     lastTracePos = tracePos;
+        //     continue;
+        // }
 
         if (level > 0) {
             level--;

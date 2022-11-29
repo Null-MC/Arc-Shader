@@ -39,7 +39,7 @@ out vec2 texcoord;
 
             float sunLightLum = luminance(sunTransmittanceEye * GetSunLuxColor());
             float moonLightLum = luminance(moonTransmittanceEye * GetMoonLuxColor()) * GetMoonPhaseLevel();
-            float skyLightBrightness = eyeBrightnessLinear.y * (sunLightLum + moonLightLum);
+            float skyLightBrightness = pow(eyeBrightnessLinear.y, 0.5) * (sunLightLum + moonLightLum);
         #endif
 
         float blockLightBrightness = eyeBrightnessLinear.x;
@@ -58,7 +58,7 @@ out vec2 texcoord;
             brightnessFinal += blockLightBrightness;
         #endif
 
-        return 0.024 * brightnessFinal;
+        return 0.028 * brightnessFinal;
     }
 #endif
 

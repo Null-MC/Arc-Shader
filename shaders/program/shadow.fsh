@@ -178,13 +178,14 @@ void main() {
                 octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, saturate(viewDist / 200.0)));
             #endif
 
-            float finalDepth = GetWaves(waterWorldPos, waveDepth, octaves) * waveDepth * WATER_NORMAL_STRENGTH;
+            float finalDepth = GetWaves(waterWorldPos, waveDepth, octaves);
             vec3 waterPos = vec3(waterWorldPos.x, waterWorldPos.y, finalDepth);
+            waterPos.z *= waveDepth * WATER_WAVE_DEPTH * WATER_NORMAL_STRENGTH;
 
-            normal = -normalize(
+            normal = normalize(
                 cross(
-                    dFdx(waterPos),
-                    dFdy(waterPos))
+                    dFdy(waterPos),
+                    dFdx(waterPos))
                 );
 
             // This is really weird, not sure who's fault this is

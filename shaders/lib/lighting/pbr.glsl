@@ -241,12 +241,12 @@
 
                     #ifdef SKY_ENABLED
                         if (roughReflectColor.a + EPSILON < 1.0) {
-                            vec3 skyReflectColor = GetSkyReflectionColor(lightData, localPos, viewDir, reflectDir) * skyLight3;
+                            vec3 skyReflectColor = GetSkyReflectionColor(lightData, localPos, viewDir, reflectDir);// * skyLight3;
                             reflectColor += skyReflectColor * (1.0 - roughReflectColor.a);
                         }
                     #endif
                 #elif REFLECTION_MODE == REFLECTION_MODE_SKY && defined SKY_ENABLED
-                    reflectColor = GetSkyReflectionColor(lightData, localPos, viewDir, reflectDir) * skyLight3;
+                    reflectColor = GetSkyReflectionColor(lightData, localPos, viewDir, reflectDir);// * skyLight3;
                 #endif
             }
         #endif
@@ -585,7 +585,10 @@
 
                         #ifdef VL_WATER_ENABLED
                             //if (lightData.transparentScreenDepthLinear < refractOpaqueScreenDepthLinear) {
-                                float dist = clamp(refractOpaqueScreenDepthLinear - lightData.transparentScreenDepthLinear, 0.0, waterFogDistSmooth);
+                                float dist = waterFogDistSmooth;
+                                //if (refractOpaqueScreenDepthLinear < 1.0 - EPSILON && lightData.transparentScreenDepthLinear < 1.0 - EPSILON)
+                                //    dist = clamp(refractOpaqueScreenDepthLinear - lightData.transparentScreenDepthLinear, 0.0, waterFogDistSmooth);
+
                                 vec3 farViewPos = viewPos + viewDir * dist;
 
                                 refractColor += GetWaterVolumetricLighting(lightData, viewPos, farViewPos, waterScatteringF);

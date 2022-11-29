@@ -53,7 +53,7 @@ const bool colortex12Clear = false;
 #define BLOCK_OUTLINE 3 // [0 1 2 3]
 #define BLOCKLIGHT_TEMP 3500 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 0 // [0 10 20 30 40 50 60 70 80 90 100]
-#define SHADOW_BRIGHTNESS 0.06 // [0.00 0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.32 0.48 0.64 1.00]
+#define SHADOW_BRIGHTNESS 0.16 // [0.00 0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.32 0.48 0.64 1.00]
 #define RAIN_DARKNESS 0.2
 //#define ANIM_USE_WORLDTIME
 
@@ -62,10 +62,10 @@ const bool colortex12Clear = false;
 #define WATER_FANCY
 #define WATER_WAVE_TYPE 1 // [0 1 2]
 #define WATER_REFRACTION 1 // [0 1 2]
-#define REFRACTION_STRENGTH 50 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 85 100]
+#define REFRACTION_STRENGTH 100 // [5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 85 100 110 120 130 140 150 160 170 180 190 200]
 #define WATER_SCALE 16.0
 #define WATER_RADIUS 50
-#define WATER_OCTAVES_NEAR 38
+#define WATER_OCTAVES_NEAR 36 // [16 18 20 22 24 26 28 30 32 34 36 38]
 #define WATER_OCTAVES_FAR 12
 #define WATER_OCTAVES_VERTEX 8
 #define WATER_PARALLAX_SAMPLES 64
@@ -92,7 +92,7 @@ const bool colortex12Clear = false;
 // Shadow Options
 #define SHADOW_TYPE 2 // [0 1 2 3]
 #define SHADOW_FILTER 1 // [0 1 2]
-#define SHADOW_PCF_SIZE 4 // [1 2 3 4 5 6 7 8 9 10 12 14 16 18 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
+#define SHADOW_PCF_SIZE 8 // [1 2 3 4 5 6 7 8 9 10 12 14 16 18 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
 #define SHADOW_PCF_SAMPLES 12 // [12 24 36]
 //#define SHADOW_EXCLUDE_ENTITIES
 //#define SHADOW_EXCLUDE_FOLIAGE
@@ -122,7 +122,7 @@ const bool colortex12Clear = false;
 #define SSS_SCATTER
 #define SSS_DITHER
 #define SSS_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
-#define SSS_MAXDIST 10 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
+#define SSS_MAXDIST 7 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
 #define SSS_PCF_SIZE 0.06 // [0.02 0.04 0.06 0.08 0.1 0.2 0.3 0.4 0.5 0.6 0.8 1.0]
 #define SSS_PCF_SAMPLES 12 // [12 24 36]
 //#define SSS_NORMALIZE_ALBEDO
@@ -258,7 +258,7 @@ const float SunOvercastLux = 48000.0;
 const float MoonLux = 26.0;
 const float MoonOvercastLux = 4.0;
 const float BlockLightLux = 12800.0;
-const float MinWorldLux = 8.0;
+// const float MinWorldLux = 8.0;
 
 const float DaySkyLumen = 6400.0;
 const float DaySkyOvercastLumen = 3200.0;

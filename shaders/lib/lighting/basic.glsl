@@ -52,7 +52,7 @@
                         float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
                         vec2 waterWorldPos = waterWorldScale * (pos.xz + cameraPosition.xz);
                         float depth = GetWaves(waterWorldPos, waveDepth, WATER_OCTAVES_VERTEX);
-                        pos.y -= (1.0 - depth) * waveDepth * posY;
+                        pos.y -= (1.0 - depth) * waveDepth * WATER_WAVE_DEPTH * posY;
 
                         #ifndef WATER_FANCY
                             vec2 waterWorldPosX = waterWorldPos + vec2(waterWorldScale, 0.0);

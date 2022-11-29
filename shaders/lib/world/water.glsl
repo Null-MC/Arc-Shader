@@ -20,11 +20,11 @@ float GetWaves(const in vec2 position, const in float strength, const in int ite
     float weight = 1.0;//max(waveSpeed, 0.3) + 0.1;
     float maxWeight = 0.0;//max(1.0 - 0.2*waveSpeed, 0.0);
 
-    float dragF = 0.086;//mix(0.048, 0.066, strength);
+    float dragF = mix(0.068, 0.126, strength);
 
     float iter = 0.0;
     float speed = 7.3;
-    float phase = 4.8;//2.0*PI;
+    float phase = 4.2;//2.0*PI;
     float accumWeight = 0.0;//maxWeight;
 
     float time = frameTimeCounter / 3.6;
@@ -41,11 +41,12 @@ float GetWaves(const in vec2 position, const in float strength, const in int ite
         //weight = mix(weight, 0.0, 0.17);
         weight *= 0.81;
 
-        iter += 12.0;
+        iter += 12.0 + 0.5*i;
         phase *= 1.18;
         speed *= 1.09;
         dragF *= 0.86;
     }
 
-    return accumWeight / max(maxWeight, EPSILON);
+    float height = 0.84 - accumWeight / max(maxWeight, EPSILON);
+    return 1.0 - saturate(height * 1.65);
 }

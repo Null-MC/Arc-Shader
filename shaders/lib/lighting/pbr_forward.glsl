@@ -98,8 +98,9 @@
                     const float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
                     vec2 waterWorldPos = waterScale * (localPos.xz + cameraPosition.xz);
 
-                    depth = GetWaves(waterWorldPos, waveDepth, octaves) * waveDepth * WATER_NORMAL_STRENGTH;
+                    depth = GetWaves(waterWorldPos, waveDepth, octaves);
                     waterPos = vec3(waterWorldPos.x, waterWorldPos.y, depth);
+                    waterPos.z *= waveDepth * WATER_WAVE_DEPTH * WATER_NORMAL_STRENGTH;
 
                     vec3 waterDX = dFdx(waterPos);
                     vec3 waterDY = dFdy(waterPos);
