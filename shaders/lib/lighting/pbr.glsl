@@ -296,11 +296,15 @@
             iblF = GetFresnel(material.albedo.rgb, material.f0, material.hcm, NoVm, roughL);
 
             if (any(greaterThan(reflectColor, vec3(EPSILON)))) {
-                vec2 envBRDF = textureLod(BUFFER_BRDF_LUT, vec2(NoVm, rough), 0).rg;
-
                 #if SHADER_PLATFORM == PLATFORM_IRIS
-                    envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
+                    vec2 envBRDF = textureLod(texBRDF, vec2(NoVm, rough), 0).rg;
+                #else
+                    vec2 envBRDF = textureLod(colortex10, vec2(NoVm, rough), 0).rg;
                 #endif
+
+                // #if SHADER_PLATFORM == PLATFORM_IRIS
+                //     envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
+                // #endif
 
                 iblSpec = iblF * envBRDF.r + envBRDF.g;
                 iblSpec *= (1.0 - roughL) * reflectColor * occlusion;

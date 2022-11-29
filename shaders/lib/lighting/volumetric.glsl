@@ -1,10 +1,15 @@
 vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLightLevels, const in vec2 scatteringF) {
-    #ifdef RENDER_DEFERRED
-        vec3 sunTransmittance = GetSunTransmittance(colortex7, worldTraceHeight, skyLightLevels.x);
-        vec3 moonTransmittance = GetMoonTransmittance(colortex7, worldTraceHeight, skyLightLevels.y);
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        vec3 sunTransmittance = GetSunTransmittance(texSunTransmission, worldTraceHeight, skyLightLevels.x);
+        vec3 moonTransmittance = GetMoonTransmittance(texSunTransmission, worldTraceHeight, skyLightLevels.y);
     #else
-        vec3 sunTransmittance = GetSunTransmittance(colortex9, worldTraceHeight, skyLightLevels.x);
-        vec3 moonTransmittance = GetMoonTransmittance(colortex9, worldTraceHeight, skyLightLevels.y);
+        #ifdef RENDER_DEFERRED
+            vec3 sunTransmittance = GetSunTransmittance(colortex7, worldTraceHeight, skyLightLevels.x);
+            vec3 moonTransmittance = GetMoonTransmittance(colortex7, worldTraceHeight, skyLightLevels.y);
+        #else
+            vec3 sunTransmittance = GetSunTransmittance(colortex9, worldTraceHeight, skyLightLevels.x);
+            vec3 moonTransmittance = GetMoonTransmittance(colortex9, worldTraceHeight, skyLightLevels.y);
+        #endif
     #endif
 
     vec3 sampleColor =

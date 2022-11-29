@@ -26,28 +26,36 @@ uniform float viewHeight;
 #if DEBUG_VIEW == DEBUG_VIEW_GBUFFER_COLOR
     // Deferred Color
     uniform usampler2D BUFFER_DEFERRED;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_NORMAL
     // Deferred Normal
     uniform usampler2D BUFFER_DEFERRED;
     uniform mat4 gbufferModelViewInverse;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_OCCLUSION
     // Deferred Occlusion
     uniform usampler2D BUFFER_DEFERRED;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SPECULAR
     // Deferred Specular
     uniform usampler2D BUFFER_DEFERRED;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_LIGHTING
     // Deferred Lighting
     uniform usampler2D BUFFER_DEFERRED;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SHADOW
     // Deferred Shadow
     uniform sampler2D BUFFER_DEFERRED2;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_COLOR
     // Shadow Color
     uniform sampler2D shadowcolor0;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_NORMAL
     // Shadow Normal
     uniform usampler2D shadowcolor1;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_SSS
     // Shadow SSS
     #ifdef SHADOW_COLOR
@@ -55,24 +63,31 @@ uniform float viewHeight;
     #else
         uniform sampler2D shadowcolor0;
     #endif
+
 #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_DEPTH0
     // Shadow Depth [0]
     uniform sampler2D shadowtex0;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_DEPTH1
     // Shadow Depth [1]
     uniform sampler2D shadowtex1;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_HDR
     // HDR
     uniform sampler2D BUFFER_HDR;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_LUMINANCE
     // Luminance
     uniform sampler2D BUFFER_LUMINANCE;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_RSM_COLOR
     // RSM Color
     uniform usampler2D shadowcolor1;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_RSM_NORMAL
     // RSM Normal
     uniform usampler2D shadowcolor1;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_RSM_FINAL
     // RSM Final
     uniform sampler2D BUFFER_RSM_COLOR;
@@ -87,21 +102,27 @@ uniform float viewHeight;
         #include "/lib/depth.glsl"
         #include "/lib/sampling/bilateral_gaussian.glsl"
     #endif
+
 #elif DEBUG_VIEW == DEBUG_VIEW_BLOOM
     // Bloom Tiles
     uniform sampler2D BUFFER_BLOOM;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_PREV_COLOR
     // Previous HDR Color
     uniform sampler2D BUFFER_HDR_PREVIOUS;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_PREV_LUMINANCE
     // Previous Luminance
     uniform sampler2D BUFFER_HDR_PREVIOUS;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_WATER_WAVES
     // Water Waves
     uniform sampler2D BUFFER_WATER_WAVES;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_DEPTH_TILES
     // Depth Tiles
     uniform sampler2D BUFFER_DEPTH_PREV;
+
 #elif DEBUG_VIEW == DEBUG_VIEW_A0
     // Ambient Occlusion
     uniform sampler2D BUFFER_AO;
@@ -116,13 +137,25 @@ uniform float viewHeight;
         #include "/lib/depth.glsl"
         #include "/lib/sampling/bilateral_gaussian.glsl"
     #endif
+
 #elif DEBUG_VIEW == DEBUG_VIEW_LUT_BRDF
     // BRDF LUT
-    uniform sampler2D colortex15;
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        uniform sampler2D texBRDF;
+    #else
+        uniform sampler2D colortex15;
+    #endif
+
 #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
     // Sun Transmission LUT
-    uniform sampler2D colortex15;
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        uniform sampler2D texSunTransmission;
+    #else
+        uniform sampler2D colortex15;
+    #endif
+
 #else
+    // None
     uniform sampler2D BUFFER_HDR;
 
     #ifdef BLOOM_ENABLED
@@ -342,14 +375,26 @@ void main() {
         #endif
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_BRDF
         // BRDF LUT
-        color.rg = textureLod(colortex15, texcoord, 0).rg;
+        #if SHADER_PLATFORM == PLATFORM_IRIS
+            color.rg = textureLod(texBRDF, texcoord, 0).rg;
+        #else
+            color.rg = textureLod(colortex15, texcoord, 0).rg;
+        #endif
+
         color.b = 0.0;
+
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
         // Sun Transmission LUT
-        color = textureLod(colortex15, texcoord, 0).rgb;
+        #if SHADER_PLATFORM == PLATFORM_IRIS
+            color = textureLod(texSunTransmission, texcoord, 0).rgb;
+        #else
+            color = textureLod(colortex15, texcoord, 0).rgb;
+        #endif
+
     #else
         // None
         color = GetFinalColor();
+
     #endif
 
     outColor0 = color;

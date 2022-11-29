@@ -81,7 +81,6 @@
 #define BUFFER_REFRACT colortex7
 #define BUFFER_RSM_COLOR colortex8
 #define BUFFER_RSM_DEPTH colortex9
-#define BUFFER_BRDF_LUT colortex10
 #define BUFFER_WATER_WAVES colortex11
 #define BUFFER_DEPTH_PREV colortex12
 

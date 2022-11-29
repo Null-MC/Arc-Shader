@@ -16,7 +16,11 @@ flat in vec3 blockLightColor;
     flat in vec3 sunTransmittanceEye;
     flat in vec3 moonTransmittanceEye;
 
-    uniform sampler2D colortex7;
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        uniform sampler2D texSunTransmission;
+    #else
+        uniform sampler2D colortex7;
+    #endif
 
     //#ifdef SHADOW_ENABLED
     //    flat in vec3 skyLightColor;
@@ -47,11 +51,16 @@ flat in vec3 blockLightColor;
 uniform usampler2D BUFFER_DEFERRED;
 uniform sampler2D BUFFER_LUMINANCE;
 uniform sampler2D BUFFER_HDR;
-uniform sampler2D colortex10;
 //uniform sampler2D lightmap;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
+
+#if SHADER_PLATFORM == PLATFORM_IRIS
+    uniform sampler2D texBRDF;
+#else
+    uniform sampler2D colortex10;
+#endif
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     uniform mat4 gbufferPreviousModelView;
@@ -299,8 +308,14 @@ void main() {
         lightData.moonTransmittanceEye = moonTransmittanceEye;
 
         float worldY = localPos.y + cameraPosition.y;
-        lightData.sunTransmittance = GetSunTransmittance(colortex7, worldY, skyLightLevels.x);
-        lightData.moonTransmittance = GetMoonTransmittance(colortex7, worldY, skyLightLevels.y);
+
+        #if SHADER_PLATFORM == PLATFORM_IRIS
+            lightData.sunTransmittance = GetSunTransmittance(texSunTransmission, worldY, skyLightLevels.x);
+            lightData.moonTransmittance = GetMoonTransmittance(texSunTransmission, worldY, skyLightLevels.y);
+        #else
+            lightData.sunTransmittance = GetSunTransmittance(colortex7, worldY, skyLightLevels.x);
+            lightData.moonTransmittance = GetMoonTransmittance(colortex7, worldY, skyLightLevels.y);
+        #endif
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;

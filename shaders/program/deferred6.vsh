@@ -27,7 +27,11 @@ flat out vec3 blockLightColor;
     flat out vec3 sunTransmittanceEye;
     flat out vec3 moonTransmittanceEye;
 
-    uniform sampler2D colortex7;
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        uniform sampler2D texSunTransmission;
+    #else
+        uniform sampler2D colortex7;
+    #endif
 
     uniform vec3 skyColor;
     uniform float eyeAltitude;
@@ -102,8 +106,14 @@ void main() {
         moonColor = GetMoonLuxColor();// * GetMoonPhaseLevel();
 
         skyLightLevels = GetSkyLightLevels();
-        sunTransmittanceEye = GetSunTransmittance(colortex7, eyeAltitude, skyLightLevels.x);
-        moonTransmittanceEye = GetMoonTransmittance(colortex7, eyeAltitude, skyLightLevels.y);
+
+        #if SHADER_PLATFORM == PLATFORM_IRIS
+            sunTransmittanceEye = GetSunTransmittance(texSunTransmission, eyeAltitude, skyLightLevels.x);
+            moonTransmittanceEye = GetMoonTransmittance(texSunTransmission, eyeAltitude, skyLightLevels.y);
+        #else
+            sunTransmittanceEye = GetSunTransmittance(colortex7, eyeAltitude, skyLightLevels.x);
+            moonTransmittanceEye = GetMoonTransmittance(colortex7, eyeAltitude, skyLightLevels.y);
+        #endif
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE == SHADOW_TYPE_CASCADED
             cascadeSizes[0] = GetCascadeDistance(0);

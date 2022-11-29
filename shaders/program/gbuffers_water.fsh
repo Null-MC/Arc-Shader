@@ -36,11 +36,17 @@ flat in mat2 atlasBounds;
 #endif
 
 #ifdef SKY_ENABLED
-    flat in vec2 skyLightLevels;
     flat in vec3 sunColor;
     flat in vec3 moonColor;
+    flat in vec2 skyLightLevels;
+    flat in vec3 sunTransmittanceEye;
+    flat in vec3 moonTransmittanceEye;
 
-    uniform sampler2D colortex9;
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        uniform sampler2D texSunTransmission;
+    #else
+        uniform sampler2D colortex9;
+    #endif
 
     uniform float eyeAltitude;
     uniform vec3 sunPosition;
@@ -105,8 +111,14 @@ uniform sampler2D specular;
 uniform sampler2D lightmap;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
-uniform sampler2D colortex10;
+//uniform sampler2D colortex10;
 uniform usampler2D BUFFER_DEFERRED;
+
+#if SHADER_PLATFORM == PLATFORM_IRIS
+    uniform sampler2D texBRDF;
+#else
+    uniform sampler2D colortex10;
+#endif
 
 uniform mat4 shadowProjection;
 uniform mat4 gbufferModelViewInverse;

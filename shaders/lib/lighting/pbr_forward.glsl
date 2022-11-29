@@ -50,10 +50,16 @@
         #ifdef SKY_ENABLED
             float worldY = localPos.y + cameraPosition.y;
             lightData.skyLightLevels = skyLightLevels;
-            lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
-            lightData.moonTransmittance = GetMoonTransmittance(colortex9, worldY, skyLightLevels.y);
-            lightData.sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
-            lightData.moonTransmittanceEye = GetMoonTransmittance(colortex9, eyeAltitude, skyLightLevels.y);
+            lightData.sunTransmittanceEye = sunTransmittanceEye;//GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
+            lightData.moonTransmittanceEye = moonTransmittanceEye;//GetMoonTransmittance(colortex9, eyeAltitude, skyLightLevels.y);
+
+            #if SHADER_PLATFORM == PLATFORM_IRIS
+                lightData.sunTransmittance = GetSunTransmittance(texSunTransmission, worldY, skyLightLevels.x);
+                lightData.moonTransmittance = GetMoonTransmittance(texSunTransmission, worldY, skyLightLevels.y);
+            #else
+                lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
+                lightData.moonTransmittance = GetMoonTransmittance(colortex9, worldY, skyLightLevels.y);
+            #endif
         #endif
 
         #if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX

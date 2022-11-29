@@ -31,9 +31,14 @@ flat in vec3 blockLightColor;
     flat in vec3 sunTransmittanceEye;
     flat in vec3 moonTransmittanceEye;
 
-    uniform sampler2D colortex9;
     uniform usampler2D shadowcolor1;
     uniform sampler2D noisetex;
+
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        uniform sampler2D texSunTransmission;
+    #else
+        uniform sampler2D colortex9;
+    #endif
 
     uniform float frameTimeCounter;
     uniform vec3 upPosition;
@@ -211,10 +216,16 @@ void main() {
     #ifdef SKY_ENABLED
         float worldY = localPos.y + cameraPosition.y;
         lightData.skyLightLevels = skyLightLevels;
-        lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
-        lightData.moonTransmittance = GetMoonTransmittance(colortex9, worldY, skyLightLevels.y);
         lightData.sunTransmittanceEye = sunTransmittanceEye;
         lightData.moonTransmittanceEye = moonTransmittanceEye;
+
+        #if SHADER_PLATFORM == PLATFORM_IRIS
+            lightData.sunTransmittance = GetSunTransmittance(texSunTransmission, worldY, skyLightLevels.x);
+            lightData.moonTransmittance = GetMoonTransmittance(texSunTransmission, worldY, skyLightLevels.y);
+        #else
+            lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
+            lightData.moonTransmittance = GetMoonTransmittance(colortex9, worldY, skyLightLevels.y);
+        #endif
     #endif
 
     #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE

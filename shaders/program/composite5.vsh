@@ -10,7 +10,11 @@ out vec2 texcoord;
 #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
     flat out float eyeLum;
 
-    uniform sampler2D colortex7;
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        uniform sampler2D texSunTransmission;
+    #else
+        uniform sampler2D colortex7;
+    #endif
 
     uniform int heldBlockLightValue;
     uniform ivec2 eyeBrightness;
@@ -34,8 +38,14 @@ out vec2 texcoord;
 
         #ifdef SKY_ENABLED
             vec2 skyLightLevels = GetSkyLightLevels();
-            vec3 sunTransmittanceEye = GetSunTransmittance(colortex7, eyeAltitude, skyLightLevels.x);
-            vec3 moonTransmittanceEye = GetMoonTransmittance(colortex7, eyeAltitude, skyLightLevels.y);
+
+            #if SHADER_PLATFORM == PLATFORM_IRIS
+                vec3 sunTransmittanceEye = GetSunTransmittance(texSunTransmission, eyeAltitude, skyLightLevels.x);
+                vec3 moonTransmittanceEye = GetMoonTransmittance(texSunTransmission, eyeAltitude, skyLightLevels.y);
+            #else
+                vec3 sunTransmittanceEye = GetSunTransmittance(colortex7, eyeAltitude, skyLightLevels.x);
+                vec3 moonTransmittanceEye = GetMoonTransmittance(colortex7, eyeAltitude, skyLightLevels.y);
+            #endif
 
             float sunLightLum = luminance(sunTransmittanceEye * GetSunLuxColor());
             float moonLightLum = luminance(moonTransmittanceEye * GetMoonLuxColor()) * GetMoonPhaseLevel();

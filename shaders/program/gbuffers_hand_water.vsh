@@ -39,7 +39,16 @@ flat out mat2 atlasBounds;
     flat out vec3 sunColor;
     flat out vec3 moonColor;
     flat out vec2 skyLightLevels;
+    flat out vec3 sunTransmittanceEye;
+    flat out vec3 moonTransmittanceEye;
+    
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        uniform sampler2D texSunTransmission;
+    #else
+        uniform sampler2D colortex9;
+    #endif
 
+    uniform float eyeAltitude;
     uniform vec3 upPosition;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
@@ -159,6 +168,14 @@ void main() {
         sunColor = GetSunLuxColor();
         moonColor = GetMoonLuxColor() * GetMoonPhaseLevel();
         skyLightLevels = GetSkyLightLevels();
+
+        #if SHADER_PLATFORM == PLATFORM_IRIS
+            sunTransmittanceEye = GetSunTransmittance(texSunTransmission, eyeAltitude, skyLightLevels.x);
+            moonTransmittanceEye = GetMoonTransmittance(texSunTransmission, eyeAltitude, skyLightLevels.y);
+        #else
+            sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
+            moonTransmittanceEye = GetMoonTransmittance(colortex9, eyeAltitude, skyLightLevels.y);
+        #endif
     #endif
 
     blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
