@@ -102,32 +102,32 @@ float fbm(in vec3 p) {
 	return f;
 }
 
-vec3 GetPhysicsSnowNormal(const in vec3 worldPos, const in vec3 geoNormal, const in float viewDist) {
+vec3 GetPhysicsSnowNormal(const in vec3 worldPos, const in float viewDist) {
 	vec3 randomNormal, finalNormal;
 	float weight;
 
 	randomNormal = hash33((worldPos - 0.5) * 0.5 * 16.0);
-	randomNormal *= sign(dot(randomNormal, geoNormal));
+	randomNormal.z *= sign(randomNormal.z);
 	weight = PHYSICS_SNOW_NOISE * saturate(1.0 - viewDist / 120.0);
-	finalNormal = mix(geoNormal, randomNormal, weight);
+	finalNormal = mix(vec3(0.0, 0.0, 1.0), randomNormal, weight);
 
 	#if PHYSICS_SNOW_RESOLUTION >= 32
 		randomNormal = hash33((worldPos - 0.5) * 0.5 * 32.0);
-		randomNormal *= sign(dot(randomNormal, geoNormal));
+		randomNormal.z *= sign(randomNormal.z);
 		weight = PHYSICS_SNOW_NOISE * saturate(1.0 - viewDist / 60.0);
 		finalNormal = mix(finalNormal, randomNormal, weight);
 	#endif
 
 	#if PHYSICS_SNOW_RESOLUTION >= 64
 		randomNormal = hash33((worldPos - 0.5) * 0.5 * 64.0);
-		randomNormal *= sign(dot(randomNormal, geoNormal));
+		randomNormal.z *= sign(randomNormal.z);
 		weight = PHYSICS_SNOW_NOISE * saturate(1.0 - viewDist / 30.0);
 		finalNormal = mix(finalNormal, randomNormal, weight);
 	#endif
 
 	#if PHYSICS_SNOW_RESOLUTION >= 128
 		randomNormal = hash33((worldPos - 0.5) * 0.5 * 128.0);
-		randomNormal *= sign(dot(randomNormal, geoNormal));
+		randomNormal.z *= sign(randomNormal.z);
 		weight = PHYSICS_SNOW_NOISE * saturate(1.0 - viewDist / 15.0);
 		finalNormal = mix(finalNormal, randomNormal, weight);
 	#endif

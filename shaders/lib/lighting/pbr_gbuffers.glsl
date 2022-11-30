@@ -182,18 +182,18 @@
             }
         #endif
 
-        material.normal = normalize(matTBN * material.normal);
-
         #ifdef RENDER_ENTITIES
             if (materialId == MATERIAL_PHYSICS_SNOW) {
                 colorMap.rgb = SNOW_COLOR;
 
                 material.scattering = GetPhysicsSnowScattering(localPos);
                 material.smoothness = GetPhysicsSnowSmooth(localPos);
-                material.normal = GetPhysicsSnowNormal(localPos, material.normal, viewDist);
+                material.normal = GetPhysicsSnowNormal(localPos, viewDist);
                 material.f0 = 0.02;
             }
         #endif
+
+        material.normal = normalize(matTBN * material.normal);
 
         // WARN: disabling until this can be properly integrated out of water!
         // if (isEyeInWater == 1) {

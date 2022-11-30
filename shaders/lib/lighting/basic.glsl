@@ -92,6 +92,11 @@
         viewNormal = normalize(gl_NormalMatrix * normal);
         gl_Position = gl_ProjectionMatrix * vec4(viewPos, 1.0);
 
+        // #ifdef RENDER_ENTITIES
+        //     if (entityId == 829925)
+        //         viewNormal = normal;
+        // #endif
+
         // #ifdef RENDER_TEXTURED
         //     vec2 coordMid = (gl_TextureMatrix[0] * mc_midTexCoord).xy;
         //     vec2 coordNMid = texcoord - coordMid;

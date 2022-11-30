@@ -66,5 +66,6 @@ void main() {
     // PhysicsMod snow
     if (entityId == 829925) {
         materialId = MATERIAL_PHYSICS_SNOW;
+        viewNormal = vec3(0.0);
     }
 }
