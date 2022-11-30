@@ -197,6 +197,7 @@ const bool colortex12Clear = false;
 #define SSAO_RADIUS 0.2 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
 #define SSAO_MAX_DIST 1.6
 #define SSAO_UPSCALE
+//#define DOF_ENABLED
 
 
 // Debug Options
@@ -220,7 +221,7 @@ const bool colortex12Clear = false;
 #define CLOUD_POW_CLEAR 1.6
 #define CLOUD_POW_RAIN 0.3
 #define SHADOW_CLOUD
-
+#define IRIS_FEATURE_BIOMECAT
 
 #if SSR_QUALITY == 0
     #define SSR_SCALE 4
@@ -353,13 +354,17 @@ const float drynessHalflife = 10.0;
 #endif
 #ifdef RSM_UPSCALE
 #endif
-#ifdef VL_ENABLED
-#endif
+// #ifdef VL_SKY_ENABLED
+// #endif
+// #ifdef VL_WATER_ENABLED
+// #endif
 #ifdef VL_PARTICLES
 #endif
 #ifdef VL_DITHER
 #endif
 #ifdef SSS_NORMALIZE_ALBEDO
+#endif
+#ifdef DOF_ENABLED
 #endif
 
 
