@@ -86,8 +86,8 @@ screen.MATERIAL_OPTIONS=Materials
 screen.MATERIAL_OPTIONS.comment=Options for PBR materials.
 
 option.MATERIAL_FORMAT=Format
-option.MATERIAL_FORMAT.comment=Specifies the format of the currently loaded resource packs.
-value.MATERIAL_FORMAT.0=Default
+option.MATERIAL_FORMAT.comment=Specifies the format of the currently loaded resource packs. It's recommended you use a resource pack that supports PBR, but the "vanilla" format can be used if you prefer the default game textures.
+value.MATERIAL_FORMAT.0=Vanilla
 value.MATERIAL_FORMAT.1=Lab PBR
 value.MATERIAL_FORMAT.2=Old PBR
 value.MATERIAL_FORMAT.3=Patrix PBR

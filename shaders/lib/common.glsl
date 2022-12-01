@@ -114,7 +114,7 @@ const bool colortex12Clear = false;
 
 
 // Material Options
-#define MATERIAL_FORMAT 1 // [0 1 2 3]
+#define MATERIAL_FORMAT 0 // [0 1 2 3]
 #define REFLECTION_MODE 2 // [0 1 2]
 #define SSR_QUALITY 0 // [0 1 2]
 #define SSR_IGNORE_HAND
@@ -290,6 +290,10 @@ const float drynessHalflife = 10.0;
 
 #if MC_VERSION < 11700 || SHADER_PLATFORM == PLATFORM_IRIS
     const float alphaTestRef = 0.1;
+#endif
+
+#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+    #undef PARALLAX_ENABLED
 #endif
 
 #ifdef PARALLAX_ENABLED
