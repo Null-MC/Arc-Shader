@@ -82,6 +82,7 @@ void main() {
         vec3 viewNormal = normalize(normalMap * 2.0 - 1.0);
 
         vec3 shadowViewNormal = mat3(shadowModelView) * (mat3(gbufferModelViewInverse) * viewNormal);
+        //color = shadowViewNormal * 0.5 + 0.5;
 
         #ifdef LIGHTLEAK_FIX
             float lightingMap = unpackUnorm4x8(deferredNormalLightingData.g).g;

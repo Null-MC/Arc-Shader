@@ -29,22 +29,16 @@ out vec3 outColor0;
 
 // https://www.shadertoy.com/view/lstBDl
 
-// Smaller = nicer blur, larger = faster
-#define RAD_SCALE 1.0
-
-#define GOLDEN_ANGLE 2.39996323
-#define MAX_BLUR_SIZE 10.0
-
 float getBlurSize(const in float depth, const in float focusPoint, const in float focusScale) {
     float coc = rcp(focusPoint) - rcp(depth);
-    return saturate(abs(coc) * focusScale) * MAX_BLUR_SIZE;
+    return saturate(abs(coc) * focusScale) * DOF_MAX_SIZE;
 }
 
 void main() {
     float focusPoint = linearizeDepthFast(centerDepthSmooth, near, far);
 
     // TODO: make dynamic based on focus distance
-    float focusScale = 3.0; //clamp(0.1 * focusPoint, 1.0, 20.0); //4.0;
+    float focusScale = DOF_SCALE; //clamp(0.1 * focusPoint, 1.0, 20.0); //4.0;
     
     vec3 color = textureLod(BUFFER_HDR, texcoord, 0).rgb;
     float centerDepth = textureLod(depthtex0, texcoord, 0).r;
@@ -54,10 +48,10 @@ void main() {
     
     vec2 viewSize = vec2(viewWidth, viewHeight);
     vec2 texelSize = rcp(viewSize);
-    float radius = RAD_SCALE;
+    float radius = DOF_STEP_SIZE;
     float tot = 1.0;
 
-    for (float ang = 0.0; radius < MAX_BLUR_SIZE; ang += GOLDEN_ANGLE) {
+    for (float ang = 0.0; radius < DOF_MAX_SIZE; ang += GOLDEN_ANGLE) {
         vec2 tc = texcoord + vec2(cos(ang), sin(ang)) * texelSize * radius;
         
         vec3 sampleColor = textureLod(BUFFER_HDR, tc, 0).rgb;
@@ -71,7 +65,7 @@ void main() {
 
         float m = smoothstep(radius-0.5, radius+0.5, sampleSize);
         color += mix(color / tot, sampleColor, m);
-        radius += RAD_SCALE / radius;
+        radius += DOF_STEP_SIZE / radius;
 
         tot += 1.0;
     }

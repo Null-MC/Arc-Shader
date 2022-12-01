@@ -241,12 +241,12 @@
 
                     #ifdef SKY_ENABLED
                         if (roughReflectColor.a + EPSILON < 1.0) {
-                            vec3 skyReflectColor = GetSkyReflectionColor(lightData, localPos, viewDir, reflectDir);// * skyLight3;
+                            vec3 skyReflectColor = GetSkyReflectionColor(lightData, localPos, viewDir, reflectDir) * skyLight;
                             reflectColor += skyReflectColor * (1.0 - roughReflectColor.a);
                         }
                     #endif
                 #elif REFLECTION_MODE == REFLECTION_MODE_SKY && defined SKY_ENABLED
-                    reflectColor = GetSkyReflectionColor(lightData, localPos, viewDir, reflectDir);// * skyLight3;
+                    reflectColor = GetSkyReflectionColor(lightData, localPos, viewDir, reflectDir) * skyLight;
                 #endif
             }
         #endif

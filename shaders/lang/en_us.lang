@@ -172,7 +172,13 @@ option.WEATHER_OPACITY.comment=Controls the opacity of weather particles (rain, 
 suffix.WEATHER_OPACITY=%
 
 option.VL_SKY_ENABLED=Volumetric
-option.VL_SAMPLES_SKY=Sky Samples
+
+option.VL_SAMPLES_SKY=VL Samples
+option.VL_SAMPLES_SKY.comment=More samples provides higher quality; less samples will be faster.
+
+option.VL_STRENGTH=VL Strength
+option.VL_STRENGTH.comment=Makes light rays more visible by simulating atmospheric scattering in lit volumes.
+suffix.VL_STRENGTH=%
 
 
 screen.SHADOW_OPTIONS=Shadows
@@ -294,6 +300,8 @@ suffix.CAMERA_SATURATION=%
 
 screen.EFFECT_OPTIONS=Effects
 
+option.DOF_ENABLED=Depth-of-Field
+
 
 screen.EFFECT_BLOOM_OPTIONS=Bloom
 
@@ -333,13 +341,6 @@ option.RSM_SAMPLE_COUNT.comment=The number of samples-per-pixel to process.
 
 option.RSM_UPSCALE=Upscale
 option.RSM_UPSCALE.comment=When downscaled RSM is enabled with this option, the edges of objects will be processed in full-resolution when upscaling to prevent blurred edges.
-
-
-screen.EFFECT_VL_OPTIONS=Volumetric Light
-screen.EFFECT_VL_OPTIONS.comment=Makes light rays more visible by simulating atmospheric scattering in lit volumes.
-
-option.VL_STRENGTH=Strength
-suffix.VL_STRENGTH=%
 
 
 screen.EFFECT_AO_OPTIONS=Ambient Occlusion

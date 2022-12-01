@@ -197,7 +197,12 @@ const bool colortex12Clear = false;
 #define SSAO_RADIUS 0.2 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
 #define SSAO_MAX_DIST 1.6
 #define SSAO_UPSCALE
+
 //#define DOF_ENABLED
+#define DOF_SCALE 2.0
+// Smaller = nicer blur, larger = faster
+#define DOF_STEP_SIZE 0.7 // [0.5 1.0 1.5 2.0]
+#define DOF_MAX_SIZE 16.0 // [5.0 10.0 15.0 20.0 25.0 30.0]
 
 
 // Debug Options
@@ -246,6 +251,7 @@ const bool colortex12Clear = false;
 #define IOR_WATER 1.333
 #define PI 3.1415926538
 #define TAU 6.2831853076
+#define GOLDEN_ANGLE 2.39996323
 #define EPSILON 1e-7
 #define GAMMA 2.2
 

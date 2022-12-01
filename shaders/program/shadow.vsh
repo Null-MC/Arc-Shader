@@ -251,7 +251,7 @@ void main() {
         matViewTBN = mat3(gbufferModelView) * mat3(shadowModelViewInverse) * matShadowViewTBN;
     #endif
 
-    #if defined SSS_ENABLED || defined RSM_ENABLED
+    #if defined SSS_ENABLED //|| defined RSM_ENABLED
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
             float matF0, matSmooth, matEmissive;
             ApplyHardCodedMaterials(matF0, matSSS, matSmooth, matEmissive);

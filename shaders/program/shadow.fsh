@@ -158,7 +158,8 @@ void main() {
             normal = GetLabPbr_Normal(normalMap);
         #else
             vec3 normalMap = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).rgb;
-            normal = GetOldPbr_Normal(normalMap);
+            if (any(greaterThan(normalMap, vec3(0.0))))
+                normal = GetOldPbr_Normal(normalMap);
         #endif
     #endif
 
@@ -221,9 +222,19 @@ void main() {
             vec3 albedo = mix(vec3(0.0), sampleColor.rgb, sampleColor.a);
             vec2 specularMap = textureGrad(specular, texcoord, dFdXY[0], dFdXY[1]).rg;
 
-            float f0 = GetLabPbr_F0(specularMap.g); // TODO: only for LabPbr!
-            int hcm = GetLabPbr_HCM(specularMap.g); // TODO: only for LabPbr!
-            float roughL = pow2(specularMap.r);
+            #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
+                float roughL = pow2(specularMap.r);
+                float f0 = GetLabPbr_F0(specularMap.g);
+                int hcm = GetLabPbr_HCM(specularMap.g);
+            #elif MATERIAL_FORMAT == MATERIAL_FORMAT_OLDPBR
+                float roughL = pow2(specularMap.r);
+                float f0 = specularMap.g;
+                int hcm = -1;
+            #else
+                float roughL = 1.0; //pow2(matRough);
+                float f0 = 0.04; //specularMap.g;
+                int hcm = -1;
+            #endif
 
             vec3 viewDir = normalize(-viewPos);
             vec3 viewNormal = matViewTBN * normal;
