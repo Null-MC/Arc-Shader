@@ -86,11 +86,14 @@ float GetParallaxShadow(const in vec3 traceTex, const in mat2 dFdXY, const in ve
         vec2 atlasPixelSize = 1.0 / atlasSize;
     #endif
 
+    vec3 start = traceTex;
+    //start += vec3(stepCoord, stepDepth) * GetScreenBayerValue();
+
     int i;
     float shadow = 1.0;
     for (i = 1; i + skip < PARALLAX_SHADOW_SAMPLES && shadow > 0.001; i++) {
-        float traceDepth = traceTex.z + i * stepDepth;
-        vec2 localCoord = traceTex.xy + i * stepCoord;
+        float traceDepth = start.z + i * stepDepth;
+        vec2 localCoord = start.xy + i * stepCoord;
 
         #ifdef PARALLAX_SMOOTH
             //float texDepth = TextureGradLinear(normals, atlasCoord, atlasPixelSize, dFdXY, 3);

@@ -57,6 +57,7 @@ uniform int entityId;
 #endif
     
 #include "/lib/atlas.glsl"
+#include "/lib/sampling/bayer.glsl"
 #include "/lib/sampling/linear.glsl"
 #include "/lib/sampling/noise.glsl"
 #include "/lib/material/material.glsl"

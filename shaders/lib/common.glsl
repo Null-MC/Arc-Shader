@@ -292,9 +292,9 @@ const float drynessHalflife = 10.0;
     const float alphaTestRef = 0.1;
 #endif
 
-#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-    #undef PARALLAX_ENABLED
-#endif
+// #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+//     #undef PARALLAX_ENABLED
+// #endif
 
 #ifdef PARALLAX_ENABLED
     #ifdef PARALLAX_SMOOTH

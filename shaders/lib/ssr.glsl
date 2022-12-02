@@ -39,8 +39,8 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     float texDepth;
     vec3 tracePos;
     vec3 lastTracePos = clipPos;
-    for (i = 1; i <= SSR_MAXSTEPS && alpha < EPSILON; i++) {
-        float l2 = exp2(level);
+    for (i = 0; i <= SSR_MAXSTEPS && alpha < EPSILON;) {
+        int l2 = int(exp2(level));
         tracePos = lastTracePos + screenRay*l2;
 
         // if (tracePos.z >= 1.0) {
@@ -57,6 +57,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
 
         ivec2 iuv = ivec2(tracePos.xy * viewSize);
         if (iuv == iuv_start) {
+            i += l2;
             lastTracePos = tracePos;
             continue;
         }
@@ -64,7 +65,8 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         //texDepth = texelFetch(depthtex, iuv, level).r;
         texDepth = textureLod(depthtex, tracePos.xy, level).r;
 
-        if (texDepth > 1.0 - EPSILON || texDepth > tracePos.z - EPSILON) {
+        if (texDepth > tracePos.z - EPSILON) {
+            i += l2;
             lastTracePos = tracePos;
             continue;
         }
@@ -78,14 +80,10 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         //     continue;
         // }
 
-        if (texDepthLinear + EPSILON > traceDepthLinear) {
-            lastTracePos = tracePos;
-            continue;
-        }
-
-        //float d = 0.0000001*tracePos.z;
-        // if (texDepthLinear < 0.25 * traceDepthLinear) {
+        // float d = 0.01*i;
+        // if (traceDepthLinear > texDepthLinear - d) {
         //     lastTracePos = tracePos;
+        //     i += l2;
         //     continue;
         // }
 
