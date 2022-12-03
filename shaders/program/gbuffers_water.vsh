@@ -156,7 +156,7 @@ uniform float blindness;
 void main() {
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
-    localPos = gl_Vertex.xyz;
+    //localPos = gl_Vertex.xyz;
     glcolor = gl_Color;
 
     materialId = int(mc_Entity.x + 0.5);
@@ -167,8 +167,11 @@ void main() {
     // // undefined
     // else materialId = 0;
 
-    BasicVertex(localPos);
+    vec3 vPos = gl_Vertex.xyz;
+    BasicVertex(vPos);
     PbrVertex(viewPos);
+
+    localPos = (gbufferModelViewInverse * (gl_ModelViewMatrix * vec4(vPos, 1.0))).xyz;
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         vec3 viewDir = normalize(viewPos);

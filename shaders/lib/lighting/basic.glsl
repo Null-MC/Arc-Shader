@@ -37,20 +37,28 @@
                 // }
 
                 #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX && !defined WORLD_NETHER && !defined WORLD_END
-                    #if MC_VERSION >= 11700
+                    //#if MC_VERSION >= 11700
                         float vY = -at_midBlock.y / 64.0;
                         float posY = saturate(vY + 0.5) * (1.0 - step(0.5, vY + EPSILON));
-                    #else
-                        float posY = step(EPSILON, gl_Normal.y);
-                    #endif
+                    //#else
+                    //    float posY = step(EPSILON, gl_Normal.y);
+                    //#endif
 
                     if (posY > EPSILON) {// || (abs(gl_Normal.y) < EPSILON && true)) {
                         //float windSpeed = GetWindSpeed();
                         //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
                         float waveDepth = GetWaveDepth(skyLight);
                         
+                        vec3 worldPos = cameraPosition;
+
+                        #if MC_VERSION >= 11700 && (SHADER_PLATFORM != PLATFORM_IRIS || defined IRIS_FEATURE_CHUNK_OFFSET)
+                            worldPos += vaPosition.xyz + chunkOffset;
+                        #else
+                            worldPos += (gbufferModelViewInverse * (gl_ModelViewMatrix * vec4(pos, 1.0))).xyz;
+                        #endif
+
                         float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
-                        vec2 waterWorldPos = waterWorldScale * (pos.xz + cameraPosition.xz);
+                        vec2 waterWorldPos = waterWorldScale * worldPos.xz;
                         float depth = GetWaves(waterWorldPos, waveDepth, WATER_OCTAVES_VERTEX);
                         pos.y -= (1.0 - depth) * waveDepth * WATER_WAVE_DEPTH * posY;
 

@@ -64,11 +64,12 @@ vec3 GetWavingOffset(const in float range) {
         vec3 worldPos = floor(vaPosition.xyz + chunkOffset + cameraPosition + 0.5);
     #else
         vec3 localPos = gl_Vertex.xyz + at_midBlock / 64.0;
+        localPos = (gl_ModelViewMatrix * vec4(localPos, 1.0)).xyz;
 
-        #ifndef RENDER_SHADOW
-            vec3 worldPos = localPos;
+        #ifdef RENDER_SHADOW
+            vec3 worldPos = (shadowModelViewInverse * vec4(localPos, 1.0)).xyz;
         #else
-            vec3 worldPos = (shadowModelViewInverse * (gl_ModelViewMatrix * vec4(localPos, 1.0))).xyz;
+            vec3 worldPos = (gbufferModelViewInverse * vec4(localPos, 1.0)).xyz;
         #endif
 
         worldPos = floor(worldPos + cameraPosition);
