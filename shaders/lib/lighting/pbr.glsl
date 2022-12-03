@@ -312,6 +312,8 @@
             }
         #endif
 
+        //return vec4(iblSpec, 1.0);
+
         #ifdef SKY_ENABLED
             float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength) * SHADOW_BRIGHTNESS;
 
