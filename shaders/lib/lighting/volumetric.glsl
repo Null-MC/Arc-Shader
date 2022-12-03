@@ -40,7 +40,7 @@ vec3 GetVolumetricLighting(const in LightData lightData, const in vec3 viewNear,
     float viewStepLength = viewRayLength / (VL_SAMPLES_SKY + 1.0);
 
     float envFogStart = 0.0;
-    float envFogEnd = min(fogEnd, far);
+    float envFogEnd = min(far, gl_Fog.end);
     const float envFogDensity = 0.4;
 
     #ifdef VL_DITHER
@@ -135,7 +135,7 @@ vec3 GetVolumetricLighting(const in LightData lightData, const in vec3 viewNear,
         accumColor += sampleF * sampleColor;
     }
 
-    float traceLength = min(viewRayLength / min(far, fogEnd), 1.0);
+    float traceLength = min(viewRayLength / min(far, gl_Fog.end), 1.0);
 
     return (accumColor / VL_SAMPLES_SKY) * traceLength;
 }

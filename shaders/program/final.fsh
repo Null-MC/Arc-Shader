@@ -121,7 +121,7 @@ uniform float viewHeight;
     uniform sampler2D colortex15;
 #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
     // Sun Transmission LUT
-    uniform sampler2D colortex15;
+    uniform sampler2D colortex7;
 #else
     uniform sampler2D BUFFER_HDR;
 
@@ -346,7 +346,7 @@ void main() {
         color.b = 0.0;
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
         // Sun Transmission LUT
-        color = textureLod(colortex15, texcoord, 0).rgb;
+        color = textureLod(colortex7, texcoord, 0).rgb;
     #else
         // None
         color = GetFinalColor();

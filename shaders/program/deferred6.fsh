@@ -79,6 +79,7 @@ uniform int isEyeInWater;
 uniform ivec2 eyeBrightnessSmooth;
 uniform ivec2 eyeBrightness;
 
+uniform int fogMode;
 uniform int fogShape;
 uniform vec3 fogColor;
 uniform float fogStart;
@@ -459,7 +460,7 @@ void main() {
                 // }
 
                 vec3 viewNear = viewDir * near;
-                vec3 viewFar = viewDir * min(length(viewPos), fogEnd);
+                vec3 viewFar = viewDir * min(length(viewPos), gl_Fog.end);
 
                 vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
                 color += GetVolumetricLighting(lightData, viewNear, viewFar, skyScatteringF);

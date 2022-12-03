@@ -723,14 +723,10 @@
                 #endif
             #endif
 
-            #ifdef RENDER_DEFERRED
+            #if defined RENDER_WATER || defined RENDER_HAND_WATER
+                ApplyFog(final, fogColorFinal, fogFactorFinal, 1.0/255.0);
+            #else
                 ApplyFog(final.rgb, fogColorFinal, fogFactorFinal);
-            #elif defined RENDER_GBUFFER
-                #if defined RENDER_WATER || defined RENDER_HAND_WATER
-                    ApplyFog(final, fogColorFinal, fogFactorFinal, 1.0/255.0);
-                #else
-                    ApplyFog(final, fogColorFinal, fogFactorFinal, alphaTestRef);
-                #endif
             #endif
         }
 

@@ -78,5 +78,5 @@ void main() {
 
     color.rgb = vec3(0.0);//clamp(color.rgb * exposure, vec3(0.0), vec3(65000));
 
-    outColor0 = fuck;
+    outColor0 = color;
 }

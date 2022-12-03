@@ -5,10 +5,10 @@
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
 
-in vec4 at_tangent;
+attribute vec4 at_tangent;
 
 #if defined PARALLAX_ENABLED || defined AF_ENABLED
-    in vec4 mc_midTexCoord;
+    attribute vec4 mc_midTexCoord;
 #endif
 
 out vec2 lmcoord;

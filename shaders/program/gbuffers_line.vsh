@@ -8,8 +8,10 @@
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
 
-in vec3 vaPosition;
-in vec3 vaNormal;
+#if MC_VERSION >= 11700
+    attribute vec3 vaPosition;
+    attribute vec3 vaNormal;
+#endif
 
 out vec2 lmcoord;
 out vec3 localPos;

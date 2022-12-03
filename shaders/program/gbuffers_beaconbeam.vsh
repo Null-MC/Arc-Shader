@@ -20,10 +20,10 @@ out mat3 matTBN;
     out vec4 spriteBounds;
 #endif
 
-in vec4 at_tangent;
+attribute vec4 at_tangent;
 
 #ifdef AF_ENABLED
-    in vec4 mc_midTexCoord;
+    attribute vec4 mc_midTexCoord;
 #endif
 
 #include "/lib/lighting/basic.glsl"

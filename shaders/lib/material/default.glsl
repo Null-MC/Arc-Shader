@@ -13,7 +13,7 @@ void ApplyHardCodedMaterials(out float matF0, out float matSSS, out float matSmo
         // Nether Portal
         matEmissive = 0.8;
     }
-    else if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0) {
+    else if (mc_Entity.x >= 10000.5 && mc_Entity.x <= 10004.5) {
         // Foliage
         matSmooth = 0.08;
         matSSS = 0.7;

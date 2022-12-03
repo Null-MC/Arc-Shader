@@ -5,7 +5,7 @@ float GetFogFactor(const in float dist, const in float start, const in float end
 }
 
 float GetCaveFogFactor(const in float dist) {
-    float end = min(60.0, fogEnd);
+    float end = min(60.0, gl_Fog.end);
     return GetFogFactor(dist, 0.0, end, 1.0);
 }
 
@@ -31,19 +31,35 @@ float GetCaveFogFactor(const in float dist) {
         density = mix(density, rainFogDensity, rainStrength);
         strength = mix(strength, rainFogStrength, rainStrength);
 
-        return saturate(GetFogFactor(viewDist, 0.0, fogEnd, density) * strength);
+        return saturate(GetFogFactor(viewDist, 0.0, gl_Fog.end, density) * strength);
     }
 #endif
 
 float GetVanillaFogFactor(const in vec3 viewPos) {
     vec3 fogPos = viewPos;
+
     if (fogShape == 1) {
         fogPos = (gbufferModelViewInverse * vec4(fogPos, 1.0)).xyz;
         fogPos.y = 0.0;
     }
 
     float fogDist = length(fogPos);
-    return GetFogFactor(fogDist, fogStart, fogEnd, 1.0);
+    // return saturate(fogDist / far);
+    //return GetFogFactor(fogDist, fogStart, fogEnd, 1.0);
+
+
+    float fogFactor;
+
+    if (fogMode == 2)
+        fogFactor = exp(-pow((gl_Fog.density * fogDist), 2.0));
+    else if (fogMode == 1)
+        fogFactor = exp(-gl_Fog.density * fogDist);
+    else
+        fogFactor = (gl_Fog.end - fogDist) * gl_Fog.scale;
+
+    return 1.0 - saturate(fogFactor);
+
+    //gl_FragColor = mix(gl_Fog.color, gl_Color, fogFactor);
 }
 
 vec3 GetAreaFogColor() {
@@ -87,7 +103,7 @@ void GetFog(const in LightData lightData, const in vec3 viewPos, out vec3 fogCol
     float vanillaFogFactor = GetVanillaFogFactor(viewPos);
 
     #ifdef SKY_ENABLED
-        float rainFogFactor = 0.6 * GetFogFactor(viewDist, 0.0, fogEnd, 0.5) * wetness;
+        float rainFogFactor = 0.6 * GetFogFactor(viewDist, 0.0, gl_Fog.end, 0.5) * wetness;
         vanillaFogFactor = min(vanillaFogFactor + rainFogFactor, 1.0);
     #endif
 
@@ -101,7 +117,7 @@ void GetFog(const in LightData lightData, const in vec3 viewPos, out vec3 fogCol
             //caveFogFactor *= 1.0 - cameraLightFactor * vanillaFogFactor;
         #endif
 
-        fogFactor = max(fogFactor, caveFogFactor);
+        //fogFactor = max(fogFactor, caveFogFactor);
     #endif
 
     #if defined SKY_ENABLED && defined ATMOSFOG_ENABLED
@@ -110,7 +126,7 @@ void GetFog(const in LightData lightData, const in vec3 viewPos, out vec3 fogCol
             customFogFactor *= caveLightFactor;
         #endif
 
-        fogFactor = max(fogFactor, customFogFactor);
+        //fogFactor = max(fogFactor, customFogFactor);
         //color = mix(color, atmosphereColor, customFogFactor);
     #endif
 

@@ -5,8 +5,8 @@
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
 
-in vec4 at_tangent;
-in vec4 mc_midTexCoord;
+attribute vec4 at_tangent;
+attribute vec4 mc_midTexCoord;
 
 out vec2 lmcoord;
 out vec2 texcoord;

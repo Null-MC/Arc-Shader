@@ -90,13 +90,16 @@ flat out mat2 atlasBounds;
     uniform int heldBlockLightValue2;
 #endif
 
-in vec3 mc_Entity;
-in vec3 vaPosition;
-in vec4 at_tangent;
-in vec3 at_midBlock;
+attribute vec3 mc_Entity;
+attribute vec4 at_tangent;
+attribute vec3 at_midBlock;
+
+#if MC_VERSION >= 11700
+    attribute vec3 vaPosition;
+#endif
 
 #if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX || defined AF_ENABLED
-    in vec4 mc_midTexCoord;
+    attribute vec4 mc_midTexCoord;
 #endif
 
 uniform mat4 gbufferModelView;

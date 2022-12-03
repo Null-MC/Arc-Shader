@@ -7,12 +7,16 @@
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
         vec4 colorMap, normalMap, specularMap;
 
-        normalMap.xyz = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).xyz;
+        //normalMap.xyz = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).xyz;
+        normalMap.xyz = texture(normals, texcoord).xyz;
         bool isMissingNormal = all(lessThan(normalMap.xy, vec2(EPSILON)));
         bool isMissingTangent = any(isnan(viewTangent));
 
         vec2 atlasCoord = texcoord;
         float viewDist = length(viewPos);
+
+        //if (normalMap.z > 0.0 || normalMap.z < 1.0 || isnan(normalMap.z) || isinf(normalMap.z))
+        //    normalMap.xyz = vec3(0.5, 0.5, 1.0);
 
         #ifdef PARALLAX_ENABLED
             bool skipParallax = isMissingTangent || isMissingNormal;
@@ -54,6 +58,9 @@
                 }
             #endif
         #endif
+
+        //if (all(lessThan(normalMap.xy, vec2(1.0/255.0))))
+        //    normalMap.xyz = vec3(0.5, 0.5, 1.0);
         
         #ifdef AF_ENABLED
             colorMap = textureAnisotropic(gtexture, atlasCoord, dFdXY);
@@ -82,7 +89,7 @@
         float parallaxShadow = 1.0;
         vec2 lm = lmcoord;
 
-        #if defined PARALLAX_SMOOTH_NORMALS && MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
+        #if defined PARALLAX_ENABLED && defined PARALLAX_SMOOTH_NORMALS && MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
             if (!isMissingNormal && !isMissingTangent) {
                 ////normalMap.rgb = TexelFetchLinearRGB(normals, atlasCoord * atlasSize);
                 //normalMap.rgb = TextureGradLinearRGB(normals, atlasCoord, atlasSize, dFdXY);
@@ -109,53 +116,56 @@
         PbrMaterial material;
         PopulateMaterial(material, colorMap, normalMap.xyz, specularMap);
 
-        if (!isMissingNormal && !isMissingTangent) {
-            #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
-                #ifdef PARALLAX_SLOPE_NORMALS
-                    float dO = max(texDepth - traceCoordDepth.z, 0.0);
-                    if (dO >= 2.0 / 255.0) {
-                        #ifdef PARALLAX_USE_TEXELFETCH
-                            material.normal = GetParallaxSlopeNormal(atlasCoord, traceCoordDepth.z, tanViewDir);
-                        #else
-                            material.normal = GetParallaxSlopeNormal(atlasCoord, dFdXY, traceCoordDepth.z, tanViewDir);
-                        #endif
-                    }
-                #endif
+        #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+            #ifdef RENDER_TERRAIN
+                material.f0 = matF0;
+                material.smoothness = matSmooth;
+                material.scattering = matSSS;
             #else
-                #ifdef RENDER_TERRAIN
-                    material.f0 = matF0;
-                    material.smoothness = matSmooth;
-                    material.scattering = matSSS;
-                #else
-                    material.f0 = 0.04;
-                    material.smoothness = 0.08;
-                #endif
+                material.f0 = 0.04;
+                material.smoothness = 0.08;
             #endif
+        #endif
 
-            #if AO_TYPE == AO_TYPE_VANILLA
-                material.occlusion *= pow2(glcolor.a);
-            #endif
+        #if AO_TYPE == AO_TYPE_VANILLA
+            material.occlusion *= pow2(glcolor.a);
+        #endif
 
-            #if defined SKY_ENABLED && defined PARALLAX_SHADOWS_ENABLED
-                if (traceCoordDepth.z + EPSILON < 1.0) {
-                    vec3 tanLightDir = normalize(tanLightPos);
-                    
-                    #ifdef PARALLAX_USE_TEXELFETCH
-                        parallaxShadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
-                    #else
-                        parallaxShadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
+        #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
+            if (!isMissingNormal && !isMissingTangent) {
+                #ifdef PARALLAX_ENABLED
+                    #ifdef PARALLAX_SLOPE_NORMALS
+                        float dO = max(texDepth - traceCoordDepth.z, 0.0);
+                        if (dO >= 2.0 / 255.0) {
+                            #ifdef PARALLAX_USE_TEXELFETCH
+                                material.normal = GetParallaxSlopeNormal(atlasCoord, traceCoordDepth.z, tanViewDir);
+                            #else
+                                material.normal = GetParallaxSlopeNormal(atlasCoord, dFdXY, traceCoordDepth.z, tanViewDir);
+                            #endif
+                        }
                     #endif
-                }
-            #endif
 
-            #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT && !defined RENDER_ENTITIES
-                ApplyDirectionalLightmap(lm.x, material.normal);
-            #endif
-        }
+                    #if defined SKY_ENABLED && defined PARALLAX_SHADOWS_ENABLED
+                        if (traceCoordDepth.z + EPSILON < 1.0) {
+                            vec3 tanLightDir = normalize(tanLightPos);
+                            
+                            #ifdef PARALLAX_USE_TEXELFETCH
+                                parallaxShadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
+                            #else
+                                parallaxShadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
+                            #endif
+                        }
+                    #endif
+                #endif
 
-        if (isMissingNormal || isMissingTangent) {
-            material.normal = vec3(0.0, 0.0, 1.0);
-        }
+                #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && !defined RENDER_ENTITIES
+                    ApplyDirectionalLightmap(lm.x, material.normal);
+                #endif
+            }
+        #endif
+
+        //if (isMissingNormal || isMissingTangent)
+        //    material.normal = vec3(0.0, 0.0, 1.0);
 
         vec3 _viewNormal = normalize(viewNormal);
         vec3 _viewTangent = normalize(viewTangent);
@@ -178,7 +188,7 @@
                 vec3 tanUpDir = normalize(upPosition) * matTBN;
                 float NoU = dot(material.normal, tanUpDir);
 
-                ApplyWeather(material, NoU, viewDist, lm.x, lm.y);
+                //ApplyWeather(material, NoU, viewDist, lm.x, lm.y);
             }
         #endif
 

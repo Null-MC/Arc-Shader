@@ -32,15 +32,16 @@ flat out int materialId;
     flat out vec2 shadowCascadePos;
 #endif
 
-//#ifdef PHYSICSMOD_ENABLED
-    uniform sampler2D gtexture;
-    in vec4 mc_midTexCoord;
-//#endif
+attribute vec3 mc_Entity;
+attribute vec4 mc_midTexCoord;
+attribute vec3 at_midBlock;
+attribute vec4 at_tangent;
 
-in vec4 mc_Entity;
-in vec3 vaPosition;
-in vec3 at_midBlock;
-in vec4 at_tangent;
+#if MC_VERSION >= 11700
+    attribute vec3 vaPosition;
+#endif
+
+uniform sampler2D gtexture;
 
 uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;

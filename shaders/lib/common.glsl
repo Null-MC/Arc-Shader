@@ -255,6 +255,8 @@ const bool colortex12Clear = false;
 #define EPSILON 1e-7
 #define GAMMA 2.2
 
+#define attribute in
+
 const float sunLumen = 1.6e9;
 const float moonLumen = 800.0;
 const float StarLumen = 200.0;
@@ -296,24 +298,24 @@ const float drynessHalflife = 10.0;
 //     #undef PARALLAX_ENABLED
 // #endif
 
-#ifdef PARALLAX_ENABLED
-    #ifdef PARALLAX_SMOOTH
-        #undef PARALLAX_SLOPE_NORMALS
-    #else
-        #undef PARALLAX_SMOOTH_NORMALS
-    #endif
-#else
-    #undef PARALLAX_SMOOTH
-    #undef PARALLAX_SMOOTH_NORMALS
-    #undef PARALLAX_SLOPE_NORMALS
-    #undef PARALLAX_SHADOWS_ENABLED
-#endif
+// #ifdef PARALLAX_ENABLED
+//     #ifdef PARALLAX_SMOOTH
+//         #undef PARALLAX_SLOPE_NORMALS
+//     #else
+//         #undef PARALLAX_SMOOTH_NORMALS
+//     #endif
+// #else
+//     #undef PARALLAX_SMOOTH
+//     #undef PARALLAX_SMOOTH_NORMALS
+//     #undef PARALLAX_SLOPE_NORMALS
+//     #undef PARALLAX_SHADOWS_ENABLED
+// #endif
 
-#if !defined SHADOW_ENABLED || SHADOW_TYPE == 0
-    #undef RSM_ENABLED
-    //#undef SSS_ENABLED
-    #undef VL_ENABLED
-#endif
+// #if !defined SHADOW_ENABLED || SHADOW_TYPE == 0
+//     #undef RSM_ENABLED
+//     //#undef SSS_ENABLED
+//     #undef VL_ENABLED
+// #endif
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     #define SHADOW_POS_TYPE vec3 shadowPos[4]
@@ -326,9 +328,9 @@ const float drynessHalflife = 10.0;
 //     #undef VL_ENABLED
 // #endif
 
-#if !defined RSM_ENABLED || RSM_SCALE == 0
-    #undef RSM_UPSCALE
-#endif
+// #if !defined RSM_ENABLED || RSM_SCALE == 0
+//     #undef RSM_UPSCALE
+// #endif
 
 #ifdef REFLECTION_MODE
 #endif
