@@ -188,7 +188,7 @@
                 vec3 tanUpDir = normalize(upPosition) * matTBN;
                 float NoU = dot(material.normal, tanUpDir);
 
-                //ApplyWeather(material, NoU, viewDist, lm.x, lm.y);
+                ApplyWeather(material, NoU, viewDist, lm.x, lm.y);
             }
         #endif
 

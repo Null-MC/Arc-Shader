@@ -33,9 +33,10 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     const vec3 clipMin = vec3(0.0);
     const vec3 clipMax = vec3(1.0 - EPSILON);
 
+    int level = 3;//int(3.99 * rough);
+
     int i;
     float alpha = 0.0;
-    int level = int(3.99 * rough);
     float texDepth;
     vec3 tracePos;
     vec3 lastTracePos = clipPos;
@@ -62,10 +63,12 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
             continue;
         }
 
+        float depthBias = screenRay.z * max(l2 - 1, 0);
+
         //texDepth = texelFetch(depthtex, iuv, level).r;
         texDepth = textureLod(depthtex, tracePos.xy, level).r;
 
-        if (texDepth > tracePos.z - EPSILON) {
+        if (texDepth - depthBias > tracePos.z - EPSILON) {
             i += l2;
             lastTracePos = tracePos;
             continue;
