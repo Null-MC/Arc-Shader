@@ -218,11 +218,11 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
 
             shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
 
-            if (saturate(shadowPos.xy) != shadowPos.xy) {
-                vec3 lightColor2 = GetScatteredLighting(worldTraceHeight, skyLightLevels, scatteringF);
-                accumF += lightColor2 * 10000.0;// * exp(-(i * viewStepLength) * extinctionInv);
-                return vec3(10000.0, 0.0, 0.0);
-            }
+            // if (saturate(shadowPos.xy) != shadowPos.xy) {
+            //     vec3 lightColor2 = GetScatteredLighting(worldTraceHeight, skyLightLevels, scatteringF);
+            //     accumF += lightColor2 * 10000.0;// * exp(-(i * viewStepLength) * extinctionInv);
+            //     return vec3(10000.0, 0.0, 0.0);
+            // }
 
             lightSample = CompareOpaqueDepth(shadowPos, vec2(0.0), 0.0);
 

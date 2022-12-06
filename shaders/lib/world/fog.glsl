@@ -167,15 +167,17 @@ vec2 GetWaterScattering(const in vec3 viewDir) {
         #endif
 
         float sun_VoL = dot(viewDir, sunDir);
-        scatteringF.x =
-            ComputeVolumetricScattering(sun_VoL, 0.6) +
-            ComputeVolumetricScattering(sun_VoL, -0.2);
+        scatteringF.x = mix(
+            ComputeVolumetricScattering(sun_VoL, -0.2),
+            ComputeVolumetricScattering(sun_VoL, 0.6),
+            sun_VoL * 0.5 + 0.5);
 
         vec3 moonDir = normalize(moonPosition);
         float moon_VoL = dot(viewDir, moonDir);
-        scatteringF.y =
-            ComputeVolumetricScattering(moon_VoL, 0.6) +
-            ComputeVolumetricScattering(moon_VoL, -0.2);
+        scatteringF.y = mix(
+            ComputeVolumetricScattering(moon_VoL, -0.2),
+            ComputeVolumetricScattering(moon_VoL, 0.6),
+            moon_VoL * 0.5 + 0.5);
 
         return max(scatteringF, vec2(0.0));
     #else

@@ -73,15 +73,22 @@ void main() {
     outColor0 = vec4(color, lum);
 
     #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-        float depth = 1.0;
-
-        // TODO: replace this with separate depth tiles?
-        //depth = textureLod(depthtex0, texcoord, scaleLod).r;
-        depth = minOf(textureGather(depthtex0, texcoord, 0));
+        #if SSR_QUALITY == 2
+            ivec2 iuv = ivec2(gl_FragCoord.xy * SSR_SCALE);
+            float depth = texelFetch(depthtex0, iuv, 0).r;
+        #else
+            float depth = minOf(textureGather(depthtex0, texcoord, 0));
+        #endif
 
         #ifdef SSR_IGNORE_HAND
-            float depthT1 = textureLod(depthtex1, texcoord, scaleLod).r;
-            float depthT2 = textureLod(depthtex2, texcoord, scaleLod).r;
+            #if SSR_QUALITY == 2
+                float depthT1 = texelFetch(depthtex1, iuv, 0).r;
+                float depthT2 = texelFetch(depthtex2, iuv, 0).r;
+            #else
+                float depthT1 = minOf(textureGather(depthtex1, texcoord, 0));
+                float depthT2 = minOf(textureGather(depthtex2, texcoord, 0));
+            #endif
+
             depth = max(depth, step(EPSILON, abs(depthT2 - depthT1)));
         #endif
 

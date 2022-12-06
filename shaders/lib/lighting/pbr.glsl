@@ -98,8 +98,8 @@
             vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor * max(lightData.skyLightLevels.x, 0.0);
             vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * max(lightData.skyLightLevels.y, 0.0);
 
-            vec3 sunColorFinal = lightData.sunTransmittance * sunColor;
-            vec3 moonColorFinal = lightData.moonTransmittance * moonColor;
+            vec3 sunColorFinal = lightData.sunTransmittance * sunColor * max(lightData.skyLightLevels.x, 0.0);
+            vec3 moonColorFinal = lightData.moonTransmittance * moonColor * max(lightData.skyLightLevels.y, 0.0);
             vec3 skyLightColorFinal = (sunColorFinal + moonColorFinal);
 
             vec3 viewLightDir = normalize(shadowLightPosition);
@@ -235,7 +235,7 @@
                     int maxHdrPrevLod = textureQueryLevels(BUFFER_HDR_PREVIOUS);
                     int lod = int(rough * max(maxHdrPrevLod - EPSILON, 0.0));
 
-                    vec4 roughReflectColor = GetReflectColor(BUFFER_DEPTH_PREV, viewPosPrev, reflectDirPrev, rough, lod);
+                    vec4 roughReflectColor = GetReflectColor(BUFFER_DEPTH_PREV, viewPosPrev, reflectDirPrev, lod);
 
                     reflectColor = roughReflectColor.rgb * roughReflectColor.a;
 
@@ -626,8 +626,13 @@
                     vec3 waterFogColor = GetWaterFogColor(viewDir, sunColorFinalEye, moonColorFinalEye, waterScatteringF);
                     float waterFogF = ApplyWaterFog(refractColor, waterFogColor, lightDist);
                     
-                    diffuse = mix(refractColor, diffuse, material.albedo.a);
+                    refractColor *= max(1.0 - iblF, 0.0);
 
+                    #ifndef WATER_FANCY
+                        refractColor = mix(refractColor, diffuse, material.albedo.a);
+                    #endif
+
+                    diffuse = refractColor;
                     final.a = min(final.a + waterFogF, 1.0);// * (1.0 - material.albedo.a);// * max(1.0 - final.a, 0.0);
                 #endif
 

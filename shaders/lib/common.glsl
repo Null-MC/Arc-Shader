@@ -51,7 +51,7 @@ const bool colortex12Clear = false;
 #define ENABLE_WAVING
 #define HANDLIGHT_ENABLED
 #define BLOCK_OUTLINE 3 // [0 1 2 3]
-#define BLOCKLIGHT_TEMP 3000 // [2500 2700 3000 3500 4000 5700 7000]
+#define BLOCKLIGHT_TEMP 2700 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 0 // [0 10 20 30 40 50 60 70 80 90 100]
 #define SHADOW_BRIGHTNESS 0.16 // [0.00 0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.32 0.48 0.64 1.00]
 #define RAIN_DARKNESS 0.2
@@ -61,7 +61,7 @@ const bool colortex12Clear = false;
 // Water Options
 #define WATER_FANCY
 #define WATER_WAVE_TYPE 1 // [0 1 2]
-#define WATER_REFRACTION 1 // [0 1 2]
+#define WATER_REFRACTION 1 // [0 1]
 #define REFRACTION_STRENGTH 100 // [5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 85 100 110 120 130 140 150 160 170 180 190 200]
 #define WATER_SCALE 16.0
 #define WATER_RADIUS 50
@@ -71,7 +71,7 @@ const bool colortex12Clear = false;
 #define WATER_PARALLAX_SAMPLES 64
 #define WATER_WAVE_DEPTH 1.0
 #define WATER_RESOLUTION 2048
-#define WATER_NORMAL_STRENGTH 0.08
+#define WATER_NORMAL_STRENGTH 0.04
 #define WATER_ABSROPTION_RATE 1.0
 #define VL_WATER_ENABLED
 
@@ -206,7 +206,7 @@ const bool colortex12Clear = false;
 
 
 // Debug Options
-#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26]
 //#define DEBUG_EXPOSURE_METERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
 #define DITHER_FINAL
@@ -228,17 +228,15 @@ const bool colortex12Clear = false;
 #define SHADOW_CLOUD
 #define IRIS_FEATURE_BIOMECAT
 
-#if SSR_QUALITY == 0
+#if SSR_QUALITY == 2
+    #define SSR_SCALE 1
+    #define SSR_MAXSTEPS 512
+#elif SSR_QUALITY == 1
+    #define SSR_SCALE 2
+    #define SSR_MAXSTEPS 256
+#else
     #define SSR_SCALE 4
     #define SSR_MAXSTEPS 128
-#else
-    #define SSR_SCALE 2
-
-    #if SSR_QUALITY == 1
-        #define SSR_MAXSTEPS 256
-    #else
-        #define SSR_MAXSTEPS 512
-    #endif
 #endif
 
 
@@ -260,13 +258,13 @@ const bool colortex12Clear = false;
 const float sunLumen = 1.6e9;
 const float moonLumen = 800.0;
 const float StarLumen = 200.0;
-const float EmissionLumens = 1.0e5;
+const float EmissionLumens = 100000;
 
 const float SunLux = 64000.0;
 const float SunOvercastLux = 48000.0;
 const float MoonLux = 26.0;
 const float MoonOvercastLux = 4.0;
-const float BlockLightLux = 12800.0;
+const float BlockLightLux = 8200.0;
 // const float MinWorldLux = 8.0;
 
 const float DaySkyLumen = 6400.0;

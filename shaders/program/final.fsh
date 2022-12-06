@@ -22,6 +22,10 @@ in vec2 texcoord;
 
 uniform float viewWidth;
 uniform float viewHeight;
+uniform float near;
+uniform float far;
+
+#include "/lib/depth.glsl"
 
 #if DEBUG_VIEW == DEBUG_VIEW_GBUFFER_COLOR
     // Deferred Color
@@ -81,10 +85,6 @@ uniform float viewHeight;
         uniform sampler2D BUFFER_RSM_DEPTH;
         uniform sampler2D depthtex0;
 
-        uniform float near;
-        uniform float far;
-
-        #include "/lib/depth.glsl"
         #include "/lib/sampling/bilateral_gaussian.glsl"
     #endif
 #elif DEBUG_VIEW == DEBUG_VIEW_BLOOM
@@ -96,6 +96,9 @@ uniform float viewHeight;
 #elif DEBUG_VIEW == DEBUG_VIEW_PREV_LUMINANCE
     // Previous Luminance
     uniform sampler2D BUFFER_HDR_PREVIOUS;
+#elif DEBUG_VIEW == DEBUG_VIEW_PREV_DEPTH
+    // Previous HDR Depth
+    uniform sampler2D BUFFER_DEPTH_PREV;
 #elif DEBUG_VIEW == DEBUG_VIEW_WATER_WAVES
     // Water Waves
     uniform sampler2D BUFFER_WATER_WAVES;
@@ -110,10 +113,6 @@ uniform float viewHeight;
         uniform sampler2D depthtex0;
         uniform sampler2D depthtex1;
 
-        uniform float near;
-        uniform float far;
-
-        #include "/lib/depth.glsl"
         #include "/lib/sampling/bilateral_gaussian.glsl"
     #endif
 #elif DEBUG_VIEW == DEBUG_VIEW_LUT_BRDF
@@ -323,6 +322,10 @@ void main() {
         #if defined DEBUG_EXPOSURE_METERS && CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
             RenderLuminanceMeters(color, averageLuminance, EV100);
         #endif
+    #elif DEBUG_VIEW == DEBUG_VIEW_PREV_DEPTH
+        // Previous HDR Depth
+        float depth = textureLod(BUFFER_DEPTH_PREV, texcoord, 0).r;
+        color = vec3(linearizeDepthFast(depth, near, far) / far);
     #elif DEBUG_VIEW == DEBUG_VIEW_WATER_WAVES
         // Water Waves
         color = textureLod(BUFFER_WATER_WAVES, texcoord, 0).rrr;
