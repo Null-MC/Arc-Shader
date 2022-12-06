@@ -21,8 +21,6 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     #if SSR_QUALITY == 0
         screenRay *= 3.0;
     #elif SSR_QUALITY == 1
-        screenRay *= 2.5;
-    #else
         screenRay *= 2.0;
     #endif
 
