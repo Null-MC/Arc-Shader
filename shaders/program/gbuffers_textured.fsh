@@ -173,8 +173,8 @@ uniform float waterFogDistSmooth;
 #include "/lib/lighting/basic_forward.glsl"
 
 /* RENDERTARGETS: 4,6 */
-//out vec4 outColor0;
-//out vec4 outColor1;
+out vec4 outColor0;
+out vec4 outColor1;
 
 
 void main() {
@@ -256,12 +256,13 @@ void main() {
     #endif
 
     vec4 color = BasicLighting(lightData, albedo, _viewNormal);
+    //color = vec4(2000.0, 0.0, 0.0, 1.0);
 
     vec4 outLuminance = vec4(0.0);
     outLuminance.r = log2(luminance(color.rgb) + EPSILON);
     outLuminance.a = color.a;
-    gl_FragData[1] = outLuminance;
+    outColor1 = outLuminance;
 
     color.rgb = clamp(color.rgb * exposure, vec3(0.0), vec3(65000));
-    gl_FragData[0] = color;
+    outColor0 = color;
 }
