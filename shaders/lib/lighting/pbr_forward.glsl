@@ -80,8 +80,8 @@
 
                 const float waterPixelSize = rcp(WATER_RESOLUTION);
 
-                float windSpeed = GetWindSpeed();
-                float zScale = 8.0 + windSpeed; // 32
+                //float windSpeed = GetWindSpeed();
+                //float zScale = 8.0 + windSpeed; // 32
 
                 float depth, depthX, depthY;
                 vec3 waterPos;
@@ -92,7 +92,8 @@
                     int octaves = WATER_OCTAVES_FAR;
                     #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
                         //float viewDist = length(viewPos) - near;
-                        octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, saturate(viewDist / 200.0)));
+                        float octaveDistF = saturate(viewDist / WATER_OCTAVES_DIST);
+                        octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, octaveDistF));
                     #endif
 
                     const float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);

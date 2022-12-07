@@ -176,7 +176,8 @@ void main() {
             int octaves = WATER_OCTAVES_FAR;
             #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
                 float viewDist = length(viewPos);
-                octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, saturate(viewDist / 200.0)));
+                float octaveDistF = saturate(viewDist / WATER_OCTAVES_DIST);
+                octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, octaveDistF));
             #endif
 
             float finalDepth = GetWaves(waterWorldPos, waveDepth, octaves);

@@ -335,21 +335,24 @@
             #endif
 
             if (applyWaterAbsorption) {
-                float waterLightDist = max(lightData.opaqueScreenDepthLinear + lightData.waterShadowDepth, 0.0);
+                vec3 shadowAbsorption = exp(-WATER_ABSROPTION_RATE * max(lightData.waterShadowDepth, 0.0) * waterExtinctionInv);
 
                 //const vec3 extinctionInv = 1.0 - WATER_ABSORB_COLOR;
-                vec3 absorption = exp(-WATER_ABSROPTION_RATE * waterLightDist * waterExtinctionInv);
                 //if (lightData.waterShadowDepth < EPSILON) absorption = vec3(0.0);
 
-                skyAmbient *= absorption;
                 //skyAmbient *= skyLight3;
 
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    if (lightData.geoNoL < 0.0 || lightData.opaqueShadowDepth < lightData.shadowPos[lightData.opaqueShadowCascade].z - lightData.shadowBias[lightData.opaqueShadowCascade]) absorption = vec3(0.0);
+                    if (lightData.geoNoL < 0.0 || lightData.opaqueShadowDepth < lightData.shadowPos[lightData.opaqueShadowCascade].z - lightData.shadowBias[lightData.opaqueShadowCascade]) shadowAbsorption = vec3(0.0);
                 #else
-                    if (lightData.geoNoL < 0.0 || lightData.opaqueShadowDepth < lightData.shadowPos.z - lightData.shadowBias) absorption = vec3(0.0);
+                    if (lightData.geoNoL < 0.0 || lightData.opaqueShadowDepth < lightData.shadowPos.z - lightData.shadowBias) shadowAbsorption = vec3(0.0);
                 #endif
 
+                vec3 viewAbsorption = exp(-WATER_ABSROPTION_RATE * max(lightData.opaqueScreenDepthLinear, 0.0) * waterExtinctionInv);
+
+                vec3 absorption = shadowAbsorption * viewAbsorption;
+
+                skyAmbient *= absorption;
                 skyLightColorFinal *= absorption;// * skyLight3;
                 //reflectColor *= absorption;
                 iblSpec *= absorption;
@@ -512,6 +515,10 @@
                         refractOpaqueScreenDepth = lightData.transparentScreenDepth;
                         refractOpaqueScreenDepthLinear = lightData.transparentScreenDepthLinear;
                         //refractColor = vec3(10000.0, 0.0, 0.0);
+
+                        if (isEyeInWater == 1) {
+                            iblSpec = (1.0 - roughL) * reflectColor;
+                        }
                     }
 
                     float waterViewDepthFinal;// = isEyeInWater == 1 ? lightData.transparentScreenDepthLinear

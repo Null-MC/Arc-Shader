@@ -112,7 +112,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
 
     vec3 color = vec3(0.0);
     if (alpha > EPSILON) {
-        vec2 alphaXY = saturate(20.0 * abs(vec2(0.5) - tracePos.xy) - 9.0);
+        vec2 alphaXY = saturate(12.0 * abs(vec2(0.5) - tracePos.xy) - 5.0);
         alpha = 1.0 - pow(maxOf(alphaXY), 4.0);
         //alpha = 1.0 - smoothstep(0.0, 1.0, maxOf(alphaXY));
 
