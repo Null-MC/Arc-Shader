@@ -48,5 +48,5 @@ float GetWaves(const in vec2 position, const in float strength, const in int ite
     }
 
     float height = 0.84 - accumWeight / max(maxWeight, EPSILON);
-    return 1.0 - saturate(height * 1.65);
+    return 1.0 - saturate(height * 1.55);
 }

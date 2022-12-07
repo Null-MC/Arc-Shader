@@ -350,10 +350,22 @@
                     if (lightData.geoNoL < 0.0 || lightData.opaqueShadowDepth < lightData.shadowPos.z - lightData.shadowBias) absorption = vec3(0.0);
                 #endif
 
-
                 skyLightColorFinal *= absorption;// * skyLight3;
                 //reflectColor *= absorption;
                 iblSpec *= absorption;
+
+
+                // sample normal, get fresnel, darken
+                uint shadowData = textureLod(shadowcolor1, lightData.shadowPos.xy, 0).g;
+                vec3 waterNormal = unpackUnorm4x8(shadowData).xyz;
+                waterNormal = normalize(waterNormal * 2.0 - 1.0);
+                float water_NoL = max(waterNormal.z, 0.0);
+                float water_F = F_schlick(water_NoL, 0.02, 1.0);
+
+                water_F = 1.0 - water_F;
+                //water_F = smoothstep(0.5, 1.0, 1.0 - water_F);
+
+                skyLightColorFinal *= max(water_F, 0.0);
             }
 
             ambient += skyAmbient;
@@ -578,7 +590,6 @@
                     refractColor *= absorption;
 
                     refractColor *= max(1.0 - sunF, 0.0);
-                    //refractColor *= max(1.0 - iblF, 0.0);
 
                     if (isEyeInWater != 1) {
                         vec2 waterScatteringF = GetWaterScattering(viewDir);

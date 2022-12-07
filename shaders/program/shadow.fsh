@@ -181,18 +181,13 @@ void main() {
 
             float finalDepth = GetWaves(waterWorldPos, waveDepth, octaves);
             vec3 waterPos = vec3(waterWorldPos.x, waterWorldPos.y, finalDepth);
-            waterPos.z *= waveDepth * WATER_WAVE_DEPTH * WATER_NORMAL_STRENGTH;
+            waterPos.z *= waveDepth * WATER_WAVE_DEPTH * WATER_NORMAL_STRENGTH * 2.0;
 
             normal = normalize(
                 cross(
                     dFdy(waterPos),
                     dFdx(waterPos))
                 );
-
-            // This is really weird, not sure who's fault this is
-            // #if SHADER_PLATFORM != PLATFORM_IRIS
-            //     normal = -normal;
-            // #endif
         }
     #endif
 

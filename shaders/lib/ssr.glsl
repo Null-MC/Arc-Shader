@@ -10,7 +10,6 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     screenRay /= screenRayLength;
 
     vec2 viewSize = vec2(viewWidth, viewHeight) / SSR_SCALE;
-    ivec2 iuv_start = ivec2(clipPos.xy * viewSize);
     vec2 ssrPixelSize = rcp(viewSize);
 
     if (abs(screenRay.y) > abs(screenRay.x))
@@ -24,21 +23,22 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         screenRay *= 2.0;
     #endif
 
-    #if SSR_QUALITY != 2
-        clipPos += screenRay * GetScreenBayerValue();
-    #endif
+    vec3 lastTracePos = clipPos + screenRay;
+    //#if SSR_QUALITY != 2
+        lastTracePos += screenRay * GetScreenBayerValue();
+    //#endif
 
     float startDepthLinear = linearizeDepthFast(clipPos.z, near, far);
+    ivec2 iuv_start = ivec2(clipPos.xy * viewSize);
 
     const vec3 clipMin = vec3(0.0);
     vec3 clipMax = vec3(1.0) - vec3(ssrPixelSize, EPSILON);
 
-    int level = 6;
+    int level = 8;
 
     float alpha = 0.0;
     float texDepth;
     vec3 tracePos;
-    vec3 lastTracePos = clipPos;
     for (int i = 0; i < SSR_MAXSTEPS && alpha < EPSILON; i++) {
         int l2 = int(exp2(level));
         tracePos = lastTracePos + screenRay*l2;
@@ -62,25 +62,25 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
             continue;
         }
 
-        float depthBias = 0.0;
-        if (level > 0) depthBias = screenRay.z * max(l2 - 1, 0);
+        float depthBias = -0.01 * (1.0 - clipPos.z);
+        if (level > 0) depthBias += screenRay.z * max(l2 - 1, 0);
 
         //texDepth = texelFetch(depthtex, iuv, level).r;
         //texDepth = textureLod(depthtex, tracePos.xy, level).r;
 
         vec4 depthSamples = vec4(1.0);
-        int depthLod = max(level - 1, 0);
-        depthSamples.x = texelFetch(depthtex, iuv, depthLod).r;
+        //int depthLod = max(level - 1, 0);
+        depthSamples.x = textureLod(depthtex, tracePos.xy, level).r;
 
-        if (depthLod > 0) {
-            depthSamples.y = texelFetchOffset(depthtex, iuv, depthLod, ivec2(1, 0)).r;
-            depthSamples.z = texelFetchOffset(depthtex, iuv, depthLod, ivec2(0, 1)).r;
-            depthSamples.w = texelFetchOffset(depthtex, iuv, depthLod, ivec2(1, 1)).r;
+        if (level > 0) {
+            depthSamples.y = texelFetchOffset(depthtex, iuv, level, ivec2(1, 0)).r;
+            depthSamples.z = texelFetchOffset(depthtex, iuv, level, ivec2(0, 1)).r;
+            depthSamples.w = texelFetchOffset(depthtex, iuv, level, ivec2(1, 1)).r;
         }
 
         texDepth = minOf(depthSamples);
 
-        if (texDepth - 0.000001 > tracePos.z + depthBias) {
+        if (texDepth > tracePos.z + depthBias) {
             //i += l2;
             lastTracePos = tracePos;
             continue;
