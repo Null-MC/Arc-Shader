@@ -13,8 +13,6 @@ out vec2 texcoord;
 
     uniform sampler2D BUFFER_HDR_PREVIOUS;
 
-    uniform float viewWidth;
-    uniform float viewHeight;
 #endif
 
 #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
@@ -23,7 +21,8 @@ out vec2 texcoord;
 
 uniform float screenBrightness;
 uniform int heldBlockLightValue;
-uniform float blindness;
+uniform float viewWidth;
+uniform float viewHeight;
 
 uniform float rainStrength;
 uniform vec3 sunPosition;
@@ -31,6 +30,7 @@ uniform vec3 moonPosition;
 uniform vec3 upPosition;
 uniform int moonPhase;
 
+uniform float blindness;
 uniform float nightVision;
 
 #if MC_VERSION >= 11900

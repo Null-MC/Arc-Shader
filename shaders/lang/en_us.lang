@@ -316,7 +316,10 @@ option.BLOOM_SMOOTH=Smooth
 option.BLOOM_SMOOTH.comment=Makes bloom smoother at a slight performance cost.
 
 option.BLOOM_POWER=Power
-option.BLOOM_POWER.comment=Adjusts the exposure curve of the incoming light.
+option.BLOOM_POWER.comment=Adjusts the exposure curve of bloom light.
+
+option.BLOOM_THRESHOLD=Scale
+option.BLOOM_POWER.comment=Adjusts the brightness scale of bloom light.
 
 
 screen.EFFECT_RSM_OPTIONS=Global Illumination

@@ -13,13 +13,13 @@ uniform sampler2D BUFFER_HDR;
 
 #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
     uniform sampler2D BUFFER_HDR_PREVIOUS;
-
-    uniform float viewWidth;
-    uniform float viewHeight;
 #endif
 
 uniform int heldBlockLightValue;
 uniform float screenBrightness;
+uniform float viewWidth;
+uniform float viewHeight;
+
 uniform float nightVision;
 uniform float blindness;
 
