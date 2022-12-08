@@ -8,6 +8,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     if (screenRayLength < EPSILON) return vec4(0.0);
 
     screenRay /= screenRayLength;
+    vec3 screenRayDir = screenRay;
 
     vec2 viewSize = vec2(viewWidth, viewHeight) / SSR_SCALE;
     vec2 ssrPixelSize = rcp(viewSize);
@@ -63,7 +64,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         }
 
         float depthBias = -0.01 * (1.0 - clipPos.z);
-        if (level > 0) depthBias += screenRay.z * max(l2 - 1, 0);
+        if (level > 0) depthBias += screenRayDir.z * max(l2 - 1, 0);
 
         //texDepth = texelFetch(depthtex, iuv, level).r;
         //texDepth = textureLod(depthtex, tracePos.xy, level).r;
@@ -86,8 +87,8 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
             continue;
         }
 
-        //float texDepthLinear = linearizeDepthFast(texDepth, near, far);
-        //float traceDepthLinear = linearizeDepthFast(tracePos.z, near, far);
+        float texDepthLinear = linearizeDepthFast(texDepth, near, far);
+        float traceDepthLinear = linearizeDepthFast(tracePos.z, near, far);
 
         // ignore geometry closer than start pos when tracing away
         // if (screenRay.z > 0.0 && texDepthLinear < startDepthLinear - 1.0) {
@@ -95,12 +96,12 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         //     continue;
         // }
 
-        // float d = 0.01*i;
-        // if (traceDepthLinear > texDepthLinear - d) {
-        //     lastTracePos = tracePos;
-        //     i += l2;
-        //     continue;
-        // }
+        float d = 400.0 * (1.0 - screenRayDir.z);
+        if (traceDepthLinear > texDepthLinear + d) {
+            lastTracePos = tracePos;
+            //i += l2;
+            continue;
+        }
 
         if (level > 0) {
             level--;

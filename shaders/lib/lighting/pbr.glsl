@@ -30,7 +30,7 @@
 
 #ifdef RENDER_FRAG
     #ifdef SKY_ENABLED
-        vec3 GetSkyReflectionColor(const in LightData lightData, const in vec3 localPos, const in vec3 viewDir, const in vec3 reflectDir) {
+        vec3 GetSkyReflectionColor(const in LightData lightData, const in vec3 localPos, const in vec3 viewDir, const in vec3 reflectDir, const in float rough) {
             vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor * max(lightData.skyLightLevels.x, 0.0);
             vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * max(lightData.skyLightLevels.y, 0.0);
 
@@ -70,6 +70,7 @@
             vec3 cloudColor = GetCloudColor(lightData.skyLightLevels);
             float cloudF = GetCloudFactor(cameraPosition + localPos, localReflectDir);
             cloudF = mix(cloudF, 0.0, pow(horizonFogF, CLOUD_HORIZON_POWER));
+            //cloudF *= 1.0 - rough;
             skyColor = mix(skyColor, cloudColor, cloudF);
 
             // darken lower horizon
@@ -241,12 +242,12 @@
 
                     #ifdef SKY_ENABLED
                         if (roughReflectColor.a + EPSILON < 1.0) {
-                            vec3 skyReflectColor = GetSkyReflectionColor(lightData, localPos, viewDir, reflectDir) * skyLight;
+                            vec3 skyReflectColor = GetSkyReflectionColor(lightData, localPos, viewDir, reflectDir, rough) * skyLight;
                             reflectColor += skyReflectColor * (1.0 - roughReflectColor.a);
                         }
                     #endif
                 #elif REFLECTION_MODE == REFLECTION_MODE_SKY && defined SKY_ENABLED
-                    reflectColor = GetSkyReflectionColor(lightData, localPos, viewDir, reflectDir) * skyLight;
+                    reflectColor = GetSkyReflectionColor(lightData, localPos, viewDir, reflectDir, rough) * skyLight;
                 #endif
             }
         #endif
@@ -357,18 +358,19 @@
                 //reflectColor *= absorption;
                 iblSpec *= absorption;
 
+                #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+                    // sample normal, get fresnel, darken
+                    uint shadowData = textureLod(shadowcolor1, lightData.shadowPos.xy, 0).g;
+                    vec3 waterNormal = unpackUnorm4x8(shadowData).xyz;
+                    waterNormal = normalize(waterNormal * 2.0 - 1.0);
+                    float water_NoL = max(waterNormal.z, 0.0);
+                    float water_F = F_schlick(water_NoL, 0.02, 1.0);
 
-                // sample normal, get fresnel, darken
-                uint shadowData = textureLod(shadowcolor1, lightData.shadowPos.xy, 0).g;
-                vec3 waterNormal = unpackUnorm4x8(shadowData).xyz;
-                waterNormal = normalize(waterNormal * 2.0 - 1.0);
-                float water_NoL = max(waterNormal.z, 0.0);
-                float water_F = F_schlick(water_NoL, 0.02, 1.0);
+                    water_F = 1.0 - water_F;
+                    //water_F = smoothstep(0.5, 1.0, 1.0 - water_F);
 
-                water_F = 1.0 - water_F;
-                //water_F = smoothstep(0.5, 1.0, 1.0 - water_F);
-
-                skyLightColorFinal *= max(water_F, 0.0);
+                    skyLightColorFinal *= max(water_F, 0.0);
+                #endif
             }
 
             ambient += skyAmbient;

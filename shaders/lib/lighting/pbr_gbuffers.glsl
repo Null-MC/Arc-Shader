@@ -203,6 +203,14 @@
             }
         #endif
 
+        if (materialId == 103) {
+            material.albedo = vec4(1.0);
+            material.albedo.rgb = RGBToLinear(vec3(0.212, 0.090, 0.082));
+            material.smoothness = 0.6;
+            material.scattering = 0.3;
+            material.f0 = 0.034;
+        }
+
         material.normal = normalize(matTBN * material.normal);
 
         // WARN: disabling until this can be properly integrated out of water!
