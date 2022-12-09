@@ -460,7 +460,7 @@ void main() {
                 // }
 
                 vec3 viewNear = viewDir * near;
-                vec3 viewFar = viewDir * min(length(viewPos), gl_Fog.end);
+                vec3 viewFar = viewDir * min(length(viewPos), far);
 
                 vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
                 color += GetVolumetricLighting(lightData, viewNear, viewFar, skyScatteringF);

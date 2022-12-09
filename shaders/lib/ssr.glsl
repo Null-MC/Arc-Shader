@@ -96,12 +96,12 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         //     continue;
         // }
 
-        float d = 400.0 * (1.0 - screenRayDir.z);
-        if (traceDepthLinear > texDepthLinear + d) {
-            lastTracePos = tracePos;
-            //i += l2;
-            continue;
-        }
+        // float d = 1.0e10 * pow(saturate(startDepthLinear / far), 4.0);
+        // if (traceDepthLinear > texDepthLinear + d) {
+        //     lastTracePos = tracePos;
+        //     //i += l2;
+        //     continue;
+        // }
 
         if (level > 0) {
             level--;

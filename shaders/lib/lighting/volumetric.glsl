@@ -11,9 +11,9 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
         scatteringF.x * sunTransmittance * sunColor * skyLightLevels.x +
         scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * moonColor * skyLightLevels.y;
 
-    sampleColor *= 1.0 - saturate((worldTraceHeight - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL));
+    float heightExt = saturate((worldTraceHeight - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL));
 
-    return sampleColor;
+    return sampleColor * (1.0 - pow2(heightExt));
 }
 
 vec3 GetVolumetricLighting(const in LightData lightData, const in vec3 viewNear, const in vec3 viewFar, const in vec2 scatteringF) {
@@ -128,16 +128,15 @@ vec3 GetVolumetricLighting(const in LightData lightData, const in vec3 viewNear,
             }
         #endif
 
-        // float traceViewDist = viewNearDist + i * viewStepLength;
-        // float fogF = GetFogFactor(traceViewDist, envFogStart, envFogEnd, envFogDensity);
-        // sampleF *= fogF;
+        float traceViewDist = viewNearDist + i * viewStepLength;
+        sampleColor *= exp(-ATMOS_EXTINCTION * traceViewDist);
 
         accumColor += sampleF * sampleColor;
     }
 
-    float traceLength = min(viewRayLength / min(far, gl_Fog.end), 1.0);
+    //float traceLength = min(viewRayLength / min(far, gl_Fog.end), 1.0);
 
-    return (accumColor / VL_SAMPLES_SKY) * traceLength;
+    return (accumColor / VL_SAMPLES_SKY) * (viewRayLength / far);
 }
 
 vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 nearViewPos, const in vec3 farViewPos, const in vec2 scatteringF) {
