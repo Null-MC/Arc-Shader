@@ -137,7 +137,7 @@ vec3 GetVolumetricLighting(const in LightData lightData, inout float extinction,
         #ifdef VL_SKY_NOISE
             float texDensity1 = texture(colortex13, worldTracePos / 256.0).r;
             float texDensity2 = texture(colortex13, worldTracePos / 44.0).r;
-            float texDensity = 0.3 + 0.4 * texDensity1 + 0.2 * texDensity2;
+            float texDensity = 1.0 - 0.3 * texDensity1 - 0.15 * texDensity2;
             sampleDensity *= texDensity;
 
             float stepExt = exp(-ATMOS_EXTINCTION * viewStepLength * sampleDensity);
@@ -145,17 +145,17 @@ vec3 GetVolumetricLighting(const in LightData lightData, inout float extinction,
             extinction *= stepExt;
 
             sampleF *= sampleDensity;
+        #else
+            float traceViewDist = viewNearDist + i * viewStepLength;
+            sampleF *= exp(-ATMOS_EXTINCTION * traceViewDist);
         #endif
 
-        float traceViewDist = viewNearDist + i * viewStepLength;
-        float sampleExt = exp(-ATMOS_EXTINCTION * traceViewDist);
-
-        accumColor += sampleF * sampleColor * sampleExt;
+        accumColor += sampleF * sampleColor;
     }
 
     //float traceLength = min(viewRayLength / min(far, gl_Fog.end), 1.0);
 
-    return (accumColor / VL_SAMPLES_SKY) * (viewRayLength / far);
+    return (accumColor / VL_SAMPLES_SKY) * viewRayLength * VL_SKY_DENSITY;
 }
 
 vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 nearViewPos, const in vec3 farViewPos, const in vec2 scatteringF) {
@@ -287,6 +287,6 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
         accumF += lightSample * lightColor * max(1.0 - waterF, 0.0);
     }
 
-    float traceLength = saturate(viewRayLength / waterFogDistSmooth);
-    return (accumF / VL_SAMPLES_WATER) * traceLength;
+    //float traceLength = saturate(viewRayLength / far);
+    return (accumF / VL_SAMPLES_WATER) * viewRayLength * VL_WATER_DENSITY;
 }

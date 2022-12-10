@@ -53,7 +53,7 @@ const bool colortex12Clear = false;
 #define BLOCK_OUTLINE 3 // [0 1 2 3]
 #define BLOCKLIGHT_TEMP 2700 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 0 // [0 10 20 30 40 50 60 70 80 90 100]
-#define SHADOW_BRIGHTNESS 0.16 // [0.00 0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.32 0.48 0.64 1.00]
+#define SHADOW_BRIGHTNESS 0.10 // [0.00 0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.32 0.48 0.64 1.00]
 #define RAIN_DARKNESS 0.2
 //#define ANIM_USE_WORLDTIME
 
@@ -75,6 +75,7 @@ const bool colortex12Clear = false;
 #define WATER_NORMAL_STRENGTH 0.2
 #define WATER_ABSROPTION_RATE 1.0
 #define VL_WATER_ENABLED
+#define VL_WATER_DENSITY 0.025
 #define VL_WATER_NOISE
 
 
@@ -83,12 +84,13 @@ const bool colortex12Clear = false;
 //#define ATMOSFOG_ENABLED
 //#define CAVEFOG_ENABLED
 #define WEATHER_OPACITY 50 // [10 20 30 40 50 60 70 80 90 100]
-#define ATMOS_EXTINCTION 0.01
+#define ATMOS_EXTINCTION 0.008
 #define SUN_TEMP 5000.0
 #define MOON_TEMP 4000.0
 #define WETNESS_MODE 2 // [0 1 2]
 #define SNOW_MODE 2 // [0 1 2]
 #define VL_SKY_ENABLED
+#define VL_SKY_DENSITY 0.008
 #define VL_SKY_NOISE
 
 
