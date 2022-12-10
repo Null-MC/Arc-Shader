@@ -35,15 +35,15 @@ float GetCaveFogFactor(const in float dist) {
     }
 #endif
 
-float GetVanillaFogFactor(const in vec3 viewPos) {
-    vec3 fogPos = viewPos;
+float GetVanillaFogFactor(in vec3 viewPos) {
+    if (gl_Fog.scale < EPSILON) return 0.0;
 
     if (fogShape == 1) {
-        fogPos = (gbufferModelViewInverse * vec4(fogPos, 1.0)).xyz;
-        fogPos.y = 0.0;
+        viewPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+        viewPos.y = 0.0;
     }
 
-    float fogDist = length(fogPos);
+    float viewDist = length(viewPos);
     // return saturate(fogDist / far);
     //return GetFogFactor(fogDist, fogStart, fogEnd, 1.0);
 
@@ -51,11 +51,11 @@ float GetVanillaFogFactor(const in vec3 viewPos) {
     float fogFactor;
 
     if (fogMode == 2)
-        fogFactor = exp(-pow((gl_Fog.density * fogDist), 2.0));
+        fogFactor = exp(-pow((gl_Fog.density * viewDist), 2.0));
     else if (fogMode == 1)
-        fogFactor = exp(-gl_Fog.density * fogDist);
+        fogFactor = exp(-gl_Fog.density * viewDist);
     else
-        fogFactor = (gl_Fog.end - fogDist) * gl_Fog.scale;
+        fogFactor = (gl_Fog.end - viewDist) * gl_Fog.scale;
 
     return 1.0 - saturate(fogFactor);
 
