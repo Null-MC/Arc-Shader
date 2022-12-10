@@ -118,8 +118,8 @@
         float NoVm = max(NoV, 0.0);
         vec3 viewUpDir = normalize(upPosition);
 
-        float blockLight = saturate((lightData.blockLight - (1.0/16.0 + EPSILON)) / (15.0/16.0));
-        float skyLight = saturate((lightData.skyLight - (1.0/16.0 + EPSILON)) / (15.0/16.0));
+        // float blockLight = saturate((lightData.blockLight - (1.0/16.0 + EPSILON)) / (15.0/16.0));
+        // float skyLight = saturate((lightData.skyLight - (1.0/16.0 + EPSILON)) / (15.0/16.0));
 
         vec3 albedo = material.albedo.rgb;
         float smoothness = material.smoothness;
@@ -183,8 +183,8 @@
                     }
                 #endif
             #else
-                shadow = pow2(skyLight) * lightData.occlusion;
-                shadowSSS = pow2(skyLight) * material.scattering;
+                shadow = pow2(lightData.skyLight) * lightData.occlusion;
+                shadowSSS = pow2(lightData.skyLight) * material.scattering;
             #endif
 
             #if SHADOW_CONTACT != SHADOW_CONTACT_NONE
@@ -207,11 +207,12 @@
 
         #ifdef LIGHTLEAK_FIX
             // Make areas without skylight fully shadowed (light leak fix)
-            float lightLeakFix = saturate(skyLight * 15.0);
+            float lightLeakFix = saturate(lightData.skyLight * 15.0);
             shadowFinal *= lightLeakFix;
             shadowSSS *= lightLeakFix;
         #endif
 
+        float skyLight = lightData.skyLight;
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             // Increase skylight when in direct sunlight
             if (isEyeInWater != 1)
@@ -263,9 +264,9 @@
         #endif
 
         #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
-            vec3 blockLightDiffuse = pow2(blockLight)*blockLightColor;
+            vec3 blockLightDiffuse = pow2(lightData.blockLight)*blockLightColor;
         #else
-            vec3 blockLightDiffuse = pow5(blockLight)*blockLightColor;
+            vec3 blockLightDiffuse = pow3(lightData.blockLight)*blockLightColor;
         #endif
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
@@ -744,7 +745,7 @@
             #if !defined SKY_ENABLED || !defined VL_SKY_ENABLED
                 final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
             #endif
-            
+
             vec3 fogColorFinal;
             float fogFactorFinal;
             GetFog(lightData, viewPos, fogColorFinal, fogFactorFinal);

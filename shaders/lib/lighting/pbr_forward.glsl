@@ -364,8 +364,8 @@
             if (isEyeInWater != 1) {
                 vec3 localViewDir = normalize(localPos);
 
-                float cloudDepthTest = CLOUD_Y_LEVEL - (cameraPosition.y + localPos.y);
-                cloudDepthTest *= sign(CLOUD_Y_LEVEL - cameraPosition.y);
+                float cloudDepthTest = CLOUD_LEVEL - (cameraPosition.y + localPos.y);
+                cloudDepthTest *= sign(CLOUD_LEVEL - cameraPosition.y);
 
                 if (cloudDepthTest < 0.0) {
                     float cloudF = GetCloudFactor(cameraPosition, localViewDir);

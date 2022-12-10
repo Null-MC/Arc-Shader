@@ -226,7 +226,6 @@ const bool colortex12Clear = false;
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
 //#define WATER_REFRACT_HACK
-#define CLOUD_Y_LEVEL 180.0
 #define CLOUD_HORIZON_POWER 1.0
 #define CLOUD_POW_CLEAR 1.6
 #define CLOUD_POW_RAIN 0.3
@@ -248,6 +247,7 @@ const bool colortex12Clear = false;
 // INTERNAL
 #define TITLE
 #define SEA_LEVEL 62
+#define CLOUD_LEVEL 180 // [120 130 140 150 160 170 180 190 200 210 220 230 240 250 260]
 #define ATMOSPHERE_LEVEL 360
 #define WATER_SMOOTH 1.0
 #define IOR_AIR 1.000293

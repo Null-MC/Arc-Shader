@@ -172,7 +172,7 @@ out vec4 outColor1;
 
 void main() {
     float worldY = localPos.y + cameraPosition.y;
-    if (worldY >= CLOUD_Y_LEVEL) {discard; return;}
+    if (worldY >= CLOUD_LEVEL) {discard; return;}
 
     vec4 albedo = texture(gtexture, texcoord);
     if (albedo.a < (1.0/255.0)) {discard; return;}

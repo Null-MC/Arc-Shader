@@ -180,6 +180,8 @@ option.VL_STRENGTH=VL Strength
 option.VL_STRENGTH.comment=Makes light rays more visible by simulating atmospheric scattering in lit volumes.
 suffix.VL_STRENGTH=%
 
+option.CLOUD_LEVEL=Cloud Height
+
 
 screen.SHADOW_OPTIONS=Shadows
 

@@ -435,8 +435,8 @@ void main() {
         if (isEyeInWater != 1) {
             float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
 
-            float cloudDepthTest = CLOUD_Y_LEVEL - (cameraPosition.y + localPos.y);
-            cloudDepthTest *= sign(CLOUD_Y_LEVEL - cameraPosition.y);
+            float cloudDepthTest = CLOUD_LEVEL - (cameraPosition.y + localPos.y);
+            cloudDepthTest *= sign(CLOUD_LEVEL - cameraPosition.y);
 
             if (minDepth > 1.0 - EPSILON || cloudDepthTest < 0.0) {
                 float cloudF = GetCloudFactor(cameraPosition, localViewDir);

@@ -91,29 +91,31 @@ vec3 GetVolumetricLighting(const in LightData lightData, inout float extinction,
         vec3 worldTracePos = cameraPosition + localTracePos;
 
         #ifdef SHADOW_CLOUD
-            // when light is shining upwards
-            //if (localLightDir.y <= 0.0) {
-            //    sampleF = 0.0;
-            //}
-            // when light is shining downwards
-            //else {
-                // when trace pos is below clouds, darken by cloud shadow
-                if (worldTracePos.y < CLOUD_Y_LEVEL) {
-                    sampleF *= 1.0 - GetCloudFactor(worldTracePos, localLightDir);
-                }
-                // only when camera is below clouds
-                // when trace pos is above clouds, darken by visibility
-                else if (cameraPosition.y < CLOUD_Y_LEVEL) {
-                    sampleF *= 1.0 - GetCloudFactor(worldTracePos, localLightDir);
-                }
-            //}
+            sampleF *= 1.0 - GetCloudFactor(worldTracePos, localLightDir);
         #endif
 
-        if (sampleF < EPSILON) continue;
-
         //float worldTraceHeight = cameraPosition.y + localTracePos.y;
-        vec3 sampleColor = GetScatteredLighting(worldTracePos.y, skyLightLevels, scatteringF);
         float sampleDensity = 1.0 - saturate((worldTracePos.y - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL));
+
+        #ifdef VL_SKY_NOISE
+            float texDensity1 = texture(colortex13, worldTracePos / 256.0).r;
+            float texDensity2 = texture(colortex13, worldTracePos / 44.0).r;
+            float texDensity = 1.0 - 0.4 * texDensity1 - 0.3 * texDensity2;
+            sampleDensity *= texDensity;
+
+            extinction *= exp(-ATMOS_EXTINCTION * viewStepLength * sampleDensity);
+
+            if (sampleF < EPSILON) continue;
+        #else
+            if (sampleF < EPSILON) continue;
+
+            float traceViewDist = viewNearDist + i * viewStepLength;
+            sampleF *= exp(-ATMOS_EXTINCTION * traceViewDist);
+        #endif
+
+        sampleF *= sampleDensity;
+
+        vec3 sampleColor = GetScatteredLighting(worldTracePos.y, skyLightLevels, scatteringF);
 
         #ifdef SHADOW_COLOR
             //if (sampleF > EPSILON) {
@@ -132,22 +134,6 @@ vec3 GetVolumetricLighting(const in LightData lightData, inout float extinction,
                     sampleColor *= shadowColor;
                 }
             //}
-        #endif
-
-        #ifdef VL_SKY_NOISE
-            float texDensity1 = texture(colortex13, worldTracePos / 256.0).r;
-            float texDensity2 = texture(colortex13, worldTracePos / 44.0).r;
-            float texDensity = 1.0 - 0.3 * texDensity1 - 0.15 * texDensity2;
-            sampleDensity *= texDensity;
-
-            float stepExt = exp(-ATMOS_EXTINCTION * viewStepLength * sampleDensity);
-            //extinction *= 1.0 - (1.0 - stepExt) * stepF;
-            extinction *= stepExt;
-
-            sampleF *= sampleDensity;
-        #else
-            float traceViewDist = viewNearDist + i * viewStepLength;
-            sampleF *= exp(-ATMOS_EXTINCTION * traceViewDist);
         #endif
 
         accumColor += sampleF * sampleColor;
@@ -259,7 +245,7 @@ vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 near
             // when light is shining downwards
             //else {
                 // when trace pos is below clouds, darken by cloud shadow
-                if (worldTracePos.y < CLOUD_Y_LEVEL) {
+                if (worldTracePos.y < CLOUD_LEVEL) {
                     lightSample *= 1.0 - GetCloudFactor(worldTracePos, localLightDir);
                 }
             //}
