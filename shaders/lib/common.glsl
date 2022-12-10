@@ -75,7 +75,7 @@ const bool colortex12Clear = false;
 #define WATER_NORMAL_STRENGTH 0.2
 #define WATER_ABSROPTION_RATE 1.0
 #define VL_WATER_ENABLED
-#define VL_WATER_DENSITY 0.025
+#define VL_WATER_DENSITY 0.01
 #define VL_WATER_NOISE
 
 
