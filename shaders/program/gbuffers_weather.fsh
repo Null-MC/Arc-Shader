@@ -87,6 +87,10 @@ flat in vec3 blockLightColor;
                 uniform float viewWidth;
                 uniform float viewHeight;
             #endif
+            
+            #ifdef VL_SKY_ENABLED
+                uniform sampler3D colortex13;
+            #endif
         #endif
     #endif
 #endif

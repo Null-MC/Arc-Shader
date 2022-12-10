@@ -83,6 +83,10 @@ flat in mat2 atlasBounds;
             in vec4 shadowPos;
             in float shadowBias;
         #endif
+        
+        #ifdef VL_SKY_ENABLED
+            uniform sampler3D colortex13;
+        #endif
     #endif
 #endif
 

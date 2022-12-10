@@ -14,6 +14,7 @@ colortex11		R16F			2048  	Water Waves
 colortex12		R32F			0.25  	Depth Tiles
 
 colortex10		n/a				256   	BRDF LUT
+colortex13		n/a				256   	3D Noise
 
 
 

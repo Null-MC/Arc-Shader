@@ -384,8 +384,12 @@
                     vec3 viewNear = viewDir * near;
                     vec3 viewFar = viewDir * min(length(viewPos), far);
                     vec2 scatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
+                    float vlExt = 1.0;
 
-                    finalColor.rgb += GetVolumetricLighting(lightData, viewNear, viewFar, scatteringF);
+                    vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, scatteringF);
+
+                    finalColor.rgb = finalColor.rgb * vlExt + vlColor;
+
                     // TODO: increase alpha with VL?
                 #endif
             }

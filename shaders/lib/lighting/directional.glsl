@@ -1,20 +1,22 @@
 void ApplyDirectionalLightmap(inout float blockLight, const in vec3 texViewNormal) {
-    vec2 lmDXY = vec2(dFdx(blockLight), dFdy(blockLight)) * 16.0;
+    vec3 lightPos = vec3(viewPos, blockLight);
+    //vec3 lmDXY = vec3(dFdx(blockLight), dFdy(blockLight), 0.0);
 
-    if (dot(lmDXY, lmDXY) <= EPSILON) {
-        blockLight = blockLight*blockLight;
+    vec3 light_tangent = normalize(dFdx(lightPos));
+    vec3 light_binormal = normalize(dFdy(lightPos));
+
+    if (all(lessThan(abs(tangent) + abs(binormal), vec3(EPSILON)))) {
+        //blockLight = blockLight*blockLight;
         return;
     }
 
-    mat3 matLMTBN;
-    matLMTBN[0] = normalize(dFdx(viewPos));
-    matLMTBN[1] = normalize(dFdy(viewPos));
-    matLMTBN[2] = cross(matLMTBN[0], matLMTBN[1]);
+    vec3 light_normal = cross(light_tangent, light_binormal);
+    //mat3 matLMTBN = mat3(tangent, binormal, normal);
 
-    vec3 lmDir = normalize(vec3(lmDXY.x * matLMTBN[0] + 0.001 * matLMTBN[2] + lmDXY.y * matLMTBN[1]));
-    float lmDot = max(dot(texViewNormal, lmDir), 0.0);
+    //vec3 lmDir = lmDXY * matLMTBN;
+    float lmDot = max(dot(texViewNormal, light_normal), 0.0);
 
+    //float light = blockLight * lmDot;
     float strength = DIRECTIONAL_LIGHTMAP_STRENGTH * 0.01;
-    float light = 1.0 - (1.0 - pow2(blockLight)) * (1.0 - lmDot) * strength;
-    blockLight = clamp(blockLight * light, 0.0, 1.0);
+    blockLight *= mix(1.0, lmDot, strength);
 }

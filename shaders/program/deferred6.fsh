@@ -137,6 +137,10 @@ uniform float fogEnd;
 
             uniform mat4 shadowProjectionInverse;
         #endif
+
+        #ifdef VL_SKY_ENABLED
+            uniform sampler3D colortex13;
+        #endif
     #endif
 #endif
 
@@ -461,9 +465,12 @@ void main() {
 
                 vec3 viewNear = viewDir * near;
                 vec3 viewFar = viewDir * min(length(viewPos), far);
+                float vlExt = 1.0;
 
                 vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
-                color += GetVolumetricLighting(lightData, viewNear, viewFar, skyScatteringF);
+                vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, skyScatteringF);
+
+                color = color * vlExt + vlColor;
             #endif
         }
     #endif

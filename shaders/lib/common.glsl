@@ -75,6 +75,7 @@ const bool colortex12Clear = false;
 #define WATER_NORMAL_STRENGTH 0.2
 #define WATER_ABSROPTION_RATE 1.0
 #define VL_WATER_ENABLED
+#define VL_WATER_NOISE
 
 
 // Atmosphere Options
@@ -88,6 +89,7 @@ const bool colortex12Clear = false;
 #define WETNESS_MODE 2 // [0 1 2]
 #define SNOW_MODE 2 // [0 1 2]
 #define VL_SKY_ENABLED
+#define VL_SKY_NOISE
 
 
 // Shadow Options
@@ -180,8 +182,8 @@ const bool colortex12Clear = false;
 #define BLOOM_LOD_MAX 0 // [0 1 2 3 4 5 6 7 8 9]
 #define VL_DITHER
 #define VL_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 175 200 225 250 275 300 350 400 450 500 600 700 800 900]
-#define VL_SAMPLES_SKY 16 // [8 16 24 32]
-#define VL_SAMPLES_WATER 4 // [4 8 16 24]
+#define VL_SAMPLES_SKY 16 // [8 12 16 20 24 32]
+#define VL_SAMPLES_WATER 4 // [4 6 8 12 16 24]
 #define VL_PARTICLES
 #define G_SCATTERING_CLEAR 0.65
 #define G_SCATTERING_NIGHT 0.4
