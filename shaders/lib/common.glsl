@@ -84,13 +84,13 @@ const bool colortex12Clear = false;
 //#define ATMOSFOG_ENABLED
 //#define CAVEFOG_ENABLED
 #define WEATHER_OPACITY 50 // [10 20 30 40 50 60 70 80 90 100]
-#define ATMOS_EXTINCTION 0.008
+#define ATMOS_EXTINCTION 0.01
 #define SUN_TEMP 5000.0
 #define MOON_TEMP 4000.0
 #define WETNESS_MODE 2 // [0 1 2]
 #define SNOW_MODE 2 // [0 1 2]
 #define VL_SKY_ENABLED
-#define VL_SKY_DENSITY 0.008
+#define VL_SKY_DENSITY 0.01
 #define VL_SKY_NOISE
 
 
@@ -247,7 +247,7 @@ const bool colortex12Clear = false;
 // INTERNAL
 #define TITLE
 #define SEA_LEVEL 62
-#define CLOUD_LEVEL 180 // [120 130 140 150 160 170 180 190 200 210 220 230 240 250 260]
+#define CLOUD_LEVEL 220 // [120 130 140 150 160 170 180 190 200 210 220 230 240 250 260]
 #define ATMOSPHERE_LEVEL 360
 #define WATER_SMOOTH 1.0
 #define IOR_AIR 1.000293

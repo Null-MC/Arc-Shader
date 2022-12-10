@@ -54,7 +54,7 @@ vec3 GetVolumetricLighting(const in LightData lightData, inout float extinction,
         vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
         //vec3 localPosFar = (gbufferModelViewInverse * vec4(viewFar, 1.0)).xyz;
 
-        if (localLightDir.y <= 0.0) return vec3(0.0);
+        //if (localLightDir.y <= 0.0) return vec3(0.0);
 
         //float cloudVis = 1.0 - GetCloudFactor(cameraPosition, localLightDir);
     #endif
@@ -100,7 +100,7 @@ vec3 GetVolumetricLighting(const in LightData lightData, inout float extinction,
         #ifdef VL_SKY_NOISE
             float texDensity1 = texture(colortex13, worldTracePos / 256.0).r;
             float texDensity2 = texture(colortex13, worldTracePos / 44.0).r;
-            float texDensity = 1.0 - 0.4 * texDensity1 - 0.3 * texDensity2;
+            float texDensity = 1.0 - (0.3 + 0.7 * wetness) * (0.6 * texDensity1 - 0.4 * texDensity2);
             sampleDensity *= texDensity;
 
             extinction *= exp(-ATMOS_EXTINCTION * viewStepLength * sampleDensity);
