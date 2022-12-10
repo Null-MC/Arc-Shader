@@ -1,5 +1,4 @@
 float GetFogFactor(const in float dist, const in float start, const in float end, const in float density) {
-    //float distFactor = min(max(dist - start, 0.0) / (end - start), 1.0);
     float distFactor = dist >= end ? 1.0 : smoothstep(start, end, dist);
     return saturate(pow(distFactor, density));
 }
@@ -22,12 +21,6 @@ float GetCaveFogFactor(const in float dist) {
         float density = mix(nightFogDensity, dayFogDensity, saturate(sunLightLevel));
         float strength = mix(nightFogStrength, dayFogStrength, saturate(sunLightLevel));
 
-        // #ifdef IS_OPTIFINE
-        //     //density = mix(density, rainFogDensity, rainStrength);
-        //     density = max(density - 0.2 * eyeHumidity, 0.0);
-        //     strength = min(strength + 0.4 * eyeHumidity, 1.0);
-        // #endif
-
         density = mix(density, rainFogDensity, rainStrength);
         strength = mix(strength, rainFogStrength, rainStrength);
 
@@ -44,9 +37,6 @@ float GetVanillaFogFactor(in vec3 viewPos) {
     }
 
     float viewDist = length(viewPos);
-    // return saturate(fogDist / far);
-    //return GetFogFactor(fogDist, fogStart, fogEnd, 1.0);
-
 
     float fogFactor;
 
@@ -58,8 +48,6 @@ float GetVanillaFogFactor(in vec3 viewPos) {
         fogFactor = (gl_Fog.end - viewDist) * gl_Fog.scale;
 
     return 1.0 - saturate(fogFactor);
-
-    //gl_FragColor = mix(gl_Fog.color, gl_Color, fogFactor);
 }
 
 vec3 GetAreaFogColor() {
@@ -70,7 +58,6 @@ void GetFog(const in LightData lightData, const in vec3 viewPos, out vec3 fogCol
     #ifdef SKY_ENABLED
         vec3 viewDir = normalize(viewPos);
         fogColorFinal = GetVanillaSkyLuminance(viewDir);
-        //vec2 skyLightLevels = GetSkyLightLevels();
     #else
         fogColorFinal = GetAreaFogColor();
     #endif
@@ -136,13 +123,6 @@ void GetFog(const in LightData lightData, const in vec3 viewPos, out vec3 fogCol
         vec3 caveFogColor = 0.001 * RGBToLinear(vec3(0.3294, 0.1961, 0.6588));
         fogColorFinal = mix(fogColorFinal, caveFogColor, caveFogFactor);
     #endif
-
-    // #if defined SKY_ENABLED && !defined VL_SKY_ENABLED
-    //     vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor;
-    //     color += maxFactor * GetVanillaSkyScattering(viewDir, lightData.skyLightLevels, sunColorFinal, moonColor);
-    // #endif
-
-    //return maxFactor;
 }
 
 void ApplyFog(inout vec3 color, const in vec3 fogColor, const in float fogFactor) {
@@ -192,7 +172,7 @@ vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunColorFinal, const 
         #ifdef SKY_ENABLED
             #ifndef VL_WATER_ENABLED
                 vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
-                waterFogColor += 0.2 * waterScatterColor * lightColor;
+                waterFogColor += waterScatterColor * lightColor;
             #else
                 vec3 lightColor = sunColorFinal + moonColorFinal;
                 waterFogColor += 0.004 * waterScatterColor * lightColor;
@@ -207,7 +187,6 @@ vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunColorFinal, const 
 }
 
 float ApplyWaterFog(inout vec3 color, const in vec3 fogColor, const in float viewDist) {
-    //float waterFogEnd = WATER_FOG_DIST;//min(fogEnd, WATER_FOG_DIST);
     float fogFactor = GetFogFactor(viewDist, 0.0, waterFogDistSmooth, 0.25);
     color = mix(color, fogColor, fogFactor);
     return fogFactor;
