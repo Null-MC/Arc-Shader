@@ -56,7 +56,7 @@ vec3 GetVolumetricLighting(const in LightData lightData, inout float extinction,
 
         if (localLightDir.y <= 0.0) return vec3(0.0);
 
-        float cloudVis = 1.0 - GetCloudFactor(cameraPosition, localLightDir);
+        //float cloudVis = 1.0 - GetCloudFactor(cameraPosition, localLightDir);
     #endif
 
     for (int i = 1; i <= VL_SAMPLES_SKY; i++) {
@@ -104,7 +104,7 @@ vec3 GetVolumetricLighting(const in LightData lightData, inout float extinction,
                 // only when camera is below clouds
                 // when trace pos is above clouds, darken by visibility
                 else if (cameraPosition.y < CLOUD_Y_LEVEL) {
-                    sampleF *= cloudVis;
+                    sampleF *= 1.0 - GetCloudFactor(worldTracePos, localLightDir);
                 }
             //}
         #endif
