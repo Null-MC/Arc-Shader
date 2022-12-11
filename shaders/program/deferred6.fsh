@@ -138,7 +138,7 @@ uniform float fogEnd;
             uniform mat4 shadowProjectionInverse;
         #endif
 
-        #ifdef VL_SKY_ENABLED
+        #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
             uniform sampler3D colortex13;
         #endif
     #endif
@@ -192,7 +192,9 @@ uniform float waterFogDistSmooth;
 
 #ifdef SKY_ENABLED
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-        #if SHADOW_PCF_SAMPLES == 12
+        #if SHADOW_PCF_SAMPLES == 6
+            #include "/lib/sampling/poisson_6.glsl"
+        #elif SHADOW_PCF_SAMPLES == 12
             #include "/lib/sampling/poisson_12.glsl"
         #elif SHADOW_PCF_SAMPLES == 24
             #include "/lib/sampling/poisson_24.glsl"
@@ -385,12 +387,12 @@ void main() {
     #endif
 
     // SKY
-    if (lightData.opaqueScreenDepth > 1.0 - EPSILON) {
-        #ifdef SKY_ENABLED
-            vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor * max(lightData.skyLightLevels.x, 0.0);
-            vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * max(lightData.skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
-        #endif
+    #ifdef SKY_ENABLED
+        vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor * max(lightData.skyLightLevels.x, 0.0);
+        vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * max(lightData.skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
+    #endif
 
+    if (lightData.opaqueScreenDepth > 1.0 - EPSILON) {
         if (isEyeInWater == 1) {
             #ifdef SKY_ENABLED
                 vec2 waterScatteringF = GetWaterScattering(viewDir);
@@ -431,8 +433,33 @@ void main() {
         color = PbrLighting2(material, lightData, viewPos).rgb;
     }
 
-    #ifdef SKY_ENABLED
-        if (isEyeInWater != 1) {
+    if (isEyeInWater != 1) {
+        vec3 fogColorFinal;
+        float fogFactorFinal;
+        GetFog(lightData, viewPos, fogColorFinal, fogFactorFinal);
+
+        #ifdef SKY_ENABLED
+            vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
+
+            #ifdef VL_SKY_ENABLED
+                vec3 viewNear = viewDir * near;
+                vec3 viewFar = viewDir * min(length(viewPos), far);
+                float vlExt = 1.0;
+
+                vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, skyScatteringF);
+
+                color *= vlExt;
+            #else
+                fogColorFinal += RGBToLinear(fogColor) * (
+                    skyScatteringF.x * sunColorFinalEye +
+                    skyScatteringF.y * moonColorFinalEye);
+            #endif
+        #endif
+
+        if (lightData.opaqueScreenDepth < 1.0)
+            ApplyFog(color, fogColorFinal, fogFactorFinal);
+
+        #ifdef SKY_ENABLED
             float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
 
             float cloudDepthTest = CLOUD_LEVEL - (cameraPosition.y + localPos.y);
@@ -453,27 +480,10 @@ void main() {
             }
 
             #ifdef VL_SKY_ENABLED
-                // if (lightData.opaqueScreenDepth + EPSILON < 1.0) {
-                //     float envFogStart = 8.0;
-                //     float envFogEnd = min(fogEnd, far);
-                //     const float envFogDensity = 0.6;
-
-                //     float viewDist = length(viewPos);
-                //     float fogF = GetFogFactor(viewDist, envFogStart, envFogEnd, envFogDensity);
-                //     color *= 1.0 - fogF;
-                // }
-
-                vec3 viewNear = viewDir * near;
-                vec3 viewFar = viewDir * min(length(viewPos), far);
-                float vlExt = 1.0;
-
-                vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
-                vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, skyScatteringF);
-
-                color = color * vlExt + vlColor;
+                color += vlColor;
             #endif
-        }
-    #endif
+        #endif
+    }
 
     outColor1 = log2(luminance(color) + EPSILON);
 

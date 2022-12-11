@@ -87,7 +87,7 @@ flat in vec3 blockLightColor;
                 uniform float viewHeight;
             #endif
             
-            #ifdef VL_SKY_ENABLED
+            #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
                 uniform sampler3D colortex13;
             #endif
         #endif
@@ -149,7 +149,9 @@ uniform float waterFogDistSmooth;
     #if SHADOW_TYPE != SHADOW_TYPE_NONE
         #include "/lib/sampling/bayer.glsl"
 
-        #if SHADOW_PCF_SAMPLES == 12
+        #if SHADOW_PCF_SAMPLES == 6
+            #include "/lib/sampling/poisson_6.glsl"
+        #elif SHADOW_PCF_SAMPLES == 12
             #include "/lib/sampling/poisson_12.glsl"
         #elif SHADOW_PCF_SAMPLES == 24
             #include "/lib/sampling/poisson_24.glsl"

@@ -25,7 +25,7 @@ float GetCloudFactor(const in vec3 localPos, const in vec3 localViewDir) {
     //cloudF = pow(cloudF, mix(1.0, 0.5, wetness));
     cloudF = pow(cloudF, 0.5);
 
-    float cloudMin = mix(0.50, 0.01, wetness);
+    float cloudMin = mix(0.50, 0.20, wetness);
     float cloudMax = mix(0.80, 0.90, wetness);
 	cloudF = smoothstep(cloudMin, cloudMax, cloudF);
 

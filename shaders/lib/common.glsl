@@ -75,7 +75,7 @@ const bool colortex12Clear = false;
 #define WATER_NORMAL_STRENGTH 0.2
 #define WATER_ABSROPTION_RATE 1.0
 #define VL_WATER_ENABLED
-#define VL_WATER_DENSITY 0.01
+#define VL_WATER_DENSITY 0.04
 #define VL_WATER_NOISE
 
 
@@ -84,13 +84,13 @@ const bool colortex12Clear = false;
 //#define ATMOSFOG_ENABLED
 //#define CAVEFOG_ENABLED
 #define WEATHER_OPACITY 50 // [10 20 30 40 50 60 70 80 90 100]
-#define ATMOS_EXTINCTION 0.01
+#define ATMOS_EXTINCTION 0.004
 #define SUN_TEMP 5000.0
 #define MOON_TEMP 4000.0
 #define WETNESS_MODE 2 // [0 1 2]
 #define SNOW_MODE 2 // [0 1 2]
 #define VL_SKY_ENABLED
-#define VL_SKY_DENSITY 0.01
+#define VL_SKY_DENSITY 0.02
 #define VL_SKY_NOISE
 
 
@@ -98,7 +98,7 @@ const bool colortex12Clear = false;
 #define SHADOW_TYPE 2 // [0 1 2 3]
 #define SHADOW_FILTER 1 // [0 1 2]
 #define SHADOW_PCF_SIZE 8 // [1 2 3 4 5 6 7 8 9 10 12 14 16 18 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
-#define SHADOW_PCF_SAMPLES 12 // [12 24 36]
+#define SHADOW_PCF_SAMPLES 12 // [6 12 24 36]
 //#define SHADOW_EXCLUDE_ENTITIES
 //#define SHADOW_EXCLUDE_FOLIAGE
 //#define SHADOW_COLOR

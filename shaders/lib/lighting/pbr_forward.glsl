@@ -360,13 +360,40 @@
 
         vec4 finalColor = PbrLighting2(material, lightData, viewPosFinal);
 
-        #ifdef SKY_ENABLED
-            if (isEyeInWater != 1) {
+        if (isEyeInWater != 1) {
+            vec3 fogColorFinal;
+            float fogFactorFinal;
+            GetFog(lightData, viewPos, fogColorFinal, fogFactorFinal);
+
+            #ifdef SKY_ENABLED
+                vec2 scatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
+
+                #ifdef VL_SKY_ENABLED
+                    vec3 viewNear = viewDir * near;
+                    vec3 viewFar = viewDir * min(length(viewPos), far);
+                    float vlExt = 1.0;
+
+                    vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, scatteringF);
+
+                    finalColor.rgb *= vlExt;
+                #else
+                    vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor * max(lightData.skyLightLevels.x, 0.0);
+                    vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * max(lightData.skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
+
+                    fogColorFinal += RGBToLinear(fogColor) * (
+                        scatteringF.x * sunColorFinalEye +
+                        scatteringF.y * moonColorFinalEye);
+                #endif
+            #endif
+
+            ApplyFog(finalColor, fogColorFinal, fogFactorFinal, 1.0/255.0);
+
+            #ifdef SKY_ENABLED
                 vec3 localViewDir = normalize(localPos);
 
                 float cloudDepthTest = CLOUD_LEVEL - (cameraPosition.y + localPos.y);
                 cloudDepthTest *= sign(CLOUD_LEVEL - cameraPosition.y);
-
+            
                 if (cloudDepthTest < 0.0) {
                     float cloudF = GetCloudFactor(cameraPosition, localViewDir);
 
@@ -381,19 +408,12 @@
                 }
 
                 #ifdef VL_SKY_ENABLED
-                    vec3 viewNear = viewDir * near;
-                    vec3 viewFar = viewDir * min(length(viewPos), far);
-                    vec2 scatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
-                    float vlExt = 1.0;
-
-                    vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, scatteringF);
-
-                    finalColor.rgb = finalColor.rgb * vlExt + vlColor;
+                    finalColor.rgb += vlColor;
 
                     // TODO: increase alpha with VL?
                 #endif
-            }
-        #endif
+            #endif
+        }
 
         return finalColor;
     }

@@ -5,6 +5,8 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
     float skyLight = lightData.skyLight;
     vec3 shadowColor = vec3(1.0);
 
+    vec3 worldPos = cameraPosition + localPos;
+
     #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #if defined SHADOW_PARTICLES || (!defined RENDER_TEXTURED && !defined RENDER_WEATHER)
             if (shadow > EPSILON) {
@@ -25,7 +27,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
                 vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
                 //vec3 upDir = normalize(upPosition);
 
-                float cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
+                float cloudF = GetCloudFactor(worldPos, localLightDir);
                 float horizonFogF = pow(1.0 - max(localLightDir.y, 0.0), 8.0);
                 float cloudShadow = 1.0 - mix(cloudF, 1.0, horizonFogF);
                 shadow *= cloudShadow;
@@ -100,29 +102,59 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
         final.a = albedo.a * rainStrength * (WEATHER_OPACITY * 0.01);
     #endif
 
-    float fogFactor;
-    vec3 fogColorFinal;
-    GetFog(lightData, viewPos, fogColorFinal, fogFactor);
-
-    #ifdef SKY_ENABLED
-        vec2 scatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
-
-        #ifndef VL_SKY_ENABLED
-            vec3 lightColor = scatteringF.x * sunColorFinalEye + scatteringF.y * moonColorFinalEye;
-            fogColorFinal += lightColor * RGBToLinear(fogColor);
+    if (isEyeInWater != 1) {
+        #if !defined SKY_ENABLED || !defined VL_SKY_ENABLED
+            final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
         #endif
-    #endif
+        
+        float fogFactor;
+        vec3 fogColorFinal;
+        GetFog(lightData, viewPos, fogColorFinal, fogFactor);
 
-    ApplyFog(final, fogColorFinal, fogFactor, 1.0/255.0);
+        #ifdef SKY_ENABLED
+            vec3 localViewDir = normalize(localPos);
 
-    #if defined SKY_ENABLED && defined VL_SKY_ENABLED
-        vec3 viewNear = viewDir * near;
-        float vlExt = 1.0;
+            vec2 scatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
 
-        vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewPos, scatteringF);
+            #ifdef VL_SKY_ENABLED
+                vec3 viewNear = viewDir * near;
+                float vlExt = 1.0;
 
-        final.rgb = final.rgb * vlExt + vlColor;
-    #endif
+                vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewPos, scatteringF);
+
+                final.rgb *= vlExt;
+            #else
+                vec3 lightColor = scatteringF.x * sunColorFinalEye + scatteringF.y * moonColorFinalEye;
+                fogColorFinal += lightColor * RGBToLinear(fogColor);
+            #endif
+        #endif
+
+        ApplyFog(final, fogColorFinal, fogFactor, 1.0/255.0);
+
+        #ifdef SKY_ENABLED
+            float cloudDepthTest = CLOUD_LEVEL - worldPos.y;
+            cloudDepthTest *= sign(CLOUD_LEVEL - cameraPosition.y);
+
+            if (cloudDepthTest < 0.0) {
+                float cloudF = GetCloudFactor(cameraPosition, localViewDir);
+
+                float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
+                cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
+
+                vec3 cloudColor = GetCloudColor(skyLightLevels);
+
+                cloudF = smoothstep(0.0, 1.0, cloudF);
+                //final.rgb = mix(final.rgb, cloudColor, cloudF);
+                // TODO: mix opacity?
+            }
+
+            #ifdef VL_SKY_ENABLED
+                final.rgb += vlColor;
+
+                // TODO: vl alter alpha?
+            #endif
+        #endif
+    }
 
     return final;
 }

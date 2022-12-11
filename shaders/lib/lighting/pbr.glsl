@@ -745,26 +745,6 @@
             #if !defined SKY_ENABLED || !defined VL_SKY_ENABLED
                 final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
             #endif
-
-            vec3 fogColorFinal;
-            float fogFactorFinal;
-            GetFog(lightData, viewPos, fogColorFinal, fogFactorFinal);
-
-            #ifdef SKY_ENABLED
-                #ifndef VL_SKY_ENABLED
-                    vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
-
-                    fogColorFinal += RGBToLinear(fogColor) * (
-                        skyScatteringF.x * sunColorFinalEye +
-                        skyScatteringF.y * moonColorFinalEye);
-                #endif
-            #endif
-
-            #if defined RENDER_WATER || defined RENDER_HAND_WATER
-                ApplyFog(final, fogColorFinal, fogFactorFinal, 1.0/255.0);
-            #else
-                ApplyFog(final.rgb, fogColorFinal, fogFactorFinal);
-            #endif
         }
 
         return final;
