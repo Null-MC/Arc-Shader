@@ -441,15 +441,7 @@ void main() {
         #ifdef SKY_ENABLED
             vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
 
-            #ifdef VL_SKY_ENABLED
-                vec3 viewNear = viewDir * near;
-                vec3 viewFar = viewDir * min(length(viewPos), far);
-                float vlExt = 1.0;
-
-                vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, skyScatteringF);
-
-                color *= vlExt;
-            #else
+            #ifndef VL_SKY_ENABLED
                 fogColorFinal += RGBToLinear(fogColor) * (
                     skyScatteringF.x * sunColorFinalEye +
                     skyScatteringF.y * moonColorFinalEye);
@@ -460,6 +452,16 @@ void main() {
             ApplyFog(color, fogColorFinal, fogFactorFinal);
 
         #ifdef SKY_ENABLED
+            #ifdef VL_SKY_ENABLED
+                vec3 viewNear = viewDir * near;
+                vec3 viewFar = viewDir * min(length(viewPos), far);
+                float vlExt = 1.0;
+
+                vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, skyScatteringF);
+
+                color *= vlExt;
+            #endif
+
             float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
 
             float cloudDepthTest = CLOUD_LEVEL - (cameraPosition.y + localPos.y);

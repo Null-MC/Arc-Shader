@@ -104,9 +104,10 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
 
     if (isEyeInWater != 1) {
         #if !defined SKY_ENABLED || !defined VL_SKY_ENABLED
+            float viewDist = length(viewPos);
             final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
         #endif
-        
+
         float fogFactor;
         vec3 fogColorFinal;
         GetFog(lightData, viewPos, fogColorFinal, fogFactor);

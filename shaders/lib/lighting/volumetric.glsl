@@ -101,10 +101,10 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                     float texDensity = (0.2 + 0.8 * wetness) * (1.0 - mix(texDensity1, texDensity2, 0.1 + 0.5 * wetness));
                     sampleF *= texDensity;
 
-                    float stepExt = exp(-ATMOS_EXTINCTION * viewStepLength * texDensity);
+                    float stepExt = exp(-1.0 * VL_SKY_DENSITY * viewStepLength * texDensity);
                     extinction *= stepExt;
 
-                    //accumColor *= stepExt;
+                    accumColor *= stepExt;
                 }
                 else {
                     //sampleF *= 1.0 - smoothstep(CLOUD_LEVEL, ATMOSPHERE_LEVEL, worldTracePos.y);
@@ -114,8 +114,8 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
 
             if (sampleF < EPSILON) continue;
 
-            float traceViewDist = viewNearDist + i * viewStepLength;
-            sampleF *= exp(-ATMOS_EXTINCTION * traceViewDist);
+            //float traceViewDist = viewNearDist + i * viewStepLength;
+            //sampleF *= exp(-ATMOS_EXTINCTION * traceViewDist);
 
             //sampleF *= sampleDensity;
 

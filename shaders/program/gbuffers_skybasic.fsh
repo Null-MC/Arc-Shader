@@ -66,6 +66,8 @@ void main() {
         color += starF * StarLumen;
     }
 
+    // TODO: fog
+
     #ifndef VL_SKY_ENABLED
         vec2 skyLightLevels = GetSkyLightLevels();
         vec3 sunColorFinal = sunTransmittanceEye * sunColor * max(skyLightLevels.x, 0.0);

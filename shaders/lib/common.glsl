@@ -204,7 +204,7 @@ const bool colortex12Clear = false;
 #define SSAO_UPSCALE
 
 //#define DOF_ENABLED
-#define DOF_SCALE 2.0
+#define DOF_SCALE 4.0 // [1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
 // Smaller = nicer blur, larger = faster
 #define DOF_STEP_SIZE 0.7 // [0.5 1.0 1.5 2.0]
 #define DOF_MAX_SIZE 16.0 // [5.0 10.0 15.0 20.0 25.0 30.0]
