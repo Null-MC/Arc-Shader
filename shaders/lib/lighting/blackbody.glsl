@@ -18,6 +18,5 @@ vec3 blackbody(const in float temp) {
                                -0.9692660,  1.8760108,  0.0415560,
                                 0.0556434, -0.2040259,  1.0572252);
 
-    //return max(vec3(0.0), XYZ * XYZtoRGB * pow(temp * 0.0004, 4.0));
-    return max(vec3(0.0), XYZ * XYZtoRGB);
+    return max(XYZ * XYZtoRGB, vec3(0.0));
 }

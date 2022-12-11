@@ -300,10 +300,6 @@
             if (any(greaterThan(reflectColor, vec3(EPSILON)))) {
                 vec2 envBRDF = textureLod(BUFFER_BRDF_LUT, vec2(NoVm, rough), 0).rg;
 
-                #if SHADER_PLATFORM == PLATFORM_IRIS
-                    envBRDF = RGBToLinear(vec3(envBRDF, 0.0)).rg;
-                #endif
-
                 iblSpec = iblF * envBRDF.r + envBRDF.g;
                 iblSpec *= (1.0 - roughL) * reflectColor * occlusion;
 

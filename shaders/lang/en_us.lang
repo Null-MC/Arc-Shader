@@ -302,8 +302,6 @@ suffix.CAMERA_SATURATION=%
 
 screen.EFFECT_OPTIONS=Effects
 
-option.DOF_ENABLED=Depth-of-Field
-
 
 screen.EFFECT_BLOOM_OPTIONS=Bloom
 
@@ -361,6 +359,13 @@ option.SSAO_INTENSITY=Intensity
 option.SSAO_RADIUS=Radius
 
 option.SSAO_SAMPLES=Sample Count
+
+
+screen.EFFECT_DOF_OPTIONS=Depth-of-Field
+
+option.DOF_ENABLED=Enabled
+
+option.DOF_SCALE=Scale
 
 
 option.SHADER_PLATFORM=Platform

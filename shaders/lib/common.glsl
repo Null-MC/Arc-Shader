@@ -98,7 +98,7 @@ const bool colortex12Clear = false;
 #define SHADOW_TYPE 2 // [0 1 2 3]
 #define SHADOW_FILTER 1 // [0 1 2]
 #define SHADOW_PCF_SIZE 8 // [1 2 3 4 5 6 7 8 9 10 12 14 16 18 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
-#define SHADOW_PCF_SAMPLES 12 // [6 12 24 36]
+#define SHADOW_PCF_SAMPLES 6 // [6 12 24 36]
 //#define SHADOW_EXCLUDE_ENTITIES
 //#define SHADOW_EXCLUDE_FOLIAGE
 //#define SHADOW_COLOR
@@ -121,15 +121,15 @@ const bool colortex12Clear = false;
 // Material Options
 #define MATERIAL_FORMAT 0 // [0 1 2 3]
 #define REFLECTION_MODE 2 // [0 1 2]
-#define SSR_QUALITY 0 // [0 1 2]
+#define SSR_QUALITY 1 // [0 1 2]
 #define SSR_IGNORE_HAND
 #define SSS_ENABLED
 #define SSS_SCATTER
 #define SSS_DITHER
 #define SSS_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define SSS_MAXDIST 7 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
-#define SSS_PCF_SIZE 0.06 // [0.02 0.04 0.06 0.08 0.1 0.2 0.3 0.4 0.5 0.6 0.8 1.0]
-#define SSS_PCF_SAMPLES 12 // [12 24 36]
+#define SSS_PCF_SIZE 0.08 // [0.02 0.04 0.06 0.08 0.1 0.2 0.3 0.4 0.5 0.6 0.8 1.0]
+#define SSS_PCF_SAMPLES 6 // [6 12 24 36]
 //#define SSS_NORMALIZE_ALBEDO
 
 
@@ -184,8 +184,8 @@ const bool colortex12Clear = false;
 #define BLOOM_LOD_MAX 0 // [0 1 2 3 4 5 6 7 8 9]
 #define VL_DITHER
 #define VL_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 175 200 225 250 275 300 350 400 450 500 600 700 800 900]
-#define VL_SAMPLES_SKY 16 // [8 12 16 20 24 32]
-#define VL_SAMPLES_WATER 4 // [4 6 8 12 16 24]
+#define VL_SAMPLES_SKY 12 // [8 12 16 20 24 32]
+#define VL_SAMPLES_WATER 6 // [4 6 8 12 16 24]
 #define VL_PARTICLES
 #define G_SCATTERING_CLEAR 0.65
 #define G_SCATTERING_NIGHT 0.4
@@ -195,7 +195,7 @@ const bool colortex12Clear = false;
 #define G_SCATTERING_CLOUDS 0.32
 #define G_SCATTERING_RAIN_CLOUDS 0.48
 #define AO_TYPE 2 // [0 1 2]
-#define SSAO_SAMPLES 16 // [8 16 32]
+#define SSAO_SAMPLES 8 // [8 16 32]
 #define SSAO_INTENSITY 35 // [5 10 15 20 25 30 35 40 45 50]
 #define SSAO_SCALE 8.0
 #define SSAO_BIAS 0.02
@@ -204,7 +204,7 @@ const bool colortex12Clear = false;
 #define SSAO_UPSCALE
 
 //#define DOF_ENABLED
-#define DOF_SCALE 4.0 // [1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
+#define DOF_SCALE 2.0 // [1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
 // Smaller = nicer blur, larger = faster
 #define DOF_STEP_SIZE 0.7 // [0.5 1.0 1.5 2.0]
 #define DOF_MAX_SIZE 16.0 // [5.0 10.0 15.0 20.0 25.0 30.0]
@@ -247,7 +247,7 @@ const bool colortex12Clear = false;
 // INTERNAL
 #define TITLE
 #define SEA_LEVEL 62
-#define CLOUD_LEVEL 220 // [120 130 140 150 160 170 180 190 200 210 220 230 240 250 260]
+#define CLOUD_LEVEL 200 // [120 130 140 150 160 170 180 190 200 210 220 230 240 250 260]
 #define ATMOSPHERE_LEVEL 360
 #define WATER_SMOOTH 1.0
 #define IOR_AIR 1.000293

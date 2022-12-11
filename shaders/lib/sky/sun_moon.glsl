@@ -5,13 +5,7 @@ vec3 GetTransmittance(const in sampler2D tex, const in float height, const in fl
     vec2 uv;
     uv.x = saturate(skyLightLevel * 0.5 + 0.5);
     uv.y = saturate((height - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL));
-    vec3 value = textureLod(tex, uv, 0).rgb;
-
-    #if SHADER_PLATFORM == PLATFORM_IRIS
-        value = RGBToLinear(value);
-    #endif
-
-    return value;
+    return textureLod(tex, uv, 0).rgb;
 }
 
 vec3 GetSunTransmittance(const in sampler2D tex, const in float height, const in float skyLightLevel) {
