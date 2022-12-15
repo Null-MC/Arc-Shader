@@ -222,7 +222,7 @@
                 vec4 specularMap = textureGrad(specular, atlasCoord, dFdXY[0], dFdXY[1]);
                 vec3 normalMap;
 
-                #ifdef PARALLAX_SMOOTH_NORMALS
+                #if defined PARALLAX_ENABLED && defined PARALLAX_SMOOTH_NORMALS
                     ////normalMap.rgb = TexelFetchLinearRGB(normals, atlasCoord * atlasSize);
                     //normalMap.rgb = TextureGradLinearRGB(normals, atlasCoord, atlasSize, dFdXY);
 
@@ -272,7 +272,7 @@
                     }
                 //#endif
 
-                #ifdef PARALLAX_SLOPE_NORMALS
+                #if defined PARALLAX_ENABLED && defined PARALLAX_SLOPE_NORMALS
                     float dO = max(texDepth - traceCoordDepth.z, 0.0);
                     if (dO >= 0.95 / 255.0 && materialId != MATERIAL_WATER) {
                         //#ifdef PARALLAX_USE_TEXELFETCH
