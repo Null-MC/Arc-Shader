@@ -13,7 +13,7 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
 }
 
 #ifdef VL_SKY_ENABLED
-    vec3 GetVolumetricLighting(const in LightData lightData, inout float extinction, const in vec3 viewNear, const in vec3 viewFar, const in vec2 scatteringF) {
+    vec3 GetVolumetricLighting(const in LightData lightData, inout vec3 extinction, const in vec3 viewNear, const in vec3 viewFar, const in vec2 scatteringF) {
         vec3 viewRayVector = viewFar - viewNear;
         float viewRayLength = length(viewRayVector);
         if (viewRayLength < EPSILON) return vec3(0.0);
@@ -101,7 +101,7 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                     float texDensity = (0.2 + 0.8 * wetness) * (1.0 - mix(texDensity1, texDensity2, 0.1 + 0.5 * wetness));
                     sampleF *= texDensity;
 
-                    float stepExt = exp(-1.0 * VL_SKY_DENSITY * viewStepLength * texDensity);
+                    vec3 stepExt = exp(-VL_SKY_DENSITY * viewStepLength * texDensity * AtmosExtInv);
                     extinction *= stepExt;
 
                     accumColor *= stepExt;

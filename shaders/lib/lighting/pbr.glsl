@@ -266,7 +266,7 @@
         #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
             vec3 blockLightDiffuse = pow2(lightData.blockLight)*blockLightColor;
         #else
-            vec3 blockLightDiffuse = pow3(lightData.blockLight)*blockLightColor;
+            vec3 blockLightDiffuse = pow4(lightData.blockLight)*blockLightColor;
         #endif
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT

@@ -384,7 +384,7 @@
                 #ifdef VL_SKY_ENABLED
                     vec3 viewNear = viewDir * near;
                     vec3 viewFar = viewDir * min(length(viewPos), far);
-                    float vlExt = 1.0;
+                    vec3 vlExt = vec3(1.0);
 
                     vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, scatteringF);
 

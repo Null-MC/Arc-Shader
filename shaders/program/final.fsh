@@ -134,6 +134,8 @@ uniform float far;
     #include "/lib/camera/tonemap.glsl"
 #endif
 
+vec2 viewSize;
+
 /* RENDERTARGETS: 0 */
 out vec3 outColor0;
 
@@ -170,8 +172,10 @@ out vec3 outColor0;
     }
 
     vec3 GetFinalColor() {
-        ivec2 itex = ivec2(texcoord * vec2(viewWidth, viewHeight));
-        vec3 color = texelFetch(BUFFER_HDR, itex, 0).rgb;
+        vec3 color = MC_RENDER_QUALITY == 1.0
+            ? texelFetch(BUFFER_HDR, ivec2(texcoord * viewSize), 0).rgb
+            : textureLod(BUFFER_HDR, texcoord, 0).rgb;
+
         //float lum = texelFetch(BUFFER_LUMINANCE, itex, 0).r;
 
         #ifdef BLOOM_ENABLED
@@ -214,7 +218,7 @@ out vec3 outColor0;
 #endif
 
 void main() {
-    vec2 viewSize = vec2(viewWidth, viewHeight);
+    viewSize = vec2(viewWidth, viewHeight);
     ivec2 iuv = ivec2(texcoord * viewSize);
 
     vec3 color = vec3(0.0);

@@ -119,7 +119,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
 
             #ifdef VL_SKY_ENABLED
                 vec3 viewNear = viewDir * near;
-                float vlExt = 1.0;
+                vec3 vlExt = vec3(1.0);
 
                 vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewPos, scatteringF);
 

@@ -72,7 +72,7 @@ const bool colortex12Clear = false;
 #define WATER_PARALLAX_SAMPLES 64
 #define WATER_WAVE_DEPTH 1.0
 #define WATER_RESOLUTION 2048
-#define WATER_NORMAL_STRENGTH 0.2
+#define WATER_NORMAL_STRENGTH 0.1
 #define WATER_ABSROPTION_RATE 1.0
 #define VL_WATER_ENABLED
 #define VL_WATER_DENSITY 0.04
@@ -269,7 +269,7 @@ const float SunLux = 64000.0;
 const float SunOvercastLux = 48000.0;
 const float MoonLux = 26.0;
 const float MoonOvercastLux = 4.0;
-const float BlockLightLux = 3200.0;
+const float BlockLightLux = 2400.0;
 // const float MinWorldLux = 8.0;
 
 const float DaySkyLumen = 6400.0;
@@ -277,6 +277,7 @@ const float DaySkyOvercastLumen = 3200.0;
 const float NightSkyLumen = 4.0;
 const float NightSkyOvercastLumen = 1.0;
 
+const vec3 ATMOS_EXT_COLOR = vec3(0.84, 0.96, 0.98);
 const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.2;
 const vec4 WATER_COLOR = vec4(0.139, 0.271, 0.313, 0.1);
 const vec3 CLOUD_COLOR = vec3(0.248, 0.225, 0.273);
@@ -296,6 +297,10 @@ const float drynessHalflife = 10.0;
 #if MC_VERSION < 11700 || SHADER_PLATFORM == PLATFORM_IRIS
     const float alphaTestRef = 0.1;
 #endif
+
+const vec3 AtmosExtInv = 1.0 - ATMOS_EXT_COLOR;
+const vec3 WaterExtInv = 1.0 - WATER_COLOR.rgb;
+
 
 // #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
 //     #undef PARALLAX_ENABLED
