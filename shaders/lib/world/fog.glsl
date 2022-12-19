@@ -170,12 +170,12 @@ vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunColorFinal, const 
         vec3 waterFogColor = vec3(0.0);
 
         #ifdef SKY_ENABLED
-            #ifndef VL_WATER_ENABLED
-                vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
-                waterFogColor += waterScatterColor * lightColor;
-            #else
+            #ifdef VL_WATER_ENABLED
                 vec3 lightColor = sunColorFinal + moonColorFinal;
                 waterFogColor += 0.004 * waterScatterColor * lightColor;
+            #else
+                vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
+                waterFogColor += 0.4 * waterScatterColor * lightColor;
             #endif
         #endif
 
