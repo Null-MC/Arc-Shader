@@ -88,7 +88,7 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
             vec3 worldTracePos = cameraPosition + localTracePos;
 
             #ifdef SHADOW_CLOUD
-                sampleF *= 1.0 - GetCloudFactor(worldTracePos, localLightDir);
+                sampleF *= 1.0 - GetCloudFactor(worldTracePos, localLightDir, 0);
             #endif
 
             //float sampleDensity = 1.0 - saturate((worldTracePos.y - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL));
@@ -252,7 +252,7 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                 //else {
                     // when trace pos is below clouds, darken by cloud shadow
                     if (worldTracePos.y < CLOUD_LEVEL) {
-                        lightSample *= 1.0 - GetCloudFactor(worldTracePos, localLightDir);
+                        lightSample *= 1.0 - GetCloudFactor(worldTracePos, localLightDir, 0);
                     }
                 //}
             #endif

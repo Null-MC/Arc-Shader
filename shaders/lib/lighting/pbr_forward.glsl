@@ -397,7 +397,7 @@
                 cloudDepthTest *= sign(CLOUD_LEVEL - cameraPosition.y);
 
                 if (cloudDepthTest < 0.0) {
-                    float cloudF = GetCloudFactor(cameraPosition, localViewDir);
+                    float cloudF = GetCloudFactor(cameraPosition, localViewDir, 0);
 
                     float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
                     cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);

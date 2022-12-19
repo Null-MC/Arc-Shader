@@ -133,7 +133,7 @@ vec3 ApplyTonemap(const in vec3 color, const in float whitePoint) {
 #elif TONEMAP == TONEMAP_ACESFit2
     return tonemap_ACESFit2(color);
 #elif TONEMAP == TONEMAP_FilmicHejl2015
-    return tonemap_FilmicHejl2015(color);
+    return tonemap_FilmicHejl2015(color * 2.0);
 #elif TONEMAP == TONEMAP_Burgess
     return tonemap_Burgess(color);
 #elif TONEMAP == TONEMAP_BurgessModified

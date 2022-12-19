@@ -1,4 +1,4 @@
-float GetCloudFactor(const in vec3 localPos, const in vec3 localViewDir) {
+float GetCloudFactor(const in vec3 localPos, const in vec3 localViewDir, const in float lod) {
 	if (localPos.y < CLOUD_LEVEL) {
 		if (localViewDir.y <= 0.0) return 0.0;
 	}
@@ -15,10 +15,10 @@ float GetCloudFactor(const in vec3 localPos, const in vec3 localViewDir) {
 	vec2 p4 = pos + vec2(4.0, 4.0) * time;
 
 	float cloudF = 0.0;
-	cloudF += 1.0 * textureLod(noisetex, p1 * 0.0001, 0).r;
-	cloudF -= 0.3 * textureLod(noisetex, p2 * 0.0004, 0).r;
-	cloudF += 0.6 * textureLod(noisetex, p3 * 0.0016, 0).r;
-	cloudF -= 0.1 * textureLod(noisetex, p4 * 0.0064, 0).r;
+	cloudF += 1.0 * textureLod(noisetex, p1 * 0.0001, lod).r;
+	cloudF -= 0.3 * textureLod(noisetex, p2 * 0.0004, lod).r;
+	cloudF += 0.6 * textureLod(noisetex, p3 * 0.0016, lod).r;
+	cloudF -= 0.1 * textureLod(noisetex, p4 * 0.0064, lod).r;
 
 	cloudF = saturate(cloudF);
 

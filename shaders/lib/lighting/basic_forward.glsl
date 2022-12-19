@@ -27,7 +27,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
                 vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
                 //vec3 upDir = normalize(upPosition);
 
-                float cloudF = GetCloudFactor(worldPos, localLightDir);
+                float cloudF = GetCloudFactor(worldPos, localLightDir, 0);
                 float horizonFogF = pow(1.0 - max(localLightDir.y, 0.0), 8.0);
                 float cloudShadow = 1.0 - mix(cloudF, 1.0, horizonFogF);
                 shadow *= cloudShadow;
@@ -137,7 +137,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
             cloudDepthTest *= sign(CLOUD_LEVEL - cameraPosition.y);
 
             if (cloudDepthTest < 0.0) {
-                float cloudF = GetCloudFactor(cameraPosition, localViewDir);
+                float cloudF = GetCloudFactor(cameraPosition, localViewDir, 0);
 
                 float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
                 cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);

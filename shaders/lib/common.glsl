@@ -13,6 +13,8 @@ const int colortex11Format = R16F;
 const int colortex12Format = R32F;
 */
 
+const bool noisetexMipmapEnabled = true;
+
 const bool colortex2MipmapEnabled = false;
 
 const bool colortex3MipmapEnabled = false;
@@ -219,7 +221,7 @@ const bool colortex12Clear = false;
 #define PARTICLE_RESOLUTION 8 // [8 16 32 64 128]
 //#define PARTICLE_ROUNDING
 #define HCM_LAZANYI
-#define METAL_AMBIENT 1.0
+#define METAL_AMBIENT 0.4
 #define POROSITY_DARKENING 0.8
 //#define SHADOW_CONTACT_DITHER
 //#define SKY_DITHER

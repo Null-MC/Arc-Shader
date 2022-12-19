@@ -30,7 +30,7 @@
 
 #ifdef RENDER_FRAG
     #ifdef SKY_ENABLED
-        vec3 GetSkyReflectionColor(const in LightData lightData, const in vec3 localPos, const in vec3 viewDir, const in vec3 reflectDir, const in float rough) {
+        vec3 GetSkyReflectionColor(const in LightData lightData, const in vec3 worldPos, const in vec3 viewDir, const in vec3 reflectDir, const in float rough) {
             vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor * max(lightData.skyLightLevels.x, 0.0);
             vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * max(lightData.skyLightLevels.y, 0.0);
 
@@ -68,7 +68,7 @@
             skyColor += vlColor;// * (1.0 - horizonFogF);
 
             vec3 cloudColor = GetCloudColor(lightData.skyLightLevels);
-            float cloudF = GetCloudFactor(cameraPosition + localPos, localReflectDir);
+            float cloudF = GetCloudFactor(worldPos, localReflectDir, 4.0);
             cloudF = mix(cloudF, 0.0, pow(horizonFogF, CLOUD_HORIZON_POWER));
             //cloudF *= 1.0 - rough;
             skyColor = mix(skyColor, cloudColor, cloudF);
@@ -136,6 +136,7 @@
         float shadowSSS = 0.0;
 
         #ifdef SKY_ENABLED
+            vec3 worldPos = cameraPosition + localPos;
             float sssDist = 0.0;
 
             shadow *= step(EPSILON, lightData.geoNoL);
@@ -144,7 +145,7 @@
             #ifdef SHADOW_CLOUD
                 vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
 
-                float cloudF = GetCloudFactor(cameraPosition + localPos, localLightDir);
+                float cloudF = GetCloudFactor(worldPos, localLightDir, 4.0);
                 float horizonFogF = pow(1.0 - max(localLightDir.y, 0.0), 2.0);
                 float cloudShadow = 1.0 - mix(cloudF, 1.0, horizonFogF);
                 skyLightColorFinal *= (0.2 + 0.8 * cloudShadow);
@@ -243,12 +244,12 @@
 
                     #ifdef SKY_ENABLED
                         if (roughReflectColor.a + EPSILON < 1.0) {
-                            vec3 skyReflectColor = GetSkyReflectionColor(lightData, localPos, viewDir, reflectDir, rough) * skyLight;
+                            vec3 skyReflectColor = GetSkyReflectionColor(lightData, worldPos, viewDir, reflectDir, rough) * skyLight;
                             reflectColor += skyReflectColor * (1.0 - roughReflectColor.a);
                         }
                     #endif
                 #elif REFLECTION_MODE == REFLECTION_MODE_SKY && defined SKY_ENABLED
-                    reflectColor = GetSkyReflectionColor(lightData, localPos, viewDir, reflectDir, rough) * skyLight;
+                    reflectColor = GetSkyReflectionColor(lightData, worldPos, viewDir, reflectDir, rough) * skyLight;
                 #endif
             }
         #endif
@@ -261,6 +262,15 @@
                 vec2 tex = screenUV;
                 vec3 rsmColor = textureLod(BUFFER_RSM_COLOR, tex, 0).rgb;
             #endif
+        #endif
+
+        #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+            float metalDarkF = 1.0;
+            if (material.hcm >= 0) {
+                metalDarkF = roughL * METAL_AMBIENT; //1.0 - material.f0 * (1.0 - METAL_AMBIENT);
+            }
+        #else
+            float metalDarkF = mix(roughL * METAL_AMBIENT, 1.0, 1.0 - pow2(material.f0));
         #endif
 
         #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
@@ -277,7 +287,7 @@
 
         vec4 final = vec4(albedo, material.albedo.a);
         vec3 ambient = vec3(MinWorldLux);
-        vec3 diffuse = albedo * blockLightDiffuse;
+        vec3 diffuse = albedo * blockLightDiffuse * metalDarkF;
         vec3 specular = vec3(0.0);
         float occlusion = lightData.occlusion;
         vec3 waterExtinctionInv = WATER_ABSROPTION_RATE * (1.0 - waterAbsorbColor);
@@ -342,7 +352,7 @@
 
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                     if (lightData.geoNoL < 0.0 || lightData.opaqueShadowDepth < lightData.shadowPos[lightData.opaqueShadowCascade].z - lightData.shadowBias[lightData.opaqueShadowCascade])
-                        shadowAbsorption = vec3(0.0);
+                        sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - SHADOW_BRIGHTNESS);
                 #else
                     if (lightData.geoNoL < 0.0 || lightData.opaqueShadowDepth < lightData.shadowPos.z - lightData.shadowBias)
                         sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - SHADOW_BRIGHTNESS);
@@ -358,8 +368,13 @@
                 iblSpec *= absorption;
 
                 #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                        uint shadowData = textureLod(shadowcolor1, lightData.shadowPos[lightData.transparentShadowCascade].xy, 0).g;
+                    #else
+                        uint shadowData = textureLod(shadowcolor1, lightData.shadowPos.xy, 0).g;
+                    #endif
+
                     // sample normal, get fresnel, darken
-                    uint shadowData = textureLod(shadowcolor1, lightData.shadowPos.xy, 0).g;
                     vec3 waterNormal = unpackUnorm4x8(shadowData).xyz;
                     waterNormal = normalize(waterNormal * 2.0 - 1.0);
                     float water_NoL = max(waterNormal.z, 0.0);
@@ -420,7 +435,7 @@
                 }
             #endif
 
-            diffuse += sunDiffuse;
+            diffuse += sunDiffuse * metalDarkF;
 
             if (NoLm > EPSILON) {
                 float NoHm = max(dot(viewNormal, halfDir), 0.0);
@@ -696,17 +711,8 @@
             #endif
         #endif
 
-        #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-            if (material.hcm >= 0) {
-                float metalDarkF = roughL * METAL_AMBIENT; //1.0 - material.f0 * (1.0 - METAL_AMBIENT);
-                diffuse *= metalDarkF;
-                ambient *= metalDarkF;
-            }
-        #else
-            float metalDarkF = mix(roughL * METAL_AMBIENT, 1.0, 1.0 - pow2(material.f0));
-            diffuse *= metalDarkF;
-            ambient *= metalDarkF;
-        #endif
+        //diffuse *= metalDarkF;
+        ambient *= metalDarkF;
 
         vec3 emissive = material.albedo.rgb * pow(material.emission, 2.2) * EmissionLumens;
 
