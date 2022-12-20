@@ -274,7 +274,7 @@ const float MoonOvercastLux = 4.0;
 const float BlockLightLux = 2400.0;
 // const float MinWorldLux = 8.0;
 
-const float DaySkyLumen = 6400.0;
+const float DaySkyLumen = 4800.0;
 const float DaySkyOvercastLumen = 3200.0;
 const float NightSkyLumen = 4.0;
 const float NightSkyOvercastLumen = 1.0;
