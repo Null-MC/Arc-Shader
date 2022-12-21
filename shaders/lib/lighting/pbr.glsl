@@ -402,7 +402,7 @@
 
                     #ifdef SSS_NORMALIZE_ALBEDO
                         if (all(lessThan(sssAlbedo, vec3(EPSILON)))) albedo = vec3(1.0);
-                        albedo = normalize(albedo);
+                        albedo = 3.0 * normalize(albedo);
                     #endif
 
                     //vec3 halfDirInverse = normalize(-viewLightDir + -viewDir);
@@ -412,19 +412,17 @@
                     vec3 sssLightColor = shadowSSS * skyLightColorFinal;// * max(1.0 - sunFInverse, 0.0);
                     
                     float VoL = dot(viewDir, viewLightDir);
-                    float inScatter = ComputeVolumetricScattering(VoL, 0.16);
-                    // vec3 inLightColor = sssLightColor * sssAlbedo * max(inScatter, 0.0);
 
-                    //float outScatter = ComputeVolumetricScattering(VoL, mix(0.3, -0.1, material.scattering));
-                    //vec3 outLightColor = max(outScatter, 0.0) * sssLightColor * pow(sssAlbedo, vec3(2.0));
-
-                    //vec3 sssDiffuseLight = inLightColor;// + outLightColor;//* max(-NoL, 0.0);
+                    float scatter = mix(
+                        ComputeVolumetricScattering(VoL, -0.2),
+                        ComputeVolumetricScattering(VoL, 0.6),
+                        0.4);
 
                     sssDist = max(sssDist / (shadowSSS * SSS_MAXDIST), 0.0001);
                     vec3 sssExt = CalculateExtinction(material.albedo.rgb, sssDist);
                     //return vec4(sssExt * sssLightColor, 1.0);
 
-                    vec3 sssDiffuseLight = sssLightColor * sssExt * saturate(3.0 * inScatter);
+                    vec3 sssDiffuseLight = sssLightColor * sssExt * max(scatter, 0.0);
 
                     sssDiffuseLight += GetSkyAmbientLight(lightData, viewDir) * ambientBrightness * occlusion * skyLight2;
 

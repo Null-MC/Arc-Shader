@@ -90,6 +90,9 @@ flat in vec3 blockLightColor;
             
             #ifdef VL_SKY_ENABLED
                 uniform sampler3D colortex13;
+                
+                uniform mat4 gbufferModelView;
+                uniform mat4 gbufferProjection;
             #endif
         #endif
     #endif

@@ -89,6 +89,9 @@ flat in vec3 blockLightColor;
             
             #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
                 uniform sampler3D colortex13;
+
+                uniform mat4 gbufferModelView;
+                uniform mat4 gbufferProjection;
             #endif
         #endif
     #endif

@@ -56,8 +56,14 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
             //float cloudVis = 1.0 - GetCloudFactor(cameraPosition, localLightDir);
         #endif
 
+        //mat4 gbufferModelViewProjection = gbufferProjection * gbufferModelView;
+
         for (int i = VL_SAMPLES_SKY; i >= 1; i--) {
             vec3 currentShadowViewPos = shadowViewStart + i * rayStep;
+            vec3 localTracePos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
+
+            //vec3 traceClipPos = unproject(gbufferModelViewProjection * vec4(localTracePos, 1.0)) * 2.0 - 1.0;
+            //if (traceClipPos.z >= lightData.opaqueScreenDepth) continue;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 vec3 shadowPos[4];
@@ -81,14 +87,17 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
 
                 if (saturate(shadowPos.xy) != shadowPos.xy) {
                     // TODO: perform a screenspace depth check?
+                    // does not need to be sampled, ray is already screen-aligned and depth value will be constant
 
+                    // vec3 viewPos = (gbufferModelView * vec4(localTracePos, 1.0)).xyz;
+                    // vec3 clipPos = unproject(gbufferModelViewProjection * vec4(localTracePos, 1.0));
+                    // if (clipPos.z >= lightData.opaqueScreenDepth) continue;
                     continue;
                 }
 
                 float sampleF = CompareOpaqueDepth(shadowPos, vec2(0.0), 0.0);
             #endif
 
-            vec3 localTracePos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
             vec3 worldTracePos = cameraPosition + localTracePos;
 
             #ifdef SHADOW_CLOUD
