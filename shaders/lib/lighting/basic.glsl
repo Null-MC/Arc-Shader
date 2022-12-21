@@ -178,7 +178,7 @@
             if (all(lessThan(skyColorLux, vec3(EPSILON)))) skyColorLux = vec3(1.0);
             skyColorLux = normalize(skyColorLux);
 
-            result += (sunColorFinal + moonColorFinal) * skyColorLux * mix(0.6, 0.01, wetness);
+            result += (sunColorFinal + moonColorFinal) * skyColorLux * mix(0.1, 0.01, wetness);
 
             //return MinWorldLux + sunLightLux + moonLightLux;
             //result += skyColorLux;

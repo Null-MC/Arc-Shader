@@ -77,24 +77,28 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
     vec3 viewDir = normalize(viewPos);
 
     #ifdef SKY_ENABLED
-        vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor;
-        vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * GetMoonPhaseLevel();
+        vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor * max(lightData.skyLightLevels.x, 0.0);
+        vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * GetMoonPhaseLevel() * max(lightData.skyLightLevels.y, 0.0);
     #endif
 
     #ifdef RENDER_WEATHER
         vec3 sunDir = normalize(sunPosition);
         float sun_VoL = dot(viewDir, sunDir);
-        float rainSnowSunVL = ComputeVolumetricScattering(sun_VoL, 0.8)
-            + ComputeVolumetricScattering(sun_VoL, -0.2);
+        float rainSnowSunVL = mix(
+            ComputeVolumetricScattering(sun_VoL, -0.6),
+            ComputeVolumetricScattering(sun_VoL, 0.86),
+            0.1);
 
         vec3 moonDir = normalize(moonPosition);
         float moon_VoL = dot(viewDir, moonDir);
-        float rainSnowMoonVL = ComputeVolumetricScattering(moon_VoL, 0.8)
-            + ComputeVolumetricScattering(moon_VoL, -0.2);
+        float rainSnowMoonVL = mix(
+            ComputeVolumetricScattering(moon_VoL, -0.6),
+            ComputeVolumetricScattering(moon_VoL, 0.86),
+            0.1);
 
-        vec3 weatherLightColor = 3.0 * (
+        vec3 weatherLightColor = 3.0 * 
             max(rainSnowSunVL, 0.0) * sunColorFinalEye +
-            max(rainSnowMoonVL, 0.0) * moonColorFinalEye);
+            max(rainSnowMoonVL, 0.0) * moonColorFinalEye;
 
         //float alpha = mix(WEATHER_OPACITY * 0.01, 1.0, saturate(max(rainSnowSunVL, rainSnowMoonVL)));
 

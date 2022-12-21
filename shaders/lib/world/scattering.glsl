@@ -28,11 +28,17 @@ vec2 GetVanillaSkyScattering(const in vec3 viewDir, const in vec2 skyLightLevels
     #endif
 
     float sun_VoL = dot(viewDir, sunDir);
-    scatteringF.x = ComputeVolumetricScattering(sun_VoL, scattering_G);
+    scatteringF.x = mix(
+        ComputeVolumetricScattering(sun_VoL, -0.2),
+        ComputeVolumetricScattering(sun_VoL, 0.86),
+        0.4);
 
     vec3 moonDir = normalize(moonPosition);
     float moon_VoL = dot(viewDir, moonDir);
-    scatteringF.y = ComputeVolumetricScattering(moon_VoL, scattering_G);
+    scatteringF.y = mix(
+        ComputeVolumetricScattering(moon_VoL, -0.2),
+        ComputeVolumetricScattering(moon_VoL, 0.86),
+        0.4);
 
     //scatteringF *= 1.0 + 1.0 * wetness;
 

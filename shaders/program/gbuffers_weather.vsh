@@ -126,7 +126,7 @@ void main() {
     #endif
 
     sunColor = GetSunLuxColor();
-    moonColor = GetMoonLuxColor() * GetMoonPhaseLevel();
+    moonColor = GetMoonLuxColor();// * GetMoonPhaseLevel();
     skyLightLevels = GetSkyLightLevels();
     
     sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);

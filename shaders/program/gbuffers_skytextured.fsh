@@ -45,11 +45,13 @@ void main() {
         lum *= luminance(moonColor * moonTransmittanceEye);
         alpha *= min(luminance(moonTransmittanceEye), 1.0);
     }
-    // else if (renderStage == MC_RENDER_STAGE_CUSTOM_SKY) {
-    //     lumF = 10000.0;
-    //     //color = vec3(1000.0, 0.0, 0.0);
-    //     //lum = 10.0;
-    // }
+    else if (renderStage == MC_RENDER_STAGE_CUSTOM_SKY) {
+        lumF = 1.0;
+        color *= 10000.0 * (1.0 - 0.7 * rainStrength);
+        lum = 10000.0 * (1.0 - 0.7 * rainStrength);
+        //color = vec3(1000.0, 0.0, 0.0);
+        //lum = 10.0;
+    }
 
     color = clamp(color * exposure, vec3(0.0), vec3(65000));
     outColor0 = vec4(color, alpha);

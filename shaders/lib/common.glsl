@@ -274,12 +274,12 @@ const float MoonOvercastLux = 4.0;
 const float BlockLightLux = 2400.0;
 // const float MinWorldLux = 8.0;
 
-const float DaySkyLumen = 4800.0;
+const float DaySkyLumen = 3200.0;
 const float DaySkyOvercastLumen = 3200.0;
 const float NightSkyLumen = 4.0;
 const float NightSkyOvercastLumen = 1.0;
 
-const vec3 ATMOS_EXT_COLOR = vec3(0.84, 0.96, 0.98);
+const vec3 ATMOS_EXT_COLOR = vec3(0.510, 0.500, 0.455);
 const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.2;
 const vec4 WATER_COLOR = vec4(0.139, 0.271, 0.313, 0.1);
 const vec3 CLOUD_COLOR = vec3(0.248, 0.225, 0.273);
