@@ -79,7 +79,11 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
 
                 shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
 
-                if (saturate(shadowPos.xy) != shadowPos.xy) continue;
+                if (saturate(shadowPos.xy) != shadowPos.xy) {
+                    // TODO: perform a screenspace depth check?
+
+                    continue;
+                }
 
                 float sampleF = CompareOpaqueDepth(shadowPos, vec2(0.0), 0.0);
             #endif

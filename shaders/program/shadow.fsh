@@ -182,7 +182,7 @@ void main() {
 
             float finalDepth = GetWaves(waterWorldPos, waveDepth, octaves);
             vec3 waterPos = vec3(waterWorldPos.x, waterWorldPos.y, finalDepth);
-            waterPos.z *= waveDepth * WATER_WAVE_DEPTH * WATER_NORMAL_STRENGTH * 2.0;
+            waterPos.z *= waveDepth * WaterWaveDepthF * WATER_NORMAL_STRENGTH;
 
             normal = normalize(
                 cross(

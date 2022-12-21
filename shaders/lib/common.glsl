@@ -72,7 +72,7 @@ const bool colortex12Clear = false;
 #define WATER_OCTAVES_VERTEX 8
 #define WATER_OCTAVES_DIST 120.0
 #define WATER_PARALLAX_SAMPLES 64
-#define WATER_WAVE_DEPTH 1.0
+#define WATER_WAVE_DEPTH 100 // [25 50 100 150 200 250 300]
 #define WATER_RESOLUTION 2048
 #define WATER_NORMAL_STRENGTH 0.1
 #define WATER_ABSROPTION_RATE 1.0
@@ -302,6 +302,7 @@ const float drynessHalflife = 10.0;
 
 const vec3 AtmosExtInv = 1.0 - ATMOS_EXT_COLOR;
 const vec3 WaterExtInv = 1.0 - WATER_COLOR.rgb;
+const float WaterWaveDepthF = WATER_WAVE_DEPTH * 0.01;
 
 
 // #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT

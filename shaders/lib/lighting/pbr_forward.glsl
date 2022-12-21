@@ -101,7 +101,7 @@
 
                     depth = GetWaves(waterWorldPos, waveDepth, octaves);
                     waterPos = vec3(waterWorldPos.x, waterWorldPos.y, depth);
-                    waterPos.z *= waveDepth * WATER_WAVE_DEPTH * WATER_NORMAL_STRENGTH;
+                    waterPos.z *= waveDepth * WaterWaveDepthF * WATER_NORMAL_STRENGTH;
 
                     vec3 waterDX = dFdx(waterPos);
                     vec3 waterDY = dFdy(waterPos);
@@ -120,7 +120,7 @@
                             float waterDepth = max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepth, 0.0);
                             GetWaterParallaxCoord(waterTex, water_dFdXY, tanViewDir, viewDist, waterDepth, lightData.skyLight);
 
-                            //const float waterParallaxDepth = WATER_WAVE_DEPTH / (2.0*WATER_RADIUS);
+                            //const float waterParallaxDepth = WaterWaveDepthF / (2.0*WATER_RADIUS);
                             float pomDist = isEyeInWater == 1 ? waterTex.z : (1.0 - waterTex.z);
                             pomDist /= max(-tanViewDir.z, 0.01);
                             pomDist *= waveDepth;

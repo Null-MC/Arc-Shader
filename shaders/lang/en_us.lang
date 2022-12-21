@@ -81,6 +81,9 @@ option.VL_WATER_ENABLED=Volumetric
 
 option.VL_SAMPLES_WATER=VL Samples
 
+option.WATER_WAVE_DEPTH=Wave Depth
+suffix.WATER_WAVE_DEPTH=%
+
 
 screen.MATERIAL_OPTIONS=Materials
 screen.MATERIAL_OPTIONS.comment=Options for PBR materials.
