@@ -194,7 +194,7 @@
 
         #ifdef RENDER_ENTITIES
             if (materialId == MATERIAL_PHYSICS_SNOW) {
-                colorMap.rgb = SNOW_COLOR;
+                material.albedo.rgb = SNOW_COLOR;
 
                 material.scattering = GetPhysicsSnowScattering(localPos);
                 material.smoothness = GetPhysicsSnowSmooth(localPos);
@@ -210,6 +210,9 @@
             material.scattering = 0.3;
             material.f0 = 0.034;
         }
+
+        // if (any(isnan(_viewNormal)))
+        //     _viewNormal = vec3(0.0, 0.0, 1.0);
 
         material.normal = normalize(matTBN * material.normal);
 

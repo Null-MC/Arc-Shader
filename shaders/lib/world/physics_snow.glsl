@@ -137,10 +137,10 @@ vec3 GetPhysicsSnowNormal(const in vec3 worldPos, const in float viewDist) {
 
 float GetPhysicsSnowScattering(const in vec3 worldPos) {
 	float v = 1.0 - fbm(worldPos * 0.9);
-	return saturate(0.4 + 0.32 * v);
+	return saturate(0.6 + 0.32 * v);
 }
 
 float GetPhysicsSnowSmooth(const in vec3 worldPos) {
 	float v = 1.0 - fbm(worldPos * 0.6);
-	return saturate(0.2 + 0.3 * v);
+	return saturate(0.2 + 0.2 * v);
 }
