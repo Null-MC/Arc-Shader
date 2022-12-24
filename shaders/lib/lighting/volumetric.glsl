@@ -32,6 +32,7 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
         vec3 accumColor = vec3(0.0);
         //float accumExt = 1.0;
         float accumF = 0.0;
+        float accumD = 0.0;
 
         vec3 fogColorLinear = RGBToLinear(fogColor);
 
@@ -59,7 +60,7 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
         //mat4 gbufferModelViewProjection = gbufferProjection * gbufferModelView;
         vec3 shadowMax = 1.0 - vec3(vec2(shadowPixelSize), EPSILON);
 
-        for (int i = VL_SAMPLES_SKY; i >= 1; i--) {
+        for (int i = 0; i < VL_SAMPLES_SKY; i++) {
             vec3 currentShadowViewPos = shadowViewStart + i * rayStep;
             vec3 localTracePos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
 
@@ -102,7 +103,7 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                     continue;
                 }
 
-                float sampleF = CompareOpaqueDepth(shadowPos, vec2(0.0), sampleBias);
+                float sampleF = CompareOpaqueDepth(shadowPos, vec2(0.0), lightData.shadowBias);
             #endif
 
             vec3 worldTracePos = cameraPosition + localTracePos;
@@ -111,26 +112,44 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                 sampleF *= 1.0 - GetCloudFactor(worldTracePos, localLightDir, 0);
             #endif
 
+            //sampleF = 0.1 + 0.9 * sampleF;
+
             //float sampleDensity = 1.0 - saturate((worldTracePos.y - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL));
 
-            #ifdef VL_SKY_NOISE
+            vec3 sampleAmbient = 200.0 * fogColorLinear;
+
+            #if VL_FOG_MIN != 0
                 if (worldTracePos.y < CLOUD_LEVEL) {
                     float texDensity1 = texture(colortex13, worldTracePos / 256.0).r;
                     float texDensity2 = texture(colortex13, worldTracePos / 64.0).r;
 
-                    float texDensity = (0.2 + 0.8 * wetness) * (1.0 - mix(texDensity1, texDensity2, 0.1 + 0.5 * wetness));
+                    //float texDensity = 1.0;//(0.2 + 0.8 * wetness) * (1.0 - mix(texDensity1, texDensity2, 0.1 + 0.5 * wetness));
+                    float texDensity = 0.8 - 0.6 * texDensity1 + 0.4 * texDensity2 - 0.2;//0.2 * (1.0 - mix(texDensity1, texDensity2, 0.5));
+                    
+                    // Change with altitude
+                    float altD = 1.0 - saturate((worldTracePos.y - SEA_LEVEL) / (CLOUD_LEVEL - SEA_LEVEL));
+                    texDensity *= pow3(altD);
+
+                    // Change with weather
+                    texDensity *= VLFogMinF + (1.0 - VLFogMinF) * wetness;
+
                     sampleF *= texDensity;
+                    sampleAmbient *= texDensity;
 
-                    vec3 stepExt = exp(-VL_SKY_DENSITY * viewStepLength * texDensity * AtmosExtInv);
-                    extinction *= stepExt;
+                    accumD += texDensity;
 
-                    accumColor *= stepExt;
+                    //vec3 stepExt = exp(-VL_SKY_DENSITY * viewStepLength * texDensity * AtmosExtInv);
+                    //extinction *= stepExt;
+
+                    //accumColor *= stepExt;
                 }
                 else {
                     //sampleF *= 1.0 - smoothstep(CLOUD_LEVEL, ATMOSPHERE_LEVEL, worldTracePos.y);
                     continue;
                 }
             #endif
+
+            accumColor += sampleAmbient;
 
             if (sampleF < EPSILON) continue;
 
@@ -153,17 +172,29 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                         vec3 shadowColor = GetShadowColor(shadowPos.xy);
 
                         if (!any(greaterThan(shadowColor, vec3(EPSILON)))) shadowColor = vec3(1.0);
-                        shadowColor = normalize(shadowColor) * 2.0;
+                        shadowColor = normalize(shadowColor) * 1.73;
 
                         sampleColor *= shadowColor;
                     }
                 //}
             #endif
 
-            accumColor += sampleF * sampleColor;
+            //sampleColor *= sampleF;
+
+            // TODO: add ambient lighting?
+            //sampleColor += sampleAmbient;
+
+            if (i > 0) {
+                vec3 stepExt = exp(-(accumD / i) * (i * stepLength) * AtmosExtInv * VL_SKY_DENSITY * 2.0);
+                sampleColor *= stepExt;
+            }
+
+            accumColor += sampleColor * sampleF;
         }
 
         //float traceLength = min(viewRayLength / min(far, gl_Fog.end), 1.0);
+
+        extinction = exp(-(accumD / VL_SAMPLES_SKY) * viewRayLength * AtmosExtInv * VL_SKY_DENSITY * 2.0);
 
         return (accumColor / VL_SAMPLES_SKY) * viewRayLength * VL_SKY_DENSITY;
     }

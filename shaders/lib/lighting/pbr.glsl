@@ -96,11 +96,11 @@
         #endif
 
         #ifdef SKY_ENABLED
-            vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor * max(lightData.skyLightLevels.x, 0.0);
-            vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * max(lightData.skyLightLevels.y, 0.0);
+            vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor;// * max(lightData.skyLightLevels.x, 0.0);
+            vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor;// * max(lightData.skyLightLevels.y, 0.0);
 
-            vec3 sunColorFinal = lightData.sunTransmittance * sunColor * max(lightData.skyLightLevels.x, 0.0);
-            vec3 moonColorFinal = lightData.moonTransmittance * moonColor * max(lightData.skyLightLevels.y, 0.0);
+            vec3 sunColorFinal = lightData.sunTransmittance * sunColor;// * max(lightData.skyLightLevels.x, 0.0);
+            vec3 moonColorFinal = lightData.moonTransmittance * moonColor;// * max(lightData.skyLightLevels.y, 0.0);
             vec3 skyLightColorFinal = (sunColorFinal + moonColorFinal);
 
             vec3 viewLightDir = normalize(shadowLightPosition);
@@ -407,7 +407,7 @@
 
                     #ifdef SSS_NORMALIZE_ALBEDO
                         if (all(lessThan(sssAlbedo, vec3(EPSILON)))) albedo = vec3(1.0);
-                        albedo = 3.0 * normalize(albedo);
+                        albedo = 1.73 * normalize(albedo);
                     #endif
 
                     //vec3 halfDirInverse = normalize(-viewLightDir + -viewDir);

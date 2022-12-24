@@ -185,6 +185,9 @@ suffix.VL_STRENGTH=%
 
 option.CLOUD_LEVEL=Cloud Height
 
+option.VL_FOG_MIN=Min Fog
+suffix.VL_FOG_MIN=%
+
 
 screen.SHADOW_OPTIONS=Shadows
 

@@ -77,7 +77,7 @@ const bool colortex12Clear = false;
 #define WATER_NORMAL_STRENGTH 0.1
 #define WATER_ABSROPTION_RATE 1.0
 #define VL_WATER_ENABLED
-#define VL_WATER_DENSITY 0.04
+#define VL_WATER_DENSITY 0.12
 #define VL_WATER_NOISE
 
 
@@ -92,8 +92,7 @@ const bool colortex12Clear = false;
 #define WETNESS_MODE 2 // [0 1 2]
 #define SNOW_MODE 2 // [0 1 2]
 #define VL_SKY_ENABLED
-#define VL_SKY_DENSITY 0.02
-#define VL_SKY_NOISE
+#define VL_SKY_DENSITY 0.03
 
 
 // Shadow Options
@@ -188,6 +187,7 @@ const bool colortex12Clear = false;
 #define VL_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 175 200 225 250 275 300 350 400 450 500 600 700 800 900]
 #define VL_SAMPLES_SKY 12 // [8 12 16 20 24 32]
 #define VL_SAMPLES_WATER 6 // [4 6 8 12 16 24]
+#define VL_FOG_MIN 30 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
 #define VL_PARTICLES
 #define G_SCATTERING_CLEAR 0.65
 #define G_SCATTERING_NIGHT 0.4
@@ -303,6 +303,7 @@ const float drynessHalflife = 10.0;
 const vec3 AtmosExtInv = 1.0 - ATMOS_EXT_COLOR;
 const vec3 WaterExtInv = 1.0 - WATER_COLOR.rgb;
 const float WaterWaveDepthF = WATER_WAVE_DEPTH * 0.01;
+const float VLFogMinF = VL_FOG_MIN * 0.01;
 
 
 // #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
