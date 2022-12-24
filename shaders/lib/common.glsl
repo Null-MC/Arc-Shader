@@ -87,7 +87,7 @@ const bool colortex12Clear = false;
 //#define CAVEFOG_ENABLED
 #define WEATHER_OPACITY 50 // [10 20 30 40 50 60 70 80 90 100]
 #define ATMOS_EXTINCTION 0.004
-#define SUN_TEMP 5000.0
+#define SUN_TEMP 6000.0
 #define MOON_TEMP 4000.0
 #define WETNESS_MODE 2 // [0 1 2]
 #define SNOW_MODE 2 // [0 1 2]
@@ -154,7 +154,7 @@ const bool colortex12Clear = false;
 // Camera Options
 #define CAMERA_EXPOSURE_MODE 2 // [0 1 2]
 #define CAMERA_EXPOSURE 0 // [-17 -16 -15 -14 -13 -12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6]
-#define CAMERA_LUM_MIN 60.0
+#define CAMERA_LUM_MIN 40.0
 #define CAMERA_LUM_MAX 64000.0
 //#define EXPOSURE_POINT 0.2
 #define EXPOSURE_SPEED_UP 1.0

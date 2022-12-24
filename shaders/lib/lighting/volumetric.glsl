@@ -57,6 +57,7 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
         #endif
 
         //mat4 gbufferModelViewProjection = gbufferProjection * gbufferModelView;
+        vec3 shadowMax = 1.0 - vec3(vec2(shadowPixelSize), EPSILON);
 
         for (int i = VL_SAMPLES_SKY; i >= 1; i--) {
             vec3 currentShadowViewPos = shadowViewStart + i * rayStep;
@@ -78,14 +79,20 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                 float sampleF = CompareNearestOpaqueDepth(shadowPos, lightData.shadowTilePos, lightData.shadowBias, vec2(0.0));
             #else
                 vec4 shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
+                float sampleBias = 0.0;
 
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                    shadowPos.xyz = distort(shadowPos.xyz);
+                    float distortF = getDistortFactor(shadowPos.xy);
+                    shadowPos.xyz = distort(shadowPos.xyz, distortF);
+
+                    //sampleBias = GetShadowBias(0.0, distortF);
+                #else
+                    //sampleBias = ?;
                 #endif
 
                 shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
 
-                if (saturate(shadowPos.xy) != shadowPos.xy) {
+                if (shadowPos.xyz != clamp(shadowPos.xyz, vec3(0.0), shadowMax)) {
                     // TODO: perform a screenspace depth check?
                     // does not need to be sampled, ray is already screen-aligned and depth value will be constant
 
@@ -95,7 +102,7 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                     continue;
                 }
 
-                float sampleF = CompareOpaqueDepth(shadowPos, vec2(0.0), 0.0);
+                float sampleF = CompareOpaqueDepth(shadowPos, vec2(0.0), sampleBias);
             #endif
 
             vec3 worldTracePos = cameraPosition + localTracePos;

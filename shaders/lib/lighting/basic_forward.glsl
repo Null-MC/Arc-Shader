@@ -121,7 +121,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
 
             vec2 scatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
 
-            #ifdef VL_SKY_ENABLED
+            #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 vec3 viewNear = viewDir * near;
                 vec3 vlExt = vec3(1.0);
 
@@ -153,7 +153,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
                 // TODO: mix opacity?
             }
 
-            #ifdef VL_SKY_ENABLED
+            #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 final.rgb += vlColor;
 
                 // TODO: vl alter alpha?

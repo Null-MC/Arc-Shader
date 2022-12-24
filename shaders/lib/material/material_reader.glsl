@@ -31,6 +31,10 @@ float GetLabPbr_Emission(const in float specularA) {
     return specularA * step(specularA, 1.0 - EPSILON);
 }
 
+float GetOldPbr_Emission(const in float specularB) {
+    return specularB;
+}
+
 #ifdef RENDER_DEFERRED
     // Read from gbuffers
     void PopulateMaterial(out PbrMaterial material, const in vec3 colorMap, const in vec4 normalMap, const in vec4 specularMap) {
@@ -91,6 +95,7 @@ float GetLabPbr_Emission(const in float specularA) {
             material.smoothness = specularMap.r;
             material.porosity = GetOldPbr_Porosity(specularMap.r, specularMap.g);
             material.occlusion = 1.0;
+            material.emission = GetOldPbr_Emission(specularMap.b);
             material.hcm = -1;
         #elif MATERIAL_FORMAT == MATERIAL_FORMAT_PATRIX
             if (normalMap.x < EPSILON && normalMap.y < EPSILON)

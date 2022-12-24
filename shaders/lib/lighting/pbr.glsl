@@ -135,6 +135,12 @@
         vec3 shadowColor = vec3(1.0);
         float shadowSSS = 0.0;
 
+        float lightLeakFix = 1.0;
+        #ifdef LIGHTLEAK_FIX
+            lightLeakFix = saturate(lightData.skyLight * 15.0);
+            shadow *= lightLeakFix;
+        #endif
+
         #ifdef SKY_ENABLED
             vec3 worldPos = cameraPosition + localPos;
             float sssDist = 0.0;
@@ -208,7 +214,6 @@
 
         #ifdef LIGHTLEAK_FIX
             // Make areas without skylight fully shadowed (light leak fix)
-            float lightLeakFix = saturate(lightData.skyLight * 15.0);
             shadowFinal *= lightLeakFix;
             shadowSSS *= lightLeakFix;
         #endif
@@ -229,7 +234,7 @@
 
             if (smoothness > EPSILON) {
                 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-                    vec3 viewPosPrev = (gbufferPreviousModelView * vec4(localPos + cameraPosition - previousCameraPosition, 1.0)).xyz;
+                    vec3 viewPosPrev = (gbufferPreviousModelView * vec4(localPos + (cameraPosition - previousCameraPosition), 1.0)).xyz;
 
                     vec3 localReflectDir = mat3(gbufferModelViewInverse) * reflectDir;
                     vec3 reflectDirPrev = mat3(gbufferPreviousModelView) * localReflectDir;
@@ -622,7 +627,7 @@
                         vec3 waterFogColor = GetWaterFogColor(viewDir, sunColorFinalEye, moonColorFinalEye, waterScatteringF);
                         ApplyWaterFog(refractColor, waterFogColor, waterViewDepthFinal);
 
-                        #ifdef VL_WATER_ENABLED
+                        #if defined VL_WATER_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                             //if (lightData.transparentScreenDepthLinear < refractOpaqueScreenDepthLinear) {
                                 float dist = waterFogDistSmooth;
                                 //if (refractOpaqueScreenDepthLinear < 1.0 - EPSILON && lightData.transparentScreenDepthLinear < 1.0 - EPSILON)
@@ -734,7 +739,7 @@
 
             ApplyWaterFog(final.rgb, waterFogColor, viewDist);
 
-            #if defined SKY_ENABLED && defined VL_WATER_ENABLED
+            #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined VL_WATER_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 vec3 nearViewPos = viewDir * near;
                 vec3 farViewPos = viewDir * min(viewDist, waterFogDistSmooth);
 

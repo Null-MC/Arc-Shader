@@ -398,7 +398,7 @@ void main() {
                 vec2 waterScatteringF = GetWaterScattering(viewDir);
                 color = GetWaterFogColor(viewDir, sunColorFinalEye, moonColorFinalEye, waterScatteringF);
 
-                #ifdef VL_WATER_ENABLED
+                #if defined VL_WATER_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                     vec3 nearPos = viewDir * near;
                     vec3 farPos = viewDir * min(far, waterFogDistSmooth);
 
@@ -452,7 +452,7 @@ void main() {
             ApplyFog(color, fogColorFinal, fogFactorFinal);
 
         #ifdef SKY_ENABLED
-            #ifdef VL_SKY_ENABLED
+            #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 vec3 viewNear = viewDir * near;
                 vec3 viewFar = viewDir * min(length(viewPos), far);
                 vec3 vlExt = vec3(1.0);
@@ -481,7 +481,7 @@ void main() {
                 color = mix(color, cloudColor, cloudF);
             }
 
-            #ifdef VL_SKY_ENABLED
+            #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 color += vlColor;
             #endif
         #endif
