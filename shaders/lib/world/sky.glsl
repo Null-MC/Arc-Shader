@@ -49,13 +49,13 @@ vec2 GetSkyLightLevels() {
         // Darken atmosphere
         skyLumen *= 1.0 - saturate((cameraPosition.y - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL));
 
-        vec3 skyColorLinear = skyColor;//RGBToLinear(skyColor);
-        if (dot(skyColorLinear, skyColorLinear) < EPSILON) skyColorLinear = vec3(1.0);
-        skyColorLinear = normalize(skyColorLinear);
+        vec3 skyColorLinear = RGBToLinear(skyColor);
+        //if (dot(skyColorLinear, skyColorLinear) < EPSILON) skyColorLinear = vec3(1.0);
+        //skyColorLinear = normalize(skyColorLinear) * 1.7;
 
-        vec3 fogColorLinear = fogColor;//RGBToLinear(fogColor);
-        if (dot(fogColorLinear, fogColorLinear) < EPSILON) fogColorLinear = vec3(1.0);
-        fogColorLinear = normalize(fogColorLinear) * 0.8;
+        vec3 fogColorLinear = RGBToLinear(fogColor);
+        //if (dot(fogColorLinear, fogColorLinear) < EPSILON) fogColorLinear = vec3(1.0);
+        //fogColorLinear = normalize(fogColorLinear) * 1.7;
 
         fogColorLinear *= 1.0 - 0.8 * rainStrength;
 

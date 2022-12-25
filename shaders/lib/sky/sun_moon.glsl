@@ -17,7 +17,7 @@ float GetSunLux() {
 }
 
 vec3 GetSunColor() {
-    return blackbody(SUN_TEMP);
+    return vec3(1.0);//blackbody(SUN_TEMP);
 }
 
 vec3 GetSunLuxColor() {
