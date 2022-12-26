@@ -52,7 +52,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         if (clamp(tracePos, clipMin, clipMax) != tracePos) {
             if (level < 1) break;
 
-            level--;
+            level -= 2;
             continue;
         }
 
@@ -104,7 +104,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         // }
 
         if (level > 0) {
-            level--;
+            level -= 2;
             continue;
         }
 

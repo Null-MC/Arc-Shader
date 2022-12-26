@@ -37,7 +37,7 @@ float GetAverageLuminance() {
     #elif CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         int luminanceLod = GetLuminanceLod();
 
-        float averageLuminance = 0.0;
+        //float averageLuminance = 0.0;
         // vec2 texSize = SSR_SCALE * vec2(viewWidth, viewHeight);
 
         // ivec2 lodSize = ivec2(ceil(texSize / exp2(luminanceLod)));

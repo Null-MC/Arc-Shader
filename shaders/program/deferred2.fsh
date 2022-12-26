@@ -36,6 +36,7 @@ uniform float viewHeight;
 uniform float far;
 
 #include "/lib/lighting/light_data.glsl"
+#include "/lib/sampling/noise.glsl"
 
 #ifdef RSM_DITHER
     #include "/lib/sampling/bayer.glsl"

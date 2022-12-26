@@ -11,6 +11,18 @@ float hash12(const in uvec2 x) {
     return float(n) * UIF;
 }
 
+vec2 hash22(const in vec2 p) {
+    vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
+    p3 += dot(p3, p3.yzx+33.33);
+    return fract((p3.xx+p3.yz)*p3.zy);
+}
+
+vec2 hash23(vec3 p3) {
+    p3 = fract(p3 * vec3(.1031, .1030, .0973));
+    p3 += dot(p3, p3.yzx+33.33);
+    return fract((p3.xx+p3.yz)*p3.zy);
+}
+
 vec3 hash32(const in uvec2 q) {
     uvec3 n = q.xyx * UI3;
     n = (n.x ^ n.y ^n.z) * UI3;

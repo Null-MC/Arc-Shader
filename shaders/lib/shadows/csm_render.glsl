@@ -58,7 +58,7 @@ float GetCascadeBias(const in float geoNoL, const in int cascade) {
 
     //bias += pow(1.0 - geoNoL, 16.0);
 
-    return bias;
+    return 0.0001;
 }
 
 #ifdef RENDER_FRAG

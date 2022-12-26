@@ -39,7 +39,7 @@ out vec2 texcoord;
 
             float sunLightLum = luminance(sunTransmittanceEye * GetSunLuxColor());
             float moonLightLum = luminance(moonTransmittanceEye * GetMoonLuxColor()) * GetMoonPhaseLevel();
-            float skyLightBrightness = pow(eyeBrightnessLinear.y, 0.5) * (sunLightLum + moonLightLum);
+            float skyLightBrightness = eyeBrightnessLinear.y * (sunLightLum + moonLightLum);
         #endif
 
         float blockLightBrightness = eyeBrightnessLinear.x;
@@ -50,7 +50,7 @@ out vec2 texcoord;
 
         blockLightBrightness = pow3(blockLightBrightness) * BlockLightLux;
 
-        float brightnessFinal = MinWorldLux;
+        float brightnessFinal = 0.0;//MinWorldLux;
 
         #ifdef SKY_ENABLED
             brightnessFinal += max(blockLightBrightness, skyLightBrightness);
@@ -58,7 +58,10 @@ out vec2 texcoord;
             brightnessFinal += blockLightBrightness;
         #endif
 
-        return 0.028 * brightnessFinal;
+        //return clamp(100.0 * brightnessFinal, CAMERA_LUM_MIN, CAMERA_LUM_MAX);
+        eyeBrightnessLinear.x = pow3(eyeBrightnessLinear.x);
+
+        return mix(CAMERA_LUM_MIN, 0.125 * CAMERA_LUM_MAX, maxOf(eyeBrightnessLinear));
     }
 #endif
 

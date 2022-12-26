@@ -118,7 +118,7 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
 
             vec3 sampleAmbient = 200.0 * fogColorLinear;
 
-            #if VL_FOG_MIN != 0
+            //#if VL_FOG_MIN != 0
                 if (worldTracePos.y < CLOUD_LEVEL) {
                     float texDensity1 = texture(colortex13, worldTracePos / 256.0).r;
                     float texDensity2 = texture(colortex13, worldTracePos / 64.0).r;
@@ -147,7 +147,7 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                     //sampleF *= 1.0 - smoothstep(CLOUD_LEVEL, ATMOSPHERE_LEVEL, worldTracePos.y);
                     continue;
                 }
-            #endif
+            //#endif
 
             accumColor += sampleAmbient;
 

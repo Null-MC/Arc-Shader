@@ -55,7 +55,7 @@ const bool colortex12Clear = false;
 #define BLOCK_OUTLINE 3 // [0 1 2 3]
 #define BLOCKLIGHT_TEMP 2700 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 0 // [0 10 20 30 40 50 60 70 80 90 100]
-#define SHADOW_BRIGHTNESS 0.10 // [0.00 0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.32 0.48 0.64 1.00]
+#define SHADOW_BRIGHTNESS 10 // [0 2 4 6 8 10 12 14 16 18 20 25 30 35 40 45 50 60 70 80 90 100]
 #define RAIN_DARKNESS 0.2
 //#define ANIM_USE_WORLDTIME
 
@@ -154,7 +154,7 @@ const bool colortex12Clear = false;
 #define CAMERA_EXPOSURE_MODE 2 // [0 1 2]
 #define CAMERA_EXPOSURE 0 // [-17 -16 -15 -14 -13 -12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6]
 #define CAMERA_LUM_MIN 40.0
-#define CAMERA_LUM_MAX 64000.0
+#define CAMERA_LUM_MAX 24000.0
 //#define EXPOSURE_POINT 0.2
 #define EXPOSURE_SPEED_UP 1.0
 #define EXPOSURE_SPEED_DOWN 0.7
@@ -304,6 +304,7 @@ const vec3 AtmosExtInv = 1.0 - ATMOS_EXT_COLOR;
 const vec3 WaterExtInv = 1.0 - WATER_COLOR.rgb;
 const float WaterWaveDepthF = WATER_WAVE_DEPTH * 0.01;
 const float VLFogMinF = VL_FOG_MIN * 0.01;
+const float ShadowBrightnessF = SHADOW_BRIGHTNESS * 0.01;
 
 
 // #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT

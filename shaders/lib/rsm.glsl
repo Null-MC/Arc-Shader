@@ -63,7 +63,8 @@ float SampleDepth(const in ivec2 itex) {
         //     offsetShadowViewPos += ditherOffset;
         // #endif
 
-        offsetShadowViewPos.xy += rsmPoissonDisk[i] * RSM_FILTER_SIZE;
+        //offsetShadowViewPos.xy += rsmPoissonDisk[i] * RSM_FILTER_SIZE;
+        offsetShadowViewPos.xy += (hash23(vec3(gl_FragCoord.xy, i))*2.0 - 1.0) * RSM_FILTER_SIZE;
 
         vec2 uv;
         ivec2 iuv;

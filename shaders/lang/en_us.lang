@@ -31,6 +31,7 @@ value.BLOCK_OUTLINE.3=Fancy
 
 option.SHADOW_BRIGHTNESS=Ambient Brightness
 option.SHADOW_BRIGHTNESS.comment=Controls how dark shadows are.
+suffix.SHADOW_BRIGHTNESS=%
 
 option.ENABLE_WAVING=Waving Plants
 option.ENABLE_WAVING.comment=Foliage (and other similar blocks) will wave using artificial wind.

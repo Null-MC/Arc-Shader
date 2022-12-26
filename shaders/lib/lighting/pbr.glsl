@@ -328,7 +328,7 @@
         //return vec4(iblSpec, 1.0);
 
         #ifdef SKY_ENABLED
-            float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength) * SHADOW_BRIGHTNESS;
+            float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength) * ShadowBrightnessF;
 
             // TODO: Doing direct cloud shadows on ambient causes really fucked results
             //       At least needs a heavy blur distribution
@@ -357,10 +357,10 @@
 
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                     if (lightData.geoNoL < 0.0 || lightData.opaqueShadowDepth < lightData.shadowPos[lightData.opaqueShadowCascade].z - lightData.shadowBias[lightData.opaqueShadowCascade])
-                        sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - SHADOW_BRIGHTNESS);
+                        sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - ShadowBrightnessF);
                 #else
                     if (lightData.geoNoL < 0.0 || lightData.opaqueShadowDepth < lightData.shadowPos.z - lightData.shadowBias)
-                        sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - SHADOW_BRIGHTNESS);
+                        sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - ShadowBrightnessF);
                 #endif
 
                 vec3 viewAbsorption = exp(-max(lightData.opaqueScreenDepthLinear, 0.0) * waterExtinctionInv);
@@ -615,7 +615,7 @@
 
                     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                         if (waterGeoNoL <= 0.0 || waterOpaqueShadowDepth < waterOpaqueShadowPos.z - waterShadowBias)
-                            sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - SHADOW_BRIGHTNESS);
+                            sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - ShadowBrightnessF);
                     #endif
 
                     refractColor *= sunAbsorption * viewAbsorption;
@@ -719,7 +719,7 @@
 
         vec3 emissive = material.albedo.rgb * pow(material.emission, 2.2) * EmissionLumens;
 
-        //occlusion *= SHADOW_BRIGHTNESS;
+        //occlusion *= ShadowBrightnessF;
 
         final.rgb = final.rgb * (ambient * occlusion)
             + diffuse + emissive
