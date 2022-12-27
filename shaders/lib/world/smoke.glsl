@@ -27,7 +27,7 @@ vec3 GetVolumetricSmoke(const in LightData lightData, inout vec3 transmittance, 
     //float accumF = 0.0;
     //float accumD = 0.0;
 
-    //vec3 fogColorLinear = RGBToLinear(fogColor);
+    vec3 fogColorLinear = RGBToLinear(fogColor);
 
     //float viewNearDist = length(viewNear);
 
@@ -38,7 +38,7 @@ vec3 GetVolumetricSmoke(const in LightData lightData, inout vec3 transmittance, 
     #endif
 
     vec3 SmokeAbsorptionCoefficient = vec3(0.01);
-    vec3 SmokeScatteringCoefficient = vec3(0.6);
+    vec3 SmokeScatteringCoefficient = vec3(0.20);
     vec3 SmokeExtinctionCoefficient = SmokeScatteringCoefficient + SmokeAbsorptionCoefficient;
 
     // vec3 localPos = (gbufferModelViewInverse * vec4(viewStart, 1.0)).xyz;
@@ -56,6 +56,8 @@ vec3 GetVolumetricSmoke(const in LightData lightData, inout vec3 transmittance, 
     int bloomTileCount = GetBloomTileCount();
     float time = frameTimeCounter / 3600.0;
 
+    const float SmokeSpeed = 65.0;
+
     vec3 scattering = vec3(0.0);
     for (int i = 0; i < VL_SAMPLES_SKY; i++) {
         vec3 currentViewPos = viewStart + i * rayStep;
@@ -66,21 +68,25 @@ vec3 GetVolumetricSmoke(const in LightData lightData, inout vec3 transmittance, 
         //vec3 sampleAmbient = 60.0 * fogColorLinear;
 
         t = worldTracePos / 128.0;
-        t.y -= time * 40.0;
+        t.xz -= time * 4.0 * SmokeSpeed;
         float texDensity1 = texture(colortex13, t).r;
 
-        t = worldTracePos / 24.0;
-        t.y += time * 10.0;
+        t = worldTracePos / 64.0;
+        t.xz += time * 2.0 * SmokeSpeed;
         float texDensity2 = texture(colortex13, t).r;
 
-        //float texDensity = pow(texDensity1 * texDensity2, 4.0);
-        float texDensity = pow(0.4 * texDensity1 + 0.6 * texDensity2, 4.0);
+        t = worldTracePos / 32.0;
+        t.y += time * 1.0 * SmokeSpeed;
+        float texDensity3 = texture(colortex13, t).r;
+
+        float texDensity = 0.4 * texDensity1 * texDensity2 + 0.6 * pow3(texDensity3);
+        //float texDensity = pow(0.4 * texDensity1 + 0.6 * texDensity2, 4.0);
 
         vec3 stepTransmittance = exp(-SmokeExtinctionCoefficient * stepLength * texDensity);
         vec3 scatteringIntegral = (1.0 - stepTransmittance) / SmokeExtinctionCoefficient;
 
         float viewDistF = 1.0 - saturate(length(currentViewPos) / fogEnd);
-        float lod = 1.0 + viewDistF * max(bloomTileCount - 2, 0);
+        float lod = 2.0 + viewDistF * max(bloomTileCount - 4, 0);
 
         vec2 lodTexcoord = lightTexcoord - 0.5 * rcp(viewSize) * exp2(lod);
 
@@ -88,7 +94,9 @@ vec3 GetVolumetricSmoke(const in LightData lightData, inout vec3 transmittance, 
         vec3 lightColor2 = textureLodOffset(BUFFER_HDR_PREVIOUS, lodTexcoord, lod, ivec2(1, 0)).rgb;
         vec3 lightColor3 = textureLodOffset(BUFFER_HDR_PREVIOUS, lodTexcoord, lod, ivec2(0, 1)).rgb;
         vec3 lightColor4 = textureLodOffset(BUFFER_HDR_PREVIOUS, lodTexcoord, lod, ivec2(1, 1)).rgb;
-        vec3 lightColor = 0.5 * (lightColor1 + lightColor2 + lightColor3 + lightColor4) / exposure;
+        vec3 lightColor = 0.25 * (lightColor1 + lightColor2 + lightColor3 + lightColor4) / exposure;
+
+        lightColor = 2.0 * lightColor + 20000.0 * fogColorLinear * stepF;
 
         //int bloomTile = 3;//clamp(int(viewDistF * bloomTileCount + 0.5), 0, bloomTileCount);
 
