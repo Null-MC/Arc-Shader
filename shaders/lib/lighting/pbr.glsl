@@ -529,7 +529,8 @@
                             ivec2 iuv = ivec2(refractUV * viewSize);
                             refractColor = texelFetch(BUFFER_HDR, iuv, 0).rgb / exposure;
                         #else
-                            refractColor = textureLod(BUFFER_REFRACT, refractUV, 0).rgb / exposure;
+                            const float rsmScale = rcp(exp2(WATER_REFRACT_QUALITY));
+                            refractColor = textureLod(BUFFER_REFRACT, refractUV * rsmScale, 0).rgb / exposure;
                         #endif
                     }
                     else {

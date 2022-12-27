@@ -37,10 +37,11 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
 
     int level = 8;
 
+    int i;
     float alpha = 0.0;
     float texDepth;
     vec3 tracePos;
-    for (int i = 0; i < SSR_MAXSTEPS && alpha < EPSILON; i++) {
+    for (i = 0; i < SSR_MAXSTEPS && alpha < EPSILON; i++) {
         int l2 = int(exp2(level));
         tracePos = lastTracePos + screenRay*l2;
 
@@ -50,6 +51,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         // }
 
         if (clamp(tracePos, clipMin, clipMax) != tracePos) {
+            //break;
             if (level < 1) break;
 
             level -= 2;
@@ -64,7 +66,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         }
 
         float depthBias = -0.01 * (1.0 - clipPos.z);
-        if (level > 0) depthBias += screenRayDir.z * max(l2 - 1, 0);
+        //if (level > 0) depthBias += screenRay.z * max(l2 - 1, 0);
 
         //texDepth = texelFetch(depthtex, iuv, level).r;
         //texDepth = textureLod(depthtex, tracePos.xy, level).r;
@@ -87,8 +89,8 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
             continue;
         }
 
-        float texDepthLinear = linearizeDepthFast(texDepth, near, far);
-        float traceDepthLinear = linearizeDepthFast(tracePos.z, near, far);
+        //float texDepthLinear = linearizeDepthFast(texDepth, near, far);
+        //float traceDepthLinear = linearizeDepthFast(tracePos.z, near, far);
 
         // ignore geometry closer than start pos when tracing away
         // if (screenRay.z > 0.0 && texDepthLinear < startDepthLinear - 1.0) {
@@ -115,13 +117,9 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     if (alpha > EPSILON) {
         vec2 alphaXY = saturate(12.0 * abs(vec2(0.5) - tracePos.xy) - 5.0);
         alpha = 1.0 - pow(maxOf(alphaXY), 4.0);
-        //alpha = 1.0 - smoothstep(0.0, 1.0, maxOf(alphaXY));
 
-        // This is a weird idea to cleanup reflection noise by
-        // mixing 75% of the exact pixel, and 25% of the mipmap
         color = textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, lod).rgb / exposure;
-        //color = 0.75 * textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, 0).rgb / exposure;
-        //color += 0.25 * textureLod(BUFFER_HDR_PREVIOUS, tracePos.xy, lod).rgb / exposure;
+        //color = vec3(float(i) / SSR_MAXSTEPS);
     }
 
     return vec4(color, alpha);

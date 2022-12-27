@@ -225,17 +225,23 @@ float GetCascadeBias(const in float geoNoL, const in int cascade) {
 
     #if SHADOW_FILTER != 0
         float GetShadowing_PCF(const in LightData lightData, const in float blockRadius, const in int sampleCount) {
-            #ifdef SHADOW_DITHER
-                float dither = 0.5 + 0.5*GetScreenBayerValue();
-            #endif
+            //#ifdef SHADOW_DITHER
+            //    float dither = 0.5 + 0.5*GetScreenBayerValue();
+            //#endif
 
-            float shadow = 0.0;
-            for (int i = 0; i < sampleCount; i++) {
-                vec2 blockOffset = poissonDisk[i] * blockRadius;
+            float surfaceDepth = lightData.shadowPos[lightData.opaqueShadowCascade].z - EPSILON;
+            float texDepth = lightData.opaqueShadowDepth + lightData.shadowBias[lightData.opaqueShadowCascade];
+            float shadow = step(texDepth, surfaceDepth);
 
-                #ifdef SHADOW_DITHER
-                    blockOffset *= dither;
-                #endif
+            //float shadow = step(lightData.opaqueShadowDepth + lightData.shadowBias[lightData.opaqueShadowCascade], lightData.shadowPos.z + EPSILON);
+
+            for (int i = 1; i < sampleCount; i++) {
+                //vec2 blockOffset = poissonDisk[i] * blockRadius;
+                vec2 blockOffset = (hash23(vec3(gl_FragCoord.xy, i))*2.0 - 1.0) * blockRadius;
+
+                //#ifdef SHADOW_DITHER
+                //    blockOffset *= dither;
+                //#endif
 
                 shadow += 1.0 - CompareNearestOpaqueDepth(lightData.shadowPos, lightData.shadowTilePos, lightData.shadowBias, blockOffset);
             }
@@ -323,14 +329,16 @@ float GetCascadeBias(const in float geoNoL, const in int cascade) {
 
         #ifdef SSS_SCATTER
             float GetShadowing_PCF_SSS(const in LightData lightData, const in float blockRadius, const in int sampleCount) {
-                #ifdef SSS_DITHER
-                    float dither = 0.5 + 0.5*GetScreenBayerValue();
-                #endif
+                //#ifdef SSS_DITHER
+                //    float dither = 0.5 + 0.5*GetScreenBayerValue();
+                //#endif
 
                 float light = 0.0;
+                
                 for (int i = 0; i < sampleCount; i++) {
                     int cascade;
-                    vec2 blockOffset = poissonDisk[i] * blockRadius;
+                    //vec2 blockOffset = poissonDisk[i] * blockRadius;
+                    vec2 blockOffset = (hash23(vec3(gl_FragCoord.xy, i))*2.0 - 1.0) * blockRadius;
                     float texDepth = GetNearestOpaqueDepth(lightData.shadowPos, lightData.shadowTilePos, blockOffset, cascade);
 
                     //vec2 shadowProjectionSize = 2.0 / vec2(matShadowProjections[cascade][0].x, matShadowProjections[cascade][1].y);
@@ -338,9 +346,9 @@ float GetCascadeBias(const in float geoNoL, const in int cascade) {
                     vec2 pixelPerBlockScale = (cascadeTexSize / shadowProjectionSize) * shadowPixelSize;
                     vec2 pixelOffset = blockOffset * pixelPerBlockScale;
                     
-                    #ifdef SSS_DITHER
-                        pixelOffset *= dither;
-                    #endif
+                    //#ifdef SSS_DITHER
+                    //    pixelOffset *= dither;
+                    //#endif
 
                     //float bias = GetCascadeBias(geoNoL, cascade);
                     float shadow_sss = SampleShadowSSS(lightData.shadowPos[cascade].xy + pixelOffset);

@@ -21,7 +21,7 @@ uniform float nightVision;
 
 #include "/lib/camera/bloom.glsl"
 
-/* RENDERTARGETS: 7 */
+/* RENDERTARGETS: 14 */
 out vec3 outColor0;
 
 

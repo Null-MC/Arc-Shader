@@ -62,6 +62,10 @@ uniform sampler2D noisetex;
     uniform sampler2D BUFFER_DEPTH_PREV;
 #endif
 
+#if !defined SKY_ENABLED && defined SMOKE_ENABLED
+    uniform sampler2D BUFFER_BLOOM;
+#endif
+
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelView;
@@ -137,11 +141,11 @@ uniform float fogEnd;
 
             uniform mat4 shadowProjectionInverse;
         #endif
-
-        #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
-            uniform sampler3D colortex13;
-        #endif
     #endif
+#endif
+
+#if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED || defined SMOKE_ENABLED
+    uniform sampler3D colortex13;
 #endif
 
 uniform float blindness;
@@ -221,6 +225,11 @@ uniform float waterFogDistSmooth;
     #if SHADOW_CONTACT != SHADOW_CONTACT_NONE
         #include "/lib/shadows/contact.glsl"
     #endif
+#endif
+
+#if !defined SKY_ENABLED && defined SMOKE_ENABLED
+    #include "/lib/camera/bloom.glsl"
+    #include "/lib/world/smoke.glsl"
 #endif
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
@@ -484,6 +493,20 @@ void main() {
             #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 color += vlColor;
             #endif
+        #elif defined SMOKE_ENABLED
+            vec3 viewNear = viewDir * near;
+            vec3 viewFar = viewDir * min(length(viewPos), fogEnd);
+            vec3 vlExt = vec3(1.0);
+
+            // vec3 viewPosPrev = (gbufferPreviousModelView * vec4(localPos + (cameraPosition - previousCameraPosition), 1.0)).xyz;
+            // vec3 clipPosPrev = unproject(gbufferPreviousProjection * vec4(viewPosPrev, 1.0));
+            // vec2 lightTexcoord = clipPosPrev.xy * 0.5 + 0.5;
+
+            // vec3 lightColor = textureLod(BUFFER_HDR_PREVIOUS, lightTexcoord, 8).rgb / exposure;
+
+            vec3 vlColor = GetVolumetricSmoke(lightData, vlExt, viewNear, viewFar);
+
+            color = color * vlExt + vlColor;
         #endif
     }
 

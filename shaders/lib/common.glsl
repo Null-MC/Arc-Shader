@@ -11,6 +11,7 @@ const int colortex8Format = RGB16F;
 const int colortex9Format = R32F;
 const int colortex11Format = R16F;
 const int colortex12Format = R32F;
+const int colortex14Format = R11F_G11F_B10F;
 */
 
 const bool noisetexMipmapEnabled = true;
@@ -45,6 +46,9 @@ const vec4 colortex12ClearColor = vec4(1.0, 1.0, 1.0, 1.0);
 const bool colortex12MipmapEnabled = false;
 const bool colortex12Clear = false;
 
+const bool colortex14MipmapEnabled = false;
+const bool colortex14Clear = false;
+
 
 #define SHADER_PLATFORM 0 // [0 1]
 
@@ -55,7 +59,7 @@ const bool colortex12Clear = false;
 #define BLOCK_OUTLINE 3 // [0 1 2 3]
 #define BLOCKLIGHT_TEMP 2700 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 0 // [0 10 20 30 40 50 60 70 80 90 100]
-#define SHADOW_BRIGHTNESS 10 // [0 2 4 6 8 10 12 14 16 18 20 25 30 35 40 45 50 60 70 80 90 100]
+#define SHADOW_BRIGHTNESS 16 // [0 2 4 6 8 10 12 14 16 18 20 25 30 35 40 45 50 60 70 80 90 100]
 #define RAIN_DARKNESS 0.2
 //#define ANIM_USE_WORLDTIME
 
@@ -64,6 +68,7 @@ const bool colortex12Clear = false;
 #define WATER_FANCY
 #define WATER_WAVE_TYPE 1 // [0 1 2]
 #define WATER_REFRACTION 1 // [0 1]
+#define WATER_REFRACT_QUALITY 1 // [0 1 2]
 #define REFRACTION_STRENGTH 100 // [5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 85 100 110 120 130 140 150 160 170 180 190 200]
 #define WATER_SCALE 16.0
 #define WATER_RADIUS 50
@@ -92,7 +97,7 @@ const bool colortex12Clear = false;
 #define WETNESS_MODE 2 // [0 1 2]
 #define SNOW_MODE 2 // [0 1 2]
 #define VL_SKY_ENABLED
-#define VL_SKY_DENSITY 0.03
+#define VL_SKY_DENSITY 0.06
 
 
 // Shadow Options
@@ -232,6 +237,8 @@ const bool colortex12Clear = false;
 #define CLOUD_POW_CLEAR 1.6
 #define CLOUD_POW_RAIN 0.3
 #define SHADOW_CLOUD
+#define SMOKE_ENABLED
+#define VL_SMOKE_DENSITY 0.2
 #define IRIS_FEATURE_BIOMECAT
 
 #if SSR_QUALITY == 2
@@ -354,6 +361,8 @@ const float ShadowBrightnessF = SHADOW_BRIGHTNESS * 0.01;
 #ifdef CAVEFOG_ENABLED
 #endif
 #ifdef ATMOSFOG_ENABLED
+#endif
+#ifdef SMOKE_ENABLED
 #endif
 #ifdef PARALLAX_ENABLED
 #endif

@@ -1,4 +1,4 @@
-#ifdef RENDER_VERTEX
+//#ifdef RENDER_VERTEX
     int GetBloomTileCount() {
         //#if BLOOM_LOD_MAX > 0
         //    const int lodMax = BLOOM_LOD_MAX;
@@ -12,7 +12,7 @@
         vec2 viewSize = vec2(viewWidth, viewHeight);
         return int(ceil(minOf(log2(viewSize)))) - 1;
     }
-#endif
+//#endif
 
 #ifdef RENDER_FRAG
     float GetBloomTilePos(const in int tile) {

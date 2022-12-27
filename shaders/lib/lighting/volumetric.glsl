@@ -26,9 +26,9 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
         float shadowRayLength = length(shadowRayVector);
         const float stepF = rcp(VL_SAMPLES_SKY + 1.0);
 
-        vec3 rayDirection = shadowRayVector / shadowRayLength;
+        //vec3 rayDirection = shadowRayVector / shadowRayLength;
         float stepLength = shadowRayLength * stepF;
-        vec3 rayStep = rayDirection * stepLength;
+        vec3 rayStep = shadowRayVector * stepF;
         vec3 accumColor = vec3(0.0);
         //float accumExt = 1.0;
         float accumF = 0.0;
@@ -36,12 +36,12 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
 
         vec3 fogColorLinear = RGBToLinear(fogColor);
 
-        float viewNearDist = length(viewNear);
-        float viewStepLength = viewRayLength * stepF;
+        //float viewNearDist = length(viewNear);
+        //float viewStepLength = viewRayLength * stepF;
 
-        float envFogStart = 0.0;
-        float envFogEnd = min(far, gl_Fog.end);
-        const float envFogDensity = 0.4;
+        //float envFogStart = 0.0;
+        //float envFogEnd = min(far, gl_Fog.end);
+        //const float envFogDensity = 0.4;
 
         #ifdef VL_DITHER
             shadowViewStart += rayStep * GetScreenBayerValue();

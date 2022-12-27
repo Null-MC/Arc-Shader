@@ -189,6 +189,9 @@ option.CLOUD_LEVEL=Cloud Height
 option.VL_FOG_MIN=Min Fog
 suffix.VL_FOG_MIN=%
 
+option.SMOKE_ENABLED=Smoke
+option.SMOKE_ENABLED.comment=Enables a volumetric fog/smoke effect in worlds without a sky (ie: nether, end, etc).
+
 
 screen.SHADOW_OPTIONS=Shadows
 

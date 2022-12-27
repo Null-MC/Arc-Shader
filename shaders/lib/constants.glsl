@@ -78,13 +78,14 @@
 #define BUFFER_HDR colortex4
 #define BUFFER_HDR_PREVIOUS colortex5
 #define BUFFER_LUMINANCE colortex6
-#define BUFFER_BLOOM colortex7
+##define BUFFER_BLOOM colortex7
 #define BUFFER_REFRACT colortex7
 #define BUFFER_RSM_COLOR colortex8
 #define BUFFER_RSM_DEPTH colortex9
 #define BUFFER_BRDF_LUT colortex10
 #define BUFFER_WATER_WAVES colortex11
 #define BUFFER_DEPTH_PREV colortex12
+#define BUFFER_BLOOM colortex14
 
 #define MATERIAL_WATER 100
 #define MATERIAL_NETHER_PORTAL 102
