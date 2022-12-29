@@ -12,8 +12,10 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
         scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * moonColor * skyLightLevels.y;
 }
 
+const float isotropicPhase = 0.25 / PI;
+
 #ifdef VL_SKY_ENABLED
-    vec3 GetVolumetricLighting(const in LightData lightData, inout vec3 extinction, const in vec3 viewNear, const in vec3 viewFar, const in vec2 scatteringF) {
+    vec3 GetVolumetricLighting(const in LightData lightData, inout vec3 transmittance, const in vec3 viewNear, const in vec3 viewFar, const in vec2 scatteringF) {
         vec3 viewRayVector = viewFar - viewNear;
         float viewRayLength = length(viewRayVector);
         if (viewRayLength < EPSILON) return vec3(0.0);
@@ -29,12 +31,16 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
         //vec3 rayDirection = shadowRayVector / shadowRayLength;
         float stepLength = shadowRayLength * stepF;
         vec3 rayStep = shadowRayVector * stepF;
-        vec3 accumColor = vec3(0.0);
+        //vec3 accumColor = vec3(0.0);
         //float accumExt = 1.0;
-        float accumF = 0.0;
-        float accumD = 0.0;
+        //float accumF = 0.0;
+        //float accumD = 0.0;
 
-        vec3 fogColorLinear = RGBToLinear(fogColor);
+        vec3 SmokeAbsorptionCoefficient = vec3(0.005);
+        vec3 SmokeScatteringCoefficient = vec3(0.40);
+        vec3 SmokeExtinctionCoefficient = SmokeScatteringCoefficient + SmokeAbsorptionCoefficient;
+
+        //vec3 fogColorLinear = RGBToLinear(fogColor);
 
         //float viewNearDist = length(viewNear);
         //float viewStepLength = viewRayLength * stepF;
@@ -58,7 +64,13 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
         #endif
 
         //mat4 gbufferModelViewProjection = gbufferProjection * gbufferModelView;
+        float time = frameTimeCounter / 3600.0;
         vec3 shadowMax = 1.0 - vec3(vec2(shadowPixelSize), EPSILON);
+        vec3 sampleAmbient = 4000.0 * RGBToLinear(fogColor);
+        vec3 scattering = vec3(0.0);
+        vec3 t;
+
+        const float AirSpeed = 20.0;
 
         for (int i = 0; i < VL_SAMPLES_SKY; i++) {
             vec3 currentShadowViewPos = shadowViewStart + i * rayStep;
@@ -116,15 +128,22 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
 
             //float sampleDensity = 1.0 - saturate((worldTracePos.y - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL));
 
-            vec3 sampleAmbient = 200.0 * fogColorLinear;
-
             //#if VL_FOG_MIN != 0
-                if (worldTracePos.y < CLOUD_LEVEL) {
-                    float texDensity1 = texture(colortex13, worldTracePos / 256.0).r;
-                    float texDensity2 = texture(colortex13, worldTracePos / 64.0).r;
+                //if (worldTracePos.y < CLOUD_LEVEL) {
+                    t = worldTracePos / 192.0;
+                    t.xz -= time * 1.0 * AirSpeed;
+                    float texDensity1 = texture(colortex13, t).r;
+
+                    t = worldTracePos / 96.0;
+                    t.xz += time * 2.0 * AirSpeed;
+                    float texDensity2 = texture(colortex13, t).r;
+
+                    t = worldTracePos / 48.0;
+                    t.xyz += time * 4.0 * AirSpeed;
+                    float texDensity3 = texture(colortex13, t).r;
 
                     //float texDensity = 1.0;//(0.2 + 0.8 * wetness) * (1.0 - mix(texDensity1, texDensity2, 0.1 + 0.5 * wetness));
-                    float texDensity = 0.8 - 0.6 * texDensity1 + 0.4 * texDensity2 - 0.2;//0.2 * (1.0 - mix(texDensity1, texDensity2, 0.5));
+                    float texDensity = 0.1 + 0.3 * texDensity1 * texDensity2 + 0.6 * pow3(texDensity3 * texDensity2) * wetness;//0.2 * (1.0 - mix(texDensity1, texDensity2, 0.5));
                     
                     // Change with altitude
                     float altD = 1.0 - saturate((worldTracePos.y - SEA_LEVEL) / (CLOUD_LEVEL - SEA_LEVEL));
@@ -133,32 +152,34 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                     // Change with weather
                     texDensity *= VLFogMinF + (1.0 - VLFogMinF) * wetness;
 
-                    sampleF *= texDensity;
-                    sampleAmbient *= texDensity;
+                    //sampleF *= texDensity;
+                    //sampleAmbient *= texDensity;
 
-                    accumD += texDensity;
+                    //accumD += texDensity;
 
                     //vec3 stepExt = exp(-VL_SKY_DENSITY * viewStepLength * texDensity * AtmosExtInv);
                     //extinction *= stepExt;
 
                     //accumColor *= stepExt;
-                }
-                else {
-                    //sampleF *= 1.0 - smoothstep(CLOUD_LEVEL, ATMOSPHERE_LEVEL, worldTracePos.y);
-                    continue;
-                }
+                //}
+                //else {
+                //    //sampleF *= 1.0 - smoothstep(CLOUD_LEVEL, ATMOSPHERE_LEVEL, worldTracePos.y);
+                //    continue;
+                //}
             //#endif
 
-            accumColor += sampleAmbient;
+            //accumColor += sampleAmbient;
 
-            if (sampleF < EPSILON) continue;
+            //if (sampleF < EPSILON) continue;
 
             //float traceViewDist = viewNearDist + i * viewStepLength;
             //sampleF *= exp(-ATMOS_EXTINCTION * traceViewDist);
 
             //sampleF *= sampleDensity;
 
-            vec3 sampleColor = GetScatteredLighting(worldTracePos.y, skyLightLevels, scatteringF);
+            vec3 sampleColor = 2.0 * GetScatteredLighting(worldTracePos.y, skyLightLevels, scatteringF) * sampleF;
+
+            sampleColor += sampleAmbient;
 
             #ifdef SHADOW_COLOR
                 //if (sampleF > EPSILON) {
@@ -184,19 +205,28 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
             // TODO: add ambient lighting?
             //sampleColor += sampleAmbient;
 
-            if (i > 0) {
-                vec3 stepExt = exp(-(accumD / i) * (i * stepLength) * AtmosExtInv * VL_SKY_DENSITY * 2.0);
-                sampleColor *= stepExt;
-            }
+            // if (i > 0) {
+            //     vec3 stepExt = exp(-(accumD / i) * (i * stepLength) * AtmosExtInv * VL_SKY_DENSITY * 2.0);
+            //     sampleColor *= stepExt;
+            // }
 
-            accumColor += sampleColor * sampleF;
+            //accumColor += sampleColor * sampleF;
+
+
+            vec3 stepTransmittance = exp(-SmokeExtinctionCoefficient * stepLength * texDensity);
+            vec3 scatteringIntegral = (1.0 - stepTransmittance) / SmokeExtinctionCoefficient;
+
+            scattering += sampleColor * (isotropicPhase * SmokeScatteringCoefficient * scatteringIntegral) * transmittance;
+
+            transmittance *= stepTransmittance;
         }
 
         //float traceLength = min(viewRayLength / min(far, gl_Fog.end), 1.0);
 
-        extinction = exp(-(accumD / VL_SAMPLES_SKY) * viewRayLength * AtmosExtInv * VL_SKY_DENSITY * 2.0);
+        //extinction = exp(-(accumD / VL_SAMPLES_SKY) * viewRayLength * AtmosExtInv * VL_SKY_DENSITY * 2.0);
 
-        return (accumColor / VL_SAMPLES_SKY) * viewRayLength * VL_SKY_DENSITY;
+        //return (accumColor / VL_SAMPLES_SKY) * viewRayLength * VL_SKY_DENSITY;
+        return scattering;
     }
 #endif
 

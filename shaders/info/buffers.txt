@@ -12,6 +12,7 @@ colortex8		RGB16F			 *     	RSM color
 colortex9		R32F			 *     	RSM depth
 colortex11		R16F			2048  	Water Waves
 colortex12		R32F			0.25  	Depth Tiles
+colortex14		R11F_G11F_B10F	1.0   	Bloom tiles
 
 colortex10		n/a				256   	BRDF LUT
 colortex13		n/a				256   	3D Noise

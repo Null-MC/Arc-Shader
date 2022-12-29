@@ -134,11 +134,7 @@ int GetCascadeForScreenPos(const in vec2 pos) {
                 mat4 matSceneModelView = gbufferModelView;
             #endif
 
-            //#ifdef RENDER_SHADOW
-            //    mat4 matShadowModelView = gl_ModelViewMatrix;
-            //#else
-                mat4 matShadowModelView = shadowModelView;
-            //#endif
+            mat4 matShadowModelView = shadowModelView;
 
             // project scene view frustum slices to shadow-view space and compute min/max XY bounds
             float rangeNear = cascade > 0 ? cascadeSizes[cascade - 1] : near;
@@ -149,7 +145,7 @@ int GetCascadeForScreenPos(const in vec2 pos) {
             SetProjectionRange(matSceneProjectionRanged, rangeNear, rangeFar);
 
             mat4 matModelViewProjectionInv = inverse(matSceneProjectionRanged * matSceneModelView);
-            mat4 matSceneToShadow = matShadowProjection * matShadowModelView * matModelViewProjectionInv;
+            mat4 matSceneToShadow = matShadowProjection * shadowModelView * matModelViewProjectionInv;
 
             vec3 clipMin, clipMax;
             GetFrustumMinMax(matSceneToShadow, clipMin, clipMax);

@@ -57,6 +57,7 @@ flat out float exposure;
                 out vec3 shadowPos[4];
                 out float shadowBias[4];
 
+                uniform mat4 gbufferProjection;
                 uniform float near;
             #elif SHADOW_TYPE != SHADOW_TYPE_NONE
                 out vec4 shadowPos;

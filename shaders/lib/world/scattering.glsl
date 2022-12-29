@@ -17,8 +17,8 @@ float GetScatteringFactor(const in float sunLightLevel) {
 }
 
 vec2 GetVanillaSkyScattering(const in vec3 viewDir, const in vec2 skyLightLevels) {
-    float sunLightLevel = saturate(skyLightLevels.x);
-    float scattering_G = GetScatteringFactor(sunLightLevel);
+    //float sunLightLevel = saturate(skyLightLevels.x);
+    //float scattering_G = GetScatteringFactor(sunLightLevel);
     vec2 scatteringF;
 
     #if SHADER_PLATFORM == PLATFORM_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)

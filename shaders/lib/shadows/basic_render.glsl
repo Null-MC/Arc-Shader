@@ -50,7 +50,7 @@
         float GetShadowing_PCF(const in LightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
             float shadow = 0.0;
             for (int i = 0; i < sampleCount; i++) {
-                vec2 pixelOffset = poissonDisk[i] * pixelRadius;
+                vec2 pixelOffset = (hash23(vec3(gl_FragCoord.xy, i))*2.0 - 1.0) * pixelRadius;
                 
                 shadow += 1.0 - CompareOpaqueDepth(lightData.shadowPos, pixelOffset, lightData.shadowBias);
             }
@@ -66,7 +66,7 @@
             int blockers = 0;
 
             for (int i = 0; i < sampleCount; i++) {
-                vec2 pixelOffset = poissonDisk[i] * pixelRadius;
+                vec2 pixelOffset = (hash23(vec3(gl_FragCoord.xy, i))*2.0 - 1.0) * pixelRadius;
 
                 vec2 t = lightData.shadowPos.xy + pixelOffset;
                 if (saturate(t) != t) continue;
