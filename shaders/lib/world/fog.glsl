@@ -29,7 +29,7 @@ float GetCaveFogFactor(const in float dist) {
 #endif
 
 float GetVanillaFogFactor(in vec3 viewPos) {
-    if (gl_Fog.scale < EPSILON) return 0.0;
+    if (gl_Fog.scale < EPSILON || gl_Fog.end < EPSILON) return 0.0;
 
     if (fogShape == 1) {
         viewPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
