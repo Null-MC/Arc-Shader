@@ -194,7 +194,7 @@ const bool colortex14Clear = false;
 #define VL_SAMPLES_WATER 6 // [4 6 8 12 16 24]
 #define VL_FOG_MIN 30 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
 #define VL_PARTICLES
-#define G_SCATTERING_CLEAR 0.65
+#define G_SCATTERING_CLEAR 0.45
 #define G_SCATTERING_NIGHT 0.4
 //#define G_SCATTERING_HUMID 0.08
 #define G_SCATTERING_RAIN 0.1

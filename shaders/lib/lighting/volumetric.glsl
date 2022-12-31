@@ -8,8 +8,8 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
     #endif
 
     return
-        scatteringF.x * sunTransmittance * sunColor * skyLightLevels.x +
-        scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * moonColor * skyLightLevels.y;
+        scatteringF.x * sunTransmittance * sunColor * max(skyLightLevels.x, 0.0) +
+        scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * moonColor * max(skyLightLevels.y, 0.0);
 }
 
 const float isotropicPhase = 0.25 / PI;
@@ -36,8 +36,8 @@ const float isotropicPhase = 0.25 / PI;
         //float accumF = 0.0;
         //float accumD = 0.0;
 
-        vec3 SmokeAbsorptionCoefficient = vec3(0.005);
-        vec3 SmokeScatteringCoefficient = vec3(0.40);
+        vec3 SmokeAbsorptionCoefficient = vec3(0.002);
+        vec3 SmokeScatteringCoefficient = vec3(0.60);
         vec3 SmokeExtinctionCoefficient = SmokeScatteringCoefficient + SmokeAbsorptionCoefficient;
 
         //vec3 fogColorLinear = RGBToLinear(fogColor);
@@ -66,7 +66,7 @@ const float isotropicPhase = 0.25 / PI;
         //mat4 gbufferModelViewProjection = gbufferProjection * gbufferModelView;
         float time = frameTimeCounter / 3600.0;
         vec3 shadowMax = 1.0 - vec3(vec2(shadowPixelSize), EPSILON);
-        vec3 sampleAmbient = 4000.0 * RGBToLinear(fogColor);
+        vec3 sampleAmbient = 48000.0 * RGBToLinear(fogColor);
         vec3 scattering = vec3(0.0);
         vec3 t;
 
@@ -145,14 +145,15 @@ const float isotropicPhase = 0.25 / PI;
                     float texDensity3 = texture(colortex13, t).r;
 
                     //float texDensity = 1.0;//(0.2 + 0.8 * wetness) * (1.0 - mix(texDensity1, texDensity2, 0.1 + 0.5 * wetness));
-                    float texDensity = 0.1 + 0.3 * texDensity1 * texDensity2 + 0.6 * pow3(texDensity3 * texDensity2) * wetness;//0.2 * (1.0 - mix(texDensity1, texDensity2, 0.5));
+                    float texDensity = 0.04 + pow(0.2 * texDensity1 * texDensity2, 2.0) + 0.7 * pow(texDensity3 * texDensity2, 4.0);//0.2 * (1.0 - mix(texDensity1, texDensity2, 0.5));
                     
                     // Change with altitude
                     float altD = 1.0 - saturate((worldTracePos.y - SEA_LEVEL) / (CLOUD_LEVEL - SEA_LEVEL));
                     texDensity *= pow3(altD);
 
                     // Change with weather
-                    texDensity *= VLFogMinF + (1.0 - VLFogMinF) * wetness;
+                    //texDensity *= VLFogMinF + (1.0 - VLFogMinF) * wetness;
+                    texDensity *= 0.2 + 1.8 * wetness;
 
                     //sampleF *= texDensity;
                     //sampleAmbient *= texDensity;
@@ -179,7 +180,7 @@ const float isotropicPhase = 0.25 / PI;
 
             //sampleF *= sampleDensity;
 
-            vec3 sampleColor = 2.0 * GetScatteredLighting(worldTracePos.y, skyLightLevels, scatteringF) * sampleF;
+            vec3 sampleColor = 16.0 * GetScatteredLighting(worldTracePos.y, skyLightLevels, scatteringF) * sampleF;
 
             sampleColor += sampleAmbient;
 
