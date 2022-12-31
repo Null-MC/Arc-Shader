@@ -226,7 +226,7 @@ void main() {
             #endif
 
             vec3 viewDir = normalize(-gViewPos);
-            vec3 viewNormal = matViewTBN * normal;
+            vec3 viewNormal = gMatViewTBN * normal;
             vec3 viewLightDir = normalize(shadowLightPosition);
             vec3 halfDir = normalize(viewLightDir + viewDir);
 

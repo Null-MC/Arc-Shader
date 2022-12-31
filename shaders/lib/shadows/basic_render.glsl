@@ -51,7 +51,8 @@
                 shadow += 1.0 - CompareOpaqueDepth(lightData.shadowPos, pixelOffset, lightData.shadowBias);
             }
 
-            return 1.0 - smoothstep(0.0, 1.0, shadow / sampleCount);
+            return 1.0 - shadow / sampleCount;
+            //return 1.0 - smoothstep(0.0, 1.0, shadow / sampleCount);
         }
     #endif
 

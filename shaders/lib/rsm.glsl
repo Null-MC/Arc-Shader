@@ -1,19 +1,19 @@
-float SampleDepth(const in ivec2 itex) {
+float SampleDepth(const in vec2 tex) {
     #ifdef IRIS_FEATURE_SEPARATE_HARDWARE_SAMPLERS
-        return texelFetch(shadowtex1, itex, 0).r;
+        return textureLod(shadowtex1, tex, 0).r;
     //#elif defined SHADOW_ENABLE_HWCOMP
     #else
-        return texelFetch(shadowtex0, itex, 0).r;
+        return textureLod(shadowtex0, tex, 0).r;
     //#else
     //    return texelFetch(shadowtex1, itex, 0).r;
     #endif
 }
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-    vec3 GetNearestDepth(const in mat4 matShadowProjection[4], const in vec3 shadowViewPos, out ivec2 uv_out, out int cascade) {
+    vec3 GetNearestDepth(const in mat4 matShadowProjection[4], const in vec3 shadowViewPos, out vec2 uv_out, out int cascade) {
         float depth = 1.0;
         vec2 pos_out = vec2(0.0);
-        uv_out = ivec2(0);
+        uv_out = vec2(0);
         cascade = -1;
 
         float shadowResScale = tile_dist_bias_factor * shadowPixelSize;
@@ -22,19 +22,18 @@ float SampleDepth(const in ivec2 itex) {
             vec3 shadowPos = (matShadowProjection[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
 
             // Ignore if outside cascade bounds
-            if (shadowPos.x < 0.0 || shadowPos.x >= 1.0
-             || shadowPos.y < 0.0 || shadowPos.y >= 1.0) continue;
+            if (shadowPos != saturate(shadowPos)) continue;
 
             vec2 shadowTilePos = GetShadowCascadeClipPos(i);
-            ivec2 iuv = ivec2((shadowTilePos + 0.5 * shadowPos.xy) * shadowMapSize);
+            vec2 uv = shadowTilePos + 0.5 * shadowPos.xy;
             
             //float texDepth = texelFetch(shadowtex1, iuv, 0).r;
-            float texDepth = SampleDepth(iuv);
+            float texDepth = SampleDepth(uv);
 
             if (texDepth < depth) {
                 depth = texDepth;
                 pos_out = shadowPos.xy;
-                uv_out = iuv;
+                uv_out = uv;
                 cascade = i;
             }
         }
@@ -70,7 +69,8 @@ float SampleDepth(const in ivec2 itex) {
         ivec2 iuv;
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             int cascade;
-            float sampleDepth = GetNearestDepth(matShadowProjection, offsetShadowViewPos, iuv, cascade).z;
+            float sampleDepth = GetNearestDepth(matShadowProjection, offsetShadowViewPos, uv, cascade).z;
+            iuv = ivec2(uv * shadowMapSize);
 
             vec3 samplePos = offsetShadowViewPos;
             samplePos.z = -sampleDepth * far * 3.0 + far;
@@ -116,12 +116,13 @@ float SampleDepth(const in ivec2 itex) {
         //float weight = dot(rsmPoissonDisk[i], rsmPoissonDisk[i]);
         //weight = max(1.0 - weight, 0.0) / length(ray);
         
-        float weight = saturate(rayLength / RSM_FILTER_SIZE);
+        //float weight = 1.0 - saturate(pow2(rayLength) / (RSM_FILTER_SIZE));
+        float weight = rcp(1.0 + rayLength*rayLength * RSM_FILTER_SIZE);
         //float weight = saturate(abs(ray.z) / RSM_FILTER_SIZE);
-        weight = 1.0 - weight;
 
         shading += sampleColor * weight;
     }
 
-    return (shading / RSM_SAMPLE_COUNT) * RSM_INTENSITY * RSM_FILTER_SIZE;
+    const float rsmIntensityF = RSM_INTENSITY * 0.01;
+    return (shading / RSM_SAMPLE_COUNT) * rsmIntensityF * 20.0;
 }

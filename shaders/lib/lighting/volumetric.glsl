@@ -153,7 +153,7 @@ const float isotropicPhase = 0.25 / PI;
 
                     // Change with weather
                     //texDensity *= VLFogMinF + (1.0 - VLFogMinF) * wetness;
-                    texDensity *= 0.2 + 1.8 * wetness;
+                    texDensity *= 0.2 + 1.4 * wetness;
 
                     //sampleF *= texDensity;
                     //sampleAmbient *= texDensity;
