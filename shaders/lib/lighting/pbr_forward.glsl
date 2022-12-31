@@ -328,27 +328,42 @@
         #endif
 
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-            #ifdef SHADOW_DITHER
-                float ditherOffset = (GetScreenBayerValue() - 0.5) * shadowPixelSize;
-            #endif
+            // #ifdef SHADOW_DITHER
+            //     float ditherOffset = (GetScreenBayerValue() - 0.5) * shadowPixelSize;
+            // #endif
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                for (int i = 0; i < 4; i++) {
-                    lightData.shadowPos[i] = shadowPos[i];
-                    lightData.shadowBias[i] = shadowBias[i];
-                    lightData.shadowTilePos[i] = GetShadowCascadeClipPos(i);
+                lightData.matShadowProjection[0] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[0], matShadowProjections_translation[0]);
+                lightData.matShadowProjection[1] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[1], matShadowProjections_translation[1]);
+                lightData.matShadowProjection[2] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[2], matShadowProjections_translation[2]);
+                lightData.matShadowProjection[3] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[3], matShadowProjections_translation[3]);
+                
+                vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
+                lightData.shadowPos = GetShadowSampleCascade(lightData.matShadowProjection, shadowViewPos, lightData.shadowCascade);
 
-                    lightData.matShadowProjection[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
-                    
-                    #ifdef SHADOW_DITHER
-                        lightData.shadowPos[i].xy += ditherOffset;
-                    #endif
-                }
+                // for (int i = 0; i < 4; i++) {
+                //     lightData.shadowPos[i] = shadowPos[i];
+                //     lightData.shadowBias[i] = shadowBias[i];
+                //     lightData.shadowTilePos[i] = GetShadowCascadeClipPos(i);
 
-                lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData.shadowPos, lightData.shadowTilePos, vec2(0.0), lightData.opaqueShadowCascade);
-                lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData.shadowPos, lightData.shadowTilePos, vec2(0.0), lightData.transparentShadowCascade);
+                //     #ifdef SHADOW_DITHER
+                //         lightData.shadowPos[i].xy += ditherOffset;
+                //     #endif
+                // }
 
-                float minTransparentDepth = min(lightData.shadowPos[lightData.transparentShadowCascade].z, lightData.transparentShadowDepth);
+                // lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData.shadowPos, lightData.shadowTilePos, vec2(0.0), lightData.opaqueShadowCascade);
+                // lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData.shadowPos, lightData.shadowTilePos, vec2(0.0), lightData.transparentShadowCascade);
+
+                lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
+                lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
+
+                vec2 shadowProjectionSize = 2.0 / vec2(
+                    lightData.matShadowProjection[lightData.shadowCascade][0].x,
+                    lightData.matShadowProjection[lightData.shadowCascade][1].y);
+
+                lightData.shadowBias = GetCascadeBias(lightData.geoNoL, shadowProjectionSize);
+
+                float minTransparentDepth = min(lightData.shadowPos.z, lightData.transparentShadowDepth);
                 lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - minTransparentDepth, 0.0) * 3.0 * far;
             #elif SHADOW_TYPE != SHADOW_TYPE_NONE
                 lightData.shadowPos = shadowPos;

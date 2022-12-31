@@ -24,13 +24,16 @@ struct LightData {
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         mat4 matShadowProjection[4];
-        vec2 shadowProjectionSize[4];
-        vec3 shadowPos[4];
+        //float shadowBias[4];
 
-        float shadowBias[4];
-        vec2 shadowTilePos[4];
-        int opaqueShadowCascade;
-        int transparentShadowCascade;
+        vec3 shadowPos;
+        float shadowBias;
+        int shadowCascade;
+
+        //vec2 shadowProjectionSize[4];
+        //vec2 shadowTilePos[4];
+        //int opaqueShadowCascade;
+        //int transparentShadowCascade;
     #else
         vec4 shadowPos;
         float shadowBias;

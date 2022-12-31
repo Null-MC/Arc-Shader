@@ -80,18 +80,16 @@ const float isotropicPhase = 0.25 / PI;
             //if (traceClipPos.z >= lightData.opaqueScreenDepth) continue;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                vec3 shadowPos[4];
-                for (int i = 0; i < 4; i++) {
-                    shadowPos[i] = (lightData.matShadowProjection[i] * vec4(currentShadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                    shadowPos[i].xy = shadowPos[i].xy * 0.5 + lightData.shadowTilePos[i];
-                }
+                int cascade;
+                vec3 shadowPos = GetShadowSampleCascade(lightData.matShadowProjection, currentShadowViewPos, cascade);
 
-                // TODO
-                //if (saturate(shadowPos.xy) != shadowPos.xy) continue;
+                vec2 shadowProjectionSize = 2.0 / vec2(
+                    lightData.matShadowProjection[i][0].x,
+                    lightData.matShadowProjection[i][1].y);
 
-                int cascade = GetShadowSampleCascade(shadowPos, lightData.shadowProjectionSize, 0.0);
+                float shadowBias = GetCascadeBias(lightData.geoNoL, shadowProjectionSize);
 
-                float sampleF = CompareOpaqueDepth(shadowPos[cascade], vec2(0.0), lightData.shadowBias[cascade]);
+                float sampleF = CompareOpaqueDepth(shadowPos, vec2(0.0), shadowBias);
             #else
                 vec4 shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
                 float sampleBias = 0.0;
@@ -285,26 +283,25 @@ const float isotropicPhase = 0.25 / PI;
 
             vec3 waterShadowPos;
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                vec3 shadowPos[4];
-                for (int i = 0; i < 4; i++) {
-                    shadowPos[i] = (lightData.matShadowProjection[i] * vec4(currentShadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                    shadowPos[i].xy = shadowPos[i].xy * 0.5 + lightData.shadowTilePos[i];
-                }
+                int cascade;
+                vec3 shadowPos = GetShadowSampleCascade(lightData.matShadowProjection, currentShadowViewPos, cascade);
 
-                // TODO
-                //if (saturate(shadowPos.xy) != shadowPos.xy) continue;
+                vec2 shadowProjectionSize = 2.0 / vec2(
+                    lightData.matShadowProjection[i][0].x,
+                    lightData.matShadowProjection[i][1].y);
 
-                int cascade = GetShadowSampleCascade(shadowPos, lightData.shadowProjectionSize, 0.0);
+                float shadowBias = GetCascadeBias(lightData.geoNoL, shadowProjectionSize);
 
-                lightSample = CompareOpaqueDepth(shadowPos[cascade], vec2(0.0), lightData.shadowBias[cascade]);
+                lightSample = CompareOpaqueDepth(shadowPos, vec2(0.0), shadowBias);
 
-                int waterOpaqueCascade = -1;
+                //int waterOpaqueCascade = -1;
                 if (lightSample > EPSILON)
-                    transparentDepth = GetNearestTransparentDepth(shadowPos, lightData.shadowTilePos, vec2(0.0), waterOpaqueCascade);
+                    transparentDepth = SampleTransparentDepth(shadowPos.xy, vec2(0.0));
 
-                waterShadowPos = waterOpaqueCascade >= 0
-                    ? shadowPos[waterOpaqueCascade]
-                    : currentShadowViewPos;
+                // waterShadowPos = waterOpaqueCascade >= 0
+                //     ? shadowPos
+                //     : currentShadowViewPos;
+                waterShadowPos = shadowPos;
             #else
                 vec4 shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
 

@@ -356,7 +356,7 @@
                 //skyAmbient *= skyLight3;
 
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    if (lightData.geoNoL < 0.0 || lightData.opaqueShadowDepth < lightData.shadowPos[lightData.opaqueShadowCascade].z - lightData.shadowBias[lightData.opaqueShadowCascade])
+                    if (lightData.geoNoL < 0.0 || lightData.opaqueShadowDepth < lightData.shadowPos.z - lightData.shadowBias)
                         sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - ShadowBrightnessF);
                 #else
                     if (lightData.geoNoL < 0.0 || lightData.opaqueShadowDepth < lightData.shadowPos.z - lightData.shadowBias)
@@ -374,7 +374,7 @@
 
                 #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        uint shadowData = textureLod(shadowcolor1, lightData.shadowPos[lightData.transparentShadowCascade].xy, 0).g;
+                        uint shadowData = textureLod(shadowcolor1, lightData.shadowPos.xy, 0).g;
                     #else
                         uint shadowData = textureLod(shadowcolor1, lightData.shadowPos.xy, 0).g;
                     #endif
@@ -608,11 +608,7 @@
                     float waterGeoNoL = 1.0;//waterLightingMap.z * 2.0 - 1.0; //lightData.geoNoL;
 
                     // TODO: This should be based on the refracted opaque fragment!
-                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        float waterShadowBias = lightData.shadowBias[lightData.transparentShadowCascade];
-                    #else
-                        float waterShadowBias = lightData.shadowBias;
-                    #endif
+                    float waterShadowBias = lightData.shadowBias;
 
                     vec3 sunAbsorption = exp(-waterShadowDepth * waterExtinctionInv);
                     vec3 viewAbsorption = exp(-waterViewDepthFinal * waterExtinctionInv);
