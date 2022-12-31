@@ -89,7 +89,9 @@ const float isotropicPhase = 0.25 / PI;
                 // TODO
                 //if (saturate(shadowPos.xy) != shadowPos.xy) continue;
 
-                float sampleF = CompareNearestOpaqueDepth(shadowPos, lightData.shadowTilePos, lightData.shadowBias, vec2(0.0));
+                int cascade = GetShadowSampleCascade(shadowPos, lightData.shadowProjectionSize, 0.0);
+
+                float sampleF = CompareOpaqueDepth(shadowPos[cascade], vec2(0.0), lightData.shadowBias[cascade]);
             #else
                 vec4 shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
                 float sampleBias = 0.0;
@@ -184,7 +186,7 @@ const float isotropicPhase = 0.25 / PI;
             #ifdef SHADOW_COLOR
                 //if (sampleF > EPSILON) {
                     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        float transparentShadowDepth = GetNearestTransparentDepth(lightData, vec2(0.0), lightData.transparentShadowCascade);
+                        float transparentShadowDepth = SampleTransparentDepth(shadowPos[cascade], vec2(0.0));
                     #else
                         float transparentShadowDepth = SampleTransparentDepth(shadowPos, vec2(0.0));
                     #endif
@@ -292,7 +294,9 @@ const float isotropicPhase = 0.25 / PI;
                 // TODO
                 //if (saturate(shadowPos.xy) != shadowPos.xy) continue;
 
-                lightSample = CompareNearestOpaqueDepth(shadowPos, lightData.shadowTilePos, lightData.shadowBias, vec2(0.0));
+                int cascade = GetShadowSampleCascade(shadowPos, lightData.shadowProjectionSize, 0.0);
+
+                lightSample = CompareOpaqueDepth(shadowPos[cascade], vec2(0.0), lightData.shadowBias[cascade]);
 
                 int waterOpaqueCascade = -1;
                 if (lightSample > EPSILON)

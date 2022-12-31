@@ -28,31 +28,31 @@ const bool shadowtex1Nearest = false;
 const bool shadowHardwareFiltering1 = true;
 
 
-in vec2 lmcoord;
-in vec2 texcoord;
-in vec4 glcolor;
-in vec3 localPos;
-flat in int materialId;
+in vec3 gLocalPos;
+in vec2 gTexcoord;
+in vec2 gLmcoord;
+in vec4 gColor;
+flat in int gBlockId;
+flat in int gEntityId;
 
 #ifdef SSS_ENABLED
-    flat in float matSSS;
+    flat in float gMaterialSSS;
 #endif
 
 #if defined RSM_ENABLED || (defined WATER_FANCY)
-    in vec3 viewPos;
+    in vec3 gViewPos;
 #endif
 
 #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
-    flat in mat3 matShadowViewTBN;
+    flat in mat3 gMatShadowViewTBN;
 #endif
 
 #ifdef RSM_ENABLED
-    flat in mat3 matViewTBN;
+    flat in mat3 gMatViewTBN;
 #endif
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-    flat in float cascadeSizes[4];
-    flat in vec2 shadowCascadePos;
+    flat in vec2 gShadowTilePos;
 #endif
 
 uniform sampler2D gtexture;
@@ -80,7 +80,7 @@ uniform int entityId;
 #endif
 
 #if defined WATER_FANCY && !defined WORLD_NETHER
-    flat in int waterMask;
+    flat in int gWaterMask;
 
     uniform sampler2D BUFFER_WATER_WAVES;
 
@@ -113,27 +113,20 @@ uniform int entityId;
 
 
 void main() {
-    if (renderStage == MC_RENDER_STAGE_ENTITIES) {
-        if (entityId == MATERIAL_LIGHTNING_BOLT) {
-            discard;
-            return;
-        }
-    }
-
-    mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
+    mat2 dFdXY = mat2(dFdx(gTexcoord), dFdy(gTexcoord));
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        vec2 screenCascadePos = 2.0 * (gl_FragCoord.xy / shadowMapSize - shadowCascadePos);
+        vec2 screenCascadePos = 2.0 * (gl_FragCoord.xy / shadowMapSize - gShadowTilePos);
         if (saturate(screenCascadePos.xy) != screenCascadePos.xy) discard;
     #endif
 
     vec4 sampleColor;
-    if (materialId == MATERIAL_WATER) {
+    if (gBlockId == MATERIAL_WATER) {
         sampleColor = WATER_COLOR;
     }
     else {
-        sampleColor = textureGrad(gtexture, texcoord, dFdXY[0], dFdXY[1]);
-        sampleColor.rgb = RGBToLinear(sampleColor.rgb * glcolor.rgb);
+        sampleColor = textureGrad(gtexture, gTexcoord, dFdXY[0], dFdXY[1]);
+        sampleColor.rgb = RGBToLinear(sampleColor.rgb * gColor.rgb);
     }
 
     #if defined SHADOW_COLOR
@@ -154,28 +147,28 @@ void main() {
     vec3 normal = vec3(0.0, 0.0, 1.0);
     #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
-            vec2 normalMap = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).rg;
+            vec2 normalMap = textureGrad(normals, gTexcoord, dFdXY[0], dFdXY[1]).rg;
             normal = GetLabPbr_Normal(normalMap);
         #else
-            vec3 normalMap = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).rgb;
+            vec3 normalMap = textureGrad(normals, gTexcoord, dFdXY[0], dFdXY[1]).rgb;
             if (any(greaterThan(normalMap, vec3(0.0))))
                 normal = GetOldPbr_Normal(normalMap);
         #endif
     #endif
 
     #if defined WATER_FANCY && !defined WORLD_NETHER && !defined WORLD_END
-        if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && waterMask == 1) {
+        if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && gWaterMask == 1) {
             //float windSpeed = GetWindSpeed();
-            float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
+            float skyLight = saturate((gLmcoord.y - (0.5/16.0)) / (15.0/16.0));
             //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
             float waveDepth = GetWaveDepth(skyLight);
 
             float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
-            vec2 waterWorldPos = waterScale * (localPos.xz + cameraPosition.xz);
+            vec2 waterWorldPos = waterScale * (gLocalPos.xz + cameraPosition.xz);
 
             int octaves = WATER_OCTAVES_FAR;
             #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
-                float viewDist = length(viewPos);
+                float viewDist = length(gViewPos);
                 float octaveDistF = saturate(viewDist / WATER_OCTAVES_DIST);
                 octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, octaveDistF));
             #endif
@@ -195,15 +188,15 @@ void main() {
     float sss = 0.0;
     #ifdef SSS_ENABLED
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-            sss = matSSS;
+            sss = gMaterialSSS;
         #else
-            float specularMapB = textureGrad(specular, texcoord, dFdXY[0], dFdXY[1]).b;
+            float specularMapB = textureGrad(specular, gTexcoord, dFdXY[0], dFdXY[1]).b;
             sss = GetLabPbr_SSS(specularMapB);
         #endif
 
         //#ifdef PHYSICSMOD_ENABLED
-            if (materialId == MATERIAL_PHYSICS_SNOW) {
-                sss = matSSS;
+            if (gBlockId == MATERIAL_PHYSICS_SNOW) {
+                sss = gMaterialSSS;
             }
         //#endif
 
@@ -216,7 +209,7 @@ void main() {
     #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
         #ifdef RSM_ENABLED
             vec3 albedo = mix(vec3(0.0), sampleColor.rgb, sampleColor.a);
-            vec2 specularMap = textureGrad(specular, texcoord, dFdXY[0], dFdXY[1]).rg;
+            vec2 specularMap = textureGrad(specular, gTexcoord, dFdXY[0], dFdXY[1]).rg;
 
             #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
                 float roughL = pow2(specularMap.r);
@@ -232,7 +225,7 @@ void main() {
                 int hcm = -1;
             #endif
 
-            vec3 viewDir = normalize(-viewPos);
+            vec3 viewDir = normalize(-gViewPos);
             vec3 viewNormal = matViewTBN * normal;
             vec3 viewLightDir = normalize(shadowLightPosition);
             vec3 halfDir = normalize(viewLightDir + viewDir);
@@ -248,7 +241,7 @@ void main() {
             vec3 diffuse = vec3(0.0);
         #endif
         
-        vec3 shadowViewNormal = (matShadowViewTBN * normal) * 0.5 + 0.5;
+        vec3 shadowViewNormal = (gMatShadowViewTBN * normal) * 0.5 + 0.5;
     #else
         vec3 diffuse = vec3(0.0);
         vec3 shadowViewNormal = vec3(0.0);

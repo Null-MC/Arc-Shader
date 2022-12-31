@@ -331,6 +331,11 @@ void main() {
                 lightData.matShadowProjection[2] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[2], matShadowProjections_translation[2]);
                 lightData.matShadowProjection[3] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[3], matShadowProjections_translation[3]);
                 
+                lightData.shadowProjectionSize[0] = 2.0 / vec2(lightData.matShadowProjection[0][0].x, lightData.matShadowProjection[0][1].y);
+                lightData.shadowProjectionSize[0] = 2.0 / vec2(lightData.matShadowProjection[1][0].x, lightData.matShadowProjection[1][1].y);
+                lightData.shadowProjectionSize[0] = 2.0 / vec2(lightData.matShadowProjection[2][0].x, lightData.matShadowProjection[2][1].y);
+                lightData.shadowProjectionSize[0] = 2.0 / vec2(lightData.matShadowProjection[3][0].x, lightData.matShadowProjection[3][1].y);
+
                 lightData.shadowPos[0] = (lightData.matShadowProjection[0] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
                 lightData.shadowPos[1] = (lightData.matShadowProjection[1] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
                 lightData.shadowPos[2] = (lightData.matShadowProjection[2] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
@@ -346,10 +351,10 @@ void main() {
                 lightData.shadowPos[2].xy = lightData.shadowPos[2].xy * 0.5 + lightData.shadowTilePos[2];
                 lightData.shadowPos[3].xy = lightData.shadowPos[3].xy * 0.5 + lightData.shadowTilePos[3];
                 
-                lightData.shadowBias[0] = GetCascadeBias(lightData.geoNoL, 0);
-                lightData.shadowBias[1] = GetCascadeBias(lightData.geoNoL, 1);
-                lightData.shadowBias[2] = GetCascadeBias(lightData.geoNoL, 2);
-                lightData.shadowBias[3] = GetCascadeBias(lightData.geoNoL, 3);
+                lightData.shadowBias[0] = GetCascadeBias(lightData.geoNoL, lightData.shadowProjectionSize[0]);
+                lightData.shadowBias[1] = GetCascadeBias(lightData.geoNoL, lightData.shadowProjectionSize[1]);
+                lightData.shadowBias[2] = GetCascadeBias(lightData.geoNoL, lightData.shadowProjectionSize[2]);
+                lightData.shadowBias[3] = GetCascadeBias(lightData.geoNoL, lightData.shadowProjectionSize[3]);
 
                 #ifdef SHADOW_DITHER
                     lightData.shadowPos[0].xy += ditherOffset;

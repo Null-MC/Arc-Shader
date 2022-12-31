@@ -70,7 +70,7 @@ uniform int entityId;
 //     #include "/lib/lighting/directional.glsl"
 // #endif
 
-#include "/lib/world/physics_snow.glsl"
+#include "/lib/physicsMod/snow.glsl"
 
 #include "/lib/world/weather.glsl"
 #include "/lib/material/material_reader.glsl"

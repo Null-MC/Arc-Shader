@@ -111,10 +111,10 @@ void main() {
             cascadeSizes[2] = GetCascadeDistance(2);
             cascadeSizes[3] = GetCascadeDistance(3);
 
-            mat4 matShadowProjection0 = GetShadowCascadeProjectionMatrix(0);
-            mat4 matShadowProjection1 = GetShadowCascadeProjectionMatrix(1);
-            mat4 matShadowProjection2 = GetShadowCascadeProjectionMatrix(2);
-            mat4 matShadowProjection3 = GetShadowCascadeProjectionMatrix(3);
+            mat4 matShadowProjection0 = GetShadowCascadeProjectionMatrix(cascadeSizes, 0);
+            mat4 matShadowProjection1 = GetShadowCascadeProjectionMatrix(cascadeSizes, 1);
+            mat4 matShadowProjection2 = GetShadowCascadeProjectionMatrix(cascadeSizes, 2);
+            mat4 matShadowProjection3 = GetShadowCascadeProjectionMatrix(cascadeSizes, 3);
 
             GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection0, matShadowProjections_scale[0], matShadowProjections_translation[0]);
             GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection1, matShadowProjections_scale[1], matShadowProjections_translation[1]);

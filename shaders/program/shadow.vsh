@@ -1,35 +1,39 @@
-#define RENDER_VERTEX
-#define RENDER_GBUFFER
 #define RENDER_SHADOW
+#define RENDER_GBUFFER
+#define RENDER_VERTEX
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
 
-out vec2 lmcoord;
-out vec2 texcoord;
-out vec4 glcolor;
-out vec3 localPos;
-flat out int materialId;
+out vec3 vLocalPos;
+out vec2 vTexcoord;
+out vec2 vLmcoord;
+out vec4 vColor;
+flat out int vBlockId;
+flat out int vEntityId;
+
+#if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+    flat out vec3 vOriginPos;
+#endif
 
 #ifdef SSS_ENABLED
-    flat out float matSSS;
+    flat out float vMaterialSSS;
 #endif
 
 #if defined RSM_ENABLED || defined WATER_FANCY
-    out vec3 viewPos;
+    out vec3 vViewPos;
 #endif
 
 #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
-    flat out mat3 matShadowViewTBN;
+    flat out mat3 vMatShadowViewTBN;
 #endif
 
 #ifdef RSM_ENABLED
-    flat out mat3 matViewTBN;
+    flat out mat3 vMatViewTBN;
 #endif
 
-#if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-    flat out float cascadeSizes[4];
-    flat out vec2 shadowCascadePos;
+#if defined WATER_FANCY && !defined WORLD_NETHER
+    flat out int vWaterMask;
 #endif
 
 attribute vec3 mc_Entity;
@@ -58,11 +62,7 @@ uniform float far;
     uniform int worldTime;
 #endif
 
-#if defined WATER_FANCY && !defined WORLD_NETHER
-    flat out int waterMask;
-#endif
-
-#if MC_VERSION >= 11700 && (SHADER_PLATFORM != PLATFORM_IRIS || defined IRIS_FEATURE_CHUNK_OFFSET)
+#if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
     uniform vec3 chunkOffset;
 #else
     uniform mat4 gbufferModelViewInverse;
@@ -99,63 +99,65 @@ uniform float far;
 
 
 void main() {
+    //int blockId = int(mc_Entity.x + 0.5);
+
     if (renderStage == MC_RENDER_STAGE_ENTITIES) {
+        vBlockId = -1;
+        vEntityId = entityId;
+
+        // #ifdef SHADOW_EXCLUDE_ENTITIES
+        //     if (mc_Entity.x == 0.0) {
+        //         gl_Position = vec4(10.0);
+
+        //         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        //             shadowCascadePos = vec2(10.0);
+        //         #endif
+
+        //         return;
+        //     }
+        // #endif
+
         if (entityId == MATERIAL_LIGHTNING_BOLT) {
             gl_Position = vec4(10.0);
             return;
         }
     }
+    else {
+        vBlockId = int(mc_Entity.x + 0.5);
+        vEntityId = -1;
 
-    localPos = gl_Vertex.xyz;
-    texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-    lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
-    glcolor = gl_Color;
+        #ifdef SHADOW_EXCLUDE_FOLIAGE
+            if (vBlockId >= 10000 && vBlockId <= 10004) {
+                gl_Position = vec4(10.0);
+                return;
+            }
+        #endif
+    }
 
-    #ifdef SHADOW_EXCLUDE_ENTITIES
-        if (mc_Entity.x == 0.0) {
-            gl_Position = vec4(10.0);
-
-            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                shadowCascadePos = vec2(10.0);
-            #endif
-
-            return;
-        }
-    #endif
-
-    #ifdef SHADOW_EXCLUDE_FOLIAGE
-        if (mc_Entity.x >= 10000.0 && mc_Entity.x <= 10004.0) {
-            gl_Position = vec4(10.0);
-
-            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                shadowCascadePos = vec2(10.0);
-            #endif
-
-            return;
-        }
-    #endif
+    vLocalPos = gl_Vertex.xyz;
+    vTexcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+    vLmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
+    vColor = gl_Color;
 
     vec3 normal = gl_Normal;
     vec3 shadowViewNormal = normalize(gl_NormalMatrix * normal);
 
     #if defined ENABLE_WAVING || WATER_WAVE_TYPE == WATER_WAVE_VERTEX
-        float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
+        float skyLight = saturate((vLmcoord.y - (0.5/16.0)) / (15.0/16.0));
     #endif
 
     #ifdef ENABLE_WAVING
-        if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0) {
+        if (vBlockId >= 10001 && vBlockId <= 10004) {
             float wavingRange = GetWavingRange(skyLight);
-            localPos += GetWavingOffset(wavingRange);
+            vLocalPos += GetWavingOffset(wavingRange);
         }
     #endif
 
-    materialId = int(mc_Entity.x + 0.5);
-
     #ifdef WATER_FANCY
-        waterMask = 0;
+        vWaterMask = 0;
     #endif
 
-    if (materialId == MATERIAL_WATER) {
+    if (vBlockId == MATERIAL_WATER) {
         // #ifdef WATER_FANCY
         //     waterMask = 1;
         // #endif
@@ -179,7 +181,7 @@ void main() {
 
         if (gl_Normal.y > 0.5) {
             #ifdef WATER_FANCY
-                waterMask = 1;
+                vWaterMask = 1;
             #endif
             
             #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
@@ -188,9 +190,9 @@ void main() {
                 float waveDepth = GetWaveDepth(skyLight);
                 
                 float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
-                vec2 waterWorldPos = waterWorldScale * (localPos.xz + cameraPosition.xz);
+                vec2 waterWorldPos = waterWorldScale * (vLocalPos.xz + cameraPosition.xz);
                 float depth = GetWaves(waterWorldPos, waveDepth, WATER_OCTAVES_VERTEX);
-                localPos.y -= (1.0 - depth) * waveDepth;
+                vLocalPos.y -= (1.0 - depth) * waveDepth;
 
                 #ifndef WATER_FANCY
                     vec2 waterWorldPosX = waterWorldPos + vec2(waterWorldScale, 0.0);
@@ -207,61 +209,45 @@ void main() {
         }
     }
 
-    vec4 shadowViewPos = gl_ModelViewMatrix * vec4(localPos, 1.0);
+    vec4 shadowViewPos = gl_ModelViewMatrix * vec4(vLocalPos, 1.0);
 
     #if defined WATER_FANCY && defined VL_WATER_ENABLED
-        viewPos = (gbufferModelView * vec4(localPos, 1.0)).xyz;
+        vViewPos = (gbufferModelView * vec4(vLocalPos, 1.0)).xyz;
     #endif
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        cascadeSizes[0] = GetCascadeDistance(0);
-        cascadeSizes[1] = GetCascadeDistance(1);
-        cascadeSizes[2] = GetCascadeDistance(2);
-        cascadeSizes[3] = GetCascadeDistance(3);
-
-        mat4 matShadowProjections[4];
-        matShadowProjections[0] = GetShadowCascadeProjectionMatrix(0);
-        matShadowProjections[1] = GetShadowCascadeProjectionMatrix(1);
-        matShadowProjections[2] = GetShadowCascadeProjectionMatrix(2);
-        matShadowProjections[3] = GetShadowCascadeProjectionMatrix(3);
-
-        int shadowCascade = GetShadowCascade(matShadowProjections);
-        shadowCascadePos = GetShadowCascadeClipPos(shadowCascade);
-        gl_Position = matShadowProjections[shadowCascade] * shadowViewPos;
-
-        gl_Position.xy = gl_Position.xy * 0.5 + 0.5;
-        gl_Position.xy = gl_Position.xy * 0.5 + shadowCascadePos;
-        gl_Position.xy = gl_Position.xy * 2.0 - 1.0;
-    #else
-        gl_Position = gl_ProjectionMatrix * shadowViewPos;
-
-        #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-            gl_Position.xyz = distort(gl_Position.xyz);
+        #if MC_VERSION >= 11700 && defined IS_OPTIFINE
+            vOriginPos = floor(vaPosition + chunkOffset + at_midBlock / 64.0 + fract(cameraPosition));
+        #else
+            vOriginPos = floor(gl_Vertex.xyz + at_midBlock / 64.0 + fract(cameraPosition));
         #endif
+
+        vOriginPos = (gl_ModelViewMatrix * vec4(vOriginPos, 1.0)).xyz;
     #endif
 
     #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
-        //vec3 shadowViewNormal = normalize(gl_NormalMatrix * normal);
         vec3 shadowViewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
         vec3 shadowViewBinormal = normalize(cross(shadowViewTangent, shadowViewNormal) * at_tangent.w);
 
-        matShadowViewTBN = mat3(shadowViewTangent, shadowViewBinormal, shadowViewNormal);
+        vMatShadowViewTBN = mat3(shadowViewTangent, shadowViewBinormal, shadowViewNormal);
     #endif
 
     #ifdef RSM_ENABLED
-        matViewTBN = mat3(gbufferModelView) * mat3(shadowModelViewInverse) * matShadowViewTBN;
+        vMatViewTBN = mat3(gbufferModelView) * mat3(shadowModelViewInverse) * vMatShadowViewTBN;
     #endif
 
     #if defined SSS_ENABLED //|| defined RSM_ENABLED
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
             float matF0, matSmooth, matEmissive;
-            ApplyHardCodedMaterials(matF0, matSSS, matSmooth, matEmissive);
+            ApplyHardCodedMaterials(matF0, vMaterialSSS, matSmooth, matEmissive);
         #endif
 
         // PhysicsMod snow
         if (entityId == 829925) {
-            materialId = MATERIAL_PHYSICS_SNOW;
-            matSSS = 0.8;
+            vBlockId = MATERIAL_PHYSICS_SNOW;
+            vMaterialSSS = 0.8;
         }
     #endif
+
+    gl_Position = shadowViewPos;
 }

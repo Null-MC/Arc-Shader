@@ -24,7 +24,7 @@ int GetCascadeForScreenPos(const in vec2 pos) {
         return pos.x < 0.5 ? 2 : 3;
 }
 
-#ifdef RENDER_VERTEX
+#if defined RENDER_VERTEX || defined RENDER_GEOMETRY
     // tile: 0-3
     float GetCascadeDistance(const in int tile) {
         #ifdef SHADOW_CSM_FITRANGE
@@ -55,8 +55,7 @@ int GetCascadeForScreenPos(const in vec2 pos) {
             vec4(0.0, 0.0, -(zFar + zNear)/(zFar - zNear), 1.0));
     }
 
-    mat4 BuildTranslationMatrix(const in vec3 delta)
-    {
+    mat4 BuildTranslationMatrix(const in vec3 delta) {
         return mat4(
             vec4(1.0, 0.0, 0.0, 0.0),
             vec4(0.0, 1.0, 0.0, 0.0),
@@ -64,8 +63,7 @@ int GetCascadeForScreenPos(const in vec2 pos) {
             vec4(delta, 1.0));
     }
 
-    mat4 BuildScalingMatrix(const in vec3 scale)
-    {
+    mat4 BuildScalingMatrix(const in vec3 scale) {
         return mat4(
             vec4(scale.x, 0.0, 0.0, 0.0),
             vec4(0.0, scale.y, 0.0, 0.0),
@@ -107,9 +105,25 @@ int GetCascadeForScreenPos(const in vec2 pos) {
                -matShadowProjection[2].z);
         }
 
-        bool IsPosInCascadeProjection(const in vec3 shadowViewPos, const in mat4 matShadowProjection) {
+        vec3 GetCascadePaddedFrustumClipBounds(const in mat4 matShadowProjection, const in float padding) {
+            return 1.0 + padding * vec3(
+                matShadowProjection[0].x,
+                matShadowProjection[1].y,
+               -matShadowProjection[2].z);
+        }
+
+        bool CascadeContainsPosition(const in vec3 shadowViewPos, const in mat4 matShadowProjection) {
             vec3 clipPos = (matShadowProjection * vec4(shadowViewPos, 1.0)).xyz;
-            vec3 paddedSize = GetCascadePaddedFrustumClipBounds(matShadowProjection);
+            vec3 paddedSize = GetCascadePaddedFrustumClipBounds(matShadowProjection, -1.5);
+
+            return clipPos.x > -paddedSize.x && clipPos.x < paddedSize.x
+                && clipPos.y > -paddedSize.y && clipPos.y < paddedSize.y
+                && clipPos.z > -paddedSize.z && clipPos.z < paddedSize.z;
+        }
+
+        bool CascadeIntersectsPosition(const in vec3 shadowViewPos, const in mat4 matShadowProjection) {
+            vec3 clipPos = (matShadowProjection * vec4(shadowViewPos, 1.0)).xyz;
+            vec3 paddedSize = GetCascadePaddedFrustumClipBounds(matShadowProjection, 1.5);
 
             return clipPos.x > -paddedSize.x && clipPos.x < paddedSize.x
                 && clipPos.y > -paddedSize.y && clipPos.y < paddedSize.y
@@ -117,7 +131,17 @@ int GetCascadeForScreenPos(const in vec2 pos) {
         }
     #endif
 
-    mat4 GetShadowCascadeProjectionMatrix(const in int cascade) {
+    void GetShadowCascadeProjectionMatrix_AsParts(const in mat4 matProjection, out vec3 scale, out vec3 translation) {
+        scale.x = matProjection[0][0];
+        scale.y = matProjection[1][1];
+        scale.z = matProjection[2][2];
+
+        translation = matProjection[3].xyz;
+    }
+#endif
+
+#if defined RENDER_VERTEX || defined RENDER_GEOMETRY
+    mat4 GetShadowCascadeProjectionMatrix(const in float cascadeSizes[4], const in int cascade) {
         float cascadePaddedSize = cascadeSizes[cascade] * 2.0 + 3.0;
 
         float zNear = -far;
@@ -171,83 +195,20 @@ int GetCascadeForScreenPos(const in vec2 pos) {
 
         return matShadowProjection;
     }
-
-    void GetShadowCascadeProjectionMatrix_AsParts(const in mat4 matProjection, out vec3 scale, out vec3 translation) {
-        scale.x = matProjection[0][0];
-        scale.y = matProjection[1][1];
-        scale.z = matProjection[2][2];
-
-        translation = matProjection[3].xyz;
-    }
 #endif
 
-#if defined RENDER_VERTEX && defined RENDER_GBUFFER
-    vec3 GetBlockPos() {
-        #if defined RENDER_ENTITIES || defined RENDER_HAND
-            return vec3(0.0);
-        #elif defined RENDER_TEXTURED
-            vec3 pos = gl_Vertex.xyz;
-            pos = floor(pos + 0.5);
-            pos = (shadowModelView * vec4(pos, 1.0)).xyz;
-            return pos;
-        #else
-            #if defined RENDER_TERRAIN || defined RENDER_WATER || defined RENDER_SHADOW
-                if (mc_Entity.x == 0.0) return vec3(0.0);
-            #endif
-
-            #if MC_VERSION >= 11700 && (SHADER_PLATFORM != PLATFORM_IRIS || defined IRIS_FEATURE_CHUNK_OFFSET)
-                vec3 midBlockPosition = floor(vaPosition + chunkOffset + at_midBlock / 64.0 + fract(cameraPosition));
-
-                #ifdef RENDER_SHADOW
-                    return (gl_ModelViewMatrix * vec4(midBlockPosition, 1.0)).xyz;
-                #else
-                    return (shadowModelView * vec4(midBlockPosition, 1.0)).xyz;
-                #endif
-            #else
-                vec3 midBlockPosition = floor(gl_Vertex.xyz + at_midBlock / 64.0 + fract(cameraPosition));
-                midBlockPosition = (gl_ModelViewMatrix * vec4(midBlockPosition, 1.0)).xyz;
-
-                #ifndef RENDER_SHADOW
-                    midBlockPosition = (gbufferModelViewInverse * vec4(midBlockPosition, 1.0)).xyz;
-                    midBlockPosition = (shadowModelView * vec4(midBlockPosition, 1.0)).xyz;
-                #endif
-
-                return midBlockPosition;
-            #endif
-        #endif
-    }
-
+#if (defined RENDER_VERTEX || defined RENDER_GEOMETRY) && defined RENDER_GBUFFER
     // returns: tile [0-3] or -1 if excluded
-    int GetShadowCascade(const in mat4 matShadowProjections[4]) {
-        #ifndef SHADOW_EXCLUDE_ENTITIES
-            #if defined RENDER_SHADOW
-                if (entityId == CSM_PLAYER_ID) return 0;
-                if (mc_Entity.x == 0.0) return SHADOW_ENTITY_CASCADE;
-            #elif defined RENDER_TERRAIN
-                if (mc_Entity.x == 0.0) return SHADOW_ENTITY_CASCADE;
-            #elif defined RENDER_ENTITIES
-                if (entityId == CSM_PLAYER_ID) return 0;
-                return SHADOW_ENTITY_CASCADE;
-            #endif
-        #else
-            #if defined RENDER_SHADOW || defined RENDER_TERRAIN
-                if (mc_Entity.x == 0.0) return -1;
-            #elif defined RENDER_ENTITIES
-                return -1;
-            #endif
-        #endif
-
+    int GetShadowCascade(const in mat4 matShadowProjections[4], const in vec3 blockPos) {
         #ifdef SHADOW_CSM_FITRANGE
             const int max = 3;
         #else
             const int max = 4;
         #endif
 
-        vec3 blockPos = GetBlockPos();
-
         for (int i = 0; i < max; i++) {
             #ifdef SHADOW_CSM_TIGHTEN
-                if (IsPosInCascadeProjection(blockPos, matShadowProjections[i])) return i;
+                if (CascadeContainsPosition(blockPos, matShadowProjections[i])) return i;
             #else
                 if (blockPos.x > -cascadeSizes[i] && blockPos.x < cascadeSizes[i]
                  && blockPos.y > -cascadeSizes[i] && blockPos.y < cascadeSizes[i]) return i;
@@ -269,3 +230,65 @@ mat4 GetShadowCascadeProjectionMatrix_FromParts(const in vec3 scale, const in ve
         vec4(0.0, 0.0, scale.z, 0.0),
         vec4(translation, 1.0));
 }
+
+float GetCascadeBias(const in float geoNoL, const in vec2 shadowProjectionSize) {
+    //vec2 shadowProjectionSize = 2.0 / matShadowProjections_scale[cascade].xy;
+    float maxProjSize = max(shadowProjectionSize.x, shadowProjectionSize.y);
+    float zRangeBias = 0.05 / (3.0 * far);
+
+    maxProjSize = pow(maxProjSize, 1.3);
+
+    #if SHADOW_FILTER == 1
+        float xySizeBias = 0.004 * maxProjSize * shadowPixelSize;// * tile_dist_bias_factor * 4.0;
+    #else
+        float xySizeBias = 0.004 * maxProjSize * shadowPixelSize;// * tile_dist_bias_factor;
+    #endif
+
+    float bias = mix(xySizeBias, zRangeBias, geoNoL) * SHADOW_BIAS_SCALE;
+
+    //bias += pow(1.0 - geoNoL, 16.0);
+
+    return 0.0001;
+}
+
+#if defined RENDER_VERTEX && !defined RENDER_SHADOW
+    void ApplyShadows(const in vec3 localPos, const in vec3 viewDir) {
+        #ifndef SSS_ENABLED
+            if (geoNoL > 0.0) {
+        #endif
+            #ifdef RENDER_SHADOW
+                mat4 matShadowModelView = gl_ModelViewMatrix;
+            #else
+                mat4 matShadowModelView = shadowModelView;
+            #endif
+
+            vec3 shadowViewPos = (matShadowModelView * vec4(localPos, 1.0)).xyz;
+
+            #if defined PARALLAX_ENABLED && !defined RENDER_SHADOW && defined PARALLAX_SHADOW_FIX
+                float geoNoV = dot(vNormal, viewDir);
+
+                vec3 localViewDir = normalize(cameraPosition);
+                vec3 parallaxLocalPos = localPos + (localViewDir / geoNoV) * PARALLAX_DEPTH;
+                vec3 parallaxShadowViewPos = (matShadowModelView * vec4(parallaxLocalPos, 1.0)).xyz;
+            #endif
+
+            float cascadeSizes[4];
+            cascadeSizes[0] = GetCascadeDistance(0);
+            cascadeSizes[1] = GetCascadeDistance(1);
+            cascadeSizes[2] = GetCascadeDistance(2);
+            cascadeSizes[3] = GetCascadeDistance(3);
+
+            mat4 matShadowProjection0 = GetShadowCascadeProjectionMatrix(cascadeSizes, 0);
+            mat4 matShadowProjection1 = GetShadowCascadeProjectionMatrix(cascadeSizes, 1);
+            mat4 matShadowProjection2 = GetShadowCascadeProjectionMatrix(cascadeSizes, 2);
+            mat4 matShadowProjection3 = GetShadowCascadeProjectionMatrix(cascadeSizes, 3);
+
+            GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection0, matShadowProjections_scale[0], matShadowProjections_translation[0]);
+            GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection1, matShadowProjections_scale[1], matShadowProjections_translation[1]);
+            GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection2, matShadowProjections_scale[2], matShadowProjections_translation[2]);
+            GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection3, matShadowProjections_scale[3], matShadowProjections_translation[3]);
+        #ifndef SSS_ENABLED
+            }
+        #endif
+    }
+#endif

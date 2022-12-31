@@ -1,7 +1,3 @@
-#ifdef RENDER_VERTEX
-    void ApplyShadows(const in vec3 shadowViewPos, const in vec3 viewDir) {}
-#endif
-
 #ifdef RENDER_FRAG
     float SampleOpaqueDepth(const in vec4 shadowPos, const in vec2 offset) {
         return textureLod(shadowtex1, shadowPos.xy + offset * shadowPos.w, 0).r;

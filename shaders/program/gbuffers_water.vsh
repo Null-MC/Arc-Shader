@@ -1,6 +1,8 @@
-#define RENDER_VERTEX
-#define RENDER_GBUFFER
 #define RENDER_WATER
+#define RENDER_GBUFFER
+#define RENDER_VERTEX
+
+#define PHYSICS_OCEAN_SUPPORT
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
@@ -125,16 +127,18 @@ uniform float blindness;
 #ifdef SHADOW_ENABLED
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         #include "/lib/shadows/csm.glsl"
-        #include "/lib/shadows/csm_render.glsl"
     #elif SHADOW_TYPE != SHADOW_TYPE_NONE
         #include "/lib/shadows/basic.glsl"
-        #include "/lib/shadows/basic_render.glsl"
     #endif
 #endif
 
 #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX && !defined WORLD_NETHER && !defined WORLD_END
     #include "/lib/world/wind.glsl"
     #include "/lib/world/water.glsl"
+#endif
+
+#ifdef PHYSICS_OCEAN
+    #include "/lib/physicsMod/water.glsl"
 #endif
 
 #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
@@ -198,7 +202,9 @@ void main() {
                 
                 vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
                 shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
-                shadowBias[i] = GetCascadeBias(geoNoL, i);
+
+                vec2 shadowProjectionSize = 2.0 / vec2(matShadowProjection[0].x, matShadowProjection[1].y);;
+                shadowBias[i] = GetCascadeBias(geoNoL, shadowProjectionSize);
             }
         #elif SHADOW_TYPE != SHADOW_TYPE_NONE
             shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);

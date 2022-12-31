@@ -455,6 +455,9 @@
             vec2 waterScatteringF = GetWaterScattering(viewDir);
         #endif
     
+        vec3 waterSunColorEye = sunColorFinalEye * max(lightData.skyLightLevels.x, 0.0);
+        vec3 waterMoonColorEye = moonColorFinalEye * max(lightData.skyLightLevels.y, 0.0);
+
         #if defined RENDER_WATER && !defined WORLD_NETHER && !defined WORLD_END
             if (materialId == MATERIAL_WATER) {
                 #if WATER_REFRACTION != WATER_REFRACTION_NONE
@@ -625,7 +628,7 @@
 
                     if (isEyeInWater != 1) {
                         //vec2 waterScatteringF = GetWaterScattering(viewDir);
-                        vec3 waterFogColor = GetWaterFogColor(viewDir, sunColorFinalEye, moonColorFinalEye, waterScatteringF);
+                        vec3 waterFogColor = GetWaterFogColor(viewDir, waterSunColorEye, waterMoonColorEye, waterScatteringF);
                         ApplyWaterFog(refractColor, waterFogColor, waterViewDepthFinal);
 
                         #if defined VL_WATER_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -666,7 +669,7 @@
 
                     //vec3 waterLightColor = GetWaterScatterColor(viewDir, lightData.sunTransmittanceEye);
                     //vec2 waterScatteringF = GetWaterScattering(viewDir);
-                    vec3 waterFogColor = GetWaterFogColor(viewDir, sunColorFinalEye, moonColorFinalEye, waterScatteringF);
+                    vec3 waterFogColor = GetWaterFogColor(viewDir, waterSunColorEye, waterMoonColorEye, waterScatteringF);
                     float waterFogF = ApplyWaterFog(refractColor, waterFogColor, lightDist);
                     
                     refractColor *= max(1.0 - iblF, 0.0);
@@ -733,7 +736,7 @@
 
             #ifdef SKY_ENABLED
                 //vec2 waterScatteringF = GetWaterScattering(viewDir);
-                vec3 waterFogColor = GetWaterFogColor(viewDir, sunColorFinalEye, moonColorFinalEye, waterScatteringF);
+                vec3 waterFogColor = GetWaterFogColor(viewDir, waterSunColorEye, waterMoonColorEye, waterScatteringF);
             #else
                 vec3 waterFogColor = vec3(0.0);
             #endif

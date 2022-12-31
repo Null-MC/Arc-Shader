@@ -31,6 +31,8 @@
         float texDepth = 1.0;
         PbrMaterial material;
 
+        vec3 worldPos = localPos + cameraPosition;
+
         LightData lightData;
         lightData.occlusion = 1.0;
         lightData.blockLight = saturate(lmcoord.x);
@@ -48,10 +50,9 @@
         #endif
 
         #ifdef SKY_ENABLED
-            float worldY = localPos.y + cameraPosition.y;
             lightData.skyLightLevels = skyLightLevels;
-            lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
-            lightData.moonTransmittance = GetMoonTransmittance(colortex9, worldY, skyLightLevels.y);
+            lightData.sunTransmittance = GetSunTransmittance(colortex9, worldPos.y, skyLightLevels.x);
+            lightData.moonTransmittance = GetMoonTransmittance(colortex9, worldPos.y, skyLightLevels.y);
             lightData.sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
             lightData.moonTransmittanceEye = GetMoonTransmittance(colortex9, eyeAltitude, skyLightLevels.y);
         #endif
@@ -80,31 +81,29 @@
 
                 const float waterPixelSize = rcp(WATER_RESOLUTION);
 
-                //float windSpeed = GetWindSpeed();
-                //float zScale = 8.0 + windSpeed; // 32
-
-                float depth, depthX, depthY;
-                vec3 waterPos;
-
                 #if WATER_WAVE_TYPE != WATER_WAVE_NONE
-                    float waveDepth = GetWaveDepth(lightData.skyLight);
+                    #ifndef PHYSICS_OCEAN
+                        const float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
+                        vec3 waterWorldPos = waterScale * worldPos;
 
-                    int octaves = WATER_OCTAVES_FAR;
-                    #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
-                        //float viewDist = length(viewPos) - near;
-                        float octaveDistF = saturate(viewDist / WATER_OCTAVES_DIST);
-                        octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, octaveDistF));
+                        float waveDepth = GetWaveDepth(lightData.skyLight);
+
+                        int octaves = WATER_OCTAVES_FAR;
+                        #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
+                            //float viewDist = length(viewPos) - near;
+                            float octaveDistF = saturate(viewDist / WATER_OCTAVES_DIST);
+                            octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, octaveDistF));
+                        #endif
+
+                        float depth = GetWaves(waterWorldPos.xz, waveDepth, octaves);
+                        depth *= waveDepth * WaterWaveDepthF;
+
+                        vec3 waterPos = waterWorldPos.xzy;
+                        waterPos.z = depth * WATER_NORMAL_STRENGTH;
+
+                        vec3 waterDX = dFdx(waterPos);
+                        vec3 waterDY = dFdy(waterPos);
                     #endif
-
-                    const float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
-                    vec2 waterWorldPos = waterScale * (localPos.xz + cameraPosition.xz);
-
-                    depth = GetWaves(waterWorldPos, waveDepth, octaves);
-                    waterPos = vec3(waterWorldPos.x, waterWorldPos.y, depth);
-                    waterPos.z *= waveDepth * WaterWaveDepthF * WATER_NORMAL_STRENGTH;
-
-                    vec3 waterDX = dFdx(waterPos);
-                    vec3 waterDY = dFdy(waterPos);
                 #endif
 
                 #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
@@ -141,7 +140,7 @@
                             }
                         }
 
-                        depth = textureGrad(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1]).r;
+                        float depth = textureGrad(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1]).r;
                         float depthX = textureGradOffset(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1], ivec2(1, 0)).r;
                         float depthY = textureGradOffset(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1], ivec2(0, 1)).r;
 
@@ -158,34 +157,40 @@
                 #endif
 
                 #if WATER_WAVE_TYPE != WATER_WAVE_NONE
-                    vec3 viewUp = normalize(upPosition);
-                    if (isEyeInWater == 1) viewUp = -viewUp;
+                    #ifdef PHYSICS_OCEAN
+                        float waviness = textureLod(physics_waviness, physics_localPosition.xz / vec2(textureSize(physics_waviness, 0)), 0).r;
+                        material.normal = physics_waveNormal(physics_localPosition.xz, waviness, physics_gameTime);
+                        material.normal = mat3(gl_ModelViewMatrix) * material.normal;
+                    #else
+                        vec3 viewUp = normalize(upPosition);
+                        if (isEyeInWater == 1) viewUp = -viewUp;
 
-                    if (dot(viewNormal, viewUp) > EPSILON) {
-                        // int octaves = WATER_OCTAVES_FAR;
-                        // #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
-                        //     //float viewDist = length(viewPos) - near;
-                        //     octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, saturate(viewDist / 200.0)));
-                        // #endif
+                        if (dot(viewNormal, viewUp) > EPSILON) {
+                            // int octaves = WATER_OCTAVES_FAR;
+                            // #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
+                            //     //float viewDist = length(viewPos) - near;
+                            //     octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, saturate(viewDist / 200.0)));
+                            // #endif
 
-                        float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
-                        //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
-                        //float waveStrength = GetWaveDepth(windSpeed, skyLight);
+                            //float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
+                            //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
+                            //float waveStrength = GetWaveDepth(windSpeed, skyLight);
 
-                        //float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
-                        //vec2 waterWorldPos = waterScale * (localPos.xz + cameraPosition.xz);
+                            //float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
+                            //vec2 waterWorldPos = waterScale * (localPos.xz + cameraPosition.xz);
 
-                        //depth = GetWaves(waterWorldPos, waveDepth, octaves) * waveDepth * WATER_NORMAL_STRENGTH;
-                        //waterPos = vec3(waterWorldPos.x, waterWorldPos.y, depth);
+                            //depth = GetWaves(waterWorldPos, waveDepth, octaves) * waveDepth * WATER_NORMAL_STRENGTH;
+                            //waterPos = vec3(waterWorldPos.x, waterWorldPos.y, depth);
 
-                        material.normal = normalize(cross(waterDX, waterDY));
+                            material.normal = normalize(cross(waterDX, waterDY));
 
-                        if (isEyeInWater != 1)
-                            material.normal = -material.normal;
-                    }
-                    //else {
-                    //    material.normal = viewNormal;
-                    //}
+                            if (isEyeInWater != 1)
+                                material.normal = -material.normal;
+                        }
+                        //else {
+                        //    material.normal = viewNormal;
+                        //}
+                    #endif
                 #endif
 
                 #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
@@ -208,8 +213,8 @@
                         float pomDist = (1.0 - traceCoordDepth.z) / max(-tanViewDir.z, 0.00001);
 
                         if (pomDist > 0.0) {
-                            float depth = length(viewPos) + pomDist * PARALLAX_DEPTH;
-                            gl_FragDepth = 0.5 * (-gbufferProjection[2].z*depth + gbufferProjection[3].z) / depth + 0.5;
+                            float pomDepth = length(viewPos) + pomDist * PARALLAX_DEPTH;
+                            gl_FragDepth = 0.5 * (-gbufferProjection[2].z*pomDepth + gbufferProjection[3].z) / pomDepth + 0.5;
                         }
                     #endif
                 }
@@ -318,7 +323,9 @@
             #endif
         }
 
-        material.normal = matTBN * material.normal;
+        #if !(defined RENDER_WATER && defined PHYSICS_OCEAN)
+            material.normal = matTBN * material.normal;
+        #endif
 
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             #ifdef SHADOW_DITHER

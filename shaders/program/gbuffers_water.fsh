@@ -1,6 +1,8 @@
-#define RENDER_FRAG
-#define RENDER_GBUFFER
 #define RENDER_WATER
+#define RENDER_GBUFFER
+#define RENDER_FRAG
+
+#define PHYSICS_OCEAN_SUPPORT
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
@@ -87,7 +89,7 @@ flat in mat2 atlasBounds;
         #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
             uniform sampler3D colortex13;
             
-            uniform mat4 gbufferModelView;
+            //uniform mat4 gbufferModelView;
             //uniform mat4 gbufferProjection;
         #endif
     #endif
@@ -116,6 +118,7 @@ uniform sampler2D colortex10;
 uniform usampler2D BUFFER_DEFERRED;
 
 uniform mat4 shadowProjection;
+uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
 uniform vec3 cameraPosition;
@@ -203,6 +206,10 @@ uniform float waterFogDistSmooth;
     #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
         #include "/lib/water_parallax.glsl"
     #endif
+#endif
+
+#ifdef PHYSICS_OCEAN
+    #include "/lib/physicsMod/water.glsl"
 #endif
 
 #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
