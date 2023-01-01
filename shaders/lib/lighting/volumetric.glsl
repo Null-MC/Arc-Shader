@@ -37,7 +37,7 @@ const float isotropicPhase = 0.25 / PI;
         //float accumD = 0.0;
 
         vec3 SmokeAbsorptionCoefficient = vec3(0.002);
-        vec3 SmokeScatteringCoefficient = vec3(0.60);
+        vec3 SmokeScatteringCoefficient = vec3(0.46);
         vec3 SmokeExtinctionCoefficient = SmokeScatteringCoefficient + SmokeAbsorptionCoefficient;
 
         //vec3 fogColorLinear = RGBToLinear(fogColor);
@@ -145,7 +145,7 @@ const float isotropicPhase = 0.25 / PI;
                     float texDensity3 = texture(colortex13, t).r;
 
                     //float texDensity = 1.0;//(0.2 + 0.8 * wetness) * (1.0 - mix(texDensity1, texDensity2, 0.1 + 0.5 * wetness));
-                    float texDensity = 0.04 + pow(0.2 * texDensity1 * texDensity2, 2.0) + 0.7 * pow(texDensity3 * texDensity2, 4.0);//0.2 * (1.0 - mix(texDensity1, texDensity2, 0.5));
+                    float texDensity = 0.04 + 0.2 * pow(texDensity1 * texDensity2, 2.0) + 0.6 * pow(texDensity3 * texDensity2, 3.0);//0.2 * (1.0 - mix(texDensity1, texDensity2, 0.5));
                     
                     // Change with altitude
                     float altD = 1.0 - saturate((worldTracePos.y - SEA_LEVEL) / (CLOUD_LEVEL - SEA_LEVEL));
@@ -153,7 +153,9 @@ const float isotropicPhase = 0.25 / PI;
 
                     // Change with weather
                     //texDensity *= VLFogMinF + (1.0 - VLFogMinF) * wetness;
-                    texDensity *= 0.2 + 1.4 * wetness;
+                    //texDensity *= 0.2 + 1.4 * wetness;
+                    float minFogF = min(VLFogMinF * (1.0 + 0.6 * max(lightData.skyLightLevels.x, 0.0)), 1.0);
+                    texDensity *= minFogF + (1.0 - minFogF) * wetness;
 
                     //sampleF *= texDensity;
                     //sampleAmbient *= texDensity;

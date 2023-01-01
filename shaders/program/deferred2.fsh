@@ -38,10 +38,6 @@ uniform float far;
 #include "/lib/lighting/light_data.glsl"
 #include "/lib/sampling/noise.glsl"
 
-#ifdef RSM_DITHER
-    #include "/lib/sampling/bayer.glsl"
-#endif
-
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     #include "/lib/shadows/csm.glsl"
 #elif SHADOW_TYPE == SHADOW_TYPE_DISTORTED

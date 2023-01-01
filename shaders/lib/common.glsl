@@ -52,6 +52,8 @@ const bool colortex14Clear = false;
 
 #define SHADER_PLATFORM 0 // [0 1]
 
+#define PHYSICS_OCEAN_SUPPORT
+
 
 // World Options
 #define ENABLE_WAVING
@@ -60,7 +62,6 @@ const bool colortex14Clear = false;
 #define BLOCKLIGHT_TEMP 2700 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 0 // [0 10 20 30 40 50 60 70 80 90 100]
 #define SHADOW_BRIGHTNESS 16 // [0 2 4 6 8 10 12 14 16 18 20 25 30 35 40 45 50 60 70 80 90 100]
-#define RAIN_DARKNESS 0.2
 //#define ANIM_USE_WORLDTIME
 
 
@@ -92,12 +93,11 @@ const bool colortex14Clear = false;
 //#define CAVEFOG_ENABLED
 #define WEATHER_OPACITY 50 // [10 20 30 40 50 60 70 80 90 100]
 #define ATMOS_EXTINCTION 0.004
-#define SUN_TEMP 7000.0
+#define SUN_TEMP 6800.0
 #define MOON_TEMP 4000.0
 #define WETNESS_MODE 2 // [0 1 2]
 #define SNOW_MODE 2 // [0 1 2]
 #define VL_SKY_ENABLED
-#define VL_SKY_DENSITY 0.06
 
 
 // Shadow Options
@@ -176,7 +176,6 @@ const bool colortex14Clear = false;
 #define RSM_SAMPLE_COUNT 80 // [5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100 120 140 160 180 200]
 #define RSM_SCALE 2 // [0 1 2]
 #define RSM_UPSCALE
-#define RSM_DITHER
 #define BLOOM_ENABLED
 #define BLOOM_SMOOTH
 //#define BLOOM_SCALE 60.0
@@ -192,15 +191,8 @@ const bool colortex14Clear = false;
 #define VL_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 175 200 225 250 275 300 350 400 450 500 600 700 800 900]
 #define VL_SAMPLES_SKY 12 // [8 12 16 20 24 32]
 #define VL_SAMPLES_WATER 6 // [4 6 8 12 16 24]
-#define VL_FOG_MIN 30 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
+#define VL_FOG_MIN 6 // [0 2 4 6 8 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
 #define VL_PARTICLES
-#define G_SCATTERING_CLEAR 0.45
-#define G_SCATTERING_NIGHT 0.4
-//#define G_SCATTERING_HUMID 0.08
-#define G_SCATTERING_RAIN 0.1
-#define G_SCATTERING_WATER 0.16
-#define G_SCATTERING_CLOUDS 0.32
-#define G_SCATTERING_RAIN_CLOUDS 0.48
 #define AO_TYPE 2 // [0 1 2]
 #define SSAO_SAMPLES 8 // [8 16 32]
 #define SSAO_INTENSITY 35 // [5 10 15 20 25 30 35 40 45 50]

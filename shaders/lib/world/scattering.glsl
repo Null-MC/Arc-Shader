@@ -4,17 +4,17 @@ float ComputeVolumetricScattering(const in float VoL, const in float G_scatterin
     return rcp(4.0 * PI) * ((1.0 - G_scattering2) / (pow(1.0 + G_scattering2 - (2.0 * G_scattering) * VoL, 1.5)));
 }
 
-float GetScatteringFactor(const in float sunLightLevel) {
-    if (isEyeInWater == 1) return G_SCATTERING_WATER;
+// float GetScatteringFactor(const in float sunLightLevel) {
+//     if (isEyeInWater == 1) return G_SCATTERING_WATER;
 
-    float scattering = mix(G_SCATTERING_NIGHT, G_SCATTERING_CLEAR, sunLightLevel);
+//     float scattering = mix(G_SCATTERING_NIGHT, G_SCATTERING_CLEAR, sunLightLevel);
 
-    //scattering = mix(scattering, G_SCATTERING_HUMID, pow2(eyeHumidity));
+//     //scattering = mix(scattering, G_SCATTERING_HUMID, pow2(eyeHumidity));
 
-    scattering = mix(scattering, G_SCATTERING_RAIN, pow2(wetness)); // rainStrength
+//     scattering = mix(scattering, G_SCATTERING_RAIN, pow2(wetness)); // rainStrength
 
-    return scattering;
-}
+//     return scattering;
+// }
 
 vec2 GetVanillaSkyScattering(const in vec3 viewDir, const in vec2 skyLightLevels) {
     //float sunLightLevel = saturate(skyLightLevels.x);

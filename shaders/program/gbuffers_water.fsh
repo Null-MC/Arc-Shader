@@ -2,8 +2,6 @@
 #define RENDER_GBUFFER
 #define RENDER_FRAG
 
-#define PHYSICS_OCEAN_SUPPORT
-
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
 

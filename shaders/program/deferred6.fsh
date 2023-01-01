@@ -488,7 +488,9 @@ void main() {
                 //cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
                 cloudF = mix(cloudF, 0.0, pow(cloudHorizonFogF, CLOUD_HORIZON_POWER));
 
-                vec3 cloudColor = GetCloudColor(skyLightLevels);
+                vec3 sunDir = GetSunDir();
+                float sun_VoL = dot(viewDir, sunDir);
+                vec3 cloudColor = GetCloudColor(skyLightLevels, sun_VoL);
 
                 cloudF *= 1.0 - blindness;
 

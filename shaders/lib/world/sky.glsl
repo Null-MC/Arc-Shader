@@ -10,6 +10,14 @@
     }
 #endif
 
+vec3 GetSunDir() {
+    #if SHADER_PLATFORM == PLATFORM_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
+        return GetFixedSunPosition();
+    #else
+        return normalize(sunPosition);
+    #endif
+}
+
 // returns: x:sun y:moon
 vec2 GetSkyLightLevels() {
     vec3 moonLightDir = normalize(moonPosition);
