@@ -115,5 +115,5 @@ float SampleDepth(const in vec2 tex) {
     }
 
     const float rsmIntensityF = RSM_INTENSITY * 0.01;
-    return (shading / RSM_SAMPLE_COUNT) * rsmIntensityF * 20.0;
+    return (shading / RSM_SAMPLE_COUNT) * rsmIntensityF * 80.0;
 }

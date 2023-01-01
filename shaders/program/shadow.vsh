@@ -93,6 +93,10 @@ uniform float far;
     #include "/lib/world/water.glsl"
 #endif
 
+#ifdef PHYSICS_OCEAN
+    #include "/lib/physicsMod/water.glsl"
+#endif
+
 #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
     #include "/lib/material/default.glsl"
 #endif
@@ -172,41 +176,67 @@ void main() {
         //vec3 shadowViewNormal = normalize(gl_NormalMatrix * normal);
         //vec3 worldNormal = mat3(shadowModelViewInverse) * shadowViewNormal;
 
-        #if SHADER_PLATFORM == PLATFORM_IRIS
-            if (shadowViewNormal.z <= 0.0) {
-                gl_Position = vec4(10.0);
-                return;
-            }
-        #endif
+        vec3 worldPos = vLocalPos + cameraPosition;
 
-        if (gl_Normal.y > 0.5) {
+        #ifdef PHYSICS_OCEAN
             #ifdef WATER_FANCY
                 vWaterMask = 1;
             #endif
-            
-            #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
-                //float windSpeed = GetWindSpeed();
-                //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
-                float waveDepth = GetWaveDepth(skyLight);
-                
-                float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
-                vec2 waterWorldPos = waterWorldScale * (vLocalPos.xz + cameraPosition.xz);
-                float depth = GetWaves(waterWorldPos, waveDepth, WATER_OCTAVES_VERTEX);
-                vLocalPos.y -= (1.0 - depth) * waveDepth;
+        
+            physics_vLocalPosition = vLocalPos;
+            float waviness = textureLod(physics_waviness, vLocalPos.xz / vec2(textureSize(physics_waviness, 0)), 0).r;
+            float depth = physics_waveHeight(vLocalPos.xz, PHYSICS_ITERATIONS_OFFSET, waviness, physics_gameTime);
+            vLocalPos.y += depth;
 
-                #ifndef WATER_FANCY
-                    vec2 waterWorldPosX = waterWorldPos + vec2(waterWorldScale, 0.0);
-                    float depthX = GetWaves(waterWorldPosX, waveDepth, WATER_OCTAVES_VERTEX);
-                    vec3 pX = vec3(1.0, 0.0, (depthX - depth) * waveDepth);
+            #ifndef WATER_FANCY
+                vec2 waterWorldPosX = worldPos.xz + vec2(1.0, 0.0);
+                float depthX = physics_waveHeight(waterWorldPosX, PHYSICS_ITERATIONS_OFFSET, waviness, physics_gameTime);
+                vec3 pX = vec3(1.0, 0.0, depthX - depth);
 
-                    vec2 waterWorldPosY = waterWorldPos + vec2(0.0, waterWorldScale);
-                    float depthY = GetWaves(waterWorldPosY, waveDepth, WATER_OCTAVES_VERTEX);
-                    vec3 pY = vec3(0.0, 1.0, (depthY - depth) * waveDepth);
+                vec2 waterWorldPosY = worldPos.xz + vec2(0.0, 1.0);
+                float depthY = physics_waveHeight(waterWorldPosY, PHYSICS_ITERATIONS_OFFSET, waviness, physics_gameTime);
+                vec3 pY = vec3(0.0, 1.0, depthY - depth);
 
-                    normal = normalize(cross(pX, pY)).xzy;
-                #endif
+                normal = normalize(cross(pX, pY)).xzy;
             #endif
-        }
+        #else
+            #if SHADER_PLATFORM == PLATFORM_IRIS
+                // Iris does not cull water backfaces
+                if (shadowViewNormal.z <= 0.0) {
+                    gl_Position = vec4(10.0);
+                    return;
+                }
+            #endif
+
+            if (gl_Normal.y > 0.5) {
+                #ifdef WATER_FANCY
+                    vWaterMask = 1;
+                #endif
+                
+                #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
+                    //float windSpeed = GetWindSpeed();
+                    //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
+                    float waveDepth = GetWaveDepth(skyLight);
+                    
+                    float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
+                    vec2 waterWorldPos = waterWorldScale * worldPos.xz;
+                    float depth = GetWaves(waterWorldPos, waveDepth, WATER_OCTAVES_VERTEX);
+                    vLocalPos.y -= (1.0 - depth) * waveDepth;
+
+                    #ifndef WATER_FANCY
+                        vec2 waterWorldPosX = waterWorldPos + vec2(waterWorldScale, 0.0);
+                        float depthX = GetWaves(waterWorldPosX, waveDepth, WATER_OCTAVES_VERTEX);
+                        vec3 pX = vec3(1.0, 0.0, (depthX - depth) * waveDepth);
+
+                        vec2 waterWorldPosY = waterWorldPos + vec2(0.0, waterWorldScale);
+                        float depthY = GetWaves(waterWorldPosY, waveDepth, WATER_OCTAVES_VERTEX);
+                        vec3 pY = vec3(0.0, 1.0, (depthY - depth) * waveDepth);
+
+                        normal = normalize(cross(pX, pY)).xzy;
+                    #endif
+                #endif
+            }
+        #endif
     }
 
     vec4 shadowViewPos = gl_ModelViewMatrix * vec4(vLocalPos, 1.0);

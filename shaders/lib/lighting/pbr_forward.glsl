@@ -300,8 +300,19 @@
         // #endif
 
         vec3 _viewNormal = normalize(viewNormal);
+
+        // if (!gl_FrontFacing) {
+        //     _viewNormal = -_viewNormal;
+        // }
+
         vec3 _viewTangent = normalize(viewTangent);
         vec3 _viewBinormal = normalize(cross(_viewTangent, _viewNormal) * tangentW);
+
+        // if (!gl_FrontFacing) {
+        //     _viewTangent = -_viewTangent;
+        //     _viewBinormal = -_viewBinormal;
+        // }
+
         mat3 matTBN = mat3(_viewTangent, _viewBinormal, _viewNormal);
         
         if (materialId != MATERIAL_WATER) {
@@ -323,7 +334,13 @@
             #endif
         }
 
-        #if !(defined RENDER_WATER && defined PHYSICS_OCEAN)
+        if (!gl_FrontFacing)
+            material.normal = -material.normal;
+
+        #if defined RENDER_WATER && defined PHYSICS_OCEAN
+            if (materialId != MATERIAL_WATER)
+                material.normal = matTBN * material.normal;
+        #else
             material.normal = matTBN * material.normal;
         #endif
 
@@ -388,16 +405,6 @@
             ApplyFog(finalColor, fogColorFinal, fogFactorFinal, 1.0/255.0);
 
             #ifdef SKY_ENABLED
-                #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                    vec3 viewNear = viewDir * near;
-                    vec3 viewFar = viewDir * min(length(viewPos), far);
-                    vec3 vlExt = vec3(1.0);
-
-                    vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, scatteringF);
-
-                    finalColor.rgb *= vlExt;
-                #endif
-
                 vec3 localViewDir = normalize(localPos);
 
                 float cloudDepthTest = CLOUD_LEVEL - (cameraPosition.y + localPos.y);
@@ -409,7 +416,13 @@
                     float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
                     cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
 
-                    vec3 cloudColor = GetCloudColor(skyLightLevels);
+                    vec3 sunDir = GetSunDir();
+                    float sun_VoL = dot(viewDir, sunDir);
+
+                    vec3 moonDir = GetMoonDir();
+                    float moon_VoL = dot(viewDir, moonDir);
+
+                    vec3 cloudColor = GetCloudColor(skyLightLevels, sun_VoL, moon_VoL);
 
                     cloudF = smoothstep(0.0, 1.0, cloudF);
                     finalColor.rgb = mix(finalColor.rgb, cloudColor, cloudF);
@@ -417,7 +430,13 @@
                 }
 
                 #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                    finalColor.rgb += vlColor;
+                    vec3 viewNear = viewDir * near;
+                    vec3 viewFar = viewDir * min(length(viewPos), far);
+                    vec3 vlExt = vec3(1.0);
+
+                    vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, scatteringF);
+
+                    finalColor.rgb = finalColor.rgb * vlExt + vlColor;
 
                     // TODO: increase alpha with VL?
                 #endif

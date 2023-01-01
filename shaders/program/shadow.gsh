@@ -92,6 +92,44 @@ uniform int renderStage;
 	#include "/lib/shadows/basic.glsl"
 #endif
 
+#ifdef PHYSICS_OCEAN
+    #include "/lib/physicsMod/water.glsl"
+#endif
+
+
+void ApplyCommonProperties(const in int v) {
+	gLocalPos = vLocalPos[v];
+	gTexcoord = vTexcoord[v];
+	gLmcoord = vLmcoord[v];
+	gColor = vColor[v];
+
+	gBlockId = vBlockId[v];
+	gEntityId = vEntityId[v];
+
+	#ifdef SSS_ENABLED
+	    gMaterialSSS = vMaterialSSS[v];
+	#endif
+
+	#if defined RSM_ENABLED || (defined WATER_FANCY)
+	    gViewPos = vViewPos[v];
+	#endif
+
+	#if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
+	    gMatShadowViewTBN = vMatShadowViewTBN[v];
+	#endif
+
+	#ifdef RSM_ENABLED
+	    gMatViewTBN = vMatViewTBN[v];
+	#endif
+
+	#if defined WATER_FANCY && !defined WORLD_NETHER
+	    gWaterMask = vWaterMask[v];
+	#endif
+
+	#ifdef PHYSICS_OCEAN
+		physics_gLocalPosition = physics_vLocalPosition[v];
+	#endif
+}
 
 void main() {
 	#ifdef SHADOW_EXCLUDE_ENTITIES
@@ -136,31 +174,9 @@ void main() {
 			vec2 shadowTilePos = GetShadowCascadeClipPos(c);
 
 			for (int v = 0; v < 3; v++) {
+				ApplyCommonProperties(v);
+
 				gShadowTilePos = shadowTilePos;
-
-				gLocalPos = vLocalPos[v];
-				gTexcoord = vTexcoord[v];
-				gLmcoord = vLmcoord[v];
-				gColor = vColor[v];
-
-				gBlockId = vBlockId[v];
-				gEntityId = vEntityId[v];
-
-				#ifdef SSS_ENABLED
-				    gMaterialSSS = vMaterialSSS[v];
-				#endif
-
-				#if defined RSM_ENABLED || (defined WATER_FANCY)
-				    gViewPos = vViewPos[v];
-				#endif
-
-				#if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
-				    gMatShadowViewTBN = vMatShadowViewTBN[v];
-				#endif
-
-				#ifdef RSM_ENABLED
-				    gMatViewTBN = vMatViewTBN[v];
-				#endif
 
 				gl_Position = matShadowProjections[c] * gl_in[v].gl_Position;
 
@@ -175,29 +191,7 @@ void main() {
 		}
 	#else
 		for (int v = 0; v < 3; v++) {
-			gLocalPos = vLocalPos[v];
-			gTexcoord = vTexcoord[v];
-			gLmcoord = vLmcoord[v];
-			gColor = vColor[v];
-
-			gBlockId = vBlockId[v];
-			gEntityId = vEntityId[v];
-
-			#ifdef SSS_ENABLED
-			    gMaterialSSS = vMaterialSSS[v];
-			#endif
-
-			#if defined RSM_ENABLED || (defined WATER_FANCY)
-			    gViewPos = vViewPos[v];
-			#endif
-
-			#if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
-			    gMatShadowViewTBN = vMatShadowViewTBN[v];
-			#endif
-
-			#ifdef RSM_ENABLED
-			    gMatViewTBN = vMatViewTBN[v];
-			#endif
+			ApplyCommonProperties(v);
 
 			gl_Position = gl_ProjectionMatrix * gl_in[v].gl_Position;
 

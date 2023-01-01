@@ -67,7 +67,14 @@
 
             skyColor += vlColor;// * (1.0 - horizonFogF);
 
-            vec3 cloudColor = GetCloudColor(lightData.skyLightLevels);
+            vec3 sunDir = GetSunDir();
+            float sun_VoL = dot(reflectDir, sunDir);
+
+            vec3 moonDir = GetMoonDir();
+            float moon_VoL = dot(reflectDir, moonDir);
+
+            vec3 cloudColor = GetCloudColor(skyLightLevels, sun_VoL, moon_VoL);
+            
             float cloudF = GetCloudFactor(worldPos, localReflectDir, 4.0);
             cloudF = mix(cloudF, 0.0, pow(horizonFogF, CLOUD_HORIZON_POWER));
             //cloudF *= 1.0 - rough;
@@ -94,6 +101,8 @@
         #else
             vec2 screenUV = gl_FragCoord.xy / viewSize;
         #endif
+
+        //return vec4(viewNormal * 1000.0, 1.0);
 
         #ifdef SKY_ENABLED
             vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor;// * max(lightData.skyLightLevels.x, 0.0);
@@ -173,8 +182,13 @@
             #endif
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                if (shadow > EPSILON)
-                    shadow *= GetShadowing(lightData);
+                if (shadow > EPSILON) {
+                    float shadowF = 1.0 - GetShadowing(lightData);
+
+                    //shadowF *= smoothstep(0.0, 0.06, maxOf(lightData.skyLightLevels));
+
+                    shadow *= 1.0 - shadowF;
+                }
 
                 #ifdef SHADOW_COLOR
                     if (lightData.shadowPos.z - lightData.transparentShadowDepth > lightData.shadowBias)

@@ -15,7 +15,7 @@ const vec4 shadowcolor0ClearColor = vec4(1.0, 1.0, 1.0, 1.0);
 const bool shadowcolor0Clear = true;
 
 const bool shadowcolor1Nearest = true;
-const bool shadowcolor1Clear = false;
+const bool shadowcolor1Clear = true;
 
 const bool generateShadowMipmap = true;
 
@@ -98,6 +98,10 @@ uniform int entityId;
     #include "/lib/world/water.glsl"
 #endif
 
+#ifdef PHYSICS_OCEAN
+    #include "/lib/physicsMod/water.glsl"
+#endif
+
 #ifdef RSM_ENABLED
     #include "/lib/lighting/fresnel.glsl"
     #include "/lib/lighting/brdf.glsl"
@@ -158,30 +162,35 @@ void main() {
 
     #if defined WATER_FANCY && !defined WORLD_NETHER && !defined WORLD_END
         if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && gWaterMask == 1) {
-            //float windSpeed = GetWindSpeed();
-            float skyLight = saturate((gLmcoord.y - (0.5/16.0)) / (15.0/16.0));
-            //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
-            float waveDepth = GetWaveDepth(skyLight);
+            #ifdef PHYSICS_OCEAN
+                float waviness = textureLod(physics_waviness, physics_gLocalPosition.xz / vec2(textureSize(physics_waviness, 0)), 0).r;
+                normal = mat3(gl_ModelViewMatrix) * physics_waveNormal(physics_gLocalPosition.xz, waviness, physics_gameTime);
+            #else
+                //float windSpeed = GetWindSpeed();
+                float skyLight = saturate((gLmcoord.y - (0.5/16.0)) / (15.0/16.0));
+                //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
+                float waveDepth = GetWaveDepth(skyLight);
 
-            float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
-            vec2 waterWorldPos = waterScale * (gLocalPos.xz + cameraPosition.xz);
+                float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
+                vec2 waterWorldPos = waterScale * (gLocalPos.xz + cameraPosition.xz);
 
-            int octaves = WATER_OCTAVES_FAR;
-            #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
-                float viewDist = length(gViewPos);
-                float octaveDistF = saturate(viewDist / WATER_OCTAVES_DIST);
-                octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, octaveDistF));
+                int octaves = WATER_OCTAVES_FAR;
+                #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
+                    float viewDist = length(gViewPos);
+                    float octaveDistF = saturate(viewDist / WATER_OCTAVES_DIST);
+                    octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, octaveDistF));
+                #endif
+
+                float finalDepth = GetWaves(waterWorldPos, waveDepth, octaves);
+                vec3 waterPos = vec3(waterWorldPos.x, waterWorldPos.y, finalDepth);
+                waterPos.z *= waveDepth * WaterWaveDepthF * WATER_NORMAL_STRENGTH;
+
+                normal = normalize(
+                    cross(
+                        dFdy(waterPos),
+                        dFdx(waterPos))
+                    );
             #endif
-
-            float finalDepth = GetWaves(waterWorldPos, waveDepth, octaves);
-            vec3 waterPos = vec3(waterWorldPos.x, waterWorldPos.y, finalDepth);
-            waterPos.z *= waveDepth * WaterWaveDepthF * WATER_NORMAL_STRENGTH;
-
-            normal = normalize(
-                cross(
-                    dFdy(waterPos),
-                    dFdx(waterPos))
-                );
         }
     #endif
 
@@ -241,7 +250,15 @@ void main() {
             vec3 diffuse = vec3(0.0);
         #endif
         
-        vec3 shadowViewNormal = (gMatShadowViewTBN * normal) * 0.5 + 0.5;
+        vec3 shadowViewNormal = normal;
+        #ifdef PHYSICS_OCEAN
+            if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT || gWaterMask != 1)
+                shadowViewNormal = gMatShadowViewTBN * normal;
+        #else
+            shadowViewNormal = gMatShadowViewTBN * normal;
+        #endif
+
+        shadowViewNormal = shadowViewNormal * 0.5 + 0.5;
     #else
         vec3 diffuse = vec3(0.0);
         vec3 shadowViewNormal = vec3(0.0);

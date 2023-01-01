@@ -18,6 +18,14 @@ vec3 GetSunDir() {
     #endif
 }
 
+vec3 GetMoonDir() {
+    #if SHADER_PLATFORM == PLATFORM_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
+        return -GetFixedSunPosition();
+    #else
+        return normalize(moonPosition);
+    #endif
+}
+
 // returns: x:sun y:moon
 vec2 GetSkyLightLevels() {
     vec3 moonLightDir = normalize(moonPosition);

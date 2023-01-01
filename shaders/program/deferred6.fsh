@@ -466,16 +466,6 @@ void main() {
             ApplyFog(color, fogColorFinal, fogFactorFinal);
 
         #ifdef SKY_ENABLED
-            #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                vec3 viewNear = viewDir * near;
-                vec3 viewFar = viewDir * min(length(viewPos), far);
-                vec3 vlExt = vec3(1.0);
-
-                vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, skyScatteringF);
-
-                color *= vlExt;
-            #endif
-
             float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
 
             float cloudDepthTest = CLOUD_LEVEL - (cameraPosition.y + localPos.y);
@@ -490,7 +480,11 @@ void main() {
 
                 vec3 sunDir = GetSunDir();
                 float sun_VoL = dot(viewDir, sunDir);
-                vec3 cloudColor = GetCloudColor(skyLightLevels, sun_VoL);
+
+                vec3 moonDir = GetMoonDir();
+                float moon_VoL = dot(viewDir, moonDir);
+
+                vec3 cloudColor = GetCloudColor(skyLightLevels, sun_VoL, moon_VoL);
 
                 cloudF *= 1.0 - blindness;
 
@@ -498,7 +492,13 @@ void main() {
             }
 
             #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                color += vlColor;
+                vec3 viewNear = viewDir * near;
+                vec3 viewFar = viewDir * min(length(viewPos), far);
+                vec3 vlExt = vec3(1.0);
+
+                vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, skyScatteringF);
+
+                color = color * vlExt + vlColor;
             #endif
         #elif defined SMOKE_ENABLED
             vec3 viewNear = viewDir * near;
