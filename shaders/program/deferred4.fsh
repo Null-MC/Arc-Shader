@@ -15,7 +15,7 @@ uniform float viewWidth;
 uniform float viewHeight;
 
 /* RENDERTARGETS: 3 */
-out float outColor0;
+layout(location = 0) out float outColor0;
 
 
 #define MOD3 vec3(0.1031, 0.11369, 0.13787)

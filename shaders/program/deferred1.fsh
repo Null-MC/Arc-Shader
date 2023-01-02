@@ -15,7 +15,7 @@ uniform float rainStrength;
 #include "/lib/world/water.glsl"
 
 /* RENDERTARGETS: 11 */
-out float outColor0;
+layout(location = 0) out float outColor0;
 
 void main() {
     vec2 pos = WATER_SCALE * ((texcoord - 0.5) + rcp(2.0*WATER_RADIUS) * cameraPosition.xz);

@@ -22,7 +22,7 @@ uniform float nightVision;
 #include "/lib/camera/bloom.glsl"
 
 /* RENDERTARGETS: 14 */
-out vec3 outColor0;
+layout(location = 0) out vec3 outColor0;
 
 
 int GetBloomTileOuterIndex(const in int tileCount) {

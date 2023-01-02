@@ -78,7 +78,7 @@ uniform int entityId;
 #include "/lib/lighting/pbr_gbuffers.glsl"
 
 /* RENDERTARGETS: 2 */
-out uvec4 outColor0;
+layout(location = 0) out uvec4 outColor0;
 
 
 void main() {

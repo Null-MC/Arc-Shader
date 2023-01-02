@@ -259,8 +259,8 @@ uniform float waterFogDistSmooth;
 #include "/lib/lighting/pbr.glsl"
 
 /* RENDERTARGETS: 4,6 */
-out vec4 outColor0;
-out float outColor1;
+layout(location = 0) out vec4 outColor0;
+layout(location = 1) out float outColor1;
 
 
 void main() {

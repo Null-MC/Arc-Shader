@@ -158,8 +158,13 @@
 
                 #if WATER_WAVE_TYPE != WATER_WAVE_NONE
                     #ifdef PHYSICS_OCEAN
+                        float waveScaledIterations = 1.0 - saturate((length(localPos) - 16.0) / 200.0);
+                        float waveIterations = max(12.0, physics_iterationsNormal * (waveScaledIterations * 0.6 + 0.4));
+
                         float waviness = textureLod(physics_waviness, physics_localPosition.xz / vec2(textureSize(physics_waviness, 0)), 0).r;
-                        material.normal = physics_waveNormal(physics_localPosition.xz, waviness, physics_gameTime);
+                        waviness += 0.02 * lightData.skyLight;
+
+                        material.normal = physics_waveNormal(physics_localPosition.xz, waviness, physics_gameTime, waveIterations);
                         material.normal = mat3(gl_ModelViewMatrix) * material.normal;
                     #else
                         vec3 viewUp = normalize(upPosition);
@@ -378,7 +383,13 @@
                 lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
                 lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos, vec2(0.0));
 
-                lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.shadowPos.z, 0.0) * 3.0 * far;
+                #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                    const float maxShadowDepth = 512.0;
+                #else
+                    const float maxShadowDepth = 256.0;
+                #endif
+
+                lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.shadowPos.z, 0.0) * maxShadowDepth;
             #endif
         #endif
 

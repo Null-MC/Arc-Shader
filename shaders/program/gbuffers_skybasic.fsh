@@ -45,8 +45,8 @@ uniform int moonPhase;
 #include "/lib/world/scattering.glsl"
 
 /* RENDERTARGETS: 4,6 */
-out vec3 outColor0;
-out float outColor1;
+layout(location = 0) out vec3 outColor0;
+layout(location = 1) out float outColor1;
 
 
 void main() {

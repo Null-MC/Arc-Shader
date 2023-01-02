@@ -16,7 +16,7 @@ flat in float tangentW;
 flat in mat2 atlasBounds;
 
 /* RENDERTARGETS: 2 */
-out uvec4 outColor0;
+layout(location = 0) out uvec4 outColor0;
 
 
 void main() {

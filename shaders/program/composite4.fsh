@@ -24,7 +24,7 @@ uniform float far;
 #include "/lib/depth.glsl"
 
 /* RENDERTARGETS: 4 */
-out vec3 outColor0;
+layout(location = 0) out vec3 outColor0;
 
 
 // https://www.shadertoy.com/view/lstBDl

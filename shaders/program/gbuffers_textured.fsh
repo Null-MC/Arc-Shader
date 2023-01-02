@@ -183,8 +183,8 @@ uniform float waterFogDistSmooth;
 #include "/lib/lighting/basic_forward.glsl"
 
 /* RENDERTARGETS: 4,6 */
-out vec4 outColor0;
-out vec4 outColor1;
+layout(location = 0) out vec4 outColor0;
+layout(location = 1) out vec4 outColor1;
 
 
 void main() {

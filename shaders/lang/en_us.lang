@@ -85,6 +85,11 @@ option.VL_SAMPLES_WATER=VL Samples
 option.WATER_WAVE_DEPTH=Wave Depth
 suffix.WATER_WAVE_DEPTH=%
 
+option.WATER_CAMERA_BLUR=Blur
+value.WATER_CAMERA_BLUR.0=Off
+value.WATER_CAMERA_BLUR.1=Low
+value.WATER_CAMERA_BLUR.2=High
+
 
 screen.MATERIAL_OPTIONS=Materials
 screen.MATERIAL_OPTIONS.comment=Options for PBR materials.

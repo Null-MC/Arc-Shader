@@ -8,7 +8,7 @@
 uniform sampler2D BUFFER_HDR;
 
 /* RENDERTARGETS: 7 */
-out vec4 outColor0;
+layout(location = 0) out vec4 outColor0;
 
 
 void main() {

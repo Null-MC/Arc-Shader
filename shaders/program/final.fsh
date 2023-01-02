@@ -122,6 +122,10 @@ uniform float far;
     // Sun Transmission LUT
     uniform sampler2D colortex7;
 #else
+    uniform float frameTimeCounter;
+    uniform float aspectRatio;
+    uniform int isEyeInWater;
+
     uniform sampler2D BUFFER_HDR;
 
     #ifdef BLOOM_ENABLED
@@ -132,12 +136,13 @@ uniform float far;
 
     #include "/lib/sampling/bayer.glsl"
     #include "/lib/camera/tonemap.glsl"
+    #include "/lib/camera/wetness.glsl"
 #endif
 
 vec2 viewSize;
 
 /* RENDERTARGETS: 0 */
-out vec3 outColor0;
+layout(location = 0) out vec3 outColor0;
 
 
 #ifdef DEBUG_EXPOSURE_METERS
@@ -172,9 +177,27 @@ out vec3 outColor0;
     }
 
     vec3 GetFinalColor() {
-        vec3 color = MC_RENDER_QUALITY == 1.0
-            ? texelFetch(BUFFER_HDR, ivec2(texcoord * viewSize), 0).rgb
-            : textureLod(BUFFER_HDR, texcoord, 0).rgb;
+        vec2 texFinal = texcoord;
+        vec3 color;
+
+        if (isEyeInWater == 1) {
+            texFinal = GetWetnessSkew(texcoord);
+        }
+
+        #if WATER_CAMERA_BLUR > 0
+            if (isEyeInWater == 1) {
+                color = SampleWetnessBlurred(BUFFER_HDR, texFinal);
+            }
+            else {
+        #endif
+
+            color = MC_RENDER_QUALITY == 1.0
+                ? texelFetch(BUFFER_HDR, ivec2(texFinal * viewSize), 0).rgb
+                : textureLod(BUFFER_HDR, texFinal, 0).rgb;
+
+        #if WATER_CAMERA_BLUR > 0
+            }
+        #endif
 
         //float lum = texelFetch(BUFFER_LUMINANCE, itex, 0).r;
 
@@ -184,7 +207,7 @@ out vec3 outColor0;
                 vec2 tileMin, tileMax;
                 GetBloomTileInnerBounds(i, tileMin, tileMax);
 
-                vec2 tileTex = texcoord * (tileMax - tileMin) + tileMin;
+                vec2 tileTex = texFinal * (tileMax - tileMin) + tileMin;
                 tileTex = clamp(tileTex, tileMin, tileMax);
 
                 bloom += textureLod(BUFFER_BLOOM, tileTex, 0).rgb;

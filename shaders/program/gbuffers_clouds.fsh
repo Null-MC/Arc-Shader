@@ -5,8 +5,8 @@
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
 
-/* RENDERTARGETS: 0 */
-
+/* RENDERTARGETS: 4 */
+layout(location = 0) out vec4 outColor0;
 
 void main() {
     discard;

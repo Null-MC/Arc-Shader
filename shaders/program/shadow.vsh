@@ -185,15 +185,15 @@ void main() {
         
             physics_vLocalPosition = vLocalPos;
             float waviness = textureLod(physics_waviness, vLocalPos.xz / vec2(textureSize(physics_waviness, 0)), 0).r;
-            float depth = physics_waveHeight(vLocalPos.xz, PHYSICS_ITERATIONS_OFFSET, waviness, physics_gameTime);
+            float depth = physics_waveHeight(vLocalPos, PHYSICS_ITERATIONS_OFFSET, waviness, physics_gameTime);
             vLocalPos.y += depth;
 
             #ifndef WATER_FANCY
-                vec2 waterWorldPosX = worldPos.xz + vec2(1.0, 0.0);
+                vec3 waterWorldPosX = worldPos + vec3(1.0, 0.0, 0.0);
                 float depthX = physics_waveHeight(waterWorldPosX, PHYSICS_ITERATIONS_OFFSET, waviness, physics_gameTime);
                 vec3 pX = vec3(1.0, 0.0, depthX - depth);
 
-                vec2 waterWorldPosY = worldPos.xz + vec2(0.0, 1.0);
+                vec3 waterWorldPosY = worldPos + vec3(0.0, 0.0, 1.0);
                 float depthY = physics_waveHeight(waterWorldPosY, PHYSICS_ITERATIONS_OFFSET, waviness, physics_gameTime);
                 vec3 pY = vec3(0.0, 1.0, depthY - depth);
 

@@ -14,19 +14,11 @@ deferred7	opaque copy
 <particles?>
 
 
---composite1	transparent blend
---composite2	depth tiles
---composite3	VL
---composite4	VL Blur
-composite4	Depth-of-Field
-composite5	copy previous-frame = RGB: pre-exposed color
-composite6	Bloom threshold/downsampling
-composite7	Bloom Blur H
-composite8	Bloom Blur V
+--composite3	depth tiles
+composite4		Depth-of-Field
+composite5		copy previous-frame = RGB: pre-exposed color
+composite6		Bloom threshold/downsampling
+composite7		Bloom Blur H
+composite8		Bloom Blur V
 
----composite1	Bloom threshold/downsampling
----composite2	Bloom Blur H
----composite3	Bloom Blur V
----composite4	copy previous-frame = RGB: pre-exposed color; depth-tiles
-
-final		Bloom combine; tonemap; Debug view
+final			Bloom combine; tonemap; Debug view

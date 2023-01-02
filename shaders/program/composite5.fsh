@@ -35,9 +35,9 @@ uniform float viewHeight;
 uniform float frameTime;
 
 /* RENDERTARGETS: 5,12 */
-out vec4 outColor0;
+layout(location = 0) out vec4 outColor0;
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-    out float outColor1;
+    layout(location = 1) out float outColor1;
 #endif
 
 

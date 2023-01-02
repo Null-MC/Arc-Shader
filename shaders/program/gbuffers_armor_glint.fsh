@@ -12,7 +12,7 @@ uniform sampler2D lightmap;
 uniform sampler2D gtexture;
 
 /* RENDERTARGETS: 0 */
-out vec4 outColor0;
+layout(location = 0) out vec4 outColor0;
 
 
 void main() {

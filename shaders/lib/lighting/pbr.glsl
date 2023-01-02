@@ -632,7 +632,8 @@
                     vec3 viewAbsorption = exp(-waterViewDepthFinal * waterExtinctionInv);
 
                     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                        if (waterGeoNoL <= 0.0 || waterOpaqueShadowDepth < waterOpaqueShadowPos.z - waterShadowBias)
+                        //if (waterGeoNoL <= 0.0 || waterOpaqueShadowDepth < waterOpaqueShadowPos.z - waterShadowBias)
+                        if (waterOpaqueShadowDepth < waterOpaqueShadowPos.z - waterShadowBias)
                             sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - ShadowBrightnessF);
                     #endif
 

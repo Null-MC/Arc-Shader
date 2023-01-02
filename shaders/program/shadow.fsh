@@ -108,12 +108,12 @@ uniform int entityId;
 #endif
 
 /* RENDERTARGETS: 0,1 */
-//#if defined SHADOW_COLOR || (defined SSS_ENABLED && !defined RSM_ENABLED)
-    out vec4 outColor0;
-//#endif
-//#if defined RSM_ENABLED || (defined SSS_ENABLED && defined SHADOW_COLOR) || (defined WATER_FANCY && defined VL_WATER_ENABLED)
-    out uvec2 outColor1;
-//#endif
+#if defined SHADOW_COLOR || (defined SSS_ENABLED && !defined RSM_ENABLED)
+    layout(location = 0) out vec4 outColor0;
+#endif
+#if defined RSM_ENABLED || (defined SSS_ENABLED && defined SHADOW_COLOR) || (defined WATER_FANCY && defined VL_WATER_ENABLED)
+    layout(location = 1) out uvec2 outColor1;
+#endif
 
 
 void main() {
@@ -209,7 +209,7 @@ void main() {
             }
         //#endif
 
-        #ifndef SHADOW_COLOR
+        #if !defined SHADOW_COLOR && defined SSS_ENABLED && !defined RSM_ENABLED
             // blending SSS is probably bad, should just ignore transparent
             outColor0 = vec4(sss, 0.0, 0.0, sampleColor.a);
         #endif

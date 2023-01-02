@@ -31,7 +31,7 @@ uniform sampler2D gtexture;
 #endif
 
 /* RENDERTARGETS: 2 */
-out uvec4 outColor0;
+layout(location = 0) out uvec4 outColor0;
 
 
 void main() {

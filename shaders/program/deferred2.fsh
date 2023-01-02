@@ -57,8 +57,8 @@ uniform float far;
 #include "/lib/rsm.glsl"
 
 /* RENDERTARGETS: 8,9 */
-out vec3 outColor0;
-out float outColor1;
+layout(location = 0) out vec3 outColor0;
+layout(location = 1) out float outColor1;
 
 
 void main() {
