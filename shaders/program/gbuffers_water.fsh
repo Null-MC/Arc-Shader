@@ -229,16 +229,6 @@ uniform float waterFogDistSmooth;
     #include "/lib/sky/stars.glsl"
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-        #if SHADOW_PCF_SAMPLES == 6
-            #include "/lib/sampling/poisson_6.glsl"
-        #elif SHADOW_PCF_SAMPLES == 12
-            #include "/lib/sampling/poisson_12.glsl"
-        #elif SHADOW_PCF_SAMPLES == 24
-            #include "/lib/sampling/poisson_24.glsl"
-        #elif SHADOW_PCF_SAMPLES == 36
-            #include "/lib/sampling/poisson_36.glsl"
-        #endif
-
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             #include "/lib/shadows/csm.glsl"
             #include "/lib/shadows/csm_render.glsl"

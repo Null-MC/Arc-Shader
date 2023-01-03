@@ -165,7 +165,7 @@ vec2 GetWaterScattering(const in vec3 viewDir) {
     #endif
 }
 
-vec3 GetWaterFogColor(const in vec3 viewDir, const in vec3 sunColorFinal, const in vec3 moonColorFinal, const in vec2 scatteringF) {
+vec3 GetWaterFogColor(const in vec3 sunColorFinal, const in vec3 moonColorFinal, const in vec2 scatteringF) {
     #ifdef SKY_ENABLED
         vec3 waterFogColor = vec3(0.0);
 

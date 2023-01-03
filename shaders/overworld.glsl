@@ -2,6 +2,7 @@
 #define SHADOW_ENABLED
 //#define WIND_ENABLED
 #define SKY_ENABLED
+#define WATER_ENABLED
 
 #define FOG_AREA_LUMINANCE 200.0
 

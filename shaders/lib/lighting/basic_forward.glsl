@@ -11,7 +11,9 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
         #if defined SHADOW_PARTICLES || (!defined RENDER_TEXTURED && !defined RENDER_WEATHER)
             if (shadow > EPSILON) {
                 shadow *= GetShadowing(lightData);
-                skyLight = max(skyLight, shadow);
+
+                if (isEyeInWater != 1)
+                    skyLight = max(skyLight, shadow);
             }
 
             #ifdef SHADOW_COLOR
@@ -49,16 +51,34 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
     vec3 ambient = vec3(MinWorldLux);
     vec3 diffuse = albedo.rgb * pow3(lightData.blockLight) * blockLightColor;
 
+    vec3 waterExtinctionInv = WATER_ABSROPTION_RATE * (1.0 - waterAbsorbColor);
+
     //vec3 skyAmbient = vec3(pow(skyLight, 5.0));
     #ifdef SKY_ENABLED
-        float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength) * ShadowBrightnessF;
-        ambient += GetSkyAmbientLight(lightData, viewNormal) * ambientBrightness;
+        //float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength) * ShadowBrightnessF;
+        //ambient += GetSkyAmbientLight(lightData, viewNormal) * ambientBrightness;
 
         #ifndef RENDER_WEATHER
-            vec3 sunColorFinal = lightData.sunTransmittance * sunColor * max(lightData.skyLightLevels.x, 0.0);// * GetSunLux();
-            vec3 moonColorFinal = lightData.moonTransmittance * moonColor * max(lightData.skyLightLevels.y, 0.0) * GetMoonPhaseLevel();// * GetMoonLux();
-            vec3 skyLightColor = sunColorFinal + moonColorFinal;
-            diffuse += albedo.rgb * lightData.geoNoL * skyLightColor * shadowColor * shadow * skyLight3;
+            vec3 sunColorFinal = lightData.sunTransmittance * sunColor;// * GetSunLux();
+            vec3 moonColorFinal = lightData.moonTransmittance * moonColor * GetMoonPhaseLevel();// * GetMoonLux();
+            vec3 skyLightColor = 0.2 * (sunColorFinal + moonColorFinal);
+
+            if (isEyeInWater == 1) {
+                vec3 sunAbsorption = exp(-max(lightData.waterShadowDepth, 0.0) * waterExtinctionInv);
+
+                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                    if (lightData.opaqueShadowDepth < lightData.shadowPos[lightData.opaqueShadowCascade].z - lightData.shadowBias[lightData.opaqueShadowCascade])
+                        sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - ShadowBrightnessF);
+                #else
+                    if (lightData.opaqueShadowDepth < lightData.shadowPos.z - lightData.shadowBias)
+                        sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - ShadowBrightnessF);
+                #endif
+
+                ambient *= sunAbsorption;
+                skyLightColor *= sunAbsorption;
+            }
+
+            diffuse += albedo.rgb * lightData.geoNoL * skyLightColor * shadowColor * shadow;
         #endif
     #endif
 
@@ -74,41 +94,69 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
     final.rgb *= ambient;
     final.rgb += diffuse;
 
-    vec3 viewDir = normalize(viewPos);
+    float viewDist = length(viewPos);
+    vec3 viewDir = viewPos / viewDist;
 
     #ifdef SKY_ENABLED
-        vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor * max(lightData.skyLightLevels.x, 0.0);
-        vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * GetMoonPhaseLevel() * max(lightData.skyLightLevels.y, 0.0);
+        vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor;
+        vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * GetMoonPhaseLevel();
+
+        #ifdef RENDER_WEATHER
+            vec3 sunDir = normalize(sunPosition);
+            float sun_VoL = dot(viewDir, sunDir);
+            float rainSnowSunVL = mix(
+                ComputeVolumetricScattering(sun_VoL, -0.6),
+                ComputeVolumetricScattering(sun_VoL, 0.86),
+                0.1);
+
+            vec3 moonDir = normalize(moonPosition);
+            float moon_VoL = dot(viewDir, moonDir);
+            float rainSnowMoonVL = mix(
+                ComputeVolumetricScattering(moon_VoL, -0.6),
+                ComputeVolumetricScattering(moon_VoL, 0.86),
+                0.1);
+
+            vec3 weatherLightColor = 3.0 * 
+                max(rainSnowSunVL, 0.0) * sunColorFinalEye +
+                max(rainSnowMoonVL, 0.0) * moonColorFinalEye;
+
+            //float alpha = mix(WEATHER_OPACITY * 0.01, 1.0, saturate(max(rainSnowSunVL, rainSnowMoonVL)));
+
+            final.rgb += albedo.rgb * weatherLightColor * shadow;
+            final.a = albedo.a * rainStrength * (WEATHER_OPACITY * 0.01);
+        #else
+            if (isEyeInWater == 1) {
+                vec3 viewAbsorption = exp(-viewDist * waterExtinctionInv);
+                final.rgb *= viewAbsorption;
+            }
+        #endif
     #endif
 
-    #ifdef RENDER_WEATHER
-        vec3 sunDir = normalize(sunPosition);
-        float sun_VoL = dot(viewDir, sunDir);
-        float rainSnowSunVL = mix(
-            ComputeVolumetricScattering(sun_VoL, -0.6),
-            ComputeVolumetricScattering(sun_VoL, 0.86),
-            0.1);
+    if (isEyeInWater == 1) {
+        //return vec4(1000.0, 0.0, 0.0, 1.0);
 
-        vec3 moonDir = normalize(moonPosition);
-        float moon_VoL = dot(viewDir, moonDir);
-        float rainSnowMoonVL = mix(
-            ComputeVolumetricScattering(moon_VoL, -0.6),
-            ComputeVolumetricScattering(moon_VoL, 0.86),
-            0.1);
+        vec3 waterSunColorEye = sunColorFinalEye * max(lightData.skyLightLevels.x, 0.0);
+        vec3 waterMoonColorEye = moonColorFinalEye * max(lightData.skyLightLevels.y, 0.0);
 
-        vec3 weatherLightColor = 3.0 * 
-            max(rainSnowSunVL, 0.0) * sunColorFinalEye +
-            max(rainSnowMoonVL, 0.0) * moonColorFinalEye;
+        vec2 waterScatteringF = GetWaterScattering(viewDir);
 
-        //float alpha = mix(WEATHER_OPACITY * 0.01, 1.0, saturate(max(rainSnowSunVL, rainSnowMoonVL)));
+        #ifdef SKY_ENABLED
+            vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
+        #else
+            vec3 waterFogColor = vec3(0.0);
+        #endif
 
-        final.rgb += albedo.rgb * weatherLightColor * shadow;
-        final.a = albedo.a * rainStrength * (WEATHER_OPACITY * 0.01);
-    #endif
+        ApplyWaterFog(final.rgb, waterFogColor, viewDist);
 
-    if (isEyeInWater != 1) {
+        #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined VL_WATER_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+            vec3 nearViewPos = viewDir * near;
+            vec3 farViewPos = viewDir * min(viewDist, waterFogDistSmooth);
+
+            final.rgb += GetWaterVolumetricLighting(lightData, nearViewPos, farViewPos, waterScatteringF);
+        #endif
+    }
+    else {
         #if !defined SKY_ENABLED || !defined VL_SKY_ENABLED
-            float viewDist = length(viewPos);
             final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
         #endif
 

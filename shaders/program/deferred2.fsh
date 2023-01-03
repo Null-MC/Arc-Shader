@@ -44,16 +44,6 @@ uniform float far;
     #include "/lib/shadows/basic.glsl"
 #endif
 
-#if RSM_SAMPLE_COUNT == 400
-    #include "/lib/sampling/rsm_400.glsl"
-#elif RSM_SAMPLE_COUNT == 200
-    #include "/lib/sampling/rsm_200.glsl"
-#elif RSM_SAMPLE_COUNT == 100
-    #include "/lib/sampling/rsm_100.glsl"
-#else
-    #include "/lib/sampling/rsm_35.glsl"
-#endif
-
 #include "/lib/rsm.glsl"
 
 /* RENDERTARGETS: 8,9 */

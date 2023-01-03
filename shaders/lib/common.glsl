@@ -136,7 +136,7 @@ const bool colortex14Clear = false;
 #define SSS_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define SSS_MAXDIST 7 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
 #define SSS_PCF_SIZE 0.08 // [0.02 0.04 0.06 0.08 0.1 0.2 0.3 0.4 0.5 0.6 0.8 1.0]
-#define SSS_PCF_SAMPLES 6 // [6 12 24 36]
+#define SSS_PCF_SAMPLES 6 // [2 4 6 8 10 15 20]
 //#define SSR_HIZ
 //#define SSS_NORMALIZE_ALBEDO
 

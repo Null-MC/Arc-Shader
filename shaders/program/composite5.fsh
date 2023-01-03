@@ -1,97 +1,76 @@
 #define RENDER_FRAG
 #define RENDER_COMPOSITE
-//#define RENDER_COMPOSITE_PREV_FRAME
+//#define RENDER_COMPOSITE_DOF
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
 
 in vec2 texcoord;
 
-#if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-    flat in float eyeLum;
-#endif
-
+uniform sampler2D depthtex0;
 uniform sampler2D BUFFER_HDR;
+
+uniform float centerDepthSmooth;
+//uniform int isEyeInWater;
+uniform float viewWidth;
+uniform float viewHeight;
+uniform float near;
+uniform float far;
 
 #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
     uniform sampler2D BUFFER_LUMINANCE;
 #endif
 
-#if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-    uniform sampler2D BUFFER_HDR_PREVIOUS;
-#endif
+#include "/lib/depth.glsl"
 
-#if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-    uniform sampler2D depthtex0;
+/* RENDERTARGETS: 4 */
+layout(location = 0) out vec3 outColor0;
 
-    #ifdef SSR_IGNORE_HAND
-        uniform sampler2D depthtex1;
-        uniform sampler2D depthtex2;
-    #endif
-#endif
 
-uniform float viewWidth;
-uniform float viewHeight;
-uniform float frameTime;
+// https://www.shadertoy.com/view/lstBDl
 
-/* RENDERTARGETS: 5,12 */
-layout(location = 0) out vec4 outColor0;
-#if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-    layout(location = 1) out float outColor1;
-#endif
-
+float getBlurSize(const in float depth, const in float focusPoint, const in float focusScale) {
+    float coc = rcp(focusPoint) - rcp(depth);
+    return saturate(abs(coc) * focusScale) * DOF_MAX_SIZE;
+}
 
 void main() {
-    const int scaleLod = int(log2(SSR_SCALE));
-    vec3 color = texelFetch(BUFFER_HDR, ivec2(gl_FragCoord.xy), scaleLod).rgb;
-    float lum = 0.0;
+    float focusPoint = linearizeDepthFast(centerDepthSmooth, near, far);
 
-    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-        #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-            lum = eyeLum;
-        #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            lum = textureLod(BUFFER_LUMINANCE, texcoord, 0).r;
-            lum = max(exp2(lum) - EPSILON, 0.0);
-        #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_HISTOGRAM
-            lum = 0.0;
-        #endif
+    // TODO: make dynamic based on focus distance
+    float focusScale = DOF_SCALE; //clamp(0.1 * focusPoint, 1.0, 20.0); //4.0;
+    
+    vec3 color = textureLod(BUFFER_HDR, texcoord, 0).rgb;
+    float centerDepth = textureLod(depthtex0, texcoord, 0).r;
+    centerDepth = linearizeDepthFast(centerDepth, near, far);
 
-        float lumPrev = texelFetch(BUFFER_HDR_PREVIOUS, ivec2(gl_FragCoord.xy), 0).a;
+    float centerSize = getBlurSize(centerDepth, focusPoint, focusScale);
+    
+    vec2 viewSize = vec2(viewWidth, viewHeight);
+    vec2 texelSize = rcp(viewSize);
+    float radius = DOF_STEP_SIZE;
+    float tot = 1.0;
 
-        lumPrev = max(exp2(lumPrev) - EPSILON, 0.0);
+    for (float ang = 0.0; radius < DOF_MAX_SIZE; ang += GOLDEN_ANGLE) {
+        vec2 tc = texcoord + vec2(cos(ang), sin(ang)) * texelSize * radius;
+        
+        vec3 sampleColor = textureLod(BUFFER_HDR, tc, 0).rgb;
+        float sampleDepth = textureLod(depthtex0, tc, 0).r;
+        sampleDepth = linearizeDepthFast(sampleDepth, near, far);
 
-        lum = clamp(lum, 0.0, 1.0e6);
-        lumPrev = clamp(lumPrev, 0.0, 1.0e6);
+        float sampleSize = getBlurSize(sampleDepth, focusPoint, focusScale);
+        
+        if (sampleDepth > centerDepth)
+            sampleSize = clamp(sampleSize, 0.0, centerSize*2.0);
 
-        float dir = step(lumPrev, lum);
-        float speed = (1.0 - dir) * EXPOSURE_SPEED_DOWN + dir * EXPOSURE_SPEED_UP;
+        float m = smoothstep(radius-0.5, radius+0.5, sampleSize);
+        color += mix(color / tot, sampleColor, m);
+        radius += DOF_STEP_SIZE / radius;
 
-        lum = lumPrev + (lum - lumPrev) * max(1.0 - exp(-frameTime * speed), 0.01);
-        lum = log2(lum + EPSILON);
-    #endif
+        tot += 1.0;
+    }
+    
+    color /= tot;
 
-    outColor0 = vec4(color, lum);
-
-    #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-        #if SSR_QUALITY == 2
-            ivec2 iuv = ivec2(gl_FragCoord.xy * SSR_SCALE);
-            float depth = texelFetch(depthtex0, iuv, 0).r;
-        #else
-            float depth = minOf(textureGather(depthtex0, texcoord, 0));
-        #endif
-
-        #ifdef SSR_IGNORE_HAND
-            #if SSR_QUALITY == 2
-                float depthT1 = texelFetch(depthtex1, iuv, 0).r;
-                float depthT2 = texelFetch(depthtex2, iuv, 0).r;
-            #else
-                float depthT1 = minOf(textureGather(depthtex1, texcoord, 0));
-                float depthT2 = minOf(textureGather(depthtex2, texcoord, 0));
-            #endif
-
-            depth = max(depth, step(EPSILON, abs(depthT2 - depthT1)));
-        #endif
-
-        outColor1 = depth;
-    #endif
+    outColor0 = color;
 }

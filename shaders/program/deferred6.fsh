@@ -196,16 +196,6 @@ uniform float waterFogDistSmooth;
 
 #ifdef SKY_ENABLED
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-        #if SHADOW_PCF_SAMPLES == 6
-            #include "/lib/sampling/poisson_6.glsl"
-        #elif SHADOW_PCF_SAMPLES == 12
-            #include "/lib/sampling/poisson_12.glsl"
-        #elif SHADOW_PCF_SAMPLES == 24
-            #include "/lib/sampling/poisson_24.glsl"
-        #elif SHADOW_PCF_SAMPLES == 36
-            #include "/lib/sampling/poisson_36.glsl"
-        #endif
-
         #if SHADOW_TYPE == SHADOW_TYPE_BASIC
             #include "/lib/shadows/basic.glsl"
             #include "/lib/shadows/basic_render.glsl"
@@ -237,16 +227,6 @@ uniform float waterFogDistSmooth;
 #endif
 
 #if defined RSM_ENABLED && defined RSM_UPSCALE
-    #if RSM_SAMPLE_COUNT == 400
-        #include "/lib/sampling/rsm_400.glsl"
-    #elif RSM_SAMPLE_COUNT == 200
-        #include "/lib/sampling/rsm_200.glsl"
-    #elif RSM_SAMPLE_COUNT == 100
-        #include "/lib/sampling/rsm_100.glsl"
-    #else
-        #include "/lib/sampling/rsm_35.glsl"
-    #endif
-
     #include "/lib/rsm.glsl"
 #endif
 
@@ -410,7 +390,7 @@ void main() {
         if (isEyeInWater == 1) {
             #ifdef SKY_ENABLED
                 vec2 waterScatteringF = GetWaterScattering(viewDir);
-                color = GetWaterFogColor(viewDir, sunColorFinalEye, moonColorFinalEye, waterScatteringF);
+                color = GetWaterFogColor(sunColorFinalEye, moonColorFinalEye, waterScatteringF);
 
                 #if defined VL_WATER_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                     vec3 nearPos = viewDir * near;

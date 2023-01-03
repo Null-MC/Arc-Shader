@@ -209,7 +209,7 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in vec2 shadowProje
             if (cascade < 0) return 1.0;
             
             // blocker search
-            int blockerSampleCount = POISSON_SAMPLES;
+            int blockerSampleCount = SHADOW_PCF_SAMPLES;
             vec2 blockerPixelRadius = GetPixelRadius(cascade, shadowPcfSize);
             float blockerDistance = FindBlockerDistance(lightData, blockerPixelRadius, blockerSampleCount, cascade);
             if (blockerDistance <= 0.0) return 1.0;
@@ -221,7 +221,7 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in vec2 shadowProje
             // percentage-close filtering
             float blockRadius = min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0) * shadowPcfSize; // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
 
-            int pcfSampleCount = POISSON_SAMPLES;
+            int pcfSampleCount = SHADOW_PCF_SAMPLES;
             vec2 pixelRadius = GetPixelRadius(cascade, blockRadius);
             //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) pcfSampleCount = 1;
 
@@ -233,7 +233,7 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in vec2 shadowProje
             int cascade = lightData.opaqueShadowCascade; //GetShadowSampleCascade(lightData.shadowPos, lightData.shadowProjectionSize, shadowPcfSize);
             if (cascade < 0) return 1.0;
 
-            int sampleCount = POISSON_SAMPLES;
+            int sampleCount = SHADOW_PCF_SAMPLES;
             vec2 pixelRadius = GetPixelRadius(cascade, shadowPcfSize);
             //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 

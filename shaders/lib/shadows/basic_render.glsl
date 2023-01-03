@@ -46,9 +46,12 @@
         float GetShadowing_PCF(const in LightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
             float shadow = 0.0;
             for (int i = 0; i < sampleCount; i++) {
-                vec2 pixelOffset = (hash23(vec3(gl_FragCoord.xy, i))*2.0 - 1.0) * pixelRadius;
+                vec2 offset = hash23(vec3(gl_FragCoord.xy, i))*2.0 - 1.0;
+
+                //if (dot(offset, offset) > pow2(0.8))
+                //    offset = (1.0 - (offset * 0.5 + 0.5)) * 2.0 - 1.0;
                 
-                shadow += 1.0 - CompareOpaqueDepth(lightData.shadowPos, pixelOffset, lightData.shadowBias);
+                shadow += 1.0 - CompareOpaqueDepth(lightData.shadowPos, offset * pixelRadius, lightData.shadowBias);
             }
 
             return 1.0 - shadow / sampleCount;
@@ -82,8 +85,8 @@
         float GetShadowing(const in LightData lightData) {
             const float shadowPcfSize = SHADOW_PCF_SIZE * 0.01;
             
-            int blockerSampleCount = POISSON_SAMPLES;
-            int pcfSampleCount = POISSON_SAMPLES;
+            int blockerSampleCount = SHADOW_PCF_SAMPLES;
+            int pcfSampleCount = SHADOW_PCF_SAMPLES;
 
             // blocker search
             vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, shadowPcfSize);
@@ -107,7 +110,7 @@
         float GetShadowing(const in LightData lightData) {
             const float shadowPcfSize = SHADOW_PCF_SIZE * 0.01;
 
-            int sampleCount = POISSON_SAMPLES;
+            int sampleCount = SHADOW_PCF_SAMPLES;
             vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, shadowPcfSize);
             if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
@@ -143,12 +146,14 @@
                 float light = 0.0;
                 float maxWeight = 0.0;
                 for (int i = 0; i < sampleCount; i++) {
-                    vec2 pixelOffset = poissonDisk[i] * pixelRadius;
+                    vec2 offset = hash23(vec3(gl_FragCoord.xy, i))*2.0 - 1.0;
 
-                    float texDepth = SampleOpaqueDepth(lightData.shadowPos, pixelOffset);
+                    float weight = 1.0 - saturate(dot(offset, offset));
 
-                    float weight = 1.0 - saturate(dot(poissonDisk[i], poissonDisk[i]));
                     maxWeight += weight;
+
+                    vec2 pixelOffset = offset * pixelRadius;
+                    float texDepth = SampleOpaqueDepth(lightData.shadowPos, pixelOffset);
 
                     if (texDepth < lightData.shadowPos.z + lightData.shadowBias)
                         weight *= SampleShadowSSS(lightData.shadowPos.xy + pixelOffset);

@@ -6,6 +6,7 @@
     const float PHYSICS_W_DETAIL = 0.75;
     const float PHYSICS_FREQUENCY = 6.0;
     const float PHYSICS_SPEED = 2.0;
+    const float PHYSICS_WEIGHT = 0.8;
     const float PHYSICS_FREQUENCY_MULT = 1.18;
     const float PHYSICS_SPEED_MULT = 1.07;
     const float PHYSICS_ITER_INC = 12.0;
@@ -27,6 +28,9 @@
 
     // basic texture to determine how shallow/far away from the shore the water is
     uniform sampler2D physics_waviness;
+
+    // basic scale for the horizontal size of the waves
+    uniform float physics_oceanWaveHorizontalScale;
 #endif
 
 #ifdef RENDER_SHADOW
@@ -54,7 +58,7 @@
 
 #ifdef RENDER_VERTEX
     float physics_waveHeight(const in vec3 position, const in float iterations, const in float factor, const in float time) {
-        vec2 wavePos = (position.xz - physics_waveOffset) * PHYSICS_XZ_SCALE;
+        vec2 wavePos = (position.xz - physics_waveOffset) * PHYSICS_XZ_SCALE * physics_oceanWaveHorizontalScale;
     	float iter = 0.0;
         float frequency = PHYSICS_FREQUENCY;
         float speed = PHYSICS_SPEED;
@@ -74,7 +78,7 @@
             height += wave * weight;
             iter += PHYSICS_ITER_INC;
             waveSum += weight;
-            weight *= 0.8;
+            weight *= PHYSICS_WEIGHT;
             frequency *= PHYSICS_FREQUENCY_MULT;
             speed *= PHYSICS_SPEED_MULT;
         }
@@ -89,7 +93,7 @@
 
 #ifdef RENDER_FRAG
     vec2 physics_waveDirection(const in vec2 position, const in float iterations, const in float time) {
-        vec2 wavePos = (position - physics_waveOffset) * PHYSICS_XZ_SCALE;
+        vec2 wavePos = (position - physics_waveOffset) * PHYSICS_XZ_SCALE * physics_oceanWaveHorizontalScale;
     	float iter = 0.0;
         float frequency = PHYSICS_FREQUENCY;
         float speed = PHYSICS_SPEED;

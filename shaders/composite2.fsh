@@ -1,4 +1,4 @@
 #version 400 compatibility
 
 #include "overworld.glsl"
-#include "/program/composite4.vsh"
+#include "/program/composite2.fsh"

@@ -1,4 +1,4 @@
-#define RENDER_COMPOSITE_BLOOM_BLUR_V
+#define RENDER_COMPOSITE_BLOOM_BLUR_H
 #define RENDER_COMPOSITE
 #define RENDER_FRAG
 
@@ -19,7 +19,7 @@ uniform float viewHeight;
     #include "/lib/sampling/gaussian_7.glsl"
 #endif
 
-const vec2 direction = vec2(0.0, 1.0);
+const vec2 direction = vec2(1.0, 0.0);
 
 /* RENDERTARGETS: 4 */
 layout(location = 0) out vec3 outColor0;

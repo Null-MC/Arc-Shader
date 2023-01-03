@@ -38,7 +38,7 @@
                 if (materialId == MATERIAL_WATER && isEyeInWater == 1) {
                     vec2 waterScatteringF = GetWaterScattering(reflectDir);
                     //vec3 waterLightColor = GetWaterScatterColor(reflectDir, sunColorFinalEye, moonColorFinalEye);
-                    vec3 waterFogColor = GetWaterFogColor(reflectDir, sunColorFinalEye, moonColorFinalEye, waterScatteringF);
+                    vec3 waterFogColor = GetWaterFogColor(sunColorFinalEye, moonColorFinalEye, waterScatteringF);
 
                     //#if defined SKY_ENABLED && !defined VL_WATER_ENABLED
                     float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
@@ -643,7 +643,7 @@
 
                     if (isEyeInWater != 1) {
                         //vec2 waterScatteringF = GetWaterScattering(viewDir);
-                        vec3 waterFogColor = GetWaterFogColor(viewDir, waterSunColorEye, waterMoonColorEye, waterScatteringF);
+                        vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
                         ApplyWaterFog(refractColor, waterFogColor, waterViewDepthFinal);
 
                         #if defined VL_WATER_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -684,7 +684,7 @@
 
                     //vec3 waterLightColor = GetWaterScatterColor(viewDir, lightData.sunTransmittanceEye);
                     //vec2 waterScatteringF = GetWaterScattering(viewDir);
-                    vec3 waterFogColor = GetWaterFogColor(viewDir, waterSunColorEye, waterMoonColorEye, waterScatteringF);
+                    vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
                     float waterFogF = ApplyWaterFog(refractColor, waterFogColor, lightDist);
                     
                     refractColor *= max(1.0 - iblF, 0.0);
@@ -746,12 +746,8 @@
 
         float fogFactor;
         if (isEyeInWater == 1) {
-            //vec3 sunColorFinal = lightData.sunTransmittanceEye * sunColor;
-            //vec3 moonColorFinal = lightData.moonTransmittanceEye * moonColor;
-
             #ifdef SKY_ENABLED
-                //vec2 waterScatteringF = GetWaterScattering(viewDir);
-                vec3 waterFogColor = GetWaterFogColor(viewDir, waterSunColorEye, waterMoonColorEye, waterScatteringF);
+                vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
             #else
                 vec3 waterFogColor = vec3(0.0);
             #endif

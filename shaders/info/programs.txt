@@ -14,9 +14,11 @@ deferred7	opaque copy
 <particles?>
 
 
---composite3	depth tiles
-composite4		Depth-of-Field
-composite5		copy previous-frame = RGB: pre-exposed color
+--composite1	depth tiles
+composite2		copy previous-frame = RGB: pre-exposed color
+composite3		Water Blur H
+composite4		Water Blur V
+composite5		Depth-of-Field
 composite6		Bloom threshold/downsampling
 composite7		Bloom Blur H
 composite8		Bloom Blur V

@@ -15,6 +15,7 @@ uniform float viewWidth;
 uniform float viewHeight;
 
 #include "/lib/camera/bloom.glsl"
+#include "/lib/sampling/gaussian_7.glsl"
 
 const vec2 direction = vec2(0.0, 1.0);
 
@@ -27,7 +28,7 @@ void main() {
     int tile = GetBloomTileInnerIndex(tileCount, tileMin, tileMax);
 
     vec3 final = vec3(0.0);
-    if (tile >= 0) final = BloomBlur13(texcoord, tileMin, tileMax, direction);
+    if (tile >= 0) final = GaussianBlur13(BUFFER_BLOOM, texcoord, tileMin, tileMax, direction);
 
     outColor0 = final;
 }
