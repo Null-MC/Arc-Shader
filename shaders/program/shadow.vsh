@@ -32,7 +32,7 @@ flat out int vEntityId;
     flat out mat3 vMatViewTBN;
 #endif
 
-#if defined WATER_FANCY && !defined WORLD_NETHER
+#if defined WATER_ENABLED && defined WATER_FANCY
     flat out int vWaterMask;
 #endif
 

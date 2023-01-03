@@ -15,47 +15,49 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
 const float isotropicPhase = 0.25 / PI;
 
 #ifdef VL_SKY_ENABLED
-    vec3 GetVolumetricLighting(const in LightData lightData, inout vec3 transmittance, const in vec3 viewNear, const in vec3 viewFar, const in vec2 scatteringF) {
-        vec3 viewRayVector = viewFar - viewNear;
-        float viewRayLength = length(viewRayVector);
-        if (viewRayLength < EPSILON) return vec3(0.0);
+    vec3 GetVolumetricLighting(const in LightData lightData, inout vec3 transmittance, const in vec3 nearViewPos, const in vec3 farViewPos, const in vec2 scatteringF) {
+        const float inverseStepCountF = rcp(VL_SAMPLES_SKY + 1);
+        
+        #ifdef VL_DITHER
+            float dither = GetScreenBayerValue();
+        #else
+            const float dither = 0.0;
+        #endif
 
-        mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
-        vec3 shadowViewStart = (matViewToShadowView * vec4(viewNear, 1.0)).xyz;
-        vec3 shadowViewEnd = (matViewToShadowView * vec4(viewFar, 1.0)).xyz;
+        vec3 localStart = (gbufferModelViewInverse * vec4(nearViewPos, 1.0)).xyz;
+        vec3 localEnd = (gbufferModelViewInverse * vec4(farViewPos, 1.0)).xyz;
+        vec3 localRay = localEnd - localStart;
+        float localRayLength = length(localRay);
+        vec3 localStep = localRay * inverseStepCountF;
 
-        vec3 shadowRayVector = shadowViewEnd - shadowViewStart;
-        float shadowRayLength = length(shadowRayVector);
-        const float stepF = rcp(VL_SAMPLES_SKY + 1.0);
+        vec3 shadowViewStart = (shadowModelView * vec4(localStart, 1.0)).xyz;
+        vec3 shadowViewEnd = (shadowModelView * vec4(localEnd, 1.0)).xyz;
 
-        float stepLength = shadowRayLength * stepF;
-        vec3 rayStep = shadowRayVector * stepF;
+        vec3 shadowClipStart = (shadowProjection * vec4(shadowViewStart, 1.0)).xyz;
+        vec3 shadowClipEnd = (shadowProjection * vec4(shadowViewEnd, 1.0)).xyz;
+        vec3 shadowClipStep = (shadowClipEnd - shadowClipStart) * inverseStepCountF;
 
+        float localStepLength = localRayLength * inverseStepCountF;
+        vec3 worldStart = localStart + cameraPosition;
+        
         vec3 SmokeAbsorptionCoefficient = vec3(0.002);
         vec3 SmokeScatteringCoefficient = vec3(0.46);
         vec3 SmokeExtinctionCoefficient = SmokeScatteringCoefficient + SmokeAbsorptionCoefficient;
-
-        #ifdef VL_DITHER
-            shadowViewStart += rayStep * GetScreenBayerValue();
-        #endif
 
         #ifdef SHADOW_CLOUD
             vec3 viewLightDir = normalize(shadowLightPosition);
             vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
         #endif
 
+        const float AirSpeed = 20.0;
         float time = frameTimeCounter / 3600.0;
         vec3 shadowMax = 1.0 - vec3(vec2(shadowPixelSize), EPSILON);
-        vec3 sampleAmbient = 48000.0 * RGBToLinear(fogColor);
+        float cameraSkyLight = saturate(eyeBrightnessSmooth.y / 240.0);
+        vec3 sampleAmbient = 48000.0 * RGBToLinear(fogColor) * pow2(cameraSkyLight);
         vec3 scattering = vec3(0.0);
         vec3 t;
 
-        const float AirSpeed = 20.0;
-
         for (int i = 0; i < VL_SAMPLES_SKY; i++) {
-            vec3 currentShadowViewPos = shadowViewStart + i * rayStep;
-            vec3 localTracePos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
-
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 vec3 shadowPos[4];
                 for (int i = 0; i < 4; i++) {
@@ -70,43 +72,43 @@ const float isotropicPhase = 0.25 / PI;
 
                 float sampleF = CompareOpaqueDepth(shadowPos[cascade], vec2(0.0), lightData.shadowBias[cascade]);
             #else
-                vec4 shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
+                vec3 traceShadowClipPos = shadowClipStart + shadowClipStep * (i + dither);
+
                 float sampleBias = 0.0;
 
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                    float distortF = getDistortFactor(shadowPos.xy);
-                    shadowPos.xyz = distort(shadowPos.xyz, distortF);
+                    traceShadowClipPos = distort(traceShadowClipPos);
 
                     //sampleBias = GetShadowBias(0.0, distortF);
                 #else
                     //sampleBias = ?;
                 #endif
 
-                shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
+                traceShadowClipPos = traceShadowClipPos * 0.5 + 0.5;
 
-                if (shadowPos.xyz != clamp(shadowPos.xyz, vec3(0.0), shadowMax)) {
+                if (traceShadowClipPos != clamp(traceShadowClipPos, vec3(0.0), shadowMax)) {
                     // TODO: perform a screenspace depth check?
                     continue;
                 }
 
-                float sampleF = CompareOpaqueDepth(shadowPos, vec2(0.0), lightData.shadowBias);
+                float sampleF = CompareOpaqueDepth(traceShadowClipPos, vec2(0.0), lightData.shadowBias);
             #endif
 
-            vec3 worldTracePos = cameraPosition + localTracePos;
+            vec3 traceWorldPos = worldStart + localStep * (i + dither);
 
             #ifdef SHADOW_CLOUD
-                sampleF *= 1.0 - GetCloudFactor(worldTracePos, localLightDir, 0);
+                sampleF *= 1.0 - GetCloudFactor(traceWorldPos, localLightDir, 0);
             #endif
 
-            t = worldTracePos / 192.0;
+            t = traceWorldPos / 192.0;
             t.xz -= time * 1.0 * AirSpeed;
             float texDensity1 = texture(colortex13, t).r;
 
-            t = worldTracePos / 96.0;
+            t = traceWorldPos / 96.0;
             t.xz += time * 2.0 * AirSpeed;
             float texDensity2 = texture(colortex13, t).r;
 
-            t = worldTracePos / 48.0;
+            t = traceWorldPos / 48.0;
             t.xyz += time * 4.0 * AirSpeed;
             float texDensity3 = texture(colortex13, t).r;
 
@@ -114,7 +116,7 @@ const float isotropicPhase = 0.25 / PI;
             float texDensity = 0.04 + 0.2 * pow(texDensity1 * texDensity2, 2.0) + 0.6 * pow(texDensity3 * texDensity2, 3.0);//0.2 * (1.0 - mix(texDensity1, texDensity2, 0.5));
             
             // Change with altitude
-            float altD = 1.0 - saturate((worldTracePos.y - SEA_LEVEL) / (CLOUD_LEVEL - SEA_LEVEL));
+            float altD = 1.0 - saturate((traceWorldPos.y - SEA_LEVEL) / (CLOUD_LEVEL - SEA_LEVEL));
             texDensity *= pow3(altD);
 
             // Change with weather
@@ -123,7 +125,7 @@ const float isotropicPhase = 0.25 / PI;
             float minFogF = min(VLFogMinF * (1.0 + 0.6 * max(lightData.skyLightLevels.x, 0.0)), 1.0);
             texDensity *= minFogF + (1.0 - minFogF) * wetness;
 
-            vec3 sampleColor = 16.0 * GetScatteredLighting(worldTracePos.y, skyLightLevels, scatteringF) * sampleF;
+            vec3 sampleColor = 16.0 * GetScatteredLighting(traceWorldPos.y, skyLightLevels, scatteringF) * sampleF;
 
             sampleColor += sampleAmbient;
 
@@ -132,11 +134,11 @@ const float isotropicPhase = 0.25 / PI;
                     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                         float transparentShadowDepth = SampleTransparentDepth(shadowPos[cascade], vec2(0.0));
                     #else
-                        float transparentShadowDepth = SampleTransparentDepth(shadowPos, vec2(0.0));
+                        float transparentShadowDepth = SampleTransparentDepth(traceShadowClipPos, vec2(0.0));
                     #endif
 
-                    if (shadowPos.z - transparentShadowDepth >= EPSILON) {
-                        vec3 shadowColor = GetShadowColor(shadowPos.xy);
+                    if (traceShadowClipPos.z - transparentShadowDepth >= EPSILON) {
+                        vec3 shadowColor = GetShadowColor(traceShadowClipPos.xy);
 
                         if (!any(greaterThan(shadowColor, vec3(EPSILON)))) shadowColor = vec3(1.0);
                         shadowColor = normalize(shadowColor) * 1.73;
@@ -146,7 +148,7 @@ const float isotropicPhase = 0.25 / PI;
                 //}
             #endif
 
-            vec3 stepTransmittance = exp(-SmokeExtinctionCoefficient * stepLength * texDensity);
+            vec3 stepTransmittance = exp(-SmokeExtinctionCoefficient * localStepLength * texDensity);
             vec3 scatteringIntegral = (1.0 - stepTransmittance) / SmokeExtinctionCoefficient;
 
             scattering += sampleColor * (isotropicPhase * SmokeScatteringCoefficient * scatteringIntegral) * transmittance;
@@ -160,6 +162,8 @@ const float isotropicPhase = 0.25 / PI;
 
 #ifdef VL_WATER_ENABLED
     vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 nearViewPos, const in vec3 farViewPos, const in vec2 scatteringF) {
+        const float inverseStepCountF = rcp(VL_SAMPLES_WATER + 1);
+
         #ifdef SHADOW_CLOUD
             vec3 viewLightDir = normalize(shadowLightPosition);
             vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
@@ -170,27 +174,30 @@ const float isotropicPhase = 0.25 / PI;
             if (localLightDir.y <= 0.0) return vec3(0.0);
         #endif
 
-        mat4 matViewToShadowView = shadowModelView * gbufferModelViewInverse;
-        vec3 shadowViewStart = (matViewToShadowView * vec4(nearViewPos, 1.0)).xyz;
-        vec3 shadowViewEnd = (matViewToShadowView * vec4(farViewPos, 1.0)).xyz;
+        #ifdef VL_DITHER
+            float dither = GetScreenBayerValue();
+        #else
+            const float dither = 0.0;
+        #endif
 
-        vec3 shadowRayVector = shadowViewEnd - shadowViewStart;
-        float shadowRayLength = length(shadowRayVector);
-        vec3 rayDirection = shadowRayVector / shadowRayLength;
+        vec3 localStart = (gbufferModelViewInverse * vec4(nearViewPos, 1.0)).xyz;
+        vec3 localEnd = (gbufferModelViewInverse * vec4(farViewPos, 1.0)).xyz;
+        vec3 localRay = localEnd - localStart;
+        float localRayLength = length(localRay);
+        vec3 localStep = localRay * inverseStepCountF;
 
-        float stepLength = shadowRayLength / (VL_SAMPLES_WATER + 1.0);
-        vec3 rayStep = rayDirection * stepLength;
+        vec3 shadowViewStart = (shadowModelView * vec4(localStart, 1.0)).xyz;
+        vec3 shadowViewEnd = (shadowModelView * vec4(localEnd, 1.0)).xyz;
+
+        vec3 shadowClipStart = (shadowProjection * vec4(shadowViewStart, 1.0)).xyz;
+        vec3 shadowClipEnd = (shadowProjection * vec4(shadowViewEnd, 1.0)).xyz;
+        vec3 shadowClipStep = (shadowClipEnd - shadowClipStart) * inverseStepCountF;
+
+        float localStepLength = localRayLength * inverseStepCountF;
+        vec3 worldStart = localStart + cameraPosition;
+
         vec3 accumF = vec3(0.0);
         float lightSample, transparentDepth;
-
-        vec3 viewRayVector = farViewPos - nearViewPos;
-        vec3 viewStep = viewRayVector / (VL_SAMPLES_WATER + 1.0);
-        float viewRayLength = length(viewRayVector);
-        float viewStepLength = viewRayLength / (VL_SAMPLES_WATER + 1.0);
-
-        #ifdef VL_DITHER
-            shadowViewStart += rayStep * GetScreenBayerValue();
-        #endif
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             float MaxShadowDist = far * 3.0;
@@ -203,13 +210,8 @@ const float isotropicPhase = 0.25 / PI;
         vec3 extinctionInv = (1.0 - waterAbsorbColor) * WATER_ABSROPTION_RATE;
 
         for (int i = 1; i <= VL_SAMPLES_WATER; i++) {
-            vec3 currentShadowViewPos = shadowViewStart + i * rayStep;
-            vec3 localTracePos = (shadowModelViewInverse * vec4(currentShadowViewPos, 1.0)).xyz;
-            vec3 worldTracePos = cameraPosition + localTracePos;
-            //float worldTraceHeight = cameraPosition.y + localTracePos.y;
             transparentDepth = 1.0;
 
-            vec3 waterShadowPos;
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 vec3 shadowPos[4];
                 for (int i = 0; i < 4; i++) {
@@ -228,17 +230,17 @@ const float isotropicPhase = 0.25 / PI;
                 if (lightSample > EPSILON)
                     transparentDepth = GetNearestTransparentDepth(shadowPos, lightData.shadowTilePos, vec2(0.0), waterOpaqueCascade);
 
-                waterShadowPos = waterOpaqueCascade >= 0
+                vec3 traceShadowClipPos = waterOpaqueCascade >= 0
                     ? shadowPos[waterOpaqueCascade]
                     : currentShadowViewPos;
             #else
-                vec4 shadowPos = shadowProjection * vec4(currentShadowViewPos, 1.0);
+                vec3 traceShadowClipPos = shadowClipStart + shadowClipStep * (i + dither);
 
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                    shadowPos.xyz = distort(shadowPos.xyz);
+                    traceShadowClipPos = distort(traceShadowClipPos);
                 #endif
 
-                shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
+                traceShadowClipPos = traceShadowClipPos * 0.5 + 0.5;
 
                 // if (saturate(shadowPos.xy) != shadowPos.xy) {
                 //     vec3 lightColor2 = GetScatteredLighting(worldTraceHeight, skyLightLevels, scatteringF);
@@ -246,13 +248,13 @@ const float isotropicPhase = 0.25 / PI;
                 //     return vec3(10000.0, 0.0, 0.0);
                 // }
 
-                lightSample = CompareOpaqueDepth(shadowPos, vec2(0.0), 0.0);
+                lightSample = CompareOpaqueDepth(traceShadowClipPos, vec2(0.0), 0.0);
 
                 if (lightSample > EPSILON)
-                    transparentDepth = SampleTransparentDepth(shadowPos, vec2(0.0));
-
-                waterShadowPos = shadowPos.xyz;
+                    transparentDepth = SampleTransparentDepth(traceShadowClipPos.xy, vec2(0.0));
             #endif
+
+            vec3 traceWorldPos = worldStart + localStep * (i + dither);
 
             #ifdef SHADOW_CLOUD
                 // when light is shining upwards
@@ -262,35 +264,34 @@ const float isotropicPhase = 0.25 / PI;
                 // when light is shining downwards
                 //else {
                     // when trace pos is below clouds, darken by cloud shadow
-                    if (worldTracePos.y < CLOUD_LEVEL) {
-                        lightSample *= 1.0 - GetCloudFactor(worldTracePos, localLightDir, 0);
+                    if (traceWorldPos.y < CLOUD_LEVEL) {
+                        lightSample *= 1.0 - GetCloudFactor(traceWorldPos, localLightDir, 0);
                     }
                 //}
             #endif
 
-            float waterLightDist = max((waterShadowPos.z - transparentDepth) * MaxShadowDist, 0.0);
-            waterLightDist += i * viewStepLength;
+            float waterLightDist = max((traceShadowClipPos.z - transparentDepth) * MaxShadowDist, 0.0);
+            waterLightDist += i * localStepLength;
 
-            vec3 lightColor = GetScatteredLighting(worldTracePos.y, lightData.skyLightLevels, scatteringF);
+            vec3 lightColor = GetScatteredLighting(traceWorldPos.y, lightData.skyLightLevels, scatteringF);
             lightColor *= exp(-waterLightDist * extinctionInv);
 
             // sample normal, get fresnel, darken
-            uint data = textureLod(shadowcolor1, waterShadowPos.xy, 0).g;
+            uint data = textureLod(shadowcolor1, traceShadowClipPos.xy, 0).g;
             vec3 normal = unpackUnorm4x8(data).xyz;
             normal = normalize(normal * 2.0 - 1.0);
             float NoL = max(normal.z, 0.0);
             float waterF = F_schlick(NoL, 0.02, 1.0);
 
             #ifdef VL_WATER_NOISE
-                float sampleDensity1 = texture(colortex13, worldTracePos / 96.0).r;
-                float sampleDensity2 = texture(colortex13, worldTracePos / 16.0).r;
+                float sampleDensity1 = texture(colortex13, traceWorldPos / 96.0).r;
+                float sampleDensity2 = texture(colortex13, traceWorldPos / 16.0).r;
                 lightSample *= 1.0 - 0.6 * sampleDensity1 - 0.3 * sampleDensity2;
             #endif
 
             accumF += lightSample * lightColor * max(1.0 - waterF, 0.0);
         }
 
-        //float traceLength = saturate(viewRayLength / far);
-        return (accumF / VL_SAMPLES_WATER) * viewRayLength * VL_WATER_DENSITY;
+        return (accumF / VL_SAMPLES_WATER) * localRayLength * VL_WATER_DENSITY;
     }
 #endif

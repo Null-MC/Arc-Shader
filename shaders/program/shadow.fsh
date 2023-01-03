@@ -79,7 +79,7 @@ uniform int entityId;
     uniform vec3 shadowLightPosition;
 #endif
 
-#if defined WATER_FANCY && !defined WORLD_NETHER
+#if defined WATER_ENABLED && defined WATER_FANCY
     flat in int gWaterMask;
 
     uniform sampler2D BUFFER_WATER_WAVES;
@@ -93,7 +93,7 @@ uniform int entityId;
 #include "/lib/material/material.glsl"
 #include "/lib/material/material_reader.glsl"
 
-#if defined WATER_FANCY && !defined WORLD_NETHER && !defined WORLD_END
+#if defined WATER_ENABLED && defined WATER_FANCY
     #include "/lib/world/wind.glsl"
     #include "/lib/world/water.glsl"
 #endif
@@ -160,7 +160,7 @@ void main() {
         #endif
     #endif
 
-    #if defined WATER_FANCY && !defined WORLD_NETHER && !defined WORLD_END
+    #if defined WATER_ENABLED && defined WATER_FANCY
         if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && gWaterMask == 1) {
             #ifdef PHYSICS_OCEAN
                 float waviness = textureLod(physics_waviness, physics_gLocalPosition.xz / vec2(textureSize(physics_waviness, 0)), 0).r;

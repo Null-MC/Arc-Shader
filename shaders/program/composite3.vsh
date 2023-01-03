@@ -7,10 +7,15 @@
 
 out vec2 texcoord;
 
-//#include "/lib/camera/bloom.glsl"
+uniform int isEyeInWater;
 
 
 void main() {
+    if (isEyeInWater != 1) {
+        gl_Position = vec4(-10.0);
+        return;
+    }
+
     gl_Position = ftransform();
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 }

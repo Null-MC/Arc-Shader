@@ -110,7 +110,7 @@ uniform int isEyeInWater;
 uniform float nightVision;
 uniform float blindness;
 
-#if WATER_WAVE_TYPE == WATER_WAVE_VERTEX && !defined WORLD_NETHER
+#if defined WATER_ENABLED && WATER_WAVE_TYPE == WATER_WAVE_VERTEX
     uniform float frameTimeCounter;
 #endif
 
@@ -130,7 +130,7 @@ uniform float blindness;
     #endif
 #endif
 
-#if WATER_WAVE_TYPE == WATER_WAVE_VERTEX && !defined WORLD_NETHER && !defined WORLD_END
+#if defined WATER_ENABLED && WATER_WAVE_TYPE == WATER_WAVE_VERTEX
     #include "/lib/world/wind.glsl"
     #include "/lib/world/water.glsl"
 #endif

@@ -465,14 +465,13 @@
             }
         #endif
 
-        #if !defined WORLD_NETHER && !defined WORLD_END
+        #if defined SKY_ENABLED && defined WATER_ENABLED
             vec2 waterScatteringF = GetWaterScattering(viewDir);
+            vec3 waterSunColorEye = sunColorFinalEye * max(lightData.skyLightLevels.x, 0.0);
+            vec3 waterMoonColorEye = moonColorFinalEye * max(lightData.skyLightLevels.y, 0.0);
         #endif
-    
-        vec3 waterSunColorEye = sunColorFinalEye * max(lightData.skyLightLevels.x, 0.0);
-        vec3 waterMoonColorEye = moonColorFinalEye * max(lightData.skyLightLevels.y, 0.0);
 
-        #if defined RENDER_WATER && !defined WORLD_NETHER && !defined WORLD_END
+        #if defined RENDER_WATER && defined WATER_ENABLED
             if (materialId == MATERIAL_WATER) {
                 #if WATER_REFRACTION != WATER_REFRACTION_NONE
                     float waterRefractEta = isEyeInWater == 1

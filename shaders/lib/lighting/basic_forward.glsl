@@ -132,30 +132,30 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
         #endif
     #endif
 
-    if (isEyeInWater == 1) {
-        //return vec4(1000.0, 0.0, 0.0, 1.0);
+    #ifdef WATER_ENABLED
+        if (isEyeInWater == 1) {
+            #ifdef SKY_ENABLED
+                vec3 waterSunColorEye = sunColorFinalEye * max(lightData.skyLightLevels.x, 0.0);
+                vec3 waterMoonColorEye = moonColorFinalEye * max(lightData.skyLightLevels.y, 0.0);
+                vec2 waterScatteringF = GetWaterScattering(viewDir);
 
-        vec3 waterSunColorEye = sunColorFinalEye * max(lightData.skyLightLevels.x, 0.0);
-        vec3 waterMoonColorEye = moonColorFinalEye * max(lightData.skyLightLevels.y, 0.0);
+                vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
+            #else
+                vec3 waterFogColor = vec3(0.0);
+            #endif
 
-        vec2 waterScatteringF = GetWaterScattering(viewDir);
+            ApplyWaterFog(final.rgb, waterFogColor, viewDist);
 
-        #ifdef SKY_ENABLED
-            vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
-        #else
-            vec3 waterFogColor = vec3(0.0);
-        #endif
+            #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined VL_WATER_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+                vec3 nearViewPos = viewDir * near;
+                vec3 farViewPos = viewDir * min(viewDist, waterFogDistSmooth);
 
-        ApplyWaterFog(final.rgb, waterFogColor, viewDist);
+                final.rgb += GetWaterVolumetricLighting(lightData, nearViewPos, farViewPos, waterScatteringF);
+            #endif
+        }
+        else {
+    #endif
 
-        #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined VL_WATER_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-            vec3 nearViewPos = viewDir * near;
-            vec3 farViewPos = viewDir * min(viewDist, waterFogDistSmooth);
-
-            final.rgb += GetWaterVolumetricLighting(lightData, nearViewPos, farViewPos, waterScatteringF);
-        #endif
-    }
-    else {
         #if !defined SKY_ENABLED || !defined VL_SKY_ENABLED
             final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
         #endif
@@ -207,7 +207,10 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
                 // TODO: vl alter alpha?
             #endif
         #endif
-    }
+
+    #ifdef WATER_ENABLED
+        }
+    #endif
 
     return final;
 }

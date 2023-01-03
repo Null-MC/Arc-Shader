@@ -35,7 +35,7 @@ flat in int vEntityId[3];
     flat in mat3 vMatViewTBN[3];
 #endif
 
-#if defined WATER_FANCY && !defined WORLD_NETHER
+#if defined WATER_ENABLED && defined WATER_FANCY
     flat in int vWaterMask[3];
 #endif
 
@@ -62,7 +62,7 @@ flat out int gEntityId;
     flat out mat3 gMatViewTBN;
 #endif
 
-#if defined WATER_FANCY && !defined WORLD_NETHER
+#if defined WATER_ENABLED && defined WATER_FANCY
     flat out int gWaterMask;
 #endif
 
@@ -122,7 +122,7 @@ void ApplyCommonProperties(const in int v) {
 	    gMatViewTBN = vMatViewTBN[v];
 	#endif
 
-	#if defined WATER_FANCY && !defined WORLD_NETHER
+	#if defined WATER_ENABLED && defined WATER_FANCY
 	    gWaterMask = vWaterMask[v];
 	#endif
 

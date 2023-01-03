@@ -160,7 +160,7 @@ uniform int fogShape;
     #endif
 #endif
 
-#if defined WATER_FANCY && !defined WORLD_NETHER
+#if defined WATER_FANCY && defined WATER_ENABLED
     uniform sampler2D BUFFER_WATER_WAVES;
 
     //uniform float frameTimeCounter;
@@ -197,7 +197,7 @@ uniform float waterFogDistSmooth;
     #include "/lib/parallax.glsl"
 #endif
 
-#if defined WATER_FANCY && !defined WORLD_NETHER && !defined WORLD_END
+#if defined WATER_FANCY && defined WATER_ENABLED
     #include "/lib/world/wind.glsl"
     #include "/lib/world/water.glsl"
 

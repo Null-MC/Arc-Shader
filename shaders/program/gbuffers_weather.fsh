@@ -88,7 +88,7 @@ flat in vec3 blockLightColor;
                 uniform float viewHeight;
             #endif
             
-            #ifdef VL_SKY_ENABLED
+            #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
                 uniform sampler3D colortex13;
                 
                 uniform mat4 gbufferModelView;
@@ -153,7 +153,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/world/sky.glsl"
 #include "/lib/world/fog.glsl"
 
-#if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE //&& defined VL_PARTICLES
+#if (defined VL_SKY_ENABLED || defined VL_WATER_ENABLED) && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE //&& defined VL_PARTICLES
     #include "/lib/lighting/volumetric.glsl"
 #endif
 

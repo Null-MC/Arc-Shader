@@ -178,26 +178,13 @@ layout(location = 0) out vec3 outColor0;
 
     vec3 GetFinalColor() {
         vec2 texFinal = texcoord;
-        vec3 color;
 
-        if (isEyeInWater == 1) {
-            texFinal = GetWetnessSkew(texcoord);
-        }
+        //if (isEyeInWater == 1)
+        //    texFinal = GetWetnessSkew(texcoord);
 
-        // #if WATER_CAMERA_BLUR > 0
-        //     if (isEyeInWater == 1) {
-        //         color = SampleWetnessBlurred(BUFFER_HDR, texFinal);
-        //     }
-        //     else {
-        // #endif
-
-            color = MC_RENDER_QUALITY == 1.0
-                ? texelFetch(BUFFER_HDR, ivec2(texFinal * viewSize), 0).rgb
-                : textureLod(BUFFER_HDR, texFinal, 0).rgb;
-
-        // #if WATER_CAMERA_BLUR > 0
-        //     }
-        // #endif
+        vec3 color = MC_RENDER_QUALITY == 1.0
+            ? texelFetch(BUFFER_HDR, ivec2(texFinal * viewSize), 0).rgb
+            : textureLod(BUFFER_HDR, texFinal, 0).rgb;
 
         //float lum = texelFetch(BUFFER_LUMINANCE, itex, 0).r;
 

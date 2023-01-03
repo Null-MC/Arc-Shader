@@ -1,20 +1,32 @@
 #ifdef RENDER_FRAG
+    float SampleOpaqueDepth(const in vec2 shadowPos, const in vec2 offset) {
+        return textureLod(shadowtex1, shadowPos + offset, 0).r;
+    }
+
     float SampleOpaqueDepth(const in vec4 shadowPos, const in vec2 offset) {
-        return textureLod(shadowtex1, shadowPos.xy + offset * shadowPos.w, 0).r;
+        return SampleOpaqueDepth(shadowPos.xy, offset); // TODO: JUNK!
+    }
+
+    float SampleTransparentDepth(const in vec2 shadowPos, const in vec2 offset) {
+        return textureLod(shadowtex0, shadowPos + offset, 0).r;
     }
 
     float SampleTransparentDepth(const in vec4 shadowPos, const in vec2 offset) {
-        return textureLod(shadowtex0, shadowPos.xy + offset * shadowPos.w, 0).r;
+        return SampleTransparentDepth(shadowPos.xy, offset); // TODO: JUNK!
     }
 
     // returns: [0] when depth occluded, [1] otherwise
-    float CompareOpaqueDepth(const in vec4 shadowPos, const in vec2 offset, const in float shadowBias) {
+    float CompareOpaqueDepth(const in vec3 shadowPos, const in vec2 offset, const in float shadowBias) {
         #ifdef IRIS_FEATURE_SEPARATE_HARDWARE_SAMPLERS
-            return textureLod(shadowtex1HW, shadowPos.xyz + vec3(offset * shadowPos.w, -shadowBias), 0);
+            return textureLod(shadowtex1HW, shadowPos + vec3(offset, -shadowBias), 0);
         #else
-            float shadowDepth = textureLod(shadowtex1, shadowPos.xy + offset * shadowPos.w, 0).r;
+            float shadowDepth = textureLod(shadowtex1, shadowPos.xy + offset, 0).r;
             return step(shadowPos.z + EPSILON, shadowDepth + shadowBias);
         #endif
+    }
+
+    float CompareOpaqueDepth(const in vec4 shadowPos, const in vec2 offset, const in float shadowBias) {
+        return CompareOpaqueDepth(shadowPos.xyz, offset, shadowBias);
     }
 
     #ifdef SHADOW_COLOR
