@@ -33,9 +33,23 @@ const float isotropicPhase = 0.25 / PI;
         vec3 shadowViewStart = (shadowModelView * vec4(localStart, 1.0)).xyz;
         vec3 shadowViewEnd = (shadowModelView * vec4(localEnd, 1.0)).xyz;
 
-        vec3 shadowClipStart = (shadowProjection * vec4(shadowViewStart, 1.0)).xyz;
-        vec3 shadowClipEnd = (shadowProjection * vec4(shadowViewEnd, 1.0)).xyz;
-        vec3 shadowClipStep = (shadowClipEnd - shadowClipStart) * inverseStepCountF;
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+            vec3 shadowClipStart[4];
+            vec3 shadowClipStep[4];
+            for (int c = 0; c < 4; c++) {
+                shadowClipStart[c] = (lightData.matShadowProjection[c] * vec4(shadowViewStart, 1.0)).xyz * 0.5 + 0.5;
+                shadowClipStart[c].xy = shadowClipStart[c].xy * 0.5 + lightData.shadowTilePos[c];
+
+                vec3 shadowClipEnd = (lightData.matShadowProjection[c] * vec4(shadowViewEnd, 1.0)).xyz * 0.5 + 0.5;
+                shadowClipEnd.xy = shadowClipEnd.xy * 0.5 + lightData.shadowTilePos[c];
+
+                shadowClipStep[c] = (shadowClipEnd - shadowClipStart[c]) * inverseStepCountF;
+            }
+        #else
+            vec3 shadowClipStart = (shadowProjection * vec4(shadowViewStart, 1.0)).xyz;
+            vec3 shadowClipEnd = (shadowProjection * vec4(shadowViewEnd, 1.0)).xyz;
+            vec3 shadowClipStep = (shadowClipEnd - shadowClipStart) * inverseStepCountF;
+        #endif
 
         float localStepLength = localRayLength * inverseStepCountF;
         vec3 worldStart = localStart + cameraPosition;
@@ -60,13 +74,8 @@ const float isotropicPhase = 0.25 / PI;
         for (int i = 0; i < VL_SAMPLES_SKY; i++) {
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 vec3 shadowPos[4];
-                for (int i = 0; i < 4; i++) {
-                    shadowPos[i] = (lightData.matShadowProjection[i] * vec4(currentShadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                    shadowPos[i].xy = shadowPos[i].xy * 0.5 + lightData.shadowTilePos[i];
-                }
-
-                // TODO
-                //if (saturate(shadowPos.xy) != shadowPos.xy) continue;
+                for (int c = 0; c < 4; c++)
+                    shadowPos[c] = shadowClipStart[c] + i * shadowClipStep[c];
 
                 int cascade = GetShadowSampleCascade(shadowPos, lightData.shadowProjectionSize, 0.0);
 
@@ -189,9 +198,23 @@ const float isotropicPhase = 0.25 / PI;
         vec3 shadowViewStart = (shadowModelView * vec4(localStart, 1.0)).xyz;
         vec3 shadowViewEnd = (shadowModelView * vec4(localEnd, 1.0)).xyz;
 
-        vec3 shadowClipStart = (shadowProjection * vec4(shadowViewStart, 1.0)).xyz;
-        vec3 shadowClipEnd = (shadowProjection * vec4(shadowViewEnd, 1.0)).xyz;
-        vec3 shadowClipStep = (shadowClipEnd - shadowClipStart) * inverseStepCountF;
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+            vec3 shadowClipStart[4];
+            vec3 shadowClipStep[4];
+            for (int c = 0; c < 4; c++) {
+                shadowClipStart[c] = (lightData.matShadowProjection[c] * vec4(shadowViewStart, 1.0)).xyz * 0.5 + 0.5;
+                shadowClipStart[c].xy = shadowClipStart[c].xy * 0.5 + lightData.shadowTilePos[c];
+
+                vec3 shadowClipEnd = (lightData.matShadowProjection[c] * vec4(shadowViewEnd, 1.0)).xyz * 0.5 + 0.5;
+                shadowClipEnd.xy = shadowClipEnd.xy * 0.5 + lightData.shadowTilePos[c];
+
+                shadowClipStep[c] = (shadowClipEnd - shadowClipStart[c]) * inverseStepCountF;
+            }
+        #else
+            vec3 shadowClipStart = (shadowProjection * vec4(shadowViewStart, 1.0)).xyz;
+            vec3 shadowClipEnd = (shadowProjection * vec4(shadowViewEnd, 1.0)).xyz;
+            vec3 shadowClipStep = (shadowClipEnd - shadowClipStart) * inverseStepCountF;
+        #endif
 
         float localStepLength = localRayLength * inverseStepCountF;
         vec3 worldStart = localStart + cameraPosition;
@@ -214,13 +237,8 @@ const float isotropicPhase = 0.25 / PI;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 vec3 shadowPos[4];
-                for (int i = 0; i < 4; i++) {
-                    shadowPos[i] = (lightData.matShadowProjection[i] * vec4(currentShadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                    shadowPos[i].xy = shadowPos[i].xy * 0.5 + lightData.shadowTilePos[i];
-                }
-
-                // TODO
-                //if (saturate(shadowPos.xy) != shadowPos.xy) continue;
+                for (int c = 0; c < 4; c++)
+                    shadowPos[c] = shadowClipStart[c] + i * shadowClipStep[c];
 
                 int cascade = GetShadowSampleCascade(shadowPos, lightData.shadowProjectionSize, 0.0);
 
@@ -232,7 +250,7 @@ const float isotropicPhase = 0.25 / PI;
 
                 vec3 traceShadowClipPos = waterOpaqueCascade >= 0
                     ? shadowPos[waterOpaqueCascade]
-                    : currentShadowViewPos;
+                    : shadowPos[cascade];
             #else
                 vec3 traceShadowClipPos = shadowClipStart + shadowClipStep * (i + dither);
 

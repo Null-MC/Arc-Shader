@@ -1,11 +1,11 @@
 int GetShadowSampleCascade(const in vec3 shadowPos[4], const in vec2 shadowProjectionSize[4], const in float blockRadius) {
-    #ifdef SHADOW_CSM_FITRANGE
-        const int max = 3;
-    #else
-        const int max = 4;
-    #endif
+    // #ifdef SHADOW_CSM_FITRANGE
+    //     const int max = 3;
+    // #else
+    //     const int max = 4;
+    // #endif
 
-    for (int i = 0; i < max; i++) {
+    for (int i = 0; i < 4; i++) {
         vec2 padding = blockRadius / shadowProjectionSize[i];
 
         // Ignore if outside tile bounds
@@ -16,11 +16,12 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in vec2 shadowProje
         if (clamp(shadowPos[i].xy, clipMin, clipMax) == shadowPos[i].xy) return i;
     }
 
-    #ifdef SHADOW_CSM_FITRANGE
-        return 3;
-    #else
-        return -1;
-    #endif
+    return -1;
+    // #ifdef SHADOW_CSM_FITRANGE
+    //     return 3;
+    // #else
+    //     return -1;
+    // #endif
 }
 
 #ifdef RENDER_FRAG
