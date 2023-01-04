@@ -75,7 +75,7 @@ const float isotropicPhase = 0.25 / PI;
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 vec3 shadowPos[4];
                 for (int c = 0; c < 4; c++)
-                    shadowPos[c] = shadowClipStart[c] + i * shadowClipStep[c];
+                    shadowPos[c] = shadowClipStart[c] + (i + dither) * shadowClipStep[c];
 
                 int cascade = GetShadowSampleCascade(shadowPos, lightData.shadowProjectionSize, 0.0);
 
@@ -238,7 +238,7 @@ const float isotropicPhase = 0.25 / PI;
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 vec3 shadowPos[4];
                 for (int c = 0; c < 4; c++)
-                    shadowPos[c] = shadowClipStart[c] + i * shadowClipStep[c];
+                    shadowPos[c] = shadowClipStart[c] + (i + dither) * shadowClipStep[c];
 
                 int cascade = GetShadowSampleCascade(shadowPos, lightData.shadowProjectionSize, 0.0);
 
