@@ -44,7 +44,7 @@ flat in int gEntityId;
 #endif
 
 #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
-    flat in mat3 gMatShadowViewTBN;
+    in mat3 gMatShadowViewTBN;
 #endif
 
 #ifdef RSM_ENABLED

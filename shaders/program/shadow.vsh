@@ -25,7 +25,7 @@ flat out int vEntityId;
 #endif
 
 #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
-    flat out mat3 vMatShadowViewTBN;
+    out mat3 vMatShadowViewTBN;
 #endif
 
 #ifdef RSM_ENABLED
@@ -109,18 +109,6 @@ void main() {
         vBlockId = -1;
         vEntityId = entityId;
 
-        // #ifdef SHADOW_EXCLUDE_ENTITIES
-        //     if (mc_Entity.x == 0.0) {
-        //         gl_Position = vec4(10.0);
-
-        //         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        //             shadowCascadePos = vec2(10.0);
-        //         #endif
-
-        //         return;
-        //     }
-        // #endif
-
         if (entityId == MATERIAL_LIGHTNING_BOLT) {
             gl_Position = vec4(10.0);
             return;
@@ -202,7 +190,7 @@ void main() {
         #else
             #if SHADER_PLATFORM == PLATFORM_IRIS
                 // Iris does not cull water backfaces
-                if (shadowViewNormal.z <= 0.0) {
+                if (shadowViewNormal.z <= 0.0 && at_midBlock.y > 0.0) {
                     gl_Position = vec4(10.0);
                     return;
                 }
