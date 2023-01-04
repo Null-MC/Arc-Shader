@@ -16,16 +16,18 @@
         #ifdef RENDER_WATER
             if (abs(mc_Entity.x - 100.0) < 0.5) {
                 #ifndef PHYSICS_OCEAN
-                    if (isEyeInWater == 1 && gl_Normal.y > 0.01) {
-                        //the bottom face doesn't have a backface.
-                        gl_Position = vec4(10.0);
-                        return;
-                    }
-                    else if (isEyeInWater == 0 && gl_Normal.y < -0.01) {
-                        //sneaky back face of top needs weird checks.
-                        if (at_midBlock.y > 0.0 && at_midBlock.y < 30.75) {
+                    if (all(greaterThan(mc_midTexCoord, vec4(EPSILON)))) {
+                        if (isEyeInWater == 1 && gl_Normal.y > 0.01) {
+                            //the bottom face doesn't have a backface.
                             gl_Position = vec4(10.0);
                             return;
+                        }
+                        if (isEyeInWater == 0 && gl_Normal.y < -0.01) {
+                            //sneaky back face of top needs weird checks.
+                            if (at_midBlock.y < 30.75) {
+                                gl_Position = vec4(10.0);
+                                return;
+                            }
                         }
                     }
                 #endif
@@ -76,7 +78,7 @@
                             vec3 waterWorldPos = waterWorldScale * worldPos;
 
                             float depth = 1.0 - GetWaves(waterWorldPos.xz, waveDepth, WATER_OCTAVES_VERTEX);
-                            depth = -(1.0 - depth) * waveDepth * WaterWaveDepthF * posY;
+                            depth = -depth * waveDepth * WaterWaveDepthF * posY;
 
                             #ifndef WATER_FANCY
                                 vec2 waterWorldPosX = waterWorldPos.xz + vec2(waterWorldScale, 0.0);

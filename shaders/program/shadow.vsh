@@ -51,6 +51,7 @@ uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
 uniform mat4 gbufferModelView;
 uniform vec3 cameraPosition;
+uniform int isEyeInWater;
 uniform int entityId;
 
 uniform float rainStrength;
@@ -188,9 +189,9 @@ void main() {
                 normal = normalize(cross(pX, pY)).xzy;
             #endif
         #else
-            #if SHADER_PLATFORM == PLATFORM_IRIS
+            #if SHADER_PLATFORM == PLATFORM_IRIS && !defined PHYSICS_OCEAN
                 // Iris does not cull water backfaces
-                if (shadowViewNormal.z <= 0.0 && at_midBlock.y > 0.0) {
+                if (isEyeInWater == 1 && shadowViewNormal.z <= 0.0 && abs(at_midBlock.y) > EPSILON) {
                     gl_Position = vec4(10.0);
                     return;
                 }
