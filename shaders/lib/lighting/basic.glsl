@@ -173,13 +173,13 @@
 #ifdef RENDER_FRAG
     #ifdef SKY_ENABLED
         vec3 GetSkyAmbientLight(const in LightData lightData, const in float worldY, const in vec3 normal) {
-            #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-                // idk wtf is going on here, but this appears to fix it
-                vec3 n = -normal;
-                //n.y = -n.y;
+            // #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+            //     // idk wtf is going on here, but this appears to fix it
+            //     vec3 n = -normal;
+            //     //n.y = -n.y;
 
-                return GetFancySkyLuminance(worldY, n, 6);
-            #else
+            //     return GetFancySkyLuminance(worldY, n, 6);
+            // #else
                 vec3 upDir = normalize(upPosition);
                 vec3 sunLightDir = normalize(sunPosition);
                 vec3 moonLightDir = normalize(moonPosition);
@@ -212,7 +212,7 @@
                 //result += skyColorLux;
 
                 return result;
-            #endif
+            //#endif
         }
     #endif
 #endif

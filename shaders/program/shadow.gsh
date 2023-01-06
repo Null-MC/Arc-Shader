@@ -12,6 +12,7 @@ in vec3 vLocalPos[3];
 in vec2 vTexcoord[3];
 in vec2 vLmcoord[3];
 in vec4 vColor[3];
+in float vNoV[3];
 flat in int vBlockId[3];
 flat in int vEntityId[3];
 
@@ -141,6 +142,13 @@ void main() {
 	#endif
 
     if (vEntityId[0] == MATERIAL_LIGHTNING_BOLT) return;
+
+    #if SHADER_PLATFORM == PLATFORM_IRIS && !defined PHYSICS_OCEAN
+        // Iris does not cull water backfaces
+        if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
+        	if (vNoV[0] <= 0.0 && vNoV[1] <= 0.0 && vNoV[2] <= 0.0) return;
+        }
+    #endif
 
 	#if SHADOW_TYPE == SHADOW_TYPE_CASCADED
 		float cascadeSizes[4];

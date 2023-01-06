@@ -91,7 +91,7 @@ flat in vec3 blockLightColor;
             #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
                 uniform sampler3D colortex13;
                 
-                uniform mat4 gbufferModelView;
+                //uniform mat4 gbufferModelView;
                 uniform mat4 gbufferProjection;
             #endif
         #endif
@@ -106,6 +106,7 @@ uniform sampler2D depthtex1;
     uniform sampler2D BUFFER_SKY_LUT;
 #endif
 
+uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform ivec2 eyeBrightnessSmooth;
 uniform ivec2 eyeBrightness;

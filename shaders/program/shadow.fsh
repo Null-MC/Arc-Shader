@@ -190,6 +190,10 @@ void main() {
                         dFdy(waterPos),
                         dFdx(waterPos))
                     );
+
+                #if SHADER_PLATFORM == PLATFORM_IRIS
+                    //normal = -normal;
+                #endif
             #endif
         }
     #endif

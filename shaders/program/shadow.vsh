@@ -9,6 +9,7 @@ out vec3 vLocalPos;
 out vec2 vTexcoord;
 out vec2 vLmcoord;
 out vec4 vColor;
+out float vNoV;
 flat out int vBlockId;
 flat out int vEntityId;
 
@@ -189,13 +190,15 @@ void main() {
                 normal = normalize(cross(pX, pY)).xzy;
             #endif
         #else
-            #if SHADER_PLATFORM == PLATFORM_IRIS && !defined PHYSICS_OCEAN
+            #if SHADER_PLATFORM == PLATFORM_IRIS
                 // Iris does not cull water backfaces
-                if (isEyeInWater == 1 && shadowViewNormal.z <= 0.0 && abs(at_midBlock.y) > EPSILON) {
-                    gl_Position = vec4(10.0);
-                    return;
-                }
+                // if (shadowViewNormal.z <= 0.0 &&  && all(greaterThan(abs(at_midBlock), vec3(EPSILON)))) {
+                //     gl_Position = vec4(10.0);
+                //     return;
+                // }
             #endif
+
+            vNoV = shadowViewNormal.z;
 
             if (gl_Normal.y > 0.5) {
                 #ifdef WATER_FANCY
