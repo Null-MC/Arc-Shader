@@ -41,6 +41,8 @@ flat in mat2 atlasBounds;
     flat in vec3 moonColor;
 
     uniform sampler2D colortex9;
+    
+    uniform mat4 gbufferModelView;
 
     uniform float eyeAltitude;
     uniform vec3 sunPosition;
@@ -90,7 +92,6 @@ flat in mat2 atlasBounds;
         #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
             uniform sampler3D colortex13;
             
-            uniform mat4 gbufferModelView;
             //uniform mat4 gbufferProjection;
         #endif
     #endif
@@ -112,6 +113,10 @@ uniform sampler2D noisetex;
 uniform sampler2D colortex10;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
+
+#if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+    uniform sampler2D BUFFER_SKY_LUT;
+#endif
 
 uniform ivec2 atlasSize;
 
@@ -185,13 +190,17 @@ uniform float waterFogDistSmooth;
     #include "/lib/sky/sun_moon.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
-    #include "/lib/lighting/basic.glsl"
 #endif
 
 #include "/lib/world/weather.glsl"
 #include "/lib/world/fog.glsl"
 
 #ifdef SKY_ENABLED
+    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+        #include "/lib/sky/hillaire_common.glsl"
+        #include "/lib/sky/hillaire_render.glsl"
+    #endif
+
     #include "/lib/sky/clouds.glsl"
     #include "/lib/sky/stars.glsl"
     
@@ -222,6 +231,7 @@ uniform float waterFogDistSmooth;
     #include "/lib/lighting/pbr_handlight.glsl"
 #endif
 
+#include "/lib/lighting/basic.glsl"
 #include "/lib/lighting/pbr.glsl"
 #include "/lib/lighting/pbr_forward.glsl"
 

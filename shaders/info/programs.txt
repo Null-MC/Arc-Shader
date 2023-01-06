@@ -1,14 +1,18 @@
+<shadow>
+
+prepare1		sky LUT
+
 <sky>
 
 <opaque>
 
-deferred1	Water Waves
-deferred2	RSM
---deferred3	RSM Blur
-deferred4	AO Render
---deferred5	AO Blur
-deferred6	Opaque PBR: RGB1: pre-exposed color, R2: Raw Luminance
-deferred7	opaque copy
+deferred1		Water Waves
+deferred2		RSM
+--deferred3		RSM Blur
+deferred4		AO Render
+--deferred5		AO Blur
+deferred6		Opaque PBR: RGB1: pre-exposed color, R2: Raw Luminance
+deferred7		opaque copy
 
 <transparent>
 <particles?>

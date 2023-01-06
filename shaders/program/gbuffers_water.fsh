@@ -115,6 +115,10 @@ uniform sampler2D noisetex;
 uniform sampler2D colortex10;
 uniform usampler2D BUFFER_DEFERRED;
 
+#if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+    uniform sampler2D BUFFER_SKY_LUT;
+#endif
+
 uniform mat4 shadowProjection;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
@@ -218,13 +222,18 @@ uniform float waterFogDistSmooth;
     #include "/lib/sky/sun_moon.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
-    #include "/lib/lighting/basic.glsl"
 #endif
 
 #include "/lib/world/weather.glsl"
 #include "/lib/world/fog.glsl"
 
 #ifdef SKY_ENABLED
+    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+        #include "/lib/sky/hillaire_common.glsl"
+        #include "/lib/sky/hillaire_render.glsl"
+    #endif
+
+    #include "/lib/lighting/basic.glsl"
     #include "/lib/sky/clouds.glsl"
     #include "/lib/sky/stars.glsl"
 

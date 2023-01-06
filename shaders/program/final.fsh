@@ -121,6 +121,9 @@ uniform float far;
 #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
     // Sun Transmission LUT
     uniform sampler2D colortex7;
+#elif DEBUG_VIEW == DEBUG_VIEW_LUT_SKY
+    // Sky LUT
+    uniform sampler2D BUFFER_SKY_LUT;
 #else
     uniform float frameTimeCounter;
     uniform float aspectRatio;
@@ -364,6 +367,9 @@ void main() {
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
         // Sun Transmission LUT
         color = textureLod(colortex7, texcoord, 0).rgb;
+    #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SKY
+        // Sky LUT
+        color = textureLod(BUFFER_SKY_LUT, texcoord, 0).rgb;
     #else
         // None
         color = GetFinalColor();

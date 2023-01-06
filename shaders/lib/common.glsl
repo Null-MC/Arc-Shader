@@ -12,6 +12,7 @@ const int colortex9Format = R32F;
 const int colortex11Format = R16F;
 const int colortex12Format = R32F;
 const int colortex14Format = R11F_G11F_B10F;
+const int colortex15Format = RGB16F;
 */
 
 const bool noisetexMipmapEnabled = true;
@@ -49,6 +50,9 @@ const bool colortex12Clear = false;
 const bool colortex14MipmapEnabled = false;
 const bool colortex14Clear = false;
 
+const bool colortex15MipmapEnabled = true;
+const bool colortex15Clear = false;
+
 
 #define SHADER_PLATFORM 0 // [0 1]
 
@@ -61,7 +65,7 @@ const bool colortex14Clear = false;
 #define BLOCK_OUTLINE 3 // [0 1 2 3]
 #define BLOCKLIGHT_TEMP 2700 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 0 // [0 10 20 30 40 50 60 70 80 90 100]
-#define SHADOW_BRIGHTNESS 12 // [0 2 4 6 8 10 12 14 16 18 20 25 30 35 40 45 50 60 70 80 90 100]
+#define SHADOW_BRIGHTNESS 16 // [0 2 4 6 8 10 12 14 16 18 20 25 30 35 40 45 50 60 70 80 90 100]
 //#define ANIM_USE_WORLDTIME
 
 
@@ -89,6 +93,7 @@ const bool colortex14Clear = false;
 
 
 // Atmosphere Options
+#define ATMOSPHERE_TYPE 1 // [0 1]
 //#define LIGHTLEAK_FIX
 //#define ATMOSFOG_ENABLED
 //#define CAVEFOG_ENABLED
@@ -136,7 +141,7 @@ const bool colortex14Clear = false;
 #define SSS_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define SSS_MAXDIST 7 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
 #define SSS_PCF_SIZE 0.08 // [0.02 0.04 0.06 0.08 0.1 0.2 0.3 0.4 0.5 0.6 0.8 1.0]
-#define SSS_PCF_SAMPLES 6 // [2 4 6 8 10 15 20]
+#define SSS_PCF_SAMPLES 4 // [2 3 4 5 6 8 10 12]
 //#define SSR_HIZ
 //#define SSS_NORMALIZE_ALBEDO
 
@@ -181,10 +186,10 @@ const bool colortex14Clear = false;
 #define BLOOM_ENABLED
 #define BLOOM_SMOOTH
 //#define BLOOM_SCALE 60.0
-#define BLOOM_THRESHOLD 0.14 // [0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.18 0.20 0.22 0.24 0.26 0.28 0.30 0.35 0.40 0.45 0.50]
+#define BLOOM_THRESHOLD 0.02 // [0.01 0.02 0.03 0.04 0.05 0.06 0.08 0.10 0.12 0.14 0.16 0.18 0.20 0.22 0.24 0.26 0.28 0.30 0.35 0.40 0.45 0.50]
 #define BLOOM_THRESHOLD_WATER 0.12
 #define BLOOM_THRESHOLD_NIGHTVISION 0.06
-#define BLOOM_POWER 2.4 // [1.0 1.2 1.4 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0 3.2 3.4 3.6 3.8 4.0]
+#define BLOOM_POWER 1.8 // [1.0 1.2 1.4 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0 3.2 3.4 3.6 3.8 4.0]
 #define BLOOM_POWER_WATER 1.6
 #define BLOOM_POWER_NIGHTVISION 1.2
 #define BLOOM_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
@@ -196,11 +201,11 @@ const bool colortex14Clear = false;
 #define VL_FOG_MIN 6 // [0 2 4 6 8 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
 #define VL_PARTICLES
 #define AO_TYPE 2 // [0 1 2]
-#define SSAO_SAMPLES 8 // [8 16 32]
-#define SSAO_INTENSITY 35 // [5 10 15 20 25 30 35 40 45 50]
+#define SSAO_SAMPLES 6 // [2 4 6 8 10 12 14 16 24 32]
+#define SSAO_INTENSITY 40 // [5 10 15 20 25 30 35 40 45 50]
 #define SSAO_SCALE 8.0
 #define SSAO_BIAS 0.02
-#define SSAO_RADIUS 0.2 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
+#define SSAO_RADIUS 0.4 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
 #define SSAO_MAX_DIST 1.6
 #define SSAO_UPSCALE
 
@@ -212,7 +217,7 @@ const bool colortex14Clear = false;
 
 
 // Debug Options
-#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27]
 //#define DEBUG_EXPOSURE_METERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
 #define DITHER_FINAL
@@ -251,7 +256,7 @@ const bool colortex14Clear = false;
 #define TITLE
 #define SEA_LEVEL 62
 #define CLOUD_LEVEL 200 // [120 130 140 150 160 170 180 190 200 210 220 230 240 250 260]
-#define ATMOSPHERE_LEVEL 360
+#define ATMOSPHERE_LEVEL 512
 #define WATER_SMOOTH 1.0
 #define IOR_AIR 1.000293
 #define IOR_WATER 1.333
@@ -277,7 +282,7 @@ const float BlockLightLux = 2400.0;
 
 const float DaySkyLumen = 6400.0;
 const float DaySkyOvercastLumen = 3200.0;
-const float NightSkyLumen = 4.0;
+const float NightSkyLumen = 3.0;
 const float NightSkyOvercastLumen = 1.0;
 
 const vec3 ATMOS_EXT_COLOR = vec3(0.510, 0.500, 0.485);

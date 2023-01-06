@@ -50,13 +50,19 @@
                 }
             #endif
 
+            #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+                float lod = rough * (8.0 - EPSILON);
+                vec3 reflectSkyColor = GetFancySkyLuminance(reflectDir, lod);
+            #else
+                vec3 reflectSkyColor = GetVanillaSkyLuminance(reflectDir);
+            #endif
+
             vec3 localReflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDir);
-            vec3 skyColor = GetVanillaSkyLuminance(reflectDir);
             float horizonFogF = 1.0 - abs(localReflectDir.y);
 
             vec3 starF = GetStarLight(localReflectDir);
             starF *= 1.0 - horizonFogF;
-            skyColor += starF * StarLumen;
+            reflectSkyColor += starF * StarLumen;
 
             vec2 scatteringF = GetVanillaSkyScattering(reflectDir, lightData.skyLightLevels);
             vec3 vlColor = scatteringF.x * sunColorFinalEye + scatteringF.y * moonColorFinalEye;
@@ -65,7 +71,7 @@
                 vlColor *= RGBToLinear(fogColor);
             #endif
 
-            skyColor += vlColor;// * (1.0 - horizonFogF);
+            reflectSkyColor += vlColor;// * (1.0 - horizonFogF);
 
             vec3 sunDir = GetSunDir();
             float sun_VoL = dot(reflectDir, sunDir);
@@ -78,13 +84,13 @@
             float cloudF = GetCloudFactor(worldPos, localReflectDir, 4.0);
             cloudF = mix(cloudF, 0.0, pow(horizonFogF, CLOUD_HORIZON_POWER));
             //cloudF *= 1.0 - rough;
-            skyColor = mix(skyColor, cloudColor, cloudF);
+            reflectSkyColor = mix(reflectSkyColor, cloudColor, cloudF);
 
             // darken lower horizon
             vec3 downDir = normalize(-upPosition);
             float RoDm = max(dot(reflectDir, downDir), 0.0);
 
-            return skyColor * (1.0 - RoDm);
+            return reflectSkyColor * (1.0 - RoDm);
         }
     #endif
 
@@ -350,7 +356,7 @@
             //     ambientBrightness *= cloudShadow;
             // #endif
 
-            vec3 skyAmbient = GetSkyAmbientLight(lightData, viewNormal) * ambientBrightness;
+            vec3 skyAmbient = GetSkyAmbientLight(lightData, worldPos.y, viewNormal) * ambientBrightness;
 
             // vec3 sunColor = lightData.sunTransmittance * sunColor;
             // vec3 skyLightColorFinal = (sunColor + moonColor) * shadowColor;
@@ -443,7 +449,7 @@
 
                     vec3 sssDiffuseLight = sssLightColor * sssExt * max(scatter, 0.0);
 
-                    sssDiffuseLight += GetSkyAmbientLight(lightData, viewDir) * ambientBrightness * occlusion * skyLight2;
+                    sssDiffuseLight += GetSkyAmbientLight(lightData, worldPos.y, viewDir) * ambientBrightness * occlusion * skyLight2;
 
                     sssDiffuseLight *= sssAlbedo * material.scattering;
 

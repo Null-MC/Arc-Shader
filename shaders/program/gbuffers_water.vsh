@@ -93,13 +93,10 @@ flat out mat2 atlasBounds;
 attribute vec3 mc_Entity;
 attribute vec4 at_tangent;
 attribute vec3 at_midBlock;
+attribute vec4 mc_midTexCoord;
 
 #if MC_VERSION >= 11700
     attribute vec3 vaPosition;
-#endif
-
-#if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX || defined AF_ENABLED
-    attribute vec4 mc_midTexCoord;
 #endif
 
 uniform mat4 gbufferModelView;

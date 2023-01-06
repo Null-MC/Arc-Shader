@@ -13,6 +13,10 @@ flat in vec3 moonTransmittanceEye;
 
 uniform sampler2D noisetex;
 
+#if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+    uniform sampler2D BUFFER_SKY_LUT;
+#endif
+
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjectionInverse;
@@ -44,6 +48,11 @@ uniform int moonPhase;
 #include "/lib/world/sky.glsl"
 #include "/lib/world/scattering.glsl"
 
+#if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+    #include "/lib/sky/hillaire_common.glsl"
+    #include "/lib/sky/hillaire_render.glsl"
+#endif
+
 /* RENDERTARGETS: 4,6 */
 layout(location = 0) out vec3 outColor0;
 layout(location = 1) out float outColor1;
@@ -52,9 +61,13 @@ layout(location = 1) out float outColor1;
 void main() {
     vec3 clipPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), 1.0) * 2.0 - 1.0;
     vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
-
     vec3 viewDir = normalize(viewPos);
-    vec3 color = GetVanillaSkyLuminance(viewDir);
+
+    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+        vec3 color = GetFancySkyLuminance(viewDir, 0);
+    #else
+        vec3 color = GetVanillaSkyLuminance(viewDir);
+    #endif
 
     vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
     vec3 localDir = normalize(localPos);
@@ -68,7 +81,7 @@ void main() {
 
     // TODO: fog
 
-    #ifndef VL_SKY_ENABLED
+    #if ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA && !defined VL_SKY_ENABLED
         vec2 skyLightLevels = GetSkyLightLevels();
         vec3 sunColorFinal = sunTransmittanceEye * sunColor * max(skyLightLevels.x, 0.0);
         vec3 moonColorFinal = moonTransmittanceEye * moonColor * max(skyLightLevels.y, 0.0) * GetMoonPhaseLevel();

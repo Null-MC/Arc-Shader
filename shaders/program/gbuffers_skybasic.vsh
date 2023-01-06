@@ -34,6 +34,7 @@ uniform vec3 moonPosition;
 uniform vec3 upPosition;
 uniform int moonPhase;
 
+uniform int renderStage;
 uniform float nightVision;
 uniform float blindness;
 
@@ -53,6 +54,11 @@ uniform float blindness;
 
 
 void main() {
+    if (renderStage == MC_RENDER_STAGE_STARS) {
+        gl_Position = vec4(10.0);
+        return;
+    }
+
     gl_Position = ftransform();
 
     sunColor = GetSunLuxColor();

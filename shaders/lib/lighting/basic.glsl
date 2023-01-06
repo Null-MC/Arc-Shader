@@ -172,39 +172,47 @@
 
 #ifdef RENDER_FRAG
     #ifdef SKY_ENABLED
-        vec3 GetSkyAmbientLight(const in LightData lightData, const in vec3 normal) {
-            vec3 upDir = normalize(upPosition);
-            vec3 sunLightDir = normalize(sunPosition);
-            vec3 moonLightDir = normalize(moonPosition);
+        vec3 GetSkyAmbientLight(const in LightData lightData, const in float worldY, const in vec3 normal) {
+            #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+                // idk wtf is going on here, but this appears to fix it
+                vec3 n = -normal;
+                //n.y = -n.y;
 
-            vec2 skyLightLevels;
-            skyLightLevels.x = dot(upDir, sunLightDir);
-            skyLightLevels.y = dot(upDir, moonLightDir);
+                return GetFancySkyLuminance(worldY, n, 6);
+            #else
+                vec3 upDir = normalize(upPosition);
+                vec3 sunLightDir = normalize(sunPosition);
+                vec3 moonLightDir = normalize(moonPosition);
 
-            //vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
+                vec2 skyLightLevels;
+                skyLightLevels.x = dot(upDir, sunLightDir);
+                skyLightLevels.y = dot(upDir, moonLightDir);
 
-            //vec3 sunLightLux = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
-            vec3 sunColorFinal = lightData.sunTransmittance * GetSunLuxColor() * smoothstep(-0.1, 0.3, skyLightLevels.x);
-            vec3 result = sunColorFinal * (dot(normal, sunLightDir) * 0.2 + 0.3);
+                //vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
 
-            //vec3 moonLightLux = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);
-            vec3 moonColorFinal = lightData.moonTransmittance * GetMoonLuxColor() * GetMoonPhaseLevel() * smoothstep(-0.1, 0.3, skyLightLevels.y);
-            result += moonColorFinal * (dot(normal, moonLightDir) * 0.2 + 0.3);
+                //vec3 sunLightLux = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
+                vec3 sunColorFinal = lightData.sunTransmittance * GetSunLuxColor();// * smoothstep(-0.1, 0.3, skyLightLevels.x);
+                vec3 result = sunColorFinal * (dot(normal, sunLightDir) * 0.2 + 0.3);
 
-            // float skyLux = skyLightLevels.x * DaySkyLux + skyLightLevels.y * NightSkyLux;
-            // vec3 skyLightColorLux = RGBToLinear(skyColor) * skyLux;
-            // skyLightColorLux *= saturate(dot(normal, upDir) * 0.3 + 0.6);
+                //vec3 moonLightLux = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);
+                vec3 moonColorFinal = lightData.moonTransmittance * GetMoonLuxColor() * GetMoonPhaseLevel();// * smoothstep(-0.1, 0.3, skyLightLevels.y);
+                result += moonColorFinal * (dot(normal, moonLightDir) * 0.2 + 0.3);
 
-            vec3 skyColorLux = RGBToLinear(skyColor);// * skyTint;
-            if (all(lessThan(skyColorLux, vec3(EPSILON)))) skyColorLux = vec3(1.0);
-            skyColorLux = normalize(skyColorLux);
+                // float skyLux = skyLightLevels.x * DaySkyLux + skyLightLevels.y * NightSkyLux;
+                // vec3 skyLightColorLux = RGBToLinear(skyColor) * skyLux;
+                // skyLightColorLux *= saturate(dot(normal, upDir) * 0.3 + 0.6);
 
-            result += (sunColorFinal + moonColorFinal) * skyColorLux * mix(0.1, 0.01, wetness);
+                vec3 skyColorLux = RGBToLinear(skyColor);// * skyTint;
+                if (all(lessThan(skyColorLux, vec3(EPSILON)))) skyColorLux = vec3(1.0);
+                skyColorLux = normalize(skyColorLux);
 
-            //return MinWorldLux + sunLightLux + moonLightLux;
-            //result += skyColorLux;
+                result += (sunColorFinal + moonColorFinal) * skyColorLux * mix(0.1, 0.01, wetness);
 
-            return result;
+                //return MinWorldLux + sunLightLux + moonLightLux;
+                //result += skyColorLux;
+
+                return result;
+            #endif
         }
     #endif
 #endif

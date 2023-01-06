@@ -169,6 +169,10 @@ option.PARALLAX_DEPTH_WRITE.comment=When enabled, the surface depth will also be
 
 screen.ATMOSPHERE_OPTIONS=Atmosphere
 
+option.ATMOSPHERE_TYPE=Type
+value.ATMOSPHERE_TYPE.0=Vanilla
+value.ATMOSPHERE_TYPE.1=Fancy
+
 option.sunPathRotation=Sun Angle
 suffix.sunPathRotation=°
 
@@ -417,7 +421,8 @@ value.DEBUG_VIEW.22=Prev Depth Tiles
 value.DEBUG_VIEW.23=Ambient Occlusion
 value.DEBUG_VIEW.24=BRDF LUT
 value.DEBUG_VIEW.25=Sun-Transmission LUT
-value.DEBUG_VIEW.26=White-World
+value.DEBUG_VIEW.26=Sky LUT
+value.DEBUG_VIEW.27=White-World
 
 option.DEBUG_EXPOSURE_METERS=Exposure Meters
 option.DEBUG_EXPOSURE_METERS.comment=When enabled, two bars will be shown on the left screen edge. - The average luminance is the first bar in red. - The EV value is the second bar in green.

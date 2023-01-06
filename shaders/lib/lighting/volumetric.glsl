@@ -67,7 +67,7 @@ const float isotropicPhase = 0.25 / PI;
         float time = frameTimeCounter / 3600.0;
         vec3 shadowMax = 1.0 - vec3(vec2(shadowPixelSize), EPSILON);
         float cameraSkyLight = saturate(eyeBrightnessSmooth.y / 240.0);
-        vec3 sampleAmbient = 48000.0 * RGBToLinear(fogColor) * pow2(cameraSkyLight);
+        vec3 sampleAmbient = 48000.0 * RGBToLinear(skyColor) * pow2(cameraSkyLight);
         vec3 scattering = vec3(0.0);
         vec3 t;
 
@@ -102,6 +102,8 @@ const float isotropicPhase = 0.25 / PI;
 
                 float sampleF = CompareOpaqueDepth(traceShadowClipPos, vec2(0.0), lightData.shadowBias);
             #endif
+
+            sampleF = 0.2 + 0.8 * sampleF;
 
             vec3 traceWorldPos = worldStart + localStep * (i + dither);
 

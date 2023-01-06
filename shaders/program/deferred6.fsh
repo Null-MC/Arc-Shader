@@ -53,6 +53,10 @@ uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
 
+#if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+    uniform sampler2D BUFFER_SKY_LUT;
+#endif
+
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     uniform mat4 gbufferPreviousModelView;
     uniform mat4 gbufferPreviousProjection;
@@ -189,6 +193,11 @@ uniform float waterFogDistSmooth;
 #include "/lib/world/fog.glsl"
 
 #ifdef SKY_ENABLED
+    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+        #include "/lib/sky/hillaire_common.glsl"
+        #include "/lib/sky/hillaire_render.glsl"
+    #endif
+
     #include "/lib/sky/clouds.glsl"
     //#include "/lib/sky/clouds_robobo.glsl"
     #include "/lib/sky/stars.glsl"
@@ -442,8 +451,10 @@ void main() {
             #endif
         #endif
 
-        if (lightData.opaqueScreenDepth < 1.0)
-            ApplyFog(color, fogColorFinal, fogFactorFinal);
+        #if ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
+            if (lightData.opaqueScreenDepth < 1.0)
+                ApplyFog(color, fogColorFinal, fogFactorFinal);
+        #endif
 
         #ifdef SKY_ENABLED
             float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);

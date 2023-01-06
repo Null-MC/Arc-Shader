@@ -105,6 +105,10 @@ uniform sampler2D gtexture;
 uniform sampler2D lightmap;
 uniform sampler2D depthtex1;
 
+#if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+    uniform sampler2D BUFFER_SKY_LUT;
+#endif
+
 uniform mat4 gbufferModelViewInverse;
 uniform ivec2 eyeBrightnessSmooth;
 uniform ivec2 eyeBrightness;
@@ -161,6 +165,11 @@ uniform float waterFogDistSmooth;
         #include "/lib/shadows/basic.glsl"
         #include "/lib/shadows/basic_render.glsl"
     #endif
+#endif
+
+#if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+    #include "/lib/sky/hillaire_common.glsl"
+    #include "/lib/sky/hillaire_render.glsl"
 #endif
 
 #include "/lib/world/fog.glsl"
