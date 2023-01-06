@@ -348,7 +348,7 @@
         //return vec4(iblSpec, 1.0);
 
         #ifdef SKY_ENABLED
-            float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength) * ShadowBrightnessF;
+            float ambientBrightness = mix(0.8 * skyLight, 0.95 * skyLight, rainStrength) * ShadowBrightnessF;
 
             // TODO: Doing direct cloud shadows on ambient causes really fucked results
             //       At least needs a heavy blur distribution

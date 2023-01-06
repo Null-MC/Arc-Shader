@@ -63,14 +63,20 @@ const float isotropicPhase = 0.25 / PI;
             vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
         #endif
 
+        #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+            float cameraSkyLight = saturate(eyeBrightnessSmooth.y / 240.0);
+            vec3 sampleAmbient = vec3(mix(NightSkyLumen, 32000.0 * pow2(cameraSkyLight), max(lightData.skyLightLevels.x, 0.0)));
+        #else
+            float cameraSkyLight = saturate(eyeBrightnessSmooth.y / 240.0);
+            vec3 sampleAmbient = NightSkyLumen + 32000.0 * RGBToLinear(fogColor) * pow2(cameraSkyLight);
+        #endif
+
         const float AirSpeed = 20.0;
         float time = frameTimeCounter / 3600.0;
         vec3 shadowMax = 1.0 - vec3(vec2(shadowPixelSize), EPSILON);
-        float cameraSkyLight = saturate(eyeBrightnessSmooth.y / 240.0);
-        vec3 sampleAmbient = 48000.0 * RGBToLinear(skyColor) * pow2(cameraSkyLight);
-        vec3 scattering = vec3(0.0);
         vec3 t;
 
+        vec3 scattering = vec3(0.0);
         for (int i = 0; i < VL_SAMPLES_SKY; i++) {
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 vec3 shadowPos[4];
@@ -143,9 +149,9 @@ const float isotropicPhase = 0.25 / PI;
             #ifdef SHADOW_COLOR
                 //if (sampleF > EPSILON) {
                     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        float transparentShadowDepth = SampleTransparentDepth(shadowPos[cascade], vec2(0.0));
+                        float transparentShadowDepth = SampleTransparentDepth(shadowPos[cascade].xy, vec2(0.0));
                     #else
-                        float transparentShadowDepth = SampleTransparentDepth(traceShadowClipPos, vec2(0.0));
+                        float transparentShadowDepth = SampleTransparentDepth(traceShadowClipPos.xy, vec2(0.0));
                     #endif
 
                     if (traceShadowClipPos.z - transparentShadowDepth >= EPSILON) {
