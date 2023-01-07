@@ -57,8 +57,8 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
 
     //vec3 skyAmbient = vec3(pow(skyLight, 5.0));
     #ifdef SKY_ENABLED
-        //float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength) * ShadowBrightnessF;
-        //ambient += GetSkyAmbientLight(lightData, viewNormal) * ambientBrightness;
+        float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength) * ShadowBrightnessF;
+        ambient += GetSkyAmbientLight(lightData, worldPos.y, viewNormal) * ambientBrightness;
 
         #ifndef RENDER_WEATHER
             vec3 sunColorFinal = lightData.sunTransmittance * sunColor;// * GetSunLux();
@@ -196,7 +196,13 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
                 float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
                 cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
 
-                vec3 cloudColor = GetCloudColor(skyLightLevels);
+                vec3 sunDir = GetSunDir();
+                float sun_VoL = dot(viewDir, sunDir);
+
+                vec3 moonDir = GetMoonDir();
+                float moon_VoL = dot(viewDir, moonDir);
+
+                vec3 cloudColor = GetCloudColor(skyLightLevels, sun_VoL, moon_VoL);
 
                 cloudF = smoothstep(0.0, 1.0, cloudF);
                 //final.rgb = mix(final.rgb, cloudColor, cloudF);

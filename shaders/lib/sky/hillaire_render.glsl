@@ -5,6 +5,10 @@
 
 vec3 getValFromSkyLUT(const in float worldY, const in vec3 viewDir, const in float lod) {
     float height = (worldY - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
+
+    // WARN: This is a temp fix cause idk what's going wrong when camera is under sea level!
+    height = max(height, 0.0);
+    
     height = groundRadiusMM + height * (atmosphereRadiusMM - groundRadiusMM);
 
     vec3 sunDir = GetSunDir();

@@ -87,6 +87,10 @@ void main() {
     }
     
     float height = (cameraPosition.y - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
+
+    // WARN: This is a temp fix cause idk what's going wrong when camera is under sea level!
+    height = max(height, 0.0);
+    
     height = groundRadiusMM + height * (atmosphereRadiusMM - groundRadiusMM);
 
     #if SHADER_PLATFORM == PLATFORM_OPTIFINE
