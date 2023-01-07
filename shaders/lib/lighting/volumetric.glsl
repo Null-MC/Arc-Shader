@@ -85,6 +85,7 @@ const float isotropicPhase = 0.25 / PI;
                     shadowPos[c] = shadowClipStart[c] + (i + dither) * shadowClipStep[c];
 
                 int cascade = GetShadowSampleCascade(shadowPos, lightData.shadowProjectionSize, 0.0);
+                vec3 traceShadowClipPos = shadowPos[cascade];
 
                 float sampleF = CompareOpaqueDepth(shadowPos[cascade], vec2(0.0), lightData.shadowBias[cascade]);
             #else
@@ -113,7 +114,8 @@ const float isotropicPhase = 0.25 / PI;
             vec3 traceWorldPos = worldStart + localStep * (i + dither);
 
             #ifdef SHADOW_CLOUD
-                sampleF *= 1.0 - GetCloudFactor(traceWorldPos, localLightDir, 0);
+                float cloudF = GetCloudFactor(traceWorldPos, localLightDir, 0);
+                sampleF *= pow(1.0 - cloudF, 2.0);
             #endif
 
             t = traceWorldPos / 192.0;

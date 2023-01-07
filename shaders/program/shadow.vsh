@@ -132,6 +132,7 @@ void main() {
 
     vec3 normal = gl_Normal;
     vec3 shadowViewNormal = normalize(gl_NormalMatrix * normal);
+    vNoV = shadowViewNormal.z;
 
     #if defined ENABLE_WAVING || WATER_WAVE_TYPE == WATER_WAVE_VERTEX
         float skyLight = saturate((vLmcoord.y - (0.5/16.0)) / (15.0/16.0));
@@ -150,7 +151,6 @@ void main() {
 
     if (vBlockId == MATERIAL_WATER) {
         vec3 worldPos = vLocalPos + cameraPosition;
-        vNoV = shadowViewNormal.z;
 
         #ifdef PHYSICS_OCEAN
             #ifdef WATER_FANCY
