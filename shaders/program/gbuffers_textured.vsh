@@ -31,7 +31,7 @@ flat out float exposure;
     flat out vec3 sunTransmittanceEye;
     flat out vec3 moonTransmittanceEye;
 
-    uniform sampler2D colortex9;
+    uniform sampler3D colortex9;
 
     uniform float eyeAltitude;
     uniform float rainStrength;
@@ -39,6 +39,7 @@ flat out float exposure;
     uniform vec3 moonPosition;
     uniform vec3 upPosition;
     uniform int moonPhase;
+    uniform float wetness;
 
     #ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;

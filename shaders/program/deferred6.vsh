@@ -27,9 +27,10 @@ flat out vec3 blockLightColor;
     flat out vec3 sunTransmittanceEye;
     flat out vec3 moonTransmittanceEye;
 
-    uniform sampler2D colortex7;
+    uniform sampler3D colortex7;
 
     uniform vec3 skyColor;
+    uniform float wetness;
     uniform float eyeAltitude;
 
     #ifdef SHADOW_ENABLED

@@ -40,7 +40,7 @@ flat in mat2 atlasBounds;
     flat in vec3 sunColor;
     flat in vec3 moonColor;
 
-    uniform sampler2D colortex9;
+    uniform sampler3D colortex9;
     
     uniform mat4 gbufferModelView;
 

@@ -101,8 +101,13 @@
                         vec3 waterPos = waterWorldPos.xzy;
                         waterPos.z = depth * WATER_NORMAL_STRENGTH;
 
-                        vec3 waterDX = dFdx(waterPos);
-                        vec3 waterDY = dFdy(waterPos);
+                        #ifdef MC_GL_VENDOR_AMD
+                            vec3 waterDX = vec3(dFdx(waterPos.x), dFdx(waterPos.y), dFdx(waterPos.z));
+                            vec3 waterDY = vec3(dFdy(waterPos.x), dFdy(waterPos.y), dFdy(waterPos.z));
+                        #else
+                            vec3 waterDX = dFdx(waterPos);
+                            vec3 waterDY = dFdy(waterPos);
+                        #endif
                     #endif
                 #endif
 
@@ -396,14 +401,16 @@
         vec4 finalColor = PbrLighting2(material, lightData, viewPosFinal);
 
         if (isEyeInWater != 1) {
-            vec3 fogColorFinal;
-            float fogFactorFinal;
-            GetFog(lightData, viewPos, fogColorFinal, fogFactorFinal);
+            #if !(defined SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_FANCY)
+                vec3 fogColorFinal;
+                float fogFactorFinal;
+                GetFog(lightData, viewPos, fogColorFinal, fogFactorFinal);
+            #endif
 
             #ifdef SKY_ENABLED
                 vec2 scatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
 
-                #ifndef VL_SKY_ENABLED
+                #if !defined VL_SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
                     vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor * max(lightData.skyLightLevels.x, 0.0);
                     vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * max(lightData.skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
 
@@ -413,7 +420,9 @@
                 #endif
             #endif
 
-            ApplyFog(finalColor, fogColorFinal, fogFactorFinal, 1.0/255.0);
+            #if !(defined SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_FANCY)
+                ApplyFog(finalColor, fogColorFinal, fogFactorFinal, 1.0/255.0);
+            #endif
 
             #ifdef SKY_ENABLED
                 vec3 localViewDir = normalize(localPos);

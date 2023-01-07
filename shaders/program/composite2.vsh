@@ -10,7 +10,7 @@ out vec2 texcoord;
 #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
     flat out float eyeLum;
 
-    uniform sampler2D colortex7;
+    uniform sampler3D colortex7;
 
     uniform int heldBlockLightValue;
     uniform ivec2 eyeBrightness;
@@ -21,6 +21,7 @@ out vec2 texcoord;
     uniform vec3 moonPosition;
     uniform vec3 upPosition;
     uniform int moonPhase;
+    uniform float wetness;
 
     uniform vec3 skyColor;
     uniform vec3 fogColor;

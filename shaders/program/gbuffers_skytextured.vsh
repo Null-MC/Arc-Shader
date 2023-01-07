@@ -13,10 +13,11 @@ flat out vec3 moonColor;
 flat out vec3 sunTransmittanceEye;
 flat out vec3 moonTransmittanceEye;
 
-uniform sampler2D colortex9;
+uniform sampler3D colortex9;
 
 uniform float screenBrightness;
 uniform float eyeAltitude;
+uniform float wetness;
 
 #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
     uniform sampler2D BUFFER_HDR_PREVIOUS;

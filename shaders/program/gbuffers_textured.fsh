@@ -31,7 +31,7 @@ flat in vec3 blockLightColor;
     flat in vec3 sunTransmittanceEye;
     flat in vec3 moonTransmittanceEye;
 
-    uniform sampler2D colortex9;
+    uniform sampler3D colortex9;
     uniform usampler2D shadowcolor1;
     uniform sampler2D noisetex;
 

@@ -44,6 +44,7 @@ flat out mat2 atlasBounds;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
     uniform float rainStrength;
+    uniform float wetness;
     uniform int moonPhase;
 
     #ifdef SHADOW_ENABLED
@@ -103,6 +104,7 @@ uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform float screenBrightness;
 uniform vec3 cameraPosition;
+
 uniform int isEyeInWater;
 uniform float nightVision;
 uniform float blindness;

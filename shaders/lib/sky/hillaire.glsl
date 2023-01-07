@@ -37,44 +37,48 @@ float getMiePhase(const in float cosTheta) {
 }
 
 float getRayleighPhase(const in float cosTheta) {
-    const float k = 3.0/(16.0*PI);
-    return k*(1.0+cosTheta*cosTheta);
+    const float k = 3.0 / (16.0*PI);
+    return k * (1.0 + cosTheta*cosTheta);
 }
 
 void getScatteringValues(const in vec3 pos, out vec3 rayleighScattering, out float mieScattering, out vec3 extinction) {
-    float altitudeKM = (length(pos)-groundRadiusMM)*1000.0;
+    float altitudeKM = (length(pos) - groundRadiusMM) * 1000.0;
     // Note: Paper gets these switched up.
-    float rayleighDensity = exp(-altitudeKM/8.0);
-    float mieDensity = exp(-altitudeKM/1.2);
+    float rayleighDensity = exp(-altitudeKM / 8.0);
+    float mieDensity = exp(-altitudeKM / 1.2);
     
-    rayleighScattering = rayleighScatteringBase*rayleighDensity;
-    float rayleighAbsorption = rayleighAbsorptionBase*rayleighDensity;
+    rayleighScattering = GetRayleighScatteringBase() * rayleighDensity;
+    float rayleighAbsorption = GetRayleighAbsorptionBase() * rayleighDensity;
     
-    mieScattering = mieScatteringBase*mieDensity;
-    float mieAbsorption = mieAbsorptionBase*mieDensity;
+    mieScattering = GetMieScatteringBase() * mieDensity;
+    float mieAbsorption = GetMieAbsorptionBase() * mieDensity;
     
-    vec3 ozoneAbsorption = ozoneAbsorptionBase*max(0.0, 1.0 - abs(altitudeKM-25.0)/15.0);
+    vec3 ozoneAbsorption = GetOzoneAbsorptionBase() * max(0.0, 1.0 - abs(altitudeKM - 25.0) / 15.0);
     
     extinction = rayleighScattering + rayleighAbsorption + mieScattering + mieAbsorption + ozoneAbsorption;
 }
 
-vec3 getValFromTLUT(const in sampler2D tex, const in vec3 pos, const in vec3 sunDir) {
+vec3 getValFromTLUT(const in sampler3D tex, const in vec3 pos, const in vec3 sunDir) {
     float height = length(pos);
     vec3 up = pos / height;
     float sunCosZenithAngle = dot(sunDir, up);
-    vec2 uv = vec2(0.5 + 0.5*sunCosZenithAngle,
-        (height - groundRadiusMM) / (atmosphereRadiusMM - groundRadiusMM));
+    vec3 uv = vec3(
+        0.5 + 0.5*sunCosZenithAngle,
+        (height - groundRadiusMM) / (atmosphereRadiusMM - groundRadiusMM),
+        wetness);
     
-    return texture(tex, uv).rgb;
+    return textureLod(tex, uv, 0).rgb;
 }
 
-vec3 getValFromMultiScattLUT(const in sampler2D tex, const in vec3 pos, const in vec3 sunDir) {
+vec3 getValFromMultiScattLUT(const in sampler3D tex, const in vec3 pos, const in vec3 sunDir) {
     float height = length(pos);
     vec3 up = pos / height;
     float sunCosZenithAngle = dot(sunDir, up);
 
-    vec2 uv = vec2(0.5 + 0.5*sunCosZenithAngle,
-        (height - groundRadiusMM) / (atmosphereRadiusMM - groundRadiusMM));
+    vec3 uv = vec3(
+        0.5 + 0.5*sunCosZenithAngle,
+        (height - groundRadiusMM) / (atmosphereRadiusMM - groundRadiusMM),
+        wetness);
     
-    return texture(tex, uv).rgb;
+    return textureLod(tex, uv, 0).rgb;
 }

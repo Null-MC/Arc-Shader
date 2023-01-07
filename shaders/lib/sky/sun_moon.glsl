@@ -29,14 +29,16 @@ vec3 GetMoonDir() {
     #endif
 }
 
-vec3 GetTransmittance(const in sampler2D tex, const in float height, const in float skyLightLevel) {
-    vec2 uv;
+vec3 GetTransmittance(const in sampler3D tex, const in float height, const in float skyLightLevel) {
+    vec3 uv;
     uv.x = saturate(skyLightLevel * 0.5 + 0.5);
     uv.y = saturate((height - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL));
+    uv.z = wetness;
+
     return textureLod(tex, uv, 0).rgb;
 }
 
-vec3 GetSunTransmittance(const in sampler2D tex, const in float height, const in float skyLightLevel) {
+vec3 GetSunTransmittance(const in sampler3D tex, const in float height, const in float skyLightLevel) {
     return GetTransmittance(tex, height, skyLightLevel);
 }
 
@@ -52,7 +54,7 @@ vec3 GetSunLuxColor() {
     return GetSunLux() * GetSunColor();
 }
 
-vec3 GetMoonTransmittance(const in sampler2D tex, const in float height, const in float skyLightLevel) {
+vec3 GetMoonTransmittance(const in sampler3D tex, const in float height, const in float skyLightLevel) {
     return GetTransmittance(tex, height, skyLightLevel);
 }
 
