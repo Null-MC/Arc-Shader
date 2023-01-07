@@ -197,10 +197,15 @@
                 }
 
                 #ifdef SHADOW_COLOR
-                    if (lightData.shadowPos.z - lightData.transparentShadowDepth > lightData.shadowBias)
-                        shadowColor = GetShadowColor(lightData.shadowPos.xy);
+                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                        if (lightData.shadowPos[lightData.transparentShadowCascade].z - lightData.transparentShadowDepth > lightData.shadowBias[lightData.transparentShadowCascade])
+                            shadowColor = GetShadowColor(lightData.shadowPos[lightData.transparentShadowCascade].xy);
+                    #else
+                        if (lightData.shadowPos.z - lightData.transparentShadowDepth > lightData.shadowBias)
+                            shadowColor = GetShadowColor(lightData.shadowPos.xy);
+                    #endif
 
-                    shadowColor = RGBToLinear(shadowColor);
+                    //shadowColor = RGBToLinear(shadowColor);
                     skyLightColorFinal *= shadowColor;
                 #endif
 

@@ -18,9 +18,11 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
 
             #ifdef SHADOW_COLOR
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    shadowColor = GetShadowColor(lightData);
+                    if (lightData.shadowPos[lightData.transparentShadowCascade].z - lightData.transparentShadowDepth > lightData.shadowBias[lightData.transparentShadowCascade])
+                        shadowColor = GetShadowColor(lightData.shadowPos[lightData.transparentShadowCascade].xy);
                 #else
-                    shadowColor = GetShadowColor(lightData.shadowPos.xy);
+                    if (lightData.shadowPos.z - lightData.transparentShadowDepth > lightData.shadowBias)
+                        shadowColor = GetShadowColor(lightData.shadowPos.xy);
                 #endif
             #endif
         
