@@ -33,7 +33,7 @@ layout(location = 0) out vec3 outColor0;
 
 const int numScatteringSteps = 32;
 
-vec3 raymarchScattering(vec3 pos, vec3 rayDir, vec3 sunDir, float tMax, float numSteps) {
+vec3 raymarchScattering(const in vec3 pos, const in vec3 rayDir, const in vec3 sunDir, const in float tMax) {
     float cosTheta = dot(rayDir, sunDir);
     
     float miePhaseValue = getMiePhase(cosTheta);
@@ -42,8 +42,8 @@ vec3 raymarchScattering(vec3 pos, vec3 rayDir, vec3 sunDir, float tMax, float nu
     vec3 lum = vec3(0.0);
     vec3 transmittance = vec3(1.0);
     float t = 0.0;
-    for (float i = 0.0; i < numSteps; i += 1.0) {
-        float newT = ((i + 0.3)/numSteps)*tMax;
+    for (float i = 0.0; i < numScatteringSteps; i += 1.0) {
+        float newT = ((i + 0.3) / numScatteringSteps) * tMax;
         float dt = newT - t;
         t = newT;
         
@@ -110,5 +110,5 @@ void main() {
     float atmoDist = rayIntersectSphere(skyViewPos, rayDir, atmosphereRadiusMM);
     float groundDist = rayIntersectSphere(skyViewPos, rayDir, groundRadiusMM);
     float tMax = (groundDist < 0.0) ? atmoDist : groundDist;
-    outColor0 = raymarchScattering(skyViewPos, rayDir, sunDir, tMax, float(numScatteringSteps));
+    outColor0 = raymarchScattering(skyViewPos, rayDir, sunDir, tMax);
 }

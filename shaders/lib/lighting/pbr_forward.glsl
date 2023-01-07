@@ -101,13 +101,13 @@
                         vec3 waterPos = waterWorldPos.xzy;
                         waterPos.z = depth * WATER_NORMAL_STRENGTH;
 
-                        #ifdef MC_GL_VENDOR_AMD
-                            vec3 waterDX = vec3(dFdx(waterPos.x), dFdx(waterPos.y), dFdx(waterPos.z));
-                            vec3 waterDY = vec3(dFdy(waterPos.x), dFdy(waterPos.y), dFdy(waterPos.z));
-                        #else
+                        //#ifdef MC_GL_VENDOR_AMD
+                        //    vec3 waterDX = vec3(dFdx(waterPos.x), dFdx(waterPos.y), dFdx(waterPos.z));
+                        //    vec3 waterDY = vec3(dFdy(waterPos.x), dFdy(waterPos.y), dFdy(waterPos.z));
+                        //#else
                             vec3 waterDX = dFdx(waterPos);
                             vec3 waterDY = dFdy(waterPos);
-                        #endif
+                        //#endif
                     #endif
                 #endif
 

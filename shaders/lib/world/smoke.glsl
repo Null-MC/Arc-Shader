@@ -1,29 +1,29 @@
-const int samples = 12;
-const float pi = atan(1.0) * 4.0;
-const float sigma = float(samples) * 0.25;
+// const int samples = 12;
+// const float pi = atan(1.0) * 4.0;
+// const float sigma = float(samples) * 0.25;
 const float isotropicPhase = 0.25 / PI;
 
-float gaussian(const in vec2 i) {
-    return 1.0 / (2.0 * pi * pow2(sigma)) * exp(-((pow2(i.x) + pow2(i.y)) / (2.0 * pow2(sigma))));
-}
+// float gaussian(const in vec2 i) {
+//     return 1.0 / (2.0 * pi * pow2(sigma)) * exp(-((pow2(i.x) + pow2(i.y)) / (2.0 * pow2(sigma))));
+// }
 
-vec3 blur(sampler2D sp, vec2 uv, vec2 scale, float lod) {
-    vec3 col = vec3(0.0);
-    float accum = 0.0;
-    float weight;
-    vec2 offset;
+// vec3 blur(sampler2D sp, vec2 uv, vec2 scale, float lod) {
+//     vec3 col = vec3(0.0);
+//     float accum = 0.0;
+//     float weight;
+//     vec2 offset;
     
-    for (int x = -samples / 2; x < samples / 2; ++x) {
-        for (int y = -samples / 2; y < samples / 2; ++y) {
-            offset = vec2(x, y);
-            weight = gaussian(offset);
-            col += textureLod(sp, uv + scale * offset, lod).rgb * weight;
-            accum += weight;
-        }
-    }
+//     for (int x = -samples / 2; x < samples / 2; ++x) {
+//         for (int y = -samples / 2; y < samples / 2; ++y) {
+//             offset = vec2(x, y);
+//             weight = gaussian(offset);
+//             col += textureLod(sp, uv + scale * offset, lod).rgb * weight;
+//             accum += weight;
+//         }
+//     }
     
-    return col / accum;
-}
+//     return col / accum;
+// }
 
 vec3 GetVolumetricSmoke(const in LightData lightData, inout vec3 transmittance, const in vec3 nearViewPos, const in vec3 farViewPos) {
     const float inverseStepCountF = rcp(VL_SAMPLES_SKY + 1);

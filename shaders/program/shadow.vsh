@@ -74,7 +74,6 @@ uniform float far;
 #include "/lib/world/waving.glsl"
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-    //uniform int entityId;
     uniform float near;
 
     #if SHADER_PLATFORM == PLATFORM_OPTIFINE
@@ -105,8 +104,6 @@ uniform float far;
 
 
 void main() {
-    //int blockId = int(mc_Entity.x + 0.5);
-
     if (renderStage == MC_RENDER_STAGE_ENTITIES) {
         vBlockId = -1;
         vEntityId = entityId;
@@ -152,21 +149,8 @@ void main() {
     #endif
 
     if (vBlockId == MATERIAL_WATER) {
-        // #ifdef WATER_FANCY
-        //     waterMask = 1;
-        // #endif
-
-        // #if MC_VERSION >= 11700
-        //     float vY = -at_midBlock.y / 64.0;
-        //     float posY = saturate(vY + 0.5) * (1.0 - step(0.5, vY + EPSILON));
-        // #else
-        //     float posY = step(EPSILON, gl_Normal.y);
-        // #endif
-
-        //vec3 shadowViewNormal = normalize(gl_NormalMatrix * normal);
-        //vec3 worldNormal = mat3(shadowModelViewInverse) * shadowViewNormal;
-
         vec3 worldPos = vLocalPos + cameraPosition;
+        vNoV = shadowViewNormal.z;
 
         #ifdef PHYSICS_OCEAN
             #ifdef WATER_FANCY
@@ -190,16 +174,6 @@ void main() {
                 normal = normalize(cross(pX, pY)).xzy;
             #endif
         #else
-            #if SHADER_PLATFORM == PLATFORM_IRIS
-                // Iris does not cull water backfaces
-                // if (shadowViewNormal.z <= 0.0 &&  && all(greaterThan(abs(at_midBlock), vec3(EPSILON)))) {
-                //     gl_Position = vec4(10.0);
-                //     return;
-                // }
-            #endif
-
-            vNoV = shadowViewNormal.z;
-
             if (gl_Normal.y > 0.5) {
                 #ifdef WATER_FANCY
                     vWaterMask = 1;

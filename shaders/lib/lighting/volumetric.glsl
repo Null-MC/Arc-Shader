@@ -54,26 +54,27 @@ const float isotropicPhase = 0.25 / PI;
         float localStepLength = localRayLength * inverseStepCountF;
         vec3 worldStart = localStart + cameraPosition;
         
-        vec3 SmokeAbsorptionCoefficient = vec3(0.002);
-        vec3 SmokeScatteringCoefficient = vec3(0.46);
-        vec3 SmokeExtinctionCoefficient = SmokeScatteringCoefficient + SmokeAbsorptionCoefficient;
+        const float AirSpeed = 20.0;
+        const vec3 SmokeAbsorptionCoefficient = vec3(0.002);
+        const vec3 SmokeScatteringCoefficient = vec3(0.46);
+        const vec3 SmokeExtinctionCoefficient = SmokeScatteringCoefficient + SmokeAbsorptionCoefficient;
 
         #ifdef SHADOW_CLOUD
             vec3 viewLightDir = normalize(shadowLightPosition);
             vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
         #endif
 
+        float cameraSkyLight = saturate(eyeBrightnessSmooth.y / 240.0);
+
         #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-            float cameraSkyLight = saturate(eyeBrightnessSmooth.y / 240.0);
             vec3 sampleAmbient = vec3(mix(NightSkyLumen, 32000.0 * pow2(cameraSkyLight), max(lightData.skyLightLevels.x, 0.0)));
         #else
-            float cameraSkyLight = saturate(eyeBrightnessSmooth.y / 240.0);
             vec3 sampleAmbient = NightSkyLumen + 32000.0 * RGBToLinear(fogColor) * pow2(cameraSkyLight);
         #endif
 
-        const float AirSpeed = 20.0;
         float time = frameTimeCounter / 3600.0;
         vec3 shadowMax = 1.0 - vec3(vec2(shadowPixelSize), EPSILON);
+        float minFogF = min(VLFogMinF * (1.0 + 0.6 * max(lightData.skyLightLevels.x, 0.0)), 1.0);
         vec3 t;
 
         vec3 scattering = vec3(0.0);
@@ -109,8 +110,6 @@ const float isotropicPhase = 0.25 / PI;
                 float sampleF = CompareOpaqueDepth(traceShadowClipPos, vec2(0.0), lightData.shadowBias);
             #endif
 
-            sampleF = 0.2 + 0.8 * sampleF;
-
             vec3 traceWorldPos = worldStart + localStep * (i + dither);
 
             #ifdef SHADOW_CLOUD
@@ -119,27 +118,23 @@ const float isotropicPhase = 0.25 / PI;
 
             t = traceWorldPos / 192.0;
             t.xz -= time * 1.0 * AirSpeed;
-            float texDensity1 = texture(colortex13, t).r;
+            float texDensity1 = textureLod(colortex13, t, 0).r;
 
             t = traceWorldPos / 96.0;
             t.xz += time * 2.0 * AirSpeed;
-            float texDensity2 = texture(colortex13, t).r;
+            float texDensity2 = textureLod(colortex13, t, 0).r;
 
             t = traceWorldPos / 48.0;
             t.xyz += time * 4.0 * AirSpeed;
-            float texDensity3 = texture(colortex13, t).r;
+            float texDensity3 = textureLod(colortex13, t, 0).r;
 
-            //float texDensity = 1.0;//(0.2 + 0.8 * wetness) * (1.0 - mix(texDensity1, texDensity2, 0.1 + 0.5 * wetness));
-            float texDensity = 0.04 + 0.2 * pow(texDensity1 * texDensity2, 2.0) + 0.6 * pow(texDensity3 * texDensity2, 3.0);//0.2 * (1.0 - mix(texDensity1, texDensity2, 0.5));
+            float texDensity = 0.04 + 0.2 * pow(texDensity1 * texDensity2, 2.0) + 0.6 * pow(texDensity3 * texDensity2, 3.0);
             
             // Change with altitude
             float altD = 1.0 - saturate((traceWorldPos.y - SEA_LEVEL) / (CLOUD_LEVEL - SEA_LEVEL));
             texDensity *= pow3(altD);
 
             // Change with weather
-            //texDensity *= VLFogMinF + (1.0 - VLFogMinF) * wetness;
-            //texDensity *= 0.2 + 1.4 * wetness;
-            float minFogF = min(VLFogMinF * (1.0 + 0.6 * max(lightData.skyLightLevels.x, 0.0)), 1.0);
             texDensity *= minFogF + (1.0 - minFogF) * wetness;
 
             vec3 sampleColor = 16.0 * GetScatteredLighting(traceWorldPos.y, skyLightLevels, scatteringF) * sampleF;
