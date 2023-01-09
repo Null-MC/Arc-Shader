@@ -1,18 +1,18 @@
 // These are per megameter.
-const float groundRadiusMM = 6.360;
-const float atmosphereRadiusMM = 6.460;
+const float groundRadiusMM = 9.360;
+const float atmosphereRadiusMM = 9.460;
 
-const vec3 ozoneAbsorptionBase_clear = vec3(0.650, 1.881, 0.085);
+const vec3 ozoneAbsorptionBase_clear = vec3(0.650, 1.681, 0.076) * 1.8;
 const vec3 rayleighScatteringBase_clear = vec3(5.802, 13.558, 33.1);
-const float rayleighAbsorptionBase_clear = 0.0;
-const float mieScatteringBase_clear = 3.996;
-const float mieAbsorptionBase_clear = 4.4;
+const float rayleighAbsorptionBase_clear = 2.0;
+const float mieScatteringBase_clear = 3.996 * 2.0;
+const float mieAbsorptionBase_clear = 4.4 * 8.0;
 
-const vec3 ozoneAbsorptionBase_rain = vec3(0.650, 1.881, 0.085) * 2.0;
-const vec3 rayleighScatteringBase_rain = vec3(5.802, 13.558, 33.1) * 8.0;
-const float rayleighAbsorptionBase_rain = 16.0;
-const float mieScatteringBase_rain = 3.996 * 16.0;
-const float mieAbsorptionBase_rain = 4.4 * 80.0;
+const vec3 ozoneAbsorptionBase_rain = vec3(0.650, 1.881, 0.085) * 2.6;
+const vec3 rayleighScatteringBase_rain = vec3(5.802, 13.558, 33.1) * 2.8;
+const float rayleighAbsorptionBase_rain = 24.0;
+const float mieScatteringBase_rain = 3.996 * 9.0;
+const float mieAbsorptionBase_rain = 4.4 * 48.0;
 
 
 vec3 GetOzoneAbsorptionBase() {

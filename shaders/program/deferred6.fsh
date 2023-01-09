@@ -16,7 +16,13 @@ flat in vec3 blockLightColor;
     flat in vec3 sunTransmittanceEye;
     flat in vec3 moonTransmittanceEye;
 
-    uniform sampler3D colortex7;
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        uniform sampler3D texSunTransmittance;
+        uniform sampler3D texMultipleScattering;
+    #else
+        uniform sampler3D colortex0;
+        uniform sampler3D colortex1;
+    #endif
 
     //#ifdef SHADOW_ENABLED
     //    flat in vec3 skyLightColor;
@@ -47,11 +53,16 @@ flat in vec3 blockLightColor;
 uniform usampler2D BUFFER_DEFERRED;
 uniform sampler2D BUFFER_LUMINANCE;
 uniform sampler2D BUFFER_HDR;
-uniform sampler2D colortex10;
 //uniform sampler2D lightmap;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
+
+#if SHADER_PLATFORM == PLATFORM_IRIS
+    uniform sampler2D texBRDF;
+#else
+    uniform sampler2D colortex10;
+#endif
 
 #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
     uniform sampler2D BUFFER_SKY_LUT;
@@ -149,7 +160,11 @@ uniform float fogEnd;
 #endif
 
 #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED || defined SMOKE_ENABLED
-    uniform sampler3D colortex13;
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        uniform sampler3D texCloudNoise;
+    #else
+        uniform sampler3D colortex13;
+    #endif
 #endif
 
 uniform float blindness;
@@ -190,8 +205,6 @@ uniform float waterFogDistSmooth;
     #endif
 #endif
 
-#include "/lib/world/fog.glsl"
-
 #ifdef SKY_ENABLED
     #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
         #include "/lib/sky/hillaire_common.glsl"
@@ -199,9 +212,10 @@ uniform float waterFogDistSmooth;
     #endif
 
     #include "/lib/sky/clouds.glsl"
-    //#include "/lib/sky/clouds_robobo.glsl"
     #include "/lib/sky/stars.glsl"
 #endif
+
+#include "/lib/world/fog.glsl"
 
 #ifdef SKY_ENABLED
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -266,6 +280,7 @@ void main() {
     vec3 clipPos = vec3(texcoord, lightData.opaqueScreenDepth) * 2.0 - 1.0;
     vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
     vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+    vec3 worldPos = cameraPosition + localPos;
     vec3 localViewDir = normalize(localPos);
     vec3 viewDir = normalize(viewPos);
 
@@ -303,9 +318,13 @@ void main() {
         lightData.sunTransmittanceEye = sunTransmittanceEye;
         lightData.moonTransmittanceEye = moonTransmittanceEye;
 
-        float worldY = localPos.y + cameraPosition.y;
-        lightData.sunTransmittance = GetSunTransmittance(colortex7, worldY, skyLightLevels.x);
-        lightData.moonTransmittance = GetMoonTransmittance(colortex7, worldY, skyLightLevels.y);
+        #if SHADER_PLATFORM == PLATFORM_IRIS
+            lightData.sunTransmittance = GetSunTransmittance(texSunTransmittance, worldPos.y, skyLightLevels.x);
+            lightData.moonTransmittance = GetMoonTransmittance(texSunTransmittance, worldPos.y, skyLightLevels.y);
+        #else
+            lightData.sunTransmittance = GetSunTransmittance(colortex0, worldPos.y, skyLightLevels.x);
+            lightData.moonTransmittance = GetMoonTransmittance(colortex0, worldPos.y, skyLightLevels.y);
+        #endif
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
@@ -439,22 +458,22 @@ void main() {
     if (isEyeInWater != 1) {
         vec3 fogColorFinal;
         float fogFactorFinal;
-        GetFog(lightData, viewPos, fogColorFinal, fogFactorFinal);
+        GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
 
         #ifdef SKY_ENABLED
             vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
 
-            #ifndef VL_SKY_ENABLED
+            #if !defined VL_SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
                 fogColorFinal += RGBToLinear(fogColor) * (
                     skyScatteringF.x * sunColorFinalEye +
                     skyScatteringF.y * moonColorFinalEye);
             #endif
         #endif
 
-        #if ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
+        //#if ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
             if (lightData.opaqueScreenDepth < 1.0)
                 ApplyFog(color, fogColorFinal, fogFactorFinal);
-        #endif
+        //#endif
 
         #ifdef SKY_ENABLED
             float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
@@ -462,20 +481,21 @@ void main() {
             float cloudDepthTest = CLOUD_LEVEL - (cameraPosition.y + localPos.y);
             cloudDepthTest *= sign(CLOUD_LEVEL - cameraPosition.y);
 
-            if (minDepth > 1.0 - EPSILON || cloudDepthTest < 0.0) {
-                float cloudF = GetCloudFactor(cameraPosition, localViewDir, 0);
+            if (HasClouds(cameraPosition, localViewDir) && (minDepth > 1.0 - EPSILON || cloudDepthTest < 0.0)) {
+                vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
+                float cloudF = GetCloudFactor(cloudPos, localViewDir, 0);
 
                 float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
                 //cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
                 cloudF = mix(cloudF, 0.0, pow(cloudHorizonFogF, CLOUD_HORIZON_POWER));
 
-                vec3 sunDir = GetSunDir();
-                float sun_VoL = dot(viewDir, sunDir);
+                // vec3 sunDir = GetSunDir();
+                // float sun_VoL = dot(viewDir, sunDir);
 
-                vec3 moonDir = GetMoonDir();
-                float moon_VoL = dot(viewDir, moonDir);
+                // vec3 moonDir = GetMoonDir();
+                // float moon_VoL = dot(viewDir, moonDir);
 
-                vec3 cloudColor = GetCloudColor(skyLightLevels, sun_VoL, moon_VoL);
+                vec3 cloudColor = GetCloudColor(cloudPos, viewDir, skyLightLevels);
 
                 cloudF *= 1.0 - blindness;
 

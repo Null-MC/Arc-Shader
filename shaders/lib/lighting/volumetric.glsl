@@ -1,10 +1,19 @@
+const float AirSpeed = 20.0;
+const float isotropicPhase = 0.25 / PI;
+
+
 vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLightLevels, const in vec2 scatteringF) {
-    #ifdef RENDER_DEFERRED
-        vec3 sunTransmittance = GetSunTransmittance(colortex7, worldTraceHeight, skyLightLevels.x);
-        vec3 moonTransmittance = GetMoonTransmittance(colortex7, worldTraceHeight, skyLightLevels.y);
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        vec3 sunTransmittance = GetSunTransmittance(texSunTransmittance, worldTraceHeight, skyLightLevels.x);
+        vec3 moonTransmittance = GetMoonTransmittance(texSunTransmittance, worldTraceHeight, skyLightLevels.y);
     #else
-        vec3 sunTransmittance = GetSunTransmittance(colortex9, worldTraceHeight, skyLightLevels.x);
-        vec3 moonTransmittance = GetMoonTransmittance(colortex9, worldTraceHeight, skyLightLevels.y);
+        #ifdef RENDER_DEFERRED
+            vec3 sunTransmittance = GetSunTransmittance(colortex0, worldTraceHeight, skyLightLevels.x);
+            vec3 moonTransmittance = GetMoonTransmittance(colortex1, worldTraceHeight, skyLightLevels.y);
+        #else
+            vec3 sunTransmittance = GetSunTransmittance(colortex9, worldTraceHeight, skyLightLevels.x);
+            vec3 moonTransmittance = GetMoonTransmittance(colortex9, worldTraceHeight, skyLightLevels.y);
+        #endif
     #endif
 
     return
@@ -12,9 +21,25 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
         scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * moonColor * max(skyLightLevels.y, 0.0);
 }
 
-const float isotropicPhase = 0.25 / PI;
-
 #ifdef VL_SKY_ENABLED
+    float GetSkyFogDensity(const in sampler3D tex, const in vec3 worldPos, const in float time) {
+        vec3 t;
+
+        t = worldPos / 192.0;
+        t.xz -= time * 1.0 * AirSpeed;
+        float texDensity1 = textureLod(tex, t, 0).r;
+
+        t = worldPos / 96.0;
+        t.xz += time * 2.0 * AirSpeed;
+        float texDensity2 = textureLod(tex, t, 0).r;
+
+        t = worldPos / 48.0;
+        t.xyz += time * 4.0 * AirSpeed;
+        float texDensity3 = textureLod(tex, t, 0).r;
+
+        return 0.04 + 0.2 * pow(texDensity1 * texDensity2, 2.0) + 0.6 * pow(texDensity3 * texDensity2, 3.0);
+    }
+
     vec3 GetVolumetricLighting(const in LightData lightData, inout vec3 transmittance, const in vec3 nearViewPos, const in vec3 farViewPos, const in vec2 scatteringF) {
         const float inverseStepCountF = rcp(VL_SAMPLES_SKY + 1);
         
@@ -54,7 +79,6 @@ const float isotropicPhase = 0.25 / PI;
         float localStepLength = localRayLength * inverseStepCountF;
         vec3 worldStart = localStart + cameraPosition;
         
-        const float AirSpeed = 20.0;
         const vec3 SmokeAbsorptionCoefficient = vec3(0.002);
         const vec3 SmokeScatteringCoefficient = vec3(0.46);
         const vec3 SmokeExtinctionCoefficient = SmokeScatteringCoefficient + SmokeAbsorptionCoefficient;
@@ -118,20 +142,12 @@ const float isotropicPhase = 0.25 / PI;
                 sampleF *= pow(1.0 - cloudF, 2.0);
             #endif
 
-            t = traceWorldPos / 192.0;
-            t.xz -= time * 1.0 * AirSpeed;
-            float texDensity1 = textureLod(colortex13, t, 0).r;
+            #if SHADER_PLATFORM == PLATFORM_IRIS
+                float texDensity = GetSkyFogDensity(texCloudNoise, traceWorldPos, time);
+            #else
+                float texDensity = GetSkyFogDensity(colortex13, traceWorldPos, time);
+            #endif
 
-            t = traceWorldPos / 96.0;
-            t.xz += time * 2.0 * AirSpeed;
-            float texDensity2 = textureLod(colortex13, t, 0).r;
-
-            t = traceWorldPos / 48.0;
-            t.xyz += time * 4.0 * AirSpeed;
-            float texDensity3 = textureLod(colortex13, t, 0).r;
-
-            float texDensity = 0.04 + 0.2 * pow(texDensity1 * texDensity2, 2.0) + 0.6 * pow(texDensity3 * texDensity2, 3.0);
-            
             // Change with altitude
             float altD = 1.0 - saturate((traceWorldPos.y - SEA_LEVEL) / (CLOUD_LEVEL - SEA_LEVEL));
             texDensity *= pow3(altD);
@@ -175,6 +191,12 @@ const float isotropicPhase = 0.25 / PI;
 #endif
 
 #ifdef VL_WATER_ENABLED
+    float GetWaterFogDensity(const in sampler3D tex, const in vec3 worldPos) {
+        float sampleDensity1 = texture(tex, worldPos / 96.0).r;
+        float sampleDensity2 = texture(tex, worldPos / 16.0).r;
+        return 1.0 - 0.6 * sampleDensity1 - 0.3 * sampleDensity2;
+    }
+
     vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 nearViewPos, const in vec3 farViewPos, const in vec2 scatteringF) {
         const float inverseStepCountF = rcp(VL_SAMPLES_WATER + 1);
 
@@ -307,9 +329,15 @@ const float isotropicPhase = 0.25 / PI;
             float waterF = F_schlick(NoL, 0.02, 1.0);
 
             #ifdef VL_WATER_NOISE
-                float sampleDensity1 = texture(colortex13, traceWorldPos / 96.0).r;
-                float sampleDensity2 = texture(colortex13, traceWorldPos / 16.0).r;
-                lightSample *= 1.0 - 0.6 * sampleDensity1 - 0.3 * sampleDensity2;
+                // float sampleDensity1 = texture(colortex13, traceWorldPos / 96.0).r;
+                // float sampleDensity2 = texture(colortex13, traceWorldPos / 16.0).r;
+                // lightSample *= 1.0 - 0.6 * sampleDensity1 - 0.3 * sampleDensity2;
+
+                #if SHADER_PLATFORM == PLATFORM_IRIS
+                    lightSample *= GetWaterFogDensity(texCloudNoise, traceWorldPos);
+                #else
+                    lightSample *= GetWaterFogDensity(colortex13, traceWorldPos);
+                #endif
             #endif
 
             accumF += lightSample * lightColor * max(1.0 - waterF, 0.0);

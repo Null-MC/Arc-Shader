@@ -56,42 +56,18 @@ float GetCloudDensity(const in vec2 pos, const in float time) {
     return f;
 }
 
-float GetCloudFactor(const in vec3 localPos, const in vec3 localViewDir, const in float lod) {
-	if (localPos.y < CLOUD_LEVEL) {
-		if (localViewDir.y <= 0.0) return 0.0;
-	}
-	else {
-		if (localViewDir.y >= 0.0) return 0.0;
-	}
+bool HasClouds(const in vec3 worldPos, const in vec3 localViewDir) {
+	return step(worldPos.y, CLOUD_LEVEL) == step(0.0, localViewDir.y);
+}
 
-	vec2 pos = localPos.xz + (localViewDir.xz / localViewDir.y) * (CLOUD_LEVEL - localPos.y);
+vec3 GetCloudPosition(const in vec3 worldPos, const in vec3 localViewDir) {
+	return worldPos + (localViewDir / localViewDir.y) * (CLOUD_LEVEL - worldPos.y);
+}
 
+float GetCloudFactor(const in vec3 cloudPos, const in vec3 localViewDir, const in float lod) {
 	float time = frameTimeCounter / 3.6;
-	// vec2 p1 = pos + vec2(2.0, 8.0) * time;
-	// vec2 p2 = pos + vec2(4.0, 8.0) * time;
-	// vec2 p3 = pos + vec2(8.0, 4.0) * time;
-	// vec2 p4 = pos + vec2(4.0, 4.0) * time;
 
-    // const float cloudScale = 0.00002;
-	// float t1 = textureLod(noisetex, p1 * cloudScale *  8, lod).r;
-	// float t2 = textureLod(noisetex, p2 * cloudScale * 16, lod).r;
-	// float t3 = textureLod(noisetex, p3 * cloudScale * 32, lod).r;
-	// float t4 = textureLod(noisetex, p4 * cloudScale * 64, lod).r;
-
-	// float cloudF = 0.0;
-	// float p;
-
-	// // big clouds
-	// p = mix(0.5, 0.3, wetness);
-	// cloudF = max(cloudF, pow(max(t1 * t2 - 0.08, 0.0), p));
-
-	// // medium clouds
-	// p = mix(0.5, 0.3, wetness);
-
-	// // tiny clouds
-	// p = mix(0.5, 0.3, wetness);
-
-	float d = GetCloudDensity(pos * 0.003, time * 0.01);
+	float d = GetCloudDensity(cloudPos.xz * 0.003, time * 0.01);
 	d = saturate(d);
 
 	d = pow(d, 1.0 - 0.6 * wetness);
@@ -99,24 +75,46 @@ float GetCloudFactor(const in vec3 localPos, const in vec3 localViewDir, const i
 	return d;
 }
 
-vec3 GetCloudColor(const in vec2 skyLightLevels, const in float sun_VoL, const in float moon_VoL) {
-	#ifdef RENDER_DEFERRED
-		vec3 sunTransmittance = GetSunTransmittance(colortex7, CLOUD_LEVEL, skyLightLevels.x);
-		vec3 moonTransmittance = GetMoonTransmittance(colortex7, CLOUD_LEVEL, skyLightLevels.y);
-	#else
-		vec3 sunTransmittance = GetSunTransmittance(colortex9, CLOUD_LEVEL, skyLightLevels.x);
-		vec3 moonTransmittance = GetMoonTransmittance(colortex9, CLOUD_LEVEL, skyLightLevels.y);
+vec3 GetCloudColor(const in vec3 cloudPos, const in vec3 viewDir, const in vec2 skyLightLevels) {
+	vec3 atmosPos = cloudPos - vec3(cameraPosition.x, SEA_LEVEL, cameraPosition.z);
+	atmosPos *= (atmosphereRadiusMM - groundRadiusMM) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
+	atmosPos.y = groundRadiusMM + clamp(atmosPos.y, 0.0, atmosphereRadiusMM - groundRadiusMM);
+
+	//atmosPos.y = GetScaledSkyHeight(atmosPos.y);
+    //float scaleY = (cameraPosition.y - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
+    //return groundRadiusMM + saturate(scaleY) * (atmosphereRadiusMM - groundRadiusMM);
+
+    vec3 sunDir = GetSunDir();
+    vec3 moonDir = GetMoonDir();
+
+    float sun_VoL = dot(viewDir, sunDir);
+    float moon_VoL = dot(viewDir, moonDir);
+
+    sunDir = mat3(gbufferModelViewInverse) * sunDir;
+    moonDir = mat3(gbufferModelViewInverse) * moonDir;
+
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+		vec3 sunTransmittance = getValFromTLUT(texSunTransmittance, atmosPos, sunDir);
+		vec3 moonTransmittance = getValFromTLUT(texSunTransmittance, atmosPos, moonDir);
+    #else
+		#ifdef RENDER_DEFERRED
+			vec3 sunTransmittance = getValFromTLUT(colortex0, atmosPos, sunDir);
+			vec3 moonTransmittance = getValFromTLUT(colortex0, atmosPos, moonDir);
+		#else
+			vec3 sunTransmittance = getValFromTLUT(colortex9, atmosPos, sunDir);
+			vec3 moonTransmittance = getValFromTLUT(colortex9, atmosPos, moonDir);
+		#endif
 	#endif
 
     float sunScatterF = mix(
         ComputeVolumetricScattering(sun_VoL, -0.24),
         ComputeVolumetricScattering(sun_VoL, 0.86),
-        0.3);
+        0.1);
 
     float moonScatterF = mix(
         ComputeVolumetricScattering(moon_VoL, -0.24),
         ComputeVolumetricScattering(moon_VoL, 0.86),
-        0.3);
+        0.1);
 
     vec3 sunColor = sunTransmittance * GetSunLuxColor();// * smoothstep(-0.06, 0.6, skyLightLevels.x);
     //cloudSunColor *= smoothstep(-0.08, 1.0, skyLightLevels.x);
@@ -125,7 +123,7 @@ vec3 GetCloudColor(const in vec2 skyLightLevels, const in float sun_VoL, const i
     //cloudSunColor *= smoothstep(-0.08, 1.0, skyLightLevels.y);
 
     #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-	    vec3 ambient = 0.48 * (sunColor + moonColor);
+	    vec3 ambient = 0.0 * (sunColor + moonColor);
 	#else
 	    vec3 ambient = 0.48 * (sunColor * max(skyLightLevels.x, 0.0) + moonColor * max(skyLightLevels.y, 0.0));
 	#endif

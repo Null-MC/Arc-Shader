@@ -51,10 +51,18 @@
 
         #ifdef SKY_ENABLED
             lightData.skyLightLevels = skyLightLevels;
-            lightData.sunTransmittance = GetSunTransmittance(colortex9, worldPos.y, skyLightLevels.x);
-            lightData.moonTransmittance = GetMoonTransmittance(colortex9, worldPos.y, skyLightLevels.y);
-            lightData.sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
-            lightData.moonTransmittanceEye = GetMoonTransmittance(colortex9, eyeAltitude, skyLightLevels.y);
+
+            #if SHADER_PLATFORM == PLATFORM_IRIS
+                lightData.sunTransmittance = GetSunTransmittance(texSunTransmittance, worldPos.y, skyLightLevels.x);
+                lightData.moonTransmittance = GetMoonTransmittance(texSunTransmittance, worldPos.y, skyLightLevels.y);
+                lightData.sunTransmittanceEye = GetSunTransmittance(texSunTransmittance, eyeAltitude, skyLightLevels.x);
+                lightData.moonTransmittanceEye = GetMoonTransmittance(texSunTransmittance, eyeAltitude, skyLightLevels.y);
+            #else
+                lightData.sunTransmittance = GetSunTransmittance(colortex9, worldPos.y, skyLightLevels.x);
+                lightData.moonTransmittance = GetMoonTransmittance(colortex9, worldPos.y, skyLightLevels.y);
+                lightData.sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
+                lightData.moonTransmittanceEye = GetMoonTransmittance(colortex9, eyeAltitude, skyLightLevels.y);
+            #endif
         #endif
 
         #if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
@@ -401,11 +409,11 @@
         vec4 finalColor = PbrLighting2(material, lightData, viewPosFinal);
 
         if (isEyeInWater != 1) {
-            #if !(defined SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_FANCY)
+            //#if !(defined SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_FANCY)
                 vec3 fogColorFinal;
                 float fogFactorFinal;
-                GetFog(lightData, viewPos, fogColorFinal, fogFactorFinal);
-            #endif
+                GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
+            //#endif
 
             #ifdef SKY_ENABLED
                 vec2 scatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
@@ -420,9 +428,9 @@
                 #endif
             #endif
 
-            #if !(defined SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_FANCY)
+            //#if !(defined SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_FANCY)
                 ApplyFog(finalColor, fogColorFinal, fogFactorFinal, 1.0/255.0);
-            #endif
+            //#endif
 
             #ifdef SKY_ENABLED
                 vec3 localViewDir = normalize(localPos);
@@ -430,21 +438,22 @@
                 float cloudDepthTest = CLOUD_LEVEL - (cameraPosition.y + localPos.y);
                 cloudDepthTest *= sign(CLOUD_LEVEL - cameraPosition.y);
 
-                if (cloudDepthTest < 0.0) {
-                    float cloudF = GetCloudFactor(cameraPosition, localViewDir, 0);
+                if (HasClouds(cameraPosition, localViewDir) && cloudDepthTest < 0.0) {
+                    vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
+                    float cloudF = GetCloudFactor(cloudPos, localViewDir, 0);
 
                     float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
                     cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
 
-                    vec3 sunDir = GetSunDir();
-                    float sun_VoL = dot(viewDir, sunDir);
+                    // vec3 sunDir = GetSunDir();
+                    // float sun_VoL = dot(viewDir, sunDir);
 
-                    vec3 moonDir = GetMoonDir();
-                    float moon_VoL = dot(viewDir, moonDir);
+                    // vec3 moonDir = GetMoonDir();
+                    // float moon_VoL = dot(viewDir, moonDir);
 
-                    vec3 cloudColor = GetCloudColor(skyLightLevels, sun_VoL, moon_VoL);
+                    vec3 cloudColor = GetCloudColor(cloudPos, viewDir, skyLightLevels);
 
-                    cloudF = smoothstep(0.0, 1.0, cloudF);
+                    //cloudF = smoothstep(0.0, 1.0, cloudF);
                     finalColor.rgb = mix(finalColor.rgb, cloudColor, cloudF);
                     // TODO: mix opacity?
                 }

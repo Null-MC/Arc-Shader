@@ -6,42 +6,49 @@
 #include "/lib/common.glsl"
 
 in vec2 texcoord;
+flat in vec3 localSunDir;
 
-uniform sampler3D colortex1;
-uniform sampler3D colortex2;
+#if SHADER_PLATFORM == PLATFORM_IRIS
+    uniform sampler3D texSunTransmittance;
+    uniform sampler3D texMultipleScattering;
+#else
+    uniform sampler3D colortex0;
+    uniform sampler3D colortex1;
+#endif
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 
-uniform vec3 sunPosition;
-uniform vec3 moonPosition;
+// uniform vec3 sunPosition;
+// uniform vec3 moonPosition;
 uniform vec3 upPosition;
 uniform vec3 cameraPosition;
 
 uniform float rainStrength;
-uniform int moonPhase;
+//uniform int moonPhase;
 uniform float wetness;
 
-#include "/lib/lighting/blackbody.glsl"
-#include "/lib/sky/sun_moon.glsl"
+//#include "/lib/lighting/blackbody.glsl"
+//#include "/lib/sky/sun_moon.glsl"
 #include "/lib/sky/hillaire_common.glsl"
+#include "/lib/sky/hillaire_render.glsl"
 #include "/lib/sky/hillaire.glsl"
 
 
 /* RENDERTARGETS: 15 */
 layout(location = 0) out vec3 outColor0;
 
-const int numScatteringSteps = 32;
-
 vec3 raymarchScattering(const in vec3 pos, const in vec3 rayDir, const in vec3 sunDir, const in float tMax) {
+    const int numScatteringSteps = 32;
+
     float cosTheta = dot(rayDir, sunDir);
-    
     float miePhaseValue = getMiePhase(cosTheta);
     float rayleighPhaseValue = getRayleighPhase(-cosTheta);
     
+    float t = 0.0;
     vec3 lum = vec3(0.0);
     vec3 transmittance = vec3(1.0);
-    float t = 0.0;
+
     for (float i = 0.0; i < numScatteringSteps; i += 1.0) {
         float newT = ((i + 0.3) / numScatteringSteps) * tMax;
         float dt = newT - t;
@@ -55,8 +62,13 @@ vec3 raymarchScattering(const in vec3 pos, const in vec3 rayDir, const in vec3 s
         
         vec3 sampleTransmittance = exp(-dt*extinction);
 
-        vec3 sunTransmittance = getValFromTLUT(colortex2, newPos, sunDir);
-        vec3 psiMS = getValFromMultiScattLUT(colortex1, newPos, sunDir);
+        #if SHADER_PLATFORM == PLATFORM_IRIS
+            vec3 sunTransmittance = getValFromTLUT(texSunTransmittance, newPos, sunDir);
+            vec3 psiMS = getValFromMultiScattLUT(texMultipleScattering, newPos, sunDir);
+        #else
+            vec3 sunTransmittance = getValFromTLUT(colortex0, newPos, sunDir);
+            vec3 psiMS = getValFromMultiScattLUT(colortex1, newPos, sunDir);
+        #endif
         
         vec3 rayleighInScattering = rayleighScattering * (rayleighPhaseValue*sunTransmittance + psiMS);
         vec3 mieInScattering = mieScattering * (miePhaseValue*sunTransmittance + psiMS);
@@ -87,11 +99,7 @@ void main() {
     }
     
     float height = (cameraPosition.y - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
-
-    // WARN: This is a temp fix cause idk what's going wrong when camera is under sea level!
-    height = max(height, 0.0);
-    
-    height = groundRadiusMM + height * (atmosphereRadiusMM - groundRadiusMM);
+    height = groundRadiusMM + saturate(height) * (atmosphereRadiusMM - groundRadiusMM);
 
     #if SHADER_PLATFORM == PLATFORM_OPTIFINE
         vec3 up = gbufferModelView[1].xyz;
@@ -104,15 +112,12 @@ void main() {
     
     float cosAltitude = cos(altitudeAngle);
     vec3 rayDir = vec3(cosAltitude*sin(azimuthAngle), sin(altitudeAngle), -cosAltitude*cos(azimuthAngle));
-    
-    //float sunAltitude = (0.5*PI) - acos(dot(getSunDir(iTime), up));
-    //vec3 sunDir = vec3(0.0, sin(sunAltitude), -cos(sunAltitude));
-    vec3 sunDir = mat3(gbufferModelViewInverse) * GetSunDir();
-    
+        
     vec3 skyViewPos = vec3(0.0, height, 0.0);
 
     float atmoDist = rayIntersectSphere(skyViewPos, rayDir, atmosphereRadiusMM);
     float groundDist = rayIntersectSphere(skyViewPos, rayDir, groundRadiusMM);
     float tMax = (groundDist < 0.0) ? atmoDist : groundDist;
-    outColor0 = raymarchScattering(skyViewPos, rayDir, sunDir, tMax);
+
+    outColor0 = raymarchScattering(skyViewPos, rayDir, localSunDir, tMax);
 }

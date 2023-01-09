@@ -164,7 +164,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
 
         float fogFactor;
         vec3 fogColorFinal;
-        GetFog(lightData, viewPos, fogColorFinal, fogFactor);
+        GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactor);
 
         #ifdef SKY_ENABLED
             vec3 localViewDir = normalize(localPos);
@@ -190,21 +190,22 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
             float cloudDepthTest = CLOUD_LEVEL - worldPos.y;
             cloudDepthTest *= sign(CLOUD_LEVEL - cameraPosition.y);
 
-            if (cloudDepthTest < 0.0) {
-                float cloudF = GetCloudFactor(cameraPosition, localViewDir, 0);
+            if (HasClouds(cameraPosition, localViewDir) && cloudDepthTest < 0.0) {
+                vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
+                float cloudF = GetCloudFactor(cloudPos, localViewDir, 0);
 
                 float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
                 cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
 
-                vec3 sunDir = GetSunDir();
-                float sun_VoL = dot(viewDir, sunDir);
+                // vec3 sunDir = GetSunDir();
+                // float sun_VoL = dot(viewDir, sunDir);
 
-                vec3 moonDir = GetMoonDir();
-                float moon_VoL = dot(viewDir, moonDir);
+                // vec3 moonDir = GetMoonDir();
+                // float moon_VoL = dot(viewDir, moonDir);
 
-                vec3 cloudColor = GetCloudColor(skyLightLevels, sun_VoL, moon_VoL);
+                vec3 cloudColor = GetCloudColor(cloudPos, viewDir, skyLightLevels);
 
-                cloudF = smoothstep(0.0, 1.0, cloudF);
+                //cloudF = smoothstep(0.0, 1.0, cloudF);
                 //final.rgb = mix(final.rgb, cloudColor, cloudF);
                 // TODO: mix opacity?
             }

@@ -30,9 +30,16 @@ flat in vec3 blockLightColor;
     flat in vec3 sunTransmittanceEye;
     flat in vec3 moonTransmittanceEye;
 
-    uniform sampler3D colortex9;
-    uniform usampler2D shadowcolor1;
     uniform sampler2D noisetex;
+    uniform usampler2D shadowcolor1;
+
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        uniform sampler3D texSunTransmittance;
+        uniform sampler3D texMultipleScattering;
+    #else
+        uniform sampler3D colortex9;
+        uniform sampler3D colortex14;
+    #endif
 
     uniform float frameTimeCounter;
     uniform vec3 upPosition;
@@ -89,7 +96,11 @@ flat in vec3 blockLightColor;
             #endif
             
             #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
-                uniform sampler3D colortex13;
+                #if SHADER_PLATFORM == PLATFORM_IRIS
+                    uniform sampler3D texCloudNoise;
+                #else
+                    uniform sampler3D colortex13;
+                #endif
                 
                 //uniform mat4 gbufferModelView;
                 uniform mat4 gbufferProjection;
@@ -152,16 +163,13 @@ uniform float waterFogDistSmooth;
     #endif
 #endif
 
-#include "/lib/world/scattering.glsl"
 #include "/lib/sky/sun_moon.glsl"
-#include "/lib/sky/clouds.glsl"
+#include "/lib/sky/hillaire_common.glsl"
+#include "/lib/sky/hillaire_render.glsl"
+#include "/lib/world/scattering.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/world/fog.glsl"
-
-#if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-    #include "/lib/sky/hillaire_common.glsl"
-    #include "/lib/sky/hillaire_render.glsl"
-#endif
+#include "/lib/sky/clouds.glsl"
 
 #if (defined VL_SKY_ENABLED || defined VL_WATER_ENABLED) && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE //&& defined VL_PARTICLES
     #include "/lib/lighting/volumetric.glsl"
@@ -200,10 +208,16 @@ void main() {
 
     #ifdef SKY_ENABLED
         lightData.skyLightLevels = skyLightLevels;
-        lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
-        lightData.moonTransmittance = GetMoonTransmittance(colortex9, worldY, skyLightLevels.y);
         lightData.sunTransmittanceEye = sunTransmittanceEye;
         lightData.moonTransmittanceEye = moonTransmittanceEye;
+
+        #if SHADER_PLATFORM == PLATFORM_IRIS
+            lightData.sunTransmittance = GetSunTransmittance(texSunTransmittance, worldY, skyLightLevels.x);
+            lightData.moonTransmittance = GetMoonTransmittance(texSunTransmittance, worldY, skyLightLevels.y);
+        #else
+            lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
+            lightData.moonTransmittance = GetMoonTransmittance(colortex9, worldY, skyLightLevels.y);
+        #endif
     #endif
 
     #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE

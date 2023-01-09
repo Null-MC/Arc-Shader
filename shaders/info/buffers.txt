@@ -1,7 +1,6 @@
 shadowcolor0	RGBA8			1.0   	light-color OR sss*
 shadowcolor1	RG32UI			1.0   	R: rsm-color; G: normal-XYZ, sss*
 
---colortex0		RGB16F			128		sky LUT
 colortex2		RGBA32			1.0   	deferred= R: color; G: normal; B: specular; A: lighting
 colortex3		R16F			1.0	  	AO
 colortex4		R11F_G11F_B10F	1.0   	pre-exposed HDR scene
@@ -12,7 +11,7 @@ colortex7		R11F_G11F_B10F	1.0   	HDR transparent
 colortex8		RGB16F			 *     	RSM color
 colortex9		R32F			 *     	RSM depth
 colortex11		R16F			2048  	Water Waves
---colortex12	R32F			0.25  	Depth Tiles
+colortex12		R32F			0.25  	Depth Prev
 colortex14		R11F_G11F_B10F	1.0   	Bloom tiles
 colortex15		RGB16F			256   	sky LUT
 
@@ -23,3 +22,26 @@ colortex13		n/a				256   	3D Noise
 
 
 * SSS is only in shadowcolor0 if colored lighting is disabled!
+
+
+
+CUSTOM TEX
+	PREPARE
+		 0: sun transmission
+		 1: multiple scattering
+	
+	GBUFFERS
+		 9: sun transmission
+		14: multiple scattering
+		10: BRDF
+		13: clouds
+
+	DEFERRED
+		 0: sun transmission
+		 1: multiple scattering
+		10: BRDF
+		13: clouds
+
+	COMPOSITE
+		 7: sun transmission
+		15: BRDF

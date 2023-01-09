@@ -52,7 +52,7 @@
 
             #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
                 float lod = rough * (8.0 - EPSILON);
-                vec3 reflectSkyColor = GetFancySkyLuminance(reflectDir, lod);
+                vec3 reflectSkyColor = GetFancySkyLuminance(worldPos.y, reflectDir, lod);
             #else
                 vec3 reflectSkyColor = GetVanillaSkyLuminance(reflectDir);
             #endif
@@ -73,18 +73,22 @@
 
             reflectSkyColor += vlColor;// * (1.0 - horizonFogF);
 
-            vec3 sunDir = GetSunDir();
-            float sun_VoL = dot(reflectDir, sunDir);
+            // vec3 sunDir = GetSunDir();
+            // float sun_VoL = dot(reflectDir, sunDir);
 
-            vec3 moonDir = GetMoonDir();
-            float moon_VoL = dot(reflectDir, moonDir);
+            // vec3 moonDir = GetMoonDir();
+            // float moon_VoL = dot(reflectDir, moonDir);
 
-            vec3 cloudColor = GetCloudColor(skyLightLevels, sun_VoL, moon_VoL);
-            
-            float cloudF = GetCloudFactor(worldPos, localReflectDir, 4.0);
-            cloudF = mix(cloudF, 0.0, pow(horizonFogF, CLOUD_HORIZON_POWER));
-            //cloudF *= 1.0 - rough;
-            reflectSkyColor = mix(reflectSkyColor, cloudColor, cloudF);
+            if (HasClouds(cameraPosition, localReflectDir)) {
+                vec3 cloudPos = GetCloudPosition(cameraPosition, localReflectDir);
+                vec3 cloudColor = GetCloudColor(cloudPos, reflectDir, lightData.skyLightLevels);
+                
+                float cloudF = GetCloudFactor(cloudPos, localReflectDir, 0.0);
+                cloudF = mix(cloudF, 0.0, pow(horizonFogF, CLOUD_HORIZON_POWER));
+                //cloudF *= 1.0 - rough;
+                
+                reflectSkyColor = mix(reflectSkyColor, cloudColor, cloudF);
+            }
 
             // darken lower horizon
             vec3 downDir = normalize(-upPosition);
@@ -338,7 +342,11 @@
             iblF = GetFresnel(material.albedo.rgb, material.f0, material.hcm, NoVm, roughL);
 
             if (any(greaterThan(reflectColor, vec3(EPSILON)))) {
-                vec2 envBRDF = textureLod(BUFFER_BRDF_LUT, vec2(NoVm, rough), 0).rg;
+                #if SHADER_PLATFORM == PLATFORM_IRIS
+                    vec2 envBRDF = textureLod(texBRDF, vec2(NoVm, rough), 0).rg;
+                #else
+                    vec2 envBRDF = textureLod(colortex10, vec2(NoVm, rough), 0).rg;
+                #endif
 
                 iblSpec = iblF * envBRDF.r + envBRDF.g;
                 iblSpec *= (1.0 - roughL) * reflectColor * occlusion;

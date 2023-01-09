@@ -40,7 +40,13 @@ flat in mat2 atlasBounds;
     flat in vec3 sunColor;
     flat in vec3 moonColor;
 
-    uniform sampler3D colortex9;
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        uniform sampler3D texSunTransmittance;
+        uniform sampler3D texMultipleScattering;
+    #else
+        uniform sampler3D colortex9;
+        uniform sampler3D colortex14;
+    #endif
 
     uniform float eyeAltitude;
     uniform vec3 sunPosition;
@@ -85,7 +91,11 @@ flat in mat2 atlasBounds;
         #endif
         
         #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
-            uniform sampler3D colortex13;
+            #if SHADER_PLATFORM == PLATFORM_IRIS
+                uniform sampler3D texCloudNoise;
+            #else
+                uniform sampler3D colortex13;
+            #endif
             
             //uniform mat4 gbufferModelView;
             //uniform mat4 gbufferProjection;
@@ -112,8 +122,13 @@ uniform sampler2D specular;
 uniform sampler2D lightmap;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
-uniform sampler2D colortex10;
 uniform usampler2D BUFFER_DEFERRED;
+
+#if SHADER_PLATFORM == PLATFORM_IRIS
+    uniform sampler2D texBRDF;
+#else
+    uniform sampler2D colortex10;
+#endif
 
 #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
     uniform sampler2D BUFFER_SKY_LUT;
@@ -222,17 +237,17 @@ uniform float waterFogDistSmooth;
     #include "/lib/sky/sun_moon.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
+
+    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+        #include "/lib/sky/hillaire_common.glsl"
+        #include "/lib/sky/hillaire_render.glsl"
+    #endif
 #endif
 
 #include "/lib/world/weather.glsl"
 #include "/lib/world/fog.glsl"
 
 #ifdef SKY_ENABLED
-    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-        #include "/lib/sky/hillaire_common.glsl"
-        #include "/lib/sky/hillaire_render.glsl"
-    #endif
-
     #include "/lib/lighting/basic.glsl"
     #include "/lib/sky/clouds.glsl"
     #include "/lib/sky/stars.glsl"

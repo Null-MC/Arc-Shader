@@ -48,3 +48,32 @@ jobs:
           game_endpoint: minecraft
           project_id: 648063
           release_type: beta
+      - name: Publish to CurseForge, Modrinth
+        uses: Kir-Antipov/mc-publish@v3.2
+        with:
+          name: Arc v${{ github.event.inputs.version }}
+          files: ./Arc_v${{ github.event.inputs.version }}.zip
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          modrinth-id: yY9oI7oz
+
+          #curseforge-token: ${{ secrets.CF_API_TOKEN }}
+          #curseforge-id: 648063
+
+          changelog: "###Release ${{ github.event.inputs.version }}"
+          version-type: beta
+          game-versions: |
+            1.19.3
+            1.19.2
+            1.19.1
+            1.19
+            1.18.2
+            1.18.1
+            1.18
+            1.17.1
+            1.17
+            1.16.5
+            1.16.4
+            1.16.3
+            1.16.2
+            1.16.1
+            1.16

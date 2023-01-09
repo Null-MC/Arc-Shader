@@ -54,10 +54,33 @@ vec3 GetAreaFogColor() {
     return RGBToLinear(fogColor) * FOG_AREA_LUMINANCE;
 }
 
-void GetFog(const in LightData lightData, const in vec3 viewPos, out vec3 fogColorFinal, out float fogFactor) {
+void GetFog(const in LightData lightData, const in vec3 worldPos, const in vec3 viewPos, out vec3 fogColorFinal, out float fogFactor) {
     #ifdef SKY_ENABLED
         vec3 viewDir = normalize(viewPos);
-        fogColorFinal = GetVanillaSkyLuminance(viewDir);
+
+        #if ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
+            fogColorFinal = GetVanillaSkyLuminance(viewDir);
+        #else
+            //vec3 fogViewDir = mat3(gbufferModelViewInverse) * viewDir;
+            //fogViewDir.y = max(fogViewDir.y, 0.0);
+            //fogViewDir = mat3(gbufferModelView) * normalize(fogViewDir);
+
+            vec3 sunDir = GetSunDir();
+
+            vec3 atmosPos = worldPos - vec3(cameraPosition.x, SEA_LEVEL, cameraPosition.z);
+            atmosPos *= (atmosphereRadiusMM - groundRadiusMM) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
+            atmosPos.y = groundRadiusMM + clamp(atmosPos.y, 0.0, atmosphereRadiusMM - groundRadiusMM);
+
+            #if SHADER_PLATFORM == PLATFORM_IRIS
+                fogColorFinal = getValFromMultiScattLUT(texMultipleScattering, atmosPos, sunDir) * 256000.0;
+            #else
+                #ifdef RENDER_DEFERRED
+                    fogColorFinal = getValFromMultiScattLUT(colortex1, atmosPos, sunDir) * 256000.0;
+                #else
+                    fogColorFinal = getValFromMultiScattLUT(colortex14, atmosPos, sunDir) * 256000.0;
+                #endif
+            #endif
+        #endif
     #else
         fogColorFinal = GetAreaFogColor();
     #endif
@@ -87,7 +110,12 @@ void GetFog(const in LightData lightData, const in vec3 viewPos, out vec3 fogCol
         float customFogFactor = GetCustomFogFactor(viewDist, lightData.skyLightLevels.x);
     #endif
 
-    float vanillaFogFactor = GetVanillaFogFactor(viewPos);
+    float vanillaFogFactor = 0.0;
+    #if ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
+        vanillaFogFactor = GetVanillaFogFactor(viewPos);
+    #elif !defined VL_SKY_ENABLED
+        vanillaFogFactor = GetFogFactor(viewDist, 0.0, far, 1.4) * 0.4;
+    #endif
 
     #ifdef SKY_ENABLED
         float rainFogFactor = 0.6 * GetFogFactor(viewDist, 0.0, gl_Fog.end, 0.5) * wetness;
@@ -175,7 +203,7 @@ vec3 GetWaterFogColor(const in vec3 sunColorFinal, const in vec3 moonColorFinal,
                 waterFogColor += 0.004 * waterScatterColor * lightColor;
             #else
                 vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
-                waterFogColor += 0.4 * waterScatterColor * lightColor;
+                waterFogColor += 0.6 * waterScatterColor * lightColor;
             #endif
         #endif
 
