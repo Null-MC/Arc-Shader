@@ -120,10 +120,12 @@ uniform sampler2D depthtex1;
     uniform sampler2D BUFFER_SKY_LUT;
 #endif
 
-uniform mat4 gbufferModelView;
-uniform mat4 gbufferModelViewInverse;
 uniform ivec2 eyeBrightnessSmooth;
 uniform ivec2 eyeBrightness;
+uniform int worldTime;
+
+uniform mat4 gbufferModelView;
+uniform mat4 gbufferModelViewInverse;
 uniform vec3 cameraPosition;
 uniform int isEyeInWater;
 uniform float near;

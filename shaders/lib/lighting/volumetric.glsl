@@ -17,8 +17,8 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
     #endif
 
     return
-        scatteringF.x * sunTransmittance * sunColor * max(skyLightLevels.x, 0.0) +
-        scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * moonColor * max(skyLightLevels.y, 0.0);
+        scatteringF.x * sunTransmittance * sunColor +
+        scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * moonColor;
 }
 
 #ifdef VL_SKY_ENABLED

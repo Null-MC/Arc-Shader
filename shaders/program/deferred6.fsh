@@ -81,12 +81,14 @@ uniform sampler2D noisetex;
     uniform sampler2D BUFFER_BLOOM;
 #endif
 
+uniform float frameTimeCounter;
+uniform int worldTime;
+
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferProjection;
 
-uniform float frameTimeCounter;
 uniform vec3 cameraPosition;
 uniform vec3 upPosition;
 uniform float viewWidth;
@@ -196,7 +198,8 @@ uniform float waterFogDistSmooth;
 #endif
 
 #ifdef SKY_ENABLED
-    #include "/lib/sky/sun_moon.glsl"
+    #include "/lib/sky/celestial_position.glsl"
+    #include "/lib/sky/celestial_color.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
 
@@ -206,11 +209,8 @@ uniform float waterFogDistSmooth;
 #endif
 
 #ifdef SKY_ENABLED
-    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-        #include "/lib/sky/hillaire_common.glsl"
-        #include "/lib/sky/hillaire_render.glsl"
-    #endif
-
+    #include "/lib/sky/hillaire_common.glsl"
+    #include "/lib/sky/hillaire_render.glsl"
     #include "/lib/sky/clouds.glsl"
     #include "/lib/sky/stars.glsl"
 #endif

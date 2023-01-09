@@ -31,7 +31,7 @@ vec2 GetSkyLightLevels() {
     vec3 moonLightDir = normalize(moonPosition);
 
     #if SHADER_PLATFORM == PLATFORM_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
-        vec3 upDir = gbufferModelView[1].xyz;
+        vec3 upDir = vec3(0.0, 1.0, 0.0);
         vec3 sunLightDir = GetFixedSunPosition();
     #else
         vec3 upDir = normalize(upPosition);

@@ -31,7 +31,8 @@ out vec2 texcoord;
     uniform vec3 fogColor;
 
     #include "/lib/lighting/blackbody.glsl"
-    #include "/lib/sky/sun_moon.glsl"
+    #include "/lib/sky/celestial_position.glsl"
+    #include "/lib/sky/celestial_color.glsl"
     #include "/lib/world/sky.glsl"
 
     float GetEyeBrightnessLuminance() {

@@ -114,7 +114,8 @@ void GetFog(const in LightData lightData, const in vec3 worldPos, const in vec3 
     #if ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
         vanillaFogFactor = GetVanillaFogFactor(viewPos);
     #elif !defined VL_SKY_ENABLED
-        vanillaFogFactor = GetFogFactor(viewDist, 0.0, far, 1.4) * 0.4;
+        float p = mix(1.4, 0.8, wetness);
+        vanillaFogFactor = GetFogFactor(viewDist, 0.0, far, p) * 0.4;
     #endif
 
     #ifdef SKY_ENABLED
@@ -169,7 +170,7 @@ vec2 GetWaterScattering(const in vec3 viewDir) {
         vec2 scatteringF;
 
         #if SHADER_PLATFORM == PLATFORM_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
-            vec3 sunDir = GetFixedSunPosition();
+            vec3 sunDir = mat3(gbufferModelView) * GetFixedSunPosition();
         #else
             vec3 sunDir = normalize(sunPosition);
         #endif

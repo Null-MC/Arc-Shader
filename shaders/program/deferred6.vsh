@@ -62,7 +62,7 @@ flat out vec3 blockLightColor;
                 uniform mat4 gbufferPreviousModelView;
                 uniform mat4 gbufferPreviousProjection;
             #else
-                uniform mat4 gbufferModelView;
+                //uniform mat4 gbufferModelView;
                 uniform mat4 gbufferProjection;
             #endif
 
@@ -71,6 +71,7 @@ flat out vec3 blockLightColor;
     #endif
 #endif
 
+uniform mat4 gbufferModelView;
 uniform float screenBrightness;
 uniform int heldBlockLightValue;
 uniform int heldBlockLightValue2;
@@ -84,6 +85,12 @@ uniform int moonPhase;
 uniform float nightVision;
 uniform float blindness;
 
+#if SHADER_PLATFORM == PLATFORM_OPTIFINE
+    uniform int worldTime;
+//#else
+//    uniform mat4 gbufferModelView;
+#endif
+
 #if MC_VERSION >= 11900
     uniform float darknessFactor;
 #endif
@@ -91,7 +98,8 @@ uniform float blindness;
 #include "/lib/lighting/blackbody.glsl"
 
 #ifdef SKY_ENABLED
-    #include "/lib/sky/sun_moon.glsl"
+    #include "/lib/sky/celestial_position.glsl"
+    #include "/lib/sky/celestial_color.glsl"
     #include "/lib/world/sky.glsl"
 #endif
 

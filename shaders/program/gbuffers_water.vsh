@@ -109,6 +109,12 @@ uniform int isEyeInWater;
 uniform float nightVision;
 uniform float blindness;
 
+#if SHADER_PLATFORM == PLATFORM_OPTIFINE
+    uniform int worldTime;
+//#else
+//    uniform mat4 gbufferModelView;
+#endif
+
 #if defined WATER_ENABLED && WATER_WAVE_TYPE == WATER_WAVE_VERTEX
     uniform float frameTimeCounter;
 #endif

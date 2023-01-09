@@ -111,6 +111,10 @@ uniform vec3 cameraPosition;
 uniform float nightVision;
 uniform float blindness;
 
+#if SHADER_PLATFORM == PLATFORM_OPTIFINE
+    uniform int worldTime;
+#endif
+
 #if MC_VERSION >= 11700 && (SHADER_PLATFORM != PLATFORM_IRIS || defined IRIS_FEATURE_CHUNK_OFFSET)
     uniform vec3 chunkOffset;
 #endif

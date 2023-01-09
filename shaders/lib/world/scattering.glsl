@@ -22,7 +22,7 @@ vec2 GetVanillaSkyScattering(const in vec3 viewDir, const in vec2 skyLightLevels
     vec2 scatteringF;
 
     #if SHADER_PLATFORM == PLATFORM_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
-        vec3 sunDir = GetFixedSunPosition();
+        vec3 sunDir = mat3(gbufferModelView) * GetFixedSunPosition();
     #else
         vec3 sunDir = normalize(sunPosition);
     #endif

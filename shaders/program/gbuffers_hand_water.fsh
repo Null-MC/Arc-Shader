@@ -133,16 +133,18 @@ uniform sampler2D depthtex1;
     uniform sampler2D BUFFER_SKY_LUT;
 #endif
 
+uniform int worldTime;
+uniform float frameTimeCounter;
 uniform ivec2 atlasSize;
 
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
 
-uniform float frameTimeCounter;
 uniform ivec2 eyeBrightnessSmooth;
 uniform ivec2 eyeBrightness;
 uniform int heldBlockLightValue;
 uniform int heldBlockLightValue2;
+
 uniform vec3 cameraPosition;
 uniform vec3 upPosition;
 uniform float viewWidth;

@@ -64,14 +64,16 @@
             starF *= 1.0 - horizonFogF;
             reflectSkyColor += starF * StarLumen;
 
-            vec2 scatteringF = GetVanillaSkyScattering(reflectDir, lightData.skyLightLevels);
-            vec3 vlColor = scatteringF.x * sunColorFinalEye + scatteringF.y * moonColorFinalEye;
+            #if ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
+                vec2 scatteringF = GetVanillaSkyScattering(reflectDir, lightData.skyLightLevels);
+                vec3 vlColor = scatteringF.x * sunColorFinalEye + scatteringF.y * moonColorFinalEye;
 
-            #ifndef VL_SKY_ENABLED
-                vlColor *= RGBToLinear(fogColor);
+                #ifndef VL_SKY_ENABLED
+                    vlColor *= RGBToLinear(fogColor);
+                #endif
+
+                reflectSkyColor += vlColor;// * (1.0 - horizonFogF);
             #endif
-
-            reflectSkyColor += vlColor;// * (1.0 - horizonFogF);
 
             // vec3 sunDir = GetSunDir();
             // float sun_VoL = dot(reflectDir, sunDir);
@@ -79,8 +81,8 @@
             // vec3 moonDir = GetMoonDir();
             // float moon_VoL = dot(reflectDir, moonDir);
 
-            if (HasClouds(cameraPosition, localReflectDir)) {
-                vec3 cloudPos = GetCloudPosition(cameraPosition, localReflectDir);
+            if (HasClouds(worldPos, localReflectDir)) {
+                vec3 cloudPos = GetCloudPosition(worldPos, localReflectDir);
                 vec3 cloudColor = GetCloudColor(cloudPos, reflectDir, lightData.skyLightLevels);
                 
                 float cloudF = GetCloudFactor(cloudPos, localReflectDir, 0.0);

@@ -47,6 +47,12 @@ flat out float exposure;
 
     #ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;
+        
+        #if SHADER_PLATFORM == PLATFORM_OPTIFINE
+            // Use previous-frame matrices in OF cause bugs
+            uniform mat4 gbufferPreviousModelView;
+            uniform mat4 gbufferPreviousProjection;
+        #endif
 
         #ifdef SHADOW_PARTICLES
             #if SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -88,14 +94,14 @@ uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform float screenBrightness;
 
-#if SHADER_PLATFORM == PLATFORM_OPTIFINE
-    // Use previous-frame matrices in OF cause bugs
-    uniform mat4 gbufferPreviousModelView;
-    uniform mat4 gbufferPreviousProjection;
-#endif
-
 uniform float nightVision;
 uniform float blindness;
+
+#if SHADER_PLATFORM == PLATFORM_OPTIFINE
+    uniform int worldTime;
+//#else
+//    uniform mat4 gbufferModelView;
+#endif
 
 #if MC_VERSION >= 11900
     uniform float darknessFactor;

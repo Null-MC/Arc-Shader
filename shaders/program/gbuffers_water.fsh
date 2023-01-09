@@ -134,6 +134,10 @@ uniform usampler2D BUFFER_DEFERRED;
     uniform sampler2D BUFFER_SKY_LUT;
 #endif
 
+uniform int worldTime;
+uniform float frameTimeCounter;
+uniform ivec2 atlasSize;
+
 uniform mat4 shadowProjection;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
@@ -142,11 +146,9 @@ uniform vec3 cameraPosition;
 uniform vec3 upPosition;
 uniform float viewWidth;
 uniform float viewHeight;
-uniform ivec2 atlasSize;
 uniform float near;
 uniform float far;
 
-uniform float frameTimeCounter;
 uniform ivec2 eyeBrightnessSmooth;
 uniform ivec2 eyeBrightness;
 uniform int isEyeInWater;
@@ -238,10 +240,10 @@ uniform float waterFogDistSmooth;
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
 
-    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-        #include "/lib/sky/hillaire_common.glsl"
-        #include "/lib/sky/hillaire_render.glsl"
-    #endif
+    #include "/lib/sky/hillaire_common.glsl"
+    #include "/lib/sky/hillaire_render.glsl"
+    #include "/lib/sky/clouds.glsl"
+    #include "/lib/sky/stars.glsl"
 #endif
 
 #include "/lib/world/weather.glsl"
@@ -249,8 +251,6 @@ uniform float waterFogDistSmooth;
 
 #ifdef SKY_ENABLED
     #include "/lib/lighting/basic.glsl"
-    #include "/lib/sky/clouds.glsl"
-    #include "/lib/sky/stars.glsl"
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED

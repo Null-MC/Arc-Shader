@@ -109,12 +109,12 @@ vec3 GetCloudColor(const in vec3 cloudPos, const in vec3 viewDir, const in vec2 
     float sunScatterF = mix(
         ComputeVolumetricScattering(sun_VoL, -0.24),
         ComputeVolumetricScattering(sun_VoL, 0.86),
-        0.1);
+        0.3);
 
     float moonScatterF = mix(
         ComputeVolumetricScattering(moon_VoL, -0.24),
         ComputeVolumetricScattering(moon_VoL, 0.86),
-        0.1);
+        0.3);
 
     vec3 sunColor = sunTransmittance * GetSunLuxColor();// * smoothstep(-0.06, 0.6, skyLightLevels.x);
     //cloudSunColor *= smoothstep(-0.08, 1.0, skyLightLevels.x);
@@ -123,7 +123,7 @@ vec3 GetCloudColor(const in vec3 cloudPos, const in vec3 viewDir, const in vec2 
     //cloudSunColor *= smoothstep(-0.08, 1.0, skyLightLevels.y);
 
     #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-	    vec3 ambient = 0.0 * (sunColor + moonColor);
+	    vec3 ambient = 0.2 * (sunColor + moonColor);
 	#else
 	    vec3 ambient = 0.48 * (sunColor * max(skyLightLevels.x, 0.0) + moonColor * max(skyLightLevels.y, 0.0));
 	#endif
