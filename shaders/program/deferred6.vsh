@@ -65,8 +65,6 @@ flat out vec3 blockLightColor;
                 //uniform mat4 gbufferModelView;
                 uniform mat4 gbufferProjection;
             #endif
-
-            #include "/lib/shadows/csm.glsl"
         #endif
     #endif
 #endif
@@ -101,6 +99,10 @@ uniform float blindness;
     #include "/lib/sky/celestial_position.glsl"
     #include "/lib/sky/celestial_color.glsl"
     #include "/lib/world/sky.glsl"
+
+    #if defined SHADOW_ENABLED && SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        #include "/lib/shadows/csm.glsl"
+    #endif
 #endif
 
 #include "/lib/camera/exposure.glsl"
