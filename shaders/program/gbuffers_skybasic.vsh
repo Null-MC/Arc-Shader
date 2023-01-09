@@ -43,17 +43,18 @@ uniform int renderStage;
 uniform float nightVision;
 uniform float blindness;
 
-#if MC_VERSION >= 11900
-    uniform float darknessFactor;
-#endif
-
 #if SHADER_PLATFORM == PLATFORM_OPTIFINE
     uniform mat4 gbufferModelView;
     uniform int worldTime;
 #endif
 
+#if MC_VERSION >= 11900
+    uniform float darknessFactor;
+#endif
+
 #include "/lib/lighting/blackbody.glsl"
-#include "/lib/sky/sun_moon.glsl"
+#include "/lib/sky/celestial_position.glsl"
+#include "/lib/sky/celestial_color.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/camera/exposure.glsl"
 

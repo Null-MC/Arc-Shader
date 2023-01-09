@@ -43,7 +43,8 @@ uniform int moonPhase;
 
 #include "/lib/sampling/noise.glsl"
 #include "/lib/lighting/blackbody.glsl"
-#include "/lib/sky/sun_moon.glsl"
+#include "/lib/sky/celestial_position.glsl"
+#include "/lib/sky/celestial_color.glsl"
 #include "/lib/sky/stars.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/world/scattering.glsl"

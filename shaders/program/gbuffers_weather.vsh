@@ -117,7 +117,8 @@ uniform float blindness;
 #endif
 
 #include "/lib/lighting/blackbody.glsl"
-#include "/lib/sky/sun_moon.glsl"
+#include "/lib/sky/celestial_position.glsl"
+#include "/lib/sky/celestial_color.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/lighting/basic.glsl"
 #include "/lib/camera/exposure.glsl"
