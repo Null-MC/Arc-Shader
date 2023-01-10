@@ -50,15 +50,15 @@
                 }
             #endif
 
+            vec3 localReflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDir);
+            float horizonFogF = 1.0 - abs(localReflectDir.y);
+
             #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
                 float lod = rough * (8.0 - EPSILON);
-                vec3 reflectSkyColor = GetFancySkyLuminance(worldPos.y, reflectDir, lod);
+                vec3 reflectSkyColor = GetFancySkyLuminance(worldPos.y, localReflectDir, lod);
             #else
                 vec3 reflectSkyColor = GetVanillaSkyLuminance(reflectDir);
             #endif
-
-            vec3 localReflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDir);
-            float horizonFogF = 1.0 - abs(localReflectDir.y);
 
             vec3 starF = GetStarLight(localReflectDir);
             starF *= 1.0 - horizonFogF;
@@ -95,8 +95,9 @@
             // darken lower horizon
             vec3 downDir = normalize(-upPosition);
             float RoDm = max(dot(reflectDir, downDir), 0.0);
+            reflectSkyColor *= (1.0 - RoDm);
 
-            return reflectSkyColor * (1.0 - RoDm);
+            return reflectSkyColor;
         }
     #endif
 
@@ -259,6 +260,7 @@
         float skyLight2 = pow2(skyLight);
         float skyLight3 = pow3(skyLight);
 
+        float reflectF = 0.0;
         vec3 reflectColor = vec3(0.0);
         #if REFLECTION_MODE != REFLECTION_MODE_NONE
             vec3 reflectDir = reflect(viewDir, viewNormal);
@@ -275,6 +277,7 @@
                     int lod = int(rough * max(maxHdrPrevLod - EPSILON, 0.0));
 
                     vec4 roughReflectColor = GetReflectColor(BUFFER_DEPTH_PREV, viewPosPrev, reflectDirPrev, lod);
+                    reflectF = roughReflectColor.a;
 
                     reflectColor = roughReflectColor.rgb * roughReflectColor.a;
 
@@ -357,6 +360,8 @@
                 //final.a += iblFmax * max(1.0 - final.a, 0.0);
                 //final.a = min(final.a + iblFmax * exposure * final.a, 1.0);
                 final.a = max(final.a, iblFmax);
+
+                reflectF *= iblFmax;
             }
         #endif
 
@@ -784,6 +789,17 @@
         else {
             #if !defined SKY_ENABLED || !defined VL_SKY_ENABLED
                 final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
+            #endif
+
+            #ifdef RENDER_WATER
+                if (materialId == MATERIAL_WATER) {
+                    vec3 fogColorFinal;
+                    float fogFactorFinal;
+                    GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
+                    fogFactorFinal *= 1.0 - reflectF;
+
+                    ApplyFog(final.rgb, fogColorFinal, fogFactorFinal);
+                }
             #endif
         }
 

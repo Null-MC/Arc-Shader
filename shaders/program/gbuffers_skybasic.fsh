@@ -65,7 +65,8 @@ void main() {
     vec3 viewDir = normalize(viewPos);
 
     #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-        vec3 color = GetFancySkyLuminance(cameraPosition.y, viewDir, 0);
+        vec3 localViewDir = mat3(gbufferModelViewInverse) * viewDir;
+        vec3 color = GetFancySkyLuminance(cameraPosition.y, localViewDir, 0);
     #else
         vec3 color = GetVanillaSkyLuminance(viewDir);
     #endif

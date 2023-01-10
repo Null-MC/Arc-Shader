@@ -21,7 +21,7 @@ uniform mat4 gbufferModelViewInverse;
 
 // uniform vec3 sunPosition;
 // uniform vec3 moonPosition;
-uniform vec3 upPosition;
+//uniform vec3 upPosition;
 uniform vec3 cameraPosition;
 
 uniform float rainStrength;
@@ -100,24 +100,18 @@ void main() {
     
     float height = (cameraPosition.y - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
     height = groundRadiusMM + saturate(height) * (atmosphereRadiusMM - groundRadiusMM);
-
-    #if SHADER_PLATFORM == PLATFORM_OPTIFINE
-        vec3 up = gbufferModelView[1].xyz;
-    #else
-        vec3 up = normalize(upPosition);
-    #endif
+    vec3 skyViewPos = vec3(0.0, height, 0.0);
 
     float horizonAngle = safeacos(sqrt(height * height - groundRadiusMM * groundRadiusMM) / height) - 0.5*PI;
     float altitudeAngle = adjV*0.5*PI - horizonAngle;
     
     float cosAltitude = cos(altitudeAngle);
     vec3 rayDir = vec3(cosAltitude*sin(azimuthAngle), sin(altitudeAngle), -cosAltitude*cos(azimuthAngle));
-        
-    vec3 skyViewPos = vec3(0.0, height, 0.0);
-
+    
     float atmoDist = rayIntersectSphere(skyViewPos, rayDir, atmosphereRadiusMM);
     float groundDist = rayIntersectSphere(skyViewPos, rayDir, groundRadiusMM);
     float tMax = (groundDist < 0.0) ? atmoDist : groundDist;
 
-    outColor0 = raymarchScattering(skyViewPos, rayDir, localSunDir, tMax);
+    vec3 sunDir = normalize(localSunDir);
+    outColor0 = raymarchScattering(skyViewPos, rayDir, sunDir, tMax);
 }

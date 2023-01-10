@@ -428,9 +428,17 @@
                 #endif
             #endif
 
+            #ifdef RENDER_WATER
+                if (materialId != MATERIAL_WATER) {
+            #endif
+
             //#if !(defined SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_FANCY)
                 ApplyFog(finalColor, fogColorFinal, fogFactorFinal, 1.0/255.0);
             //#endif
+
+            #ifdef RENDER_WATER
+                }
+            #endif
 
             #ifdef SKY_ENABLED
                 vec3 localViewDir = normalize(localPos);

@@ -17,7 +17,7 @@ vec3 getValFromTLUT(const in sampler3D tex, const in vec3 pos, const in vec3 sun
 
 vec3 getValFromMultiScattLUT(const in sampler3D tex, const in vec3 pos, const in vec3 sunDir) {
     float height = length(pos);
-    vec3 up = normalize(upPosition);//pos / height;
+    vec3 up = pos / height;
     float sunCosZenithAngle = dot(sunDir, up);
 
     vec3 uv = vec3(
@@ -40,7 +40,7 @@ vec3 getValFromMultiScattLUT(const in sampler3D tex, const in vec3 pos, const in
         vec3 sunDir = GetSunDir();
 
         #if SHADER_PLATFORM == PLATFORM_OPTIFINE
-            vec3 up = gbufferModelView[1].xyz;
+            vec3 up = vec3(0.0, 1.0, 0.0);//gbufferModelView[1].xyz;
         #else
             vec3 up = normalize(upPosition);
         #endif

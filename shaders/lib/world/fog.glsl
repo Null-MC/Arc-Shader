@@ -65,19 +65,23 @@ void GetFog(const in LightData lightData, const in vec3 worldPos, const in vec3 
             //fogViewDir.y = max(fogViewDir.y, 0.0);
             //fogViewDir = mat3(gbufferModelView) * normalize(fogViewDir);
 
-            vec3 sunDir = GetSunDir();
+            #if SHADER_PLATFORM == PLATFORM_OPTIFINE //&& (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
+                vec3 localSunDir = GetFixedSunPosition();
+            #else
+                vec3 localSunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
+            #endif
 
             vec3 atmosPos = worldPos - vec3(cameraPosition.x, SEA_LEVEL, cameraPosition.z);
             atmosPos *= (atmosphereRadiusMM - groundRadiusMM) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
             atmosPos.y = groundRadiusMM + clamp(atmosPos.y, 0.0, atmosphereRadiusMM - groundRadiusMM);
 
             #if SHADER_PLATFORM == PLATFORM_IRIS
-                fogColorFinal = getValFromMultiScattLUT(texMultipleScattering, atmosPos, sunDir) * 256000.0;
+                fogColorFinal = getValFromMultiScattLUT(texMultipleScattering, atmosPos, localSunDir) * 256000.0;
             #else
                 #ifdef RENDER_DEFERRED
-                    fogColorFinal = getValFromMultiScattLUT(colortex1, atmosPos, sunDir) * 256000.0;
+                    fogColorFinal = getValFromMultiScattLUT(colortex1, atmosPos, localSunDir) * 256000.0;
                 #else
-                    fogColorFinal = getValFromMultiScattLUT(colortex14, atmosPos, sunDir) * 256000.0;
+                    fogColorFinal = getValFromMultiScattLUT(colortex14, atmosPos, localSunDir) * 256000.0;
                 #endif
             #endif
         #endif
@@ -114,8 +118,12 @@ void GetFog(const in LightData lightData, const in vec3 worldPos, const in vec3 
     #if ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
         vanillaFogFactor = GetVanillaFogFactor(viewPos);
     #elif !defined VL_SKY_ENABLED
-        float p = mix(1.4, 0.8, wetness);
-        vanillaFogFactor = GetFogFactor(viewDist, 0.0, far, p) * 0.4;
+        float distF = saturate(viewDist / far);
+        float p = mix(2.0, 0.8, wetness);
+        //vanillaFogFactor = GetFogFactor(viewDist, 0.0, far, p);
+
+        // Combine edge-hising fog with a minimum haze amount for depth
+        vanillaFogFactor = max(pow(distF, 3.0), 0.25 * distF);
     #endif
 
     #ifdef SKY_ENABLED

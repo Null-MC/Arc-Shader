@@ -1,6 +1,6 @@
-#define RENDER_FRAG
-#define RENDER_DEFERRED
 //#define RENDER_DEFERRED_REFRACT
+#define RENDER_DEFERRED
+#define RENDER_FRAG
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
