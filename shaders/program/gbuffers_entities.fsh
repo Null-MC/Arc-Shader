@@ -1,6 +1,6 @@
-#define RENDER_FRAG
-#define RENDER_GBUFFER
 #define RENDER_ENTITIES
+#define RENDER_GBUFFER
+#define RENDER_FRAG
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
@@ -74,30 +74,23 @@ uniform int entityId;
 
 #include "/lib/world/weather.glsl"
 #include "/lib/material/material_reader.glsl"
-#include "/lib/lighting/basic_gbuffers.glsl"
-#include "/lib/lighting/pbr_gbuffers.glsl"
+#include "/lib/lighting/pbr.glsl"
+#include "/lib/lighting/pbr_forward.glsl"
 
-/* RENDERTARGETS: 2 */
-layout(location = 0) out uvec4 outColor0;
+/* RENDERTARGETS: 4,6 */
+layout(location = 0) out vec4 outColor0;
+layout(location = 1) out vec4 outColor1;
 
 
 void main() {
-    vec4 colorMap, normalMap, specularMap, lightingMap;
+    vec4 color = PbrLighting();
 
-    if (entityId == MATERIAL_LIGHTNING_BOLT) {
-        colorMap = vec4(1.0);
-        normalMap = vec4(0.0, 0.0, 1.0, 1.0);
-        specularMap = vec4(0.0, 0.0, 0.0, 254.0/255.0);
-        lightingMap = vec4(1.0);
-    }
-    else {
-        PbrLighting(colorMap, normalMap, specularMap, lightingMap);
-    }
+    vec4 outLum = vec4(0.0);
+    outLum.r = log2(luminance(color.rgb) + EPSILON);
+    outLum.a = color.a;
+    outColor1 = outLum;
 
-    uvec4 data;
-    data.r = packUnorm4x8(colorMap);
-    data.g = packUnorm4x8(normalMap);
-    data.b = packUnorm4x8(specularMap);
-    data.a = packUnorm4x8(lightingMap);
-    outColor0 = data;
+    color.rgb = clamp(color.rgb * exposure, vec3(0.0), vec3(65000));
+
+    outColor0 = color;
 }

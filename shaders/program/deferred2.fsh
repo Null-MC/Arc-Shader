@@ -1,6 +1,6 @@
-#define RENDER_FRAG
-#define RENDER_DEFERRED
 #define RENDER_RSM
+#define RENDER_DEFERRED
+#define RENDER_FRAG
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
@@ -14,7 +14,7 @@ flat in float exposure;
     flat in vec3 matShadowProjections_translation[4];
 #endif
 
-uniform usampler2D BUFFER_DEFERRED;
+//uniform usampler2D BUFFER_DEFERRED;
 uniform usampler2D shadowcolor1;
 uniform sampler2D depthtex0;
 

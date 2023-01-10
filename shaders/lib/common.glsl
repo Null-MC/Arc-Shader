@@ -1,7 +1,6 @@
 const float sunPathRotation = -30; // [-60 -50 -40 -30 -20 -15 -10 -5 0 5 10 15 20 30 40 50 60]
 
 /*
-const int colortex2Format = RGBA32UI;
 const int colortex3Format = R16F;
 const int colortex4Format = R11F_G11F_B10F;
 const int colortex5Format = RGBA16F;
@@ -17,13 +16,11 @@ const int colortex15Format = RGB16F;
 
 const bool noisetexMipmapEnabled = true;
 
-const bool colortex2MipmapEnabled = false;
-
 const bool colortex3MipmapEnabled = false;
 const bool colortex3Clear = false;
 
 const bool colortex4MipmapEnabled = true;
-const bool colortex4Clear = false;
+const bool colortex4Clear = true;
 
 const bool colortex5MipmapEnabled = true;
 const bool colortex5Clear = false;

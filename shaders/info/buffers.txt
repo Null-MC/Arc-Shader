@@ -1,7 +1,13 @@
 shadowcolor0	RGBA8			1.0   	light-color OR sss*
 shadowcolor1	RG32UI			1.0   	R: rsm-color; G: normal-XYZ, sss*
 
-colortex2		RGBA32			1.0   	deferred= R: color; G: normal; B: specular; A: lighting
+colortex4		R11F_G11F_B10F	1.0   	pre-exposed HDR scene
+
+
+
+
+
+--colortex2		RGBA32			1.0   	deferred= R: color; G: normal; B: specular; A: lighting
 colortex3		R16F			1.0	  	AO
 colortex4		R11F_G11F_B10F	1.0   	pre-exposed HDR scene
 colortex5		RGBA16F			0.25	HDR previous frame [RGB: pre-exposed HDR, A: Log Luminance]

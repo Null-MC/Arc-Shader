@@ -122,7 +122,7 @@ uniform sampler2D specular;
 uniform sampler2D lightmap;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
-uniform usampler2D BUFFER_DEFERRED;
+//uniform usampler2D BUFFER_DEFERRED;
 
 #if SHADER_PLATFORM == PLATFORM_IRIS
     uniform sampler2D texBRDF;

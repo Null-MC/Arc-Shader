@@ -274,10 +274,16 @@
                 PopulateMaterial(material, colorMap, normalMap, specularMap);
 
                 #if !defined RENDER_WATER && !defined RENDER_HAND_WATER
-                    if (material.albedo.a < alphaTestRef) discard;
+                    if (material.albedo.a < alphaTestRef) {
+                        discard;
+                        return vec4(0.0);
+                    }
                 #else
                     // TODO: Is this helping or hurting performance doing discard on transparent?
-                    if (material.albedo.a < 1.5/255.0) discard;
+                    if (material.albedo.a < 1.5/255.0) {
+                        discard;
+                        return vec4(0.0);
+                    }
                 #endif
 
                 //#if MATERIAL_FORMAT != MATERIAL_FORMAT_LABPBR
@@ -342,7 +348,7 @@
                 material.albedo.rgb = WetnessDarkenSurface(material.albedo.rgb, material.porosity, 1.0);
             }
 
-            #if defined SKY_ENABLED && !defined RENDER_HAND_WATER && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE)
+            #if defined SKY_ENABLED && !defined RENDER_HAND && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE)
                 if (isEyeInWater != 1) {
                     vec3 tanUpDir = normalize(upPosition) * matTBN;
                     float NoU = dot(material.normal, tanUpDir);

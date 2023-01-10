@@ -26,7 +26,9 @@ float GetExposure(const in float EV100) {
 
 #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
     int GetLuminanceLod() {
-        return textureQueryLevels(BUFFER_HDR_PREVIOUS)-1;
+        //return textureQueryLevels(BUFFER_HDR_PREVIOUS)-1;
+        ivec2 texSize = textureSize(BUFFER_HDR_PREVIOUS, 0);
+        return int(log2(minOf(texSize)));
     }
 #endif
 

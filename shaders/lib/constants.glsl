@@ -77,7 +77,7 @@
 #define DEBUG_VIEW_LUT_SKY 26
 #define DEBUG_VIEW_WHITEWORLD 27
 
-#define BUFFER_DEFERRED colortex2
+//#define BUFFER_DEFERRED colortex2
 #define BUFFER_AO colortex3
 #define BUFFER_HDR colortex4
 #define BUFFER_HDR_PREVIOUS colortex5

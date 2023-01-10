@@ -273,7 +273,10 @@
                     vec3 reflectDirPrev = mat3(gbufferPreviousModelView) * localReflectDir;
 
                     // TODO: move to vertex shader?
-                    int maxHdrPrevLod = textureQueryLevels(BUFFER_HDR_PREVIOUS);
+                    //int maxHdrPrevLod = textureQueryLevels(BUFFER_HDR_PREVIOUS);
+                    ivec2 texHdrSize = textureSize(BUFFER_HDR_PREVIOUS, 0);
+                    int maxHdrPrevLod = int(log2(minOf(texHdrSize)));
+                    
                     int lod = int(rough * max(maxHdrPrevLod - EPSILON, 0.0));
 
                     vec4 roughReflectColor = GetReflectColor(BUFFER_DEPTH_PREV, viewPosPrev, reflectDirPrev, lod);

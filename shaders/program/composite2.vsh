@@ -20,6 +20,8 @@ out vec2 texcoord;
     uniform ivec2 eyeBrightness;
     uniform float eyeAltitude;
 
+    uniform mat4 gbufferModelView;
+
     uniform float rainStrength;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
@@ -29,6 +31,10 @@ out vec2 texcoord;
 
     uniform vec3 skyColor;
     uniform vec3 fogColor;
+
+    #if SHADER_PLATFORM == PLATFORM_OPTIFINE
+        uniform int worldTime;
+    #endif
 
     #include "/lib/lighting/blackbody.glsl"
     #include "/lib/sky/celestial_position.glsl"

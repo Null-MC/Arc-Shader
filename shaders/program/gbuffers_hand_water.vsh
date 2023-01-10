@@ -1,6 +1,7 @@
-#define RENDER_VERTEX
-#define RENDER_GBUFFER
 #define RENDER_HAND_WATER
+#define RENDER_HAND
+#define RENDER_GBUFFER
+#define RENDER_VERTEX
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"

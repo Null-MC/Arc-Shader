@@ -1,6 +1,6 @@
-#define RENDER_VERTEX
-#define RENDER_GBUFFER
 #define RENDER_ENTITIES
+#define RENDER_GBUFFER
+#define RENDER_VERTEX
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
@@ -67,4 +67,48 @@ void main() {
     if (entityId == 829925) {
         materialId = MATERIAL_PHYSICS_SNOW;
     }
+    
+    #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        vec3 viewDir = normalize(viewPos);
+        ApplyShadows(localPos, viewDir);
+    #endif
+
+    #ifdef SKY_ENABLED
+        sunColor = GetSunLuxColor();
+        moonColor = GetMoonLuxColor();// * GetMoonPhaseLevel();
+        skyLightLevels = GetSkyLightLevels();
+    #endif
+
+    blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
+
+    exposure = GetExposure();
+
+    #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
+
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+            for (int i = 0; i < 4; i++) {
+                mat4 matShadowProjection = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
+                shadowPos[i] = (matShadowProjection * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                
+                vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
+                shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
+
+                vec2 shadowProjectionSize = 2.0 / vec2(matShadowProjection[0].x, matShadowProjection[1].y);;
+                shadowBias[i] = GetCascadeBias(geoNoL, shadowProjectionSize);
+            }
+        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+            shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
+
+            #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                float distortFactor = getDistortFactor(shadowPos.xy);
+                shadowPos.xyz = distort(shadowPos.xyz, distortFactor);
+                shadowBias = GetShadowBias(geoNoL, distortFactor);
+            #else
+                shadowBias = GetShadowBias(geoNoL);
+            #endif
+
+            shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
+        #endif
+    #endif
 }
