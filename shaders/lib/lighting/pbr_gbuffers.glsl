@@ -68,11 +68,16 @@
             colorMap = textureGrad(gtexture, atlasCoord, dFdXY[0], dFdXY[1]);
         #endif
 
-        #ifndef RENDER_WATER
-            if (colorMap.a < 10.0/255.0) discard;
-        #endif
+        //#ifndef RENDER_WATER
+            if (colorMap.a < 10.0/255.0) {
+                discard;
+                return;
+            }
+        //#endif
 
-        colorMap.rgb *= glcolor.rgb;
+        #ifndef RENDER_TEXTURED
+            colorMap.rgb *= glcolor.rgb;
+        #endif
 
         #ifdef RENDER_ENTITIES
             colorMap.rgb = mix(colorMap.rgb, entityColor.rgb, entityColor.a);
@@ -183,7 +188,7 @@
         
         mat3 matTBN = mat3(_viewTangent, _viewBinormal, _viewNormal);
 
-        #if defined SKY_ENABLED && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE) && !defined RENDER_ENTITIES && !defined RENDER_HAND
+        #if defined SKY_ENABLED && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE) && !defined RENDER_ENTITIES && !defined RENDER_HAND && !defined RENDER_TEXTURED
             if (isEyeInWater != 1) {
                 vec3 tanUpDir = normalize(upPosition) * matTBN;
                 float NoU = dot(material.normal, tanUpDir);
@@ -203,18 +208,22 @@
             }
         #endif
 
-        if (materialId == 103) {
-            material.albedo = vec4(1.0);
-            material.albedo.rgb = RGBToLinear(vec3(0.212, 0.090, 0.082));
-            material.smoothness = 0.6;
-            material.scattering = 0.3;
-            material.f0 = 0.034;
-        }
+        #if defined RENDER_TERRAIN || defined RENDER_WATER
+            if (materialId == 103) {
+                material.albedo = vec4(1.0);
+                material.albedo.rgb = RGBToLinear(vec3(0.212, 0.090, 0.082));
+                material.smoothness = 0.6;
+                material.scattering = 0.3;
+                material.f0 = 0.034;
+            }
+        #endif
 
         // if (any(isnan(_viewNormal)))
         //     _viewNormal = vec3(0.0, 0.0, 1.0);
 
-        material.normal = normalize(matTBN * material.normal);
+        #ifndef RENDER_TEXTURED
+            material.normal = normalize(matTBN * material.normal);
+        #endif
 
         // WARN: disabling until this can be properly integrated out of water!
         // if (isEyeInWater == 1) {
