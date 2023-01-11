@@ -1,34 +1,45 @@
 const float sunPathRotation = -30; // [-60 -50 -40 -30 -20 -15 -10 -5 0 5 10 15 20 30 40 50 60]
 
 /*
-const int colortex2Format = RGBA32UI;
+const int colortex0Format = RGBA32UI;
+const int colortex1Format = R16F;
+const int colortex2Format = RGBA16F;
 const int colortex3Format = R16F;
-const int colortex4Format = R11F_G11F_B10F;
+const int colortex4Format = RGB16F;
 const int colortex5Format = RGBA16F;
-const int colortex6Format = R16F;
-const int colortex7Format = R11F_G11F_B10F;
+const int colortex6Format = R32F;
+const int colortex7Format = RGB16F;
 const int colortex8Format = RGB16F;
 const int colortex9Format = R32F;
-const int colortex11Format = R16F;
-const int colortex12Format = R32F;
-const int colortex14Format = R11F_G11F_B10F;
-const int colortex15Format = RGB16F;
+const int colortex10Format = R16F;
 */
 
 const bool noisetexMipmapEnabled = true;
 
+const vec4 colortex0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
+const bool colortex0MipmapEnabled = false;
+const bool colortex0Clear = true;
+
+const vec4 colortex1ClearColor = vec4(0.0, 0.0, 0.0, 1.0);
+const bool colortex1MipmapEnabled = false;
+const bool colortex1Clear = true;
+
+const vec4 colortex2ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const bool colortex2MipmapEnabled = false;
+const bool colortex2Clear = true;
 
+const vec4 colortex3ClearColor = vec4(0.0, 0.0, 0.0, 1.0);
 const bool colortex3MipmapEnabled = false;
-const bool colortex3Clear = false;
+const bool colortex3Clear = true;
 
+const vec4 colortex4ClearColor = vec4(0.0, 0.0, 0.0, 1.0);
 const bool colortex4MipmapEnabled = true;
-const bool colortex4Clear = false;
+const bool colortex4Clear = true;
 
 const bool colortex5MipmapEnabled = true;
 const bool colortex5Clear = false;
 
-const bool colortex6MipmapEnabled = true;
+const bool colortex6MipmapEnabled = false;
 const bool colortex6Clear = false;
 
 const bool colortex7MipmapEnabled = false;
@@ -40,18 +51,8 @@ const bool colortex8Clear = false;
 const bool colortex9MipmapEnabled = false;
 const bool colortex9Clear = false;
 
-const bool colortex11MipmapEnabled = false;
-const bool colortex11Clear = false;
-
-const vec4 colortex12ClearColor = vec4(1.0, 1.0, 1.0, 1.0);
-const bool colortex12MipmapEnabled = false;
-const bool colortex12Clear = false;
-
-const bool colortex14MipmapEnabled = false;
-const bool colortex14Clear = false;
-
-const bool colortex15MipmapEnabled = true;
-const bool colortex15Clear = false;
+const bool colortex10MipmapEnabled = false;
+const bool colortex10Clear = false;
 
 
 #define SHADER_PLATFORM 0 // [0 1]
@@ -217,7 +218,7 @@ const bool colortex15Clear = false;
 
 
 // Debug Options
-#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27]
 //#define DEBUG_EXPOSURE_METERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
 #define DITHER_FINAL

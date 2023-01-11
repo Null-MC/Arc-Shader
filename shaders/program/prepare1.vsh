@@ -1,6 +1,6 @@
+//#define RENDER_SKY_LUT
 #define RENDER_PREPARE
 #define RENDER_VERTEX
-//#define RENDER_SKY_LUT
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"

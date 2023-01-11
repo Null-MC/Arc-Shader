@@ -36,7 +36,7 @@ float GetOldPbr_Emission(const in float specularB) {
     return specularB;
 }
 
-#ifdef RENDER_DEFERRED
+#if defined RENDER_DEFERRED || defined RENDER_COMPOSITE
     // Read from gbuffers
     void PopulateMaterial(out PbrMaterial material, const in vec3 colorMap, const in vec4 normalMap, const in vec4 specularMap) {
         material.albedo.rgb = RGBToLinear(colorMap);

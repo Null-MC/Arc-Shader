@@ -44,8 +44,8 @@ flat in mat2 atlasBounds;
         uniform sampler3D texSunTransmittance;
         uniform sampler3D texMultipleScattering;
     #else
-        uniform sampler3D colortex9;
-        uniform sampler3D colortex14;
+        uniform sampler3D colortex11;
+        uniform sampler3D colortex12;
     #endif
 
     uniform float eyeAltitude;
@@ -127,7 +127,7 @@ uniform usampler2D BUFFER_DEFERRED;
 #if SHADER_PLATFORM == PLATFORM_IRIS
     uniform sampler2D texBRDF;
 #else
-    uniform sampler2D colortex10;
+    uniform sampler2D colortex14;
 #endif
 
 #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
@@ -174,17 +174,7 @@ uniform int fogShape;
 #endif
 
 #if defined WATER_FANCY || WATER_REFRACTION != WATER_REFRACTION_NONE
-    #ifdef WATER_REFRACT_HACK
-        uniform sampler2D BUFFER_HDR;
-    #else
-        uniform sampler2D BUFFER_REFRACT;
-    #endif
-#endif
-
-#if defined WATER_FANCY && defined WATER_ENABLED
-    uniform sampler2D BUFFER_WATER_WAVES;
-
-    //uniform float frameTimeCounter;
+    uniform sampler2D BUFFER_HDR_OPAQUE;
 #endif
 
 #if MC_VERSION >= 11900
@@ -282,7 +272,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/lighting/pbr.glsl"
 #include "/lib/lighting/pbr_forward.glsl"
 
-/* RENDERTARGETS: 4,6 */
+/* RENDERTARGETS: 2,1 */
 layout(location = 0) out vec4 outColor0;
 layout(location = 1) out vec4 outColor1;
 

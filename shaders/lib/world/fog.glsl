@@ -78,11 +78,7 @@ void GetFog(const in LightData lightData, const in vec3 worldPos, const in vec3 
             #if SHADER_PLATFORM == PLATFORM_IRIS
                 fogColorFinal = getValFromMultiScattLUT(texMultipleScattering, atmosPos, localSunDir) * 256000.0;
             #else
-                #ifdef RENDER_DEFERRED
-                    fogColorFinal = getValFromMultiScattLUT(colortex1, atmosPos, localSunDir) * 256000.0;
-                #else
-                    fogColorFinal = getValFromMultiScattLUT(colortex14, atmosPos, localSunDir) * 256000.0;
-                #endif
+                fogColorFinal = getValFromMultiScattLUT(colortex12, atmosPos, localSunDir) * 256000.0;
             #endif
         #endif
     #else
@@ -223,8 +219,12 @@ vec3 GetWaterFogColor(const in vec3 sunColorFinal, const in vec3 moonColorFinal,
     #endif
 }
 
+float GetWaterFogFactor(const in float viewDist) {
+    return GetFogFactor(viewDist, 0.0, waterFogDistSmooth, 0.25);
+}
+
 float ApplyWaterFog(inout vec3 color, const in vec3 fogColor, const in float viewDist) {
-    float fogFactor = GetFogFactor(viewDist, 0.0, waterFogDistSmooth, 0.25);
+    float fogFactor = GetWaterFogFactor(viewDist);
     color = mix(color, fogColor, fogFactor);
     return fogFactor;
 }

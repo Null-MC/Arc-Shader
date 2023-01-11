@@ -1,6 +1,6 @@
-#define RENDER_FRAG
-#define RENDER_GBUFFER
 #define RENDER_WEATHER
+#define RENDER_GBUFFER
+#define RENDER_FRAG
 
 #undef PARALLAX_ENABLED
 #undef AF_ENABLED
@@ -37,8 +37,8 @@ flat in vec3 blockLightColor;
         uniform sampler3D texSunTransmittance;
         uniform sampler3D texMultipleScattering;
     #else
-        uniform sampler3D colortex9;
-        uniform sampler3D colortex14;
+        uniform sampler3D colortex11;
+        uniform sampler3D colortex12;
     #endif
 
     uniform float frameTimeCounter;
@@ -181,7 +181,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/lighting/basic_forward.glsl"
 
 
-/* RENDERTARGETS: 4,6 */
+/* RENDERTARGETS: 2,1 */
 layout(location = 0) out vec4 outColor0;
 layout(location = 1) out vec4 outColor1;
 
@@ -217,8 +217,8 @@ void main() {
             lightData.sunTransmittance = GetSunTransmittance(texSunTransmittance, worldY, skyLightLevels.x);
             lightData.moonTransmittance = GetMoonTransmittance(texSunTransmittance, worldY, skyLightLevels.y);
         #else
-            lightData.sunTransmittance = GetSunTransmittance(colortex9, worldY, skyLightLevels.x);
-            lightData.moonTransmittance = GetMoonTransmittance(colortex9, worldY, skyLightLevels.y);
+            lightData.sunTransmittance = GetSunTransmittance(colortex11, worldY, skyLightLevels.x);
+            lightData.moonTransmittance = GetMoonTransmittance(colortex11, worldY, skyLightLevels.y);
         #endif
     #endif
 

@@ -8,7 +8,7 @@
 in vec2 texcoord;
 
 uniform sampler2D depthtex0;
-uniform sampler2D BUFFER_HDR;
+uniform sampler2D BUFFER_HDR_OPAQUE;
 
 uniform float centerDepthSmooth;
 //uniform int isEyeInWater;
@@ -17,9 +17,9 @@ uniform float viewHeight;
 uniform float near;
 uniform float far;
 
-#if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-    uniform sampler2D BUFFER_LUMINANCE;
-#endif
+// #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+//     uniform sampler2D BUFFER_LUM_OPAQUE;
+// #endif
 
 #include "/lib/depth.glsl"
 
@@ -40,7 +40,7 @@ void main() {
     // TODO: make dynamic based on focus distance
     float focusScale = DOF_SCALE; //clamp(0.1 * focusPoint, 1.0, 20.0); //4.0;
     
-    vec3 color = textureLod(BUFFER_HDR, texcoord, 0).rgb;
+    vec3 color = textureLod(BUFFER_HDR_OPAQUE, texcoord, 0).rgb;
     float centerDepth = textureLod(depthtex0, texcoord, 0).r;
     centerDepth = linearizeDepthFast(centerDepth, near, far);
 
@@ -54,7 +54,7 @@ void main() {
     for (float ang = 0.0; radius < DOF_MAX_SIZE; ang += GOLDEN_ANGLE) {
         vec2 tc = texcoord + vec2(cos(ang), sin(ang)) * texelSize * radius;
         
-        vec3 sampleColor = textureLod(BUFFER_HDR, tc, 0).rgb;
+        vec3 sampleColor = textureLod(BUFFER_HDR_OPAQUE, tc, 0).rgb;
         float sampleDepth = textureLod(depthtex0, tc, 0).r;
         sampleDepth = linearizeDepthFast(sampleDepth, near, far);
 

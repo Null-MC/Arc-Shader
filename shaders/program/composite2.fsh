@@ -1,6 +1,6 @@
-#define RENDER_FRAG
-#define RENDER_COMPOSITE
 //#define RENDER_COMPOSITE_PREV_FRAME
+#define RENDER_COMPOSITE
+#define RENDER_FRAG
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
@@ -11,10 +11,10 @@ in vec2 texcoord;
     flat in float eyeLum;
 #endif
 
-uniform sampler2D BUFFER_HDR;
+uniform sampler2D BUFFER_HDR_OPAQUE;
 
 #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-    uniform sampler2D BUFFER_LUMINANCE;
+    uniform sampler2D BUFFER_LUM_OPAQUE;
 #endif
 
 #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
@@ -34,7 +34,7 @@ uniform float viewWidth;
 uniform float viewHeight;
 uniform float frameTime;
 
-/* RENDERTARGETS: 5,12 */
+/* RENDERTARGETS: 5,6 */
 layout(location = 0) out vec4 outColor0;
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     layout(location = 1) out float outColor1;
@@ -43,14 +43,14 @@ layout(location = 0) out vec4 outColor0;
 
 void main() {
     const int scaleLod = int(log2(SSR_SCALE));
-    vec3 color = texelFetch(BUFFER_HDR, ivec2(gl_FragCoord.xy), scaleLod).rgb;
+    vec3 color = texelFetch(BUFFER_HDR_OPAQUE, ivec2(gl_FragCoord.xy), scaleLod).rgb;
     float lum = 0.0;
 
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
             lum = eyeLum;
         #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-            lum = textureLod(BUFFER_LUMINANCE, texcoord, 0).r;
+            lum = textureLod(BUFFER_LUM_OPAQUE, texcoord, 0).r;
             lum = max(exp2(lum) - EPSILON, 0.0);
         #elif CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_HISTOGRAM
             lum = 0.0;

@@ -69,7 +69,7 @@
 #define DEBUG_VIEW_PREV_COLOR 18
 #define DEBUG_VIEW_PREV_LUMINANCE 19
 #define DEBUG_VIEW_PREV_DEPTH 20
-#define DEBUG_VIEW_WATER_WAVES 21
+//#define DEBUG_VIEW_WATER_WAVES 21
 #define DEBUG_VIEW_DEPTH_TILES 22
 #define DEBUG_VIEW_A0 23
 #define DEBUG_VIEW_LUT_BRDF 24
@@ -77,19 +77,20 @@
 #define DEBUG_VIEW_LUT_SKY 26
 #define DEBUG_VIEW_WHITEWORLD 27
 
-#define BUFFER_DEFERRED colortex2
-#define BUFFER_AO colortex3
-#define BUFFER_HDR colortex4
+#define BUFFER_DEFERRED colortex0
+#define BUFFER_LUM_TRANS colortex1
+#define BUFFER_HDR_TRANS colortex2
+#define BUFFER_LUM_OPAQUE colortex3
+#define BUFFER_HDR_OPAQUE colortex4
 #define BUFFER_HDR_PREVIOUS colortex5
-#define BUFFER_LUMINANCE colortex6
-#define BUFFER_REFRACT colortex7
+#define BUFFER_DEPTH_PREV colortex6
+#define BUFFER_SKY_LUT colortex7
 #define BUFFER_RSM_COLOR colortex8
 #define BUFFER_RSM_DEPTH colortex9
-//#define BUFFER_BRDF_LUT colortex10
-#define BUFFER_WATER_WAVES colortex11
-#define BUFFER_DEPTH_PREV colortex12
-#define BUFFER_BLOOM colortex14
-#define BUFFER_SKY_LUT colortex15
+#define BUFFER_AO colortex10
+
+//#define BUFFER_BLOOM colortex?
+//#define BUFFER_REFRACT colortex7
 
 #define MATERIAL_WATER 100
 #define MATERIAL_NETHER_PORTAL 102

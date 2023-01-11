@@ -8,7 +8,7 @@
 in vec2 lmcoord;
 in vec3 localPos;
 
-/* RENDERTARGETS: 2 */
+/* RENDERTARGETS: 0 */
 layout(location = 0) out uvec4 outColor0;
 
 

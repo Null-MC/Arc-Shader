@@ -4,4 +4,4 @@
 
 #include "overworld.glsl"
 #include "/lib/compatibility/texture_query_levels.glsl"
-#include "/program/deferred6.vsh"
+#include "/program/composite1.vsh"

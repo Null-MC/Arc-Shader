@@ -15,7 +15,7 @@ in vec3 viewTangent;
 flat in float tangentW;
 flat in mat2 atlasBounds;
 
-/* RENDERTARGETS: 2 */
+/* RENDERTARGETS: 0 */
 layout(location = 0) out uvec4 outColor0;
 
 

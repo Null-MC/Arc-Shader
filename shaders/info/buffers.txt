@@ -1,6 +1,30 @@
 shadowcolor0	RGBA8			1.0   	light-color OR sss*
 shadowcolor1	RG32UI			1.0   	R: rsm-color; G: normal-XYZ, sss*
 
+colortex0		RGBA32UI		1.0   	deferred= R: color; G: normal; B: specular; A: lighting
+colortex1		R16F			1.0   	LUM transparent
+colortex2		RGBA16F			1.0   	HDR transparent
+colortex3		R16F			1.0   	LUM Opaque
+colortex4		RGB16F			1.0   	HDR Opaque
+
+colortex5		RGBA16F			0.25	HDR previous frame [RGB: pre-exposed HDR, A: Log Luminance]
+colortex6		R32F			0.25  	Depth Prev
+colortex7		RGB16F			256   	sky LUT
+colortex8		RGB16F			 *     	RSM color
+colortex9		R32F			 *     	RSM depth
+colortex10		R16F			1.0	  	AO
+
+--colortex3		R11F_G11F_B10F	1.0   	Bloom tiles
+
+
+colortex8		Sun Transmittance LUT
+colortex10		BRDF LUT
+colortex13		3D Noise
+
+
+--------------------------------------------------------------
+
+
 colortex2		RGBA32			1.0   	deferred= R: color; G: normal; B: specular; A: lighting
 colortex3		R16F			1.0	  	AO
 colortex4		R11F_G11F_B10F	1.0   	pre-exposed HDR scene
@@ -27,20 +51,20 @@ colortex13		n/a				256   	3D Noise
 
 CUSTOM TEX
 	PREPARE
-		 0: sun transmission
-		 1: multiple scattering
+		11: sun transmission
+		12: multiple scattering
 	
 	GBUFFERS
-		 9: sun transmission
-		14: multiple scattering
-		10: BRDF
+		11: sun transmission
+		12: multiple scattering
 		13: clouds
+		14: BRDF
 
 	DEFERRED
-		 0: sun transmission
-		 1: multiple scattering
-		10: BRDF
+		11: sun transmission
+		12: multiple scattering
 		13: clouds
+		14: BRDF
 
 	COMPOSITE
 		 7: sun transmission

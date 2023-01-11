@@ -67,10 +67,10 @@ uniform float far;
     uniform sampler2D shadowtex1;
 #elif DEBUG_VIEW == DEBUG_VIEW_HDR
     // HDR
-    uniform sampler2D BUFFER_HDR;
+    uniform sampler2D BUFFER_HDR_OPAQUE;
 #elif DEBUG_VIEW == DEBUG_VIEW_LUMINANCE
     // Luminance
-    uniform sampler2D BUFFER_LUMINANCE;
+    uniform sampler2D BUFFER_LUM_OPAQUE;
 #elif DEBUG_VIEW == DEBUG_VIEW_RSM_COLOR
     // RSM Color
     uniform usampler2D shadowcolor1;
@@ -99,9 +99,6 @@ uniform float far;
 #elif DEBUG_VIEW == DEBUG_VIEW_PREV_DEPTH
     // Previous HDR Depth
     uniform sampler2D BUFFER_DEPTH_PREV;
-#elif DEBUG_VIEW == DEBUG_VIEW_WATER_WAVES
-    // Water Waves
-    uniform sampler2D BUFFER_WATER_WAVES;
 #elif DEBUG_VIEW == DEBUG_VIEW_DEPTH_TILES
     // Depth Tiles
     uniform sampler2D BUFFER_DEPTH_PREV;
@@ -120,14 +117,15 @@ uniform float far;
     #if SHADER_PLATFORM == PLATFORM_IRIS
         uniform sampler2D texBRDF;
     #else
-        uniform sampler2D colortex15;
+        uniform sampler2D colortex14;
     #endif
 #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
     // Sun Transmission LUT
+    uniform float rainStrength;
     #if SHADER_PLATFORM == PLATFORM_IRIS
-        uniform sampler2D texSunTransmittance;
+        uniform sampler3D texSunTransmittance;
     #else
-        uniform sampler2D colortex0;
+        uniform sampler3D colortex11;
     #endif
 #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SKY
     // Sky LUT
@@ -137,7 +135,7 @@ uniform float far;
     uniform float aspectRatio;
     uniform int isEyeInWater;
 
-    uniform sampler2D BUFFER_HDR;
+    uniform sampler2D BUFFER_HDR_OPAQUE;
 
     #ifdef BLOOM_ENABLED
         uniform sampler2D BUFFER_BLOOM;
@@ -194,8 +192,8 @@ layout(location = 0) out vec3 outColor0;
         //    texFinal = GetWetnessSkew(texcoord);
 
         vec3 color = MC_RENDER_QUALITY == 1.0
-            ? texelFetch(BUFFER_HDR, ivec2(texFinal * viewSize), 0).rgb
-            : textureLod(BUFFER_HDR, texFinal, 0).rgb;
+            ? texelFetch(BUFFER_HDR_OPAQUE, ivec2(texFinal * viewSize), 0).rgb
+            : textureLod(BUFFER_HDR_OPAQUE, texFinal, 0).rgb;
 
         //float lum = texelFetch(BUFFER_LUMINANCE, itex, 0).r;
 
@@ -296,10 +294,10 @@ void main() {
         color = textureLod(shadowtex1, texcoord, 0).rrr;
     #elif DEBUG_VIEW == DEBUG_VIEW_HDR
         // HDR
-        color = textureLod(BUFFER_HDR, texcoord, 0).rgb;
+        color = textureLod(BUFFER_HDR_OPAQUE, texcoord, 0).rgb;
     #elif DEBUG_VIEW == DEBUG_VIEW_LUMINANCE
         // Luminance
-        float logLum = textureLod(BUFFER_LUMINANCE, texcoord, 0).r;
+        float logLum = textureLod(BUFFER_LUM_OPAQUE, texcoord, 0).r;
         float lum = exp2(logLum) - EPSILON;
         color = vec3(lum * 1e-6);
 
@@ -351,9 +349,6 @@ void main() {
         // Previous HDR Depth
         float depth = textureLod(BUFFER_DEPTH_PREV, texcoord, 0).r;
         color = vec3(linearizeDepthFast(depth, near, far) / far);
-    #elif DEBUG_VIEW == DEBUG_VIEW_WATER_WAVES
-        // Water Waves
-        color = textureLod(BUFFER_WATER_WAVES, texcoord, 0).rrr;
     #elif DEBUG_VIEW == DEBUG_VIEW_DEPTH_TILES
         // Prev Depth Tiles
         color = textureLod(BUFFER_DEPTH_PREV, texcoord, 0).rrr;
@@ -373,15 +368,16 @@ void main() {
         #if SHADER_PLATFORM == PLATFORM_IRIS
             color.rg = textureLod(texBRDF, texcoord, 0).rg;
         #else
-            color.rg = textureLod(colortex15, texcoord, 0).rg;
+            color.rg = textureLod(colortex14, texcoord, 0).rg;
         #endif
         color.b = 0.0;
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
         // Sun Transmission LUT
+        vec3 t3 = vec3(texcoord, rainStrength);
         #if SHADER_PLATFORM == PLATFORM_IRIS
-            color = textureLod(texSunTransmittance, texcoord, 0).rgb;
+            color = textureLod(texSunTransmittance, t3, 0).rgb;
         #else
-            color = textureLod(colortex0, texcoord, 0).rgb;
+            color = textureLod(colortex11, t3, 0).rgb;
         #endif
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SKY
         // Sky LUT

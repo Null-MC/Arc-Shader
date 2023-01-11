@@ -1,6 +1,6 @@
-#define RENDER_FRAG
+#define RENDER_DEFERRED_FINAL
 #define RENDER_DEFERRED
-#define RENDER_OPAQUE_FINAL
+#define RENDER_FRAG
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
@@ -20,8 +20,8 @@ flat in vec3 blockLightColor;
         uniform sampler3D texSunTransmittance;
         uniform sampler3D texMultipleScattering;
     #else
-        uniform sampler3D colortex0;
-        uniform sampler3D colortex1;
+        uniform sampler3D colortex11;
+        uniform sampler3D colortex12;
     #endif
 
     //#ifdef SHADOW_ENABLED
@@ -51,8 +51,8 @@ flat in vec3 blockLightColor;
 #endif
 
 uniform usampler2D BUFFER_DEFERRED;
-uniform sampler2D BUFFER_LUMINANCE;
-uniform sampler2D BUFFER_HDR;
+uniform sampler2D BUFFER_HDR_OPAQUE;
+uniform sampler2D BUFFER_LUM_OPAQUE;
 //uniform sampler2D lightmap;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
@@ -61,7 +61,7 @@ uniform sampler2D noisetex;
 #if SHADER_PLATFORM == PLATFORM_IRIS
     uniform sampler2D texBRDF;
 #else
-    uniform sampler2D colortex10;
+    uniform sampler2D colortex14;
 #endif
 
 #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
@@ -261,15 +261,24 @@ uniform float waterFogDistSmooth;
 
 #include "/lib/lighting/pbr.glsl"
 
-/* RENDERTARGETS: 4,6 */
+/* RENDERTARGETS: 4,3 */
 layout(location = 0) out vec4 outColor0;
 layout(location = 1) out float outColor1;
 
 
 void main() {
+    ivec2 iTex = ivec2(gl_FragCoord.xy);
+
+    #ifdef WATER_ENABLED
+        if (isEyeInWater != 0) {
+            outColor0 = vec4(texelFetch(BUFFER_HDR_OPAQUE, iTex, 0).rgb, 1.0);
+            outColor1 = texelFetch(BUFFER_LUM_OPAQUE, iTex, 0).r;
+            return;
+        }
+    #endif
+
     LightData lightData;
 
-    ivec2 iTex = ivec2(gl_FragCoord.xy);
     lightData.opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
     lightData.opaqueScreenDepthLinear = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
 
@@ -322,16 +331,16 @@ void main() {
             lightData.sunTransmittance = GetSunTransmittance(texSunTransmittance, worldPos.y, skyLightLevels.x);
             lightData.moonTransmittance = GetMoonTransmittance(texSunTransmittance, worldPos.y, skyLightLevels.y);
         #else
-            lightData.sunTransmittance = GetSunTransmittance(colortex0, worldPos.y, skyLightLevels.x);
-            lightData.moonTransmittance = GetMoonTransmittance(colortex0, worldPos.y, skyLightLevels.y);
+            lightData.sunTransmittance = GetSunTransmittance(colortex11, worldPos.y, skyLightLevels.x);
+            lightData.moonTransmittance = GetMoonTransmittance(colortex11, worldPos.y, skyLightLevels.y);
         #endif
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
 
-            #ifdef SHADOW_DITHER
-                float ditherOffset = (GetScreenBayerValue() - 0.5) * shadowPixelSize;
-            #endif
+            // #ifdef SHADOW_DITHER
+            //     float ditherOffset = (GetScreenBayerValue() - 0.5) * shadowPixelSize;
+            // #endif
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 lightData.matShadowProjection[0] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[0], matShadowProjections_translation[0]);
@@ -364,12 +373,12 @@ void main() {
                 lightData.shadowBias[2] = GetCascadeBias(lightData.geoNoL, lightData.shadowProjectionSize[2]);
                 lightData.shadowBias[3] = GetCascadeBias(lightData.geoNoL, lightData.shadowProjectionSize[3]);
 
-                #ifdef SHADOW_DITHER
-                    lightData.shadowPos[0].xy += ditherOffset;
-                    lightData.shadowPos[1].xy += ditherOffset;
-                    lightData.shadowPos[2].xy += ditherOffset;
-                    lightData.shadowPos[3].xy += ditherOffset;
-                #endif
+                // #ifdef SHADOW_DITHER
+                //     lightData.shadowPos[0].xy += ditherOffset;
+                //     lightData.shadowPos[1].xy += ditherOffset;
+                //     lightData.shadowPos[2].xy += ditherOffset;
+                //     lightData.shadowPos[3].xy += ditherOffset;
+                // #endif
 
                 SetNearestDepths(lightData);
 
@@ -390,9 +399,9 @@ void main() {
 
                 lightData.shadowPos.xyz = lightData.shadowPos.xyz * 0.5 + 0.5;
 
-                #ifdef SHADOW_DITHER
-                    lightData.shadowPos.xy += ditherOffset;
-                #endif
+                // #ifdef SHADOW_DITHER
+                //     lightData.shadowPos.xy += ditherOffset;
+                // #endif
 
                 lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
                 lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos, vec2(0.0));
@@ -415,22 +424,7 @@ void main() {
     #endif
 
     if (lightData.opaqueScreenDepth > 1.0 - EPSILON) {
-        if (isEyeInWater == 1) {
-            #ifdef SKY_ENABLED
-                vec2 waterScatteringF = GetWaterScattering(viewDir);
-                color = GetWaterFogColor(sunColorFinalEye, moonColorFinalEye, waterScatteringF);
-
-                #if defined VL_WATER_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                    vec3 nearPos = viewDir * near;
-                    vec3 farPos = viewDir * min(far, waterFogDistSmooth);
-
-                    color += GetWaterVolumetricLighting(lightData, nearPos, farPos, waterScatteringF);
-                #endif
-            #else
-                color = vec3(0.0);
-            #endif
-        }
-        else if (blindness > EPSILON) {
+        if (blindness > EPSILON) {
             color = GetAreaFogColor();
             // color = GetVanillaSkyLuminance(viewDir);
             // float horizonFogF = 1.0 - abs(localViewDir.y);
@@ -445,7 +439,7 @@ void main() {
         }
         else {
             #ifdef SKY_ENABLED
-                color = texelFetch(BUFFER_HDR, iTex, 0).rgb / exposure;
+                color = texelFetch(BUFFER_HDR_OPAQUE, iTex, 0).rgb / exposure;
             #else
                 color = GetAreaFogColor();
             #endif
@@ -455,78 +449,76 @@ void main() {
         color = PbrLighting2(material, lightData, viewPos).rgb;
     }
 
-    if (isEyeInWater != 1) {
-        vec3 fogColorFinal;
-        float fogFactorFinal;
-        GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
+    vec3 fogColorFinal;
+    float fogFactorFinal;
+    GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
 
-        #ifdef SKY_ENABLED
-            vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
+    #ifdef SKY_ENABLED
+        vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
 
-            #if !defined VL_SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
-                fogColorFinal += RGBToLinear(fogColor) * (
-                    skyScatteringF.x * sunColorFinalEye +
-                    skyScatteringF.y * moonColorFinalEye);
-            #endif
+        #if !defined VL_SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
+            fogColorFinal += RGBToLinear(fogColor) * (
+                skyScatteringF.x * sunColorFinalEye +
+                skyScatteringF.y * moonColorFinalEye);
         #endif
+    #endif
 
-        //#if ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
-            if (lightData.opaqueScreenDepth < 1.0)
-                ApplyFog(color, fogColorFinal, fogFactorFinal);
-        //#endif
+    //#if ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
+        if (lightData.opaqueScreenDepth < 1.0)
+            ApplyFog(color, fogColorFinal, fogFactorFinal);
+    //#endif
 
-        #ifdef SKY_ENABLED
-            float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
+    #ifdef SKY_ENABLED
+        float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
 
-            float cloudDepthTest = CLOUD_LEVEL - (cameraPosition.y + localPos.y);
-            cloudDepthTest *= sign(CLOUD_LEVEL - cameraPosition.y);
+        float cloudDepthTest = CLOUD_LEVEL - (cameraPosition.y + localPos.y);
+        cloudDepthTest *= sign(CLOUD_LEVEL - cameraPosition.y);
 
-            if (HasClouds(cameraPosition, localViewDir) && (minDepth > 1.0 - EPSILON || cloudDepthTest < 0.0)) {
-                vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
-                float cloudF = GetCloudFactor(cloudPos, localViewDir, 0);
+        if (HasClouds(cameraPosition, localViewDir) && (minDepth > 1.0 - EPSILON || cloudDepthTest < 0.0)) {
+            vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
+            float cloudF = GetCloudFactor(cloudPos, localViewDir, 0);
 
-                float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
-                //cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
-                cloudF = mix(cloudF, 0.0, pow(cloudHorizonFogF, CLOUD_HORIZON_POWER));
+            float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
+            //cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
+            cloudF = mix(cloudF, 0.0, pow(cloudHorizonFogF, CLOUD_HORIZON_POWER));
 
-                // vec3 sunDir = GetSunDir();
-                // float sun_VoL = dot(viewDir, sunDir);
+            // vec3 sunDir = GetSunDir();
+            // float sun_VoL = dot(viewDir, sunDir);
 
-                // vec3 moonDir = GetMoonDir();
-                // float moon_VoL = dot(viewDir, moonDir);
+            // vec3 moonDir = GetMoonDir();
+            // float moon_VoL = dot(viewDir, moonDir);
 
-                vec3 cloudColor = GetCloudColor(cloudPos, viewDir, skyLightLevels);
+            vec3 cloudColor = GetCloudColor(cloudPos, viewDir, skyLightLevels);
 
-                cloudF *= 1.0 - blindness;
+            cloudF *= 1.0 - blindness;
 
-                color = mix(color, cloudColor, cloudF);
-            }
+            color = mix(color, cloudColor, cloudF);
+        }
 
-            #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                vec3 viewNear = viewDir * near;
-                vec3 viewFar = viewDir * min(length(viewPos), far);
-                vec3 vlExt = vec3(1.0);
-
-                vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, skyScatteringF);
-
-                color = color * vlExt + vlColor;
-            #endif
-        #elif defined SMOKE_ENABLED
+        #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             vec3 viewNear = viewDir * near;
-            vec3 viewFar = viewDir * min(length(viewPos), fogEnd);
+            vec3 viewFar = viewDir * min(length(viewPos), far);
             vec3 vlExt = vec3(1.0);
 
-            // vec3 viewPosPrev = (gbufferPreviousModelView * vec4(localPos + (cameraPosition - previousCameraPosition), 1.0)).xyz;
-            // vec3 clipPosPrev = unproject(gbufferPreviousProjection * vec4(viewPosPrev, 1.0));
-            // vec2 lightTexcoord = clipPosPrev.xy * 0.5 + 0.5;
-
-            // vec3 lightColor = textureLod(BUFFER_HDR_PREVIOUS, lightTexcoord, 8).rgb / exposure;
-
-            vec3 vlColor = GetVolumetricSmoke(lightData, vlExt, viewNear, viewFar);
+            vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, skyScatteringF);
 
             color = color * vlExt + vlColor;
         #endif
-    }
+    #elif defined SMOKE_ENABLED
+        vec3 viewNear = viewDir * near;
+        vec3 viewFar = viewDir * min(length(viewPos), fogEnd);
+        vec3 vlExt = vec3(1.0);
+
+        // vec3 viewPosPrev = (gbufferPreviousModelView * vec4(localPos + (cameraPosition - previousCameraPosition), 1.0)).xyz;
+        // vec3 clipPosPrev = unproject(gbufferPreviousProjection * vec4(viewPosPrev, 1.0));
+        // vec2 lightTexcoord = clipPosPrev.xy * 0.5 + 0.5;
+
+        // vec3 lightColor = textureLod(BUFFER_HDR_PREVIOUS, lightTexcoord, 8).rgb / exposure;
+
+        vec3 vlColor = GetVolumetricSmoke(lightData, vlExt, viewNear, viewFar);
+
+        color = color * vlExt + vlColor;
+    #endif
 
     outColor1 = log2(luminance(color) + EPSILON);
 

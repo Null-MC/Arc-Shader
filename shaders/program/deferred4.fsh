@@ -14,7 +14,7 @@ uniform mat4 gbufferProjectionInverse;
 uniform float viewWidth;
 uniform float viewHeight;
 
-/* RENDERTARGETS: 3 */
+/* RENDERTARGETS: 10 */
 layout(location = 0) out float outColor0;
 
 

@@ -6,19 +6,19 @@ prepare1		sky LUT
 
 <opaque>
 
-deferred1		Water Waves
+--deferred1		Water Waves
 deferred2		RSM
---deferred3		RSM Blur
 deferred4		AO Render
---deferred5		AO Blur
-deferred6		Opaque PBR: RGB1: pre-exposed color, R2: Raw Luminance
-deferred7		opaque copy
+deferred5		Opaque PBR (out of water)
+--deferred7		opaque copy
 
 <transparent>
 <particles?>
 
 
---composite1	depth tiles
+composite1		Opaque PBR (in water)
+--composite2		PBR Final/merge water
+
 composite2		copy previous-frame = RGB: pre-exposed color
 composite3		Water Blur H
 composite4		Water Blur V
@@ -28,3 +28,21 @@ composite7		Bloom Blur H
 composite8		Bloom Blur V
 
 final			Bloom combine; tonemap; Debug view
+
+
+
+
+
+out of water
+ - sky				> HDR
+ - gbuffers-opaque	> DEFERRED
+ - deferred			> HDR
+ - gbuffers-water	> HDR-trans
+ - composite		> HDR
+
+
+in water
+ - sky				> HDR
+ - gbuffers-opaque	> DEFERRED
+ - gbuffers-water	> HDR-trans
+ - composite		> HDR

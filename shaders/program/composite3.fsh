@@ -7,7 +7,7 @@
 
 in vec2 texcoord;
 
-uniform sampler2D BUFFER_HDR;
+uniform sampler2D BUFFER_HDR_OPAQUE;
 
 uniform float viewWidth;
 uniform float viewHeight;
@@ -29,9 +29,9 @@ void main() {
         vec2 viewSize = vec2(viewWidth, viewHeight);
         vec2 pixelSize = rcp(viewSize);
 
-        vec3 color = GaussianBlur23(BUFFER_HDR, texcoord, direction * pixelSize);
+        vec3 color = GaussianBlur23(BUFFER_HDR_OPAQUE, texcoord, direction * pixelSize);
     #else
-        vec3 color = GaussianBlur13(BUFFER_HDR, texcoord, vec2(0.0), vec2(1.0), direction);
+        vec3 color = GaussianBlur13(BUFFER_HDR_OPAQUE, texcoord, vec2(0.0), vec2(1.0), direction);
     #endif
 
     outColor0 = color;

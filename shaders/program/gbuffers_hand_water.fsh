@@ -44,8 +44,8 @@ flat in mat2 atlasBounds;
         uniform sampler3D texSunTransmittance;
         uniform sampler3D texMultipleScattering;
     #else
-        uniform sampler3D colortex9;
-        uniform sampler3D colortex14;
+        uniform sampler3D colortex11;
+        uniform sampler3D colortex12;
     #endif
     
     uniform mat4 gbufferModelView;
@@ -126,7 +126,7 @@ uniform sampler2D depthtex1;
 #if SHADER_PLATFORM == PLATFORM_IRIS
     uniform sampler2D texBRDF;
 #else
-    uniform sampler2D colortex10;
+    uniform sampler2D colortex14;
 #endif
 
 #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
@@ -253,7 +253,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/lighting/pbr.glsl"
 #include "/lib/lighting/pbr_forward.glsl"
 
-/* RENDERTARGETS: 4,6 */
+/* RENDERTARGETS: 2,1 */
 layout(location = 0) out vec4 outColor0;
 layout(location = 1) out vec4 outColor1;
 

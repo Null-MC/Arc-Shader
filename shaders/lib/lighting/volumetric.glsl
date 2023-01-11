@@ -7,13 +7,8 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
         vec3 sunTransmittance = GetSunTransmittance(texSunTransmittance, worldTraceHeight, skyLightLevels.x);
         vec3 moonTransmittance = GetMoonTransmittance(texSunTransmittance, worldTraceHeight, skyLightLevels.y);
     #else
-        #ifdef RENDER_DEFERRED
-            vec3 sunTransmittance = GetSunTransmittance(colortex0, worldTraceHeight, skyLightLevels.x);
-            vec3 moonTransmittance = GetMoonTransmittance(colortex1, worldTraceHeight, skyLightLevels.y);
-        #else
-            vec3 sunTransmittance = GetSunTransmittance(colortex9, worldTraceHeight, skyLightLevels.x);
-            vec3 moonTransmittance = GetMoonTransmittance(colortex9, worldTraceHeight, skyLightLevels.y);
-        #endif
+        vec3 sunTransmittance = GetSunTransmittance(colortex11, worldTraceHeight, skyLightLevels.x);
+        vec3 moonTransmittance = GetMoonTransmittance(colortex11, worldTraceHeight, skyLightLevels.y);
     #endif
 
     return

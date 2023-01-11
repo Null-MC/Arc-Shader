@@ -1,6 +1,6 @@
-#define RENDER_FRAG
-#define RENDER_GBUFFER
 #define RENDER_SKYTEXTURED
+#define RENDER_GBUFFER
+#define RENDER_FRAG
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
@@ -18,7 +18,7 @@ uniform sampler2D gtexture;
 uniform int renderStage;
 uniform float rainStrength;
 
-/* RENDERTARGETS: 4,6 */
+/* RENDERTARGETS: 4,3 */
 layout(location = 0) out vec4 outColor0;
 layout(location = 1) out vec4 outColor1;
 

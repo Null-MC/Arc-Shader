@@ -273,7 +273,9 @@
                     vec3 reflectDirPrev = mat3(gbufferPreviousModelView) * localReflectDir;
 
                     // TODO: move to vertex shader?
-                    int maxHdrPrevLod = textureQueryLevels(BUFFER_HDR_PREVIOUS);
+                    //int maxHdrPrevLod = textureQueryLevels(BUFFER_HDR_PREVIOUS);
+                    ivec2 texHdrPrevSize = textureSize(BUFFER_HDR_PREVIOUS, 0);
+                    int maxHdrPrevLod = int(log2(minOf(texHdrPrevSize)));
                     int lod = int(rough * max(maxHdrPrevLod - EPSILON, 0.0));
 
                     vec4 roughReflectColor = GetReflectColor(BUFFER_DEPTH_PREV, viewPosPrev, reflectDirPrev, lod);
@@ -350,13 +352,13 @@
                 #if SHADER_PLATFORM == PLATFORM_IRIS
                     vec2 envBRDF = textureLod(texBRDF, vec2(NoVm, rough), 0).rg;
                 #else
-                    vec2 envBRDF = textureLod(colortex10, vec2(NoVm, rough), 0).rg;
+                    vec2 envBRDF = textureLod(colortex14, vec2(NoVm, rough), 0).rg;
                 #endif
 
                 iblSpec = iblF * envBRDF.r + envBRDF.g;
                 iblSpec *= (1.0 - roughL) * reflectColor * occlusion;
 
-                float iblFmax = max(max(iblF.x, iblF.y), iblF.z);
+                float iblFmax = maxOf(iblF);
                 //final.a += iblFmax * max(1.0 - final.a, 0.0);
                 //final.a = min(final.a + iblFmax * exposure * final.a, 1.0);
                 final.a = max(final.a, iblFmax);
@@ -385,6 +387,11 @@
 
             #ifdef RENDER_WATER
                 if (materialId == MATERIAL_WATER) applyWaterAbsorption = false;
+            #endif
+
+            #ifdef RENDER_COMPOSITE
+                if (lightData.transparentScreenDepth < lightData.opaqueScreenDepth)
+                    applyWaterAbsorption = false;
             #endif
 
             if (applyWaterAbsorption) {
@@ -499,7 +506,13 @@
 
         #if defined RENDER_WATER && defined WATER_ENABLED
             if (materialId == MATERIAL_WATER) {
-                #if WATER_REFRACTION != WATER_REFRACTION_NONE
+                // #if WATER_REFRACTION != WATER_REFRACTION_NONE
+                //     bool doRefraction = isEyeInWater != 1;
+                // #else
+                //     const bool doRefraction = false;
+                // #endif
+
+                if (isEyeInWater != 1) {
                     float waterRefractEta = isEyeInWater == 1
                         ? IOR_WATER / IOR_AIR
                         : IOR_AIR / IOR_WATER;
@@ -567,13 +580,8 @@
                             #endif
                         #endif
 
-                        #ifdef WATER_REFRACT_HACK
-                            ivec2 iuv = ivec2(refractUV * viewSize);
-                            refractColor = texelFetch(BUFFER_HDR, iuv, 0).rgb / exposure;
-                        #else
-                            const float refractScale = rcp(exp2(WATER_REFRACT_QUALITY));
-                            refractColor = textureLod(BUFFER_REFRACT, refractUV * refractScale, 0).rgb / exposure;
-                        #endif
+                        //const float refractScale = rcp(exp2(WATER_REFRACT_QUALITY));
+                        refractColor = textureLod(BUFFER_HDR_OPAQUE, refractUV, 0).rgb / exposure;
                     }
                     else {
                         // TIR
@@ -694,33 +702,37 @@
                     diffuse = refractColor;
                     final.a = saturate(10.0*waterViewDepthFinal - 0.2);
                     //final.a = 1.0;
-                #else
-                    float waterViewDepth = isEyeInWater == 1 ? lightData.transparentScreenDepthLinear
-                        : max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepthLinear, 0.0);
+                }
+                else {
+                    //float waterViewDepth = lightData.transparentScreenDepthLinear;
 
-                    float waterLightDist = waterViewDepth + lightData.waterShadowDepth;
+                    //float waterLightDist = waterViewDepth + lightData.waterShadowDepth;
 
-                    vec3 absorption = exp(-waterViewDepth * waterExtinctionInv);
-                    vec3 refractColor = diffuse * absorption;
+                    vec3 absorption = exp(-viewDist * waterExtinctionInv);
+                    vec3 refractColor = absorption;
 
-                    float lightDist = isEyeInWater == 1
-                        ? min(lightData.opaqueScreenDepthLinear, lightData.transparentScreenDepthLinear)
-                        : lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepthLinear;
+                    //final.a = iblF;
+                    //final.a *= luminance(absorption);
+
+                    // float lightDist = isEyeInWater == 1
+                    //     ? min(lightData.opaqueScreenDepthLinear, lightData.transparentScreenDepthLinear)
+                    //     : lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepthLinear;
 
                     //vec3 waterLightColor = GetWaterScatterColor(viewDir, lightData.sunTransmittanceEye);
                     //vec2 waterScatteringF = GetWaterScattering(viewDir);
-                    vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
-                    float waterFogF = ApplyWaterFog(refractColor, waterFogColor, lightDist);
+                    //vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
+                    //float waterFogF = ApplyWaterFog(refractColor, waterFogColor, lightDist);
+                    float waterFogF = GetWaterFogFactor(viewDist);
                     
-                    refractColor *= max(1.0 - iblF, 0.0);
+                    //refractColor *= max(1.0 - iblF, 0.0);
 
-                    #ifndef WATER_FANCY
-                        refractColor = mix(refractColor, diffuse, material.albedo.a);
-                    #endif
+                    //#ifndef WATER_FANCY
+                    //    refractColor = mix(refractColor, diffuse, material.albedo.a);
+                    //#endif
 
                     diffuse = refractColor;
-                    final.a = min(final.a + waterFogF, 1.0);// * (1.0 - material.albedo.a);// * max(1.0 - final.a, 0.0);
-                #endif
+                    final.a = max(final.a, waterFogF);// * (1.0 - material.albedo.a);// * max(1.0 - final.a, 0.0);
+                }
 
                 ambient = vec3(0.0);
                 //return vec4(reflectColor, 1.0);
@@ -769,8 +781,14 @@
             + diffuse + emissive
             + (specular + iblSpec) * specularTint;
 
-        float fogFactor;
-        if (isEyeInWater == 1) {
+        #ifdef RENDER_WATER
+            bool applyWaterFog = materialId == MATERIAL_WATER;
+        #else
+            bool applyWaterFog = lightData.transparentScreenDepth >= lightData.opaqueScreenDepth;
+        #endif
+
+        //float fogFactor;
+        if (isEyeInWater == 1 && applyWaterFog) {
             #ifdef SKY_ENABLED
                 vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
             #else
@@ -786,22 +804,22 @@
                 final.rgb += GetWaterVolumetricLighting(lightData, nearViewPos, farViewPos, waterScatteringF);
             #endif
         }
-        else {
-            #if !defined SKY_ENABLED || !defined VL_SKY_ENABLED
-                final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
-            #endif
+        // else {
+        //     #if !defined SKY_ENABLED || !defined VL_SKY_ENABLED
+        //         final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
+        //     #endif
 
-            #ifdef RENDER_WATER
-                if (materialId == MATERIAL_WATER) {
-                    vec3 fogColorFinal;
-                    float fogFactorFinal;
-                    GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
-                    fogFactorFinal *= 1.0 - reflectF;
+        //     #ifdef RENDER_WATER
+        //         if (materialId == MATERIAL_WATER) {
+        //             vec3 fogColorFinal;
+        //             float fogFactorFinal;
+        //             GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
+        //             fogFactorFinal *= 1.0 - reflectF;
 
-                    ApplyFog(final.rgb, fogColorFinal, fogFactorFinal);
-                }
-            #endif
-        }
+        //             ApplyFog(final.rgb, fogColorFinal, fogFactorFinal);
+        //         }
+        //     #endif
+        // }
 
         return final;
     }

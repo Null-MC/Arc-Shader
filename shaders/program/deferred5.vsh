@@ -1,6 +1,6 @@
-#define RENDER_VERTEX
+#define RENDER_DEFERRED_FINAL
 #define RENDER_DEFERRED
-#define RENDER_OPAQUE_FINAL
+#define RENDER_VERTEX
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
@@ -30,7 +30,7 @@ flat out vec3 blockLightColor;
     #if SHADER_PLATFORM == PLATFORM_IRIS
         uniform sampler3D texSunTransmittance;
     #else
-        uniform sampler3D colortex0;
+        uniform sampler3D colortex11;
     #endif
 
     uniform vec3 skyColor;
@@ -80,6 +80,7 @@ uniform vec3 moonPosition;
 uniform vec3 upPosition;
 uniform int moonPhase;
 
+//uniform int isEyeInWater;
 uniform float nightVision;
 uniform float blindness;
 
@@ -109,6 +110,11 @@ uniform float blindness;
 
 
 void main() {
+    // if (isEyeInWater != 0) {
+    //     gl_Position = vec4(10.0);
+    //     return;
+    // }
+
     gl_Position = ftransform();
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
@@ -122,8 +128,8 @@ void main() {
             sunTransmittanceEye = GetSunTransmittance(texSunTransmittance, eyeAltitude, skyLightLevels.x);
             moonTransmittanceEye = GetMoonTransmittance(texSunTransmittance, eyeAltitude, skyLightLevels.y);
         #else
-            sunTransmittanceEye = GetSunTransmittance(colortex0, eyeAltitude, skyLightLevels.x);
-            moonTransmittanceEye = GetMoonTransmittance(colortex0, eyeAltitude, skyLightLevels.y);
+            sunTransmittanceEye = GetSunTransmittance(colortex11, eyeAltitude, skyLightLevels.x);
+            moonTransmittanceEye = GetMoonTransmittance(colortex11, eyeAltitude, skyLightLevels.y);
         #endif
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE == SHADOW_TYPE_CASCADED

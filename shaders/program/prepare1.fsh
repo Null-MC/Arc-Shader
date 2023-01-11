@@ -1,6 +1,6 @@
+//#define RENDER_SKY_LUT
 #define RENDER_PREPARE
 #define RENDER_FRAG
-//#define RENDER_SKY_LUT
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
@@ -12,8 +12,8 @@ flat in vec3 localSunDir;
     uniform sampler3D texSunTransmittance;
     uniform sampler3D texMultipleScattering;
 #else
-    uniform sampler3D colortex0;
-    uniform sampler3D colortex1;
+    uniform sampler3D colortex11;
+    uniform sampler3D colortex12;
 #endif
 
 uniform mat4 gbufferModelView;
@@ -35,7 +35,7 @@ uniform float wetness;
 #include "/lib/sky/hillaire.glsl"
 
 
-/* RENDERTARGETS: 15 */
+/* RENDERTARGETS: 7 */
 layout(location = 0) out vec3 outColor0;
 
 vec3 raymarchScattering(const in vec3 pos, const in vec3 rayDir, const in vec3 sunDir, const in float tMax) {
@@ -66,8 +66,8 @@ vec3 raymarchScattering(const in vec3 pos, const in vec3 rayDir, const in vec3 s
             vec3 sunTransmittance = getValFromTLUT(texSunTransmittance, newPos, sunDir);
             vec3 psiMS = getValFromMultiScattLUT(texMultipleScattering, newPos, sunDir);
         #else
-            vec3 sunTransmittance = getValFromTLUT(colortex0, newPos, sunDir);
-            vec3 psiMS = getValFromMultiScattLUT(colortex1, newPos, sunDir);
+            vec3 sunTransmittance = getValFromTLUT(colortex11, newPos, sunDir);
+            vec3 psiMS = getValFromMultiScattLUT(colortex12, newPos, sunDir);
         #endif
         
         vec3 rayleighInScattering = rayleighScattering * (rayleighPhaseValue*sunTransmittance + psiMS);

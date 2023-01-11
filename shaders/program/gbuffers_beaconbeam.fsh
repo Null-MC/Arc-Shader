@@ -30,7 +30,7 @@ uniform sampler2D gtexture;
 	uniform float viewHeight;
 #endif
 
-/* RENDERTARGETS: 2 */
+/* RENDERTARGETS: 0 */
 layout(location = 0) out uvec4 outColor0;
 
 

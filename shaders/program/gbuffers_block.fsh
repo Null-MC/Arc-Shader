@@ -79,7 +79,7 @@ uniform float biomeSnowSmooth;
 #include "/lib/lighting/basic_gbuffers.glsl"
 #include "/lib/lighting/pbr_gbuffers.glsl"
 
-/* RENDERTARGETS: 2 */
+/* RENDERTARGETS: 0 */
 layout(location = 0) out uvec4 outColor0;
 
 

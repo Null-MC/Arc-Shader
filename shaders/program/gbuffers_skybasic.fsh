@@ -54,7 +54,7 @@ uniform int moonPhase;
     #include "/lib/sky/hillaire_render.glsl"
 #endif
 
-/* RENDERTARGETS: 4,6 */
+/* RENDERTARGETS: 4,3 */
 layout(location = 0) out vec3 outColor0;
 layout(location = 1) out float outColor1;
 
