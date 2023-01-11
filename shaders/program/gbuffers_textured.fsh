@@ -195,17 +195,17 @@ uniform float waterFogDistSmooth;
 #include "/lib/lighting/basic.glsl"
 #include "/lib/lighting/basic_forward.glsl"
 
-/* RENDERTARGETS: 4,3 */
+/* RENDERTARGETS: 2,1 */
 layout(location = 0) out vec4 outColor0;
 layout(location = 1) out vec4 outColor1;
 
 
 void main() {
     vec4 albedo = texture(gtexture, texcoord);
-    if (albedo.a < (1.0/255.0)) {discard; return;}
+    if (albedo.a < (10.0/255.0)) {discard; return;}
 
     albedo.rgb = RGBToLinear(albedo.rgb * glcolor.rgb);
-    albedo.a *= PARTICLE_OPACITY;
+    //albedo.a *= PARTICLE_OPACITY;
 
     LightData lightData;
     lightData.occlusion = 1.0;
@@ -247,9 +247,9 @@ void main() {
     #endif
 
     #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-        #ifdef SHADOW_DITHER
-            float ditherOffset = (GetScreenBayerValue() - 0.5) * shadowPixelSize;
-        #endif
+        // #ifdef SHADOW_DITHER
+        //     float ditherOffset = (GetScreenBayerValue() - 0.5) * shadowPixelSize;
+        // #endif
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             for (int i = 0; i < 4; i++) {
@@ -259,9 +259,9 @@ void main() {
 
                 lightData.matShadowProjection[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
                 
-                #ifdef SHADOW_DITHER
-                    lightData.shadowPos[i].xy += ditherOffset;
-                #endif
+                // #ifdef SHADOW_DITHER
+                //     lightData.shadowPos[i].xy += ditherOffset;
+                // #endif
             }
 
             lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData.shadowPos, lightData.shadowTilePos, vec2(0.0), lightData.opaqueShadowCascade);
@@ -273,9 +273,9 @@ void main() {
             lightData.shadowPos = shadowPos;
             lightData.shadowBias = shadowBias;
 
-            #ifdef SHADOW_DITHER
-                lightData.shadowPos.xy += ditherOffset;
-            #endif
+            // #ifdef SHADOW_DITHER
+            //     lightData.shadowPos.xy += ditherOffset;
+            // #endif
 
             lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
             lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos, vec2(0.0));
@@ -285,13 +285,11 @@ void main() {
     #endif
 
     vec4 color = BasicLighting(lightData, albedo, _viewNormal);
-    //color = vec4(2000.0, 0.0, 0.0, 1.0);
+    //color = vec3(2000.0, 0.0, 0.0);
 
-    vec4 outLuminance = vec4(0.0);
-    outLuminance.r = log2(luminance(color.rgb) + EPSILON);
-    outLuminance.a = color.a;
-    outColor1 = outLuminance;
+    float lum = log2(luminance(color.rgb) + EPSILON);
+    outColor1 = vec4(lum, 0.0, 0.0, 1.0);
 
     color.rgb = clamp(color.rgb * exposure, vec3(0.0), vec3(65000));
-    outColor0 = color;
+    outColor0 = vec4(color.rgb, 1.0);
 }

@@ -191,7 +191,7 @@ void main() {
     if (worldY >= CLOUD_LEVEL) {discard; return;}
 
     vec4 albedo = texture(gtexture, texcoord);
-    if (albedo.a < (1.0/255.0)) {discard; return;}
+    if (albedo.a < (10.0/255.0)) {discard; return;}
 
     albedo.rgb = RGBToLinear(albedo.rgb * glcolor.rgb);
     albedo.a *= WEATHER_OPACITY * 0.01;
@@ -264,9 +264,9 @@ void main() {
 
     vec4 outLuminance = vec4(0.0);
     outLuminance.r = log2(luminance(color.rgb) + EPSILON);
-    outLuminance.a = color.a;
+    outLuminance.a = 1.0;//color.a;
     outColor1 = outLuminance;
 
     color.rgb = clamp(color.rgb * exposure, vec3(0.0), vec3(65000));
-    outColor0 = color;
+    outColor0 = vec4(color.rgb, 1.0);
 }
