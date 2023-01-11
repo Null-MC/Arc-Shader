@@ -179,7 +179,7 @@ void main() {
     BasicVertex(vPos);
     PbrVertex(viewPos);
 
-    localPos = (gbufferModelViewInverse * (gl_ModelViewMatrix * vec4(vPos, 1.0))).xyz;
+    localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         vec3 viewDir = normalize(viewPos);
@@ -197,7 +197,7 @@ void main() {
     exposure = GetExposure();
 
     #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-        vec3 shadowViewPos = (shadowModelView * (gbufferModelViewInverse * vec4(viewPos, 1.0))).xyz;
+        vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             for (int i = 0; i < 4; i++) {
