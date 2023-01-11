@@ -181,8 +181,9 @@ uniform float waterFogDistSmooth;
 #include "/lib/lighting/basic_forward.glsl"
 
 
-/* RENDERTARGETS: 0 */
-layout(location = 0) out uvec4 outColor0;
+/* RENDERTARGETS: 2,1 */
+layout(location = 0) out vec4 outColor0;
+layout(location = 1) out vec4 outColor1;
 
 
 void main() {
@@ -190,7 +191,7 @@ void main() {
     if (worldY >= CLOUD_LEVEL) {discard; return;}
 
     vec4 albedo = texture(gtexture, texcoord);
-    if (albedo.a < (10.0/255.0)) {discard; return;}
+    if (albedo.a < (20.0/255.0)) {discard; return;}
 
     albedo.rgb = RGBToLinear(albedo.rgb * glcolor.rgb);
     albedo.a *= WEATHER_OPACITY * 0.01;
@@ -260,7 +261,8 @@ void main() {
     #endif
 
     vec4 color = BasicLighting(lightData, albedo, viewNormal);
-    color = vec4(2000.0, 0.0, 0.0, 1.0);
+    //color = vec4(0.0, 0.0, 1000.0, 1.0);
+    color.a = 1.0;
 
     vec4 outLuminance = vec4(0.0);
     outLuminance.r = log2(luminance(color.rgb) + EPSILON);

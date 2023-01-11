@@ -188,8 +188,8 @@
         
         mat3 matTBN = mat3(_viewTangent, _viewBinormal, _viewNormal);
 
-        #if defined SKY_ENABLED && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE) && !defined RENDER_ENTITIES && !defined RENDER_HAND && !defined RENDER_TEXTURED
-            if (isEyeInWater != 1) {
+        #if defined SKY_ENABLED && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE) && (defined RENDER_TERRAIN || defined RENDER_WATER)
+            if (isEyeInWater != 1 && materialId != MATERIAL_WATER) {
                 vec3 tanUpDir = normalize(upPosition) * matTBN;
                 float NoU = dot(material.normal, tanUpDir);
 

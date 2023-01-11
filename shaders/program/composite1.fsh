@@ -483,16 +483,8 @@ void main() {
 
     float lumTrans = texelFetch(BUFFER_LUM_TRANS, iTex, 0).r;
     vec4 colorTrans = texelFetch(BUFFER_HDR_TRANS, iTex, 0);
-    //lumTrans = max(exp2(lumTrans) - EPSILON, 0.0);
-    //setLuminance(colorTrans.rgb, lumTrans);
 
     final = mix(final, colorTrans.rgb / exposure, colorTrans.a);
-    //lumFinal = mix(lumFinal, lumTrans, colorTrans.a);
-
-
-    // vec3 final = colorFinal;
-    // float lum = max(exp2(lumFinal) - EPSILON, 0.0);
-    // setLuminance(final, lum);
 
     if (isEyeInWater == 1) {
         // TODO: get actual linear distance
@@ -526,8 +518,4 @@ void main() {
 
     final = clamp(final * exposure, vec3(0.0), vec3(65000.0));
     outColor0 = vec4(final, 1.0);
-
-
-    //outColor0 = vec4(colorFinal, 1.0);
-    //outColor1 = lumFinal;
 }
