@@ -30,20 +30,17 @@ vec3 getValFromMultiScattLUT(const in sampler3D tex, const in vec3 pos, const in
 
 #if !defined RENDER_PREPARE && ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
     vec3 getValFromSkyLUT(const in float worldY, const in vec3 viewDir, const in float lod) {
-        float height = (worldY - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
+        float height = (worldY - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL);        
+        height = groundRadiusMM + saturate(height) * (atmosphereRadiusMM - groundRadiusMM);
 
-        // WARN: This is a temp fix cause idk what's going wrong when camera is under sea level!
-        height = saturate(height);
-        
-        height = groundRadiusMM + height * (atmosphereRadiusMM - groundRadiusMM);
+        //vec3 sunDir = GetSunDir();
 
-        vec3 sunDir = GetSunDir();
-
-        #if SHADER_PLATFORM == PLATFORM_OPTIFINE
-            vec3 up = vec3(0.0, 1.0, 0.0);//gbufferModelView[1].xyz;
-        #else
-            vec3 up = normalize(upPosition);
-        #endif
+        // #if SHADER_PLATFORM == PLATFORM_OPTIFINE
+        //     vec3 up = vec3(0.0, 1.0, 0.0);//gbufferModelView[1].xyz;
+        // #else
+        //     vec3 up = normalize(upPosition);
+        // #endif
+        const vec3 up = vec3(0.0, 1.0, 0.0);
 
         float horizonAngle = safeacos(sqrt(height * height - groundRadiusMM * groundRadiusMM) / height);
         float altitudeAngle = horizonAngle - acos(dot(viewDir, up)); // Between -PI/2 and PI/2

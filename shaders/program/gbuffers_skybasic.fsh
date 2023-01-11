@@ -60,7 +60,8 @@ layout(location = 1) out float outColor1;
 
 
 void main() {
-    vec3 clipPos = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight), 1.0) * 2.0 - 1.0;
+    vec2 viewSize = vec2(viewWidth, viewHeight);
+    vec3 clipPos = vec3(gl_FragCoord.xy / viewSize, 1.0) * 2.0 - 1.0;
     vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
     vec3 viewDir = normalize(viewPos);
 
