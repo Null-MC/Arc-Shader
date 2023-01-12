@@ -408,39 +408,8 @@
 
         vec4 finalColor = PbrLighting2(material, lightData, viewPosFinal);
 
-        if (isEyeInWater != 1) {
-            //#if !(defined SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_FANCY)
-                vec3 fogColorFinal;
-                float fogFactorFinal;
-                GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
-            //#endif
-
-            #ifdef SKY_ENABLED
-                vec2 scatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
-
-                #if !defined VL_SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
-                    vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor * max(lightData.skyLightLevels.x, 0.0);
-                    vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * max(lightData.skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
-
-                    fogColorFinal += RGBToLinear(fogColor) * (
-                        scatteringF.x * sunColorFinalEye +
-                        scatteringF.y * moonColorFinalEye);
-                #endif
-            #endif
-
-            #ifdef RENDER_WATER
-                if (materialId != MATERIAL_WATER) {
-            #endif
-
-            //#if !(defined SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_FANCY)
-                ApplyFog(finalColor, fogColorFinal, fogFactorFinal, 1.0/255.0);
-            //#endif
-
-            #ifdef RENDER_WATER
-                }
-            #endif
-
-            #ifdef SKY_ENABLED
+        #ifdef SKY_ENABLED
+            if (isEyeInWater != 1) {
                 vec3 localViewDir = normalize(localPos);
 
                 float cloudDepthTest = CLOUD_LEVEL - (cameraPosition.y + localPos.y);
@@ -477,8 +446,8 @@
 
                     // TODO: increase alpha with VL?
                 #endif
-            #endif
-        }
+            }
+        #endif
 
         return finalColor;
     }

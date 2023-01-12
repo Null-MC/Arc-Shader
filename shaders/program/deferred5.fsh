@@ -215,9 +215,13 @@ uniform float waterFogDistSmooth;
     #include "/lib/sky/stars.glsl"
 #endif
 
-#include "/lib/world/fog.glsl"
+#include "/lib/world/fog_vanilla.glsl"
 
 #ifdef SKY_ENABLED
+    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+        #include "/lib/world/fog_fancy.glsl"
+    #endif
+
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #if SHADOW_TYPE == SHADOW_TYPE_BASIC
             #include "/lib/shadows/basic.glsl"
@@ -449,24 +453,31 @@ void main() {
         color = PbrLighting2(material, lightData, viewPos).rgb;
     }
 
-    vec3 fogColorFinal;
-    float fogFactorFinal;
-    GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
-
     #ifdef SKY_ENABLED
         vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
-
-        #if !defined VL_SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
-            fogColorFinal += RGBToLinear(fogColor) * (
-                skyScatteringF.x * sunColorFinalEye +
-                skyScatteringF.y * moonColorFinalEye);
-        #endif
     #endif
 
-    //#if ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
-        if (lightData.opaqueScreenDepth < 1.0)
+    if (lightData.opaqueScreenDepth < 1.0) {
+        #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+            vec3 transmittance;
+            vec3 scattering = GetFancyFog(localPos, transmittance);
+            color = color * transmittance + scattering;
+        #else
+            vec3 fogColorFinal;
+            float fogFactorFinal;
+            GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
+
+            #ifdef SKY_ENABLED
+                #if !defined VL_SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
+                    fogColorFinal += RGBToLinear(fogColor) * (
+                        skyScatteringF.x * sunColorFinalEye +
+                        skyScatteringF.y * moonColorFinalEye);
+                #endif
+            #endif
+
             ApplyFog(color, fogColorFinal, fogFactorFinal);
-    //#endif
+        #endif
+    }
 
     #ifdef SKY_ENABLED
         float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);

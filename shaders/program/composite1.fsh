@@ -217,9 +217,13 @@ uniform float waterFogDistSmooth;
     #include "/lib/sky/stars.glsl"
 #endif
 
-#include "/lib/world/fog.glsl"
+#include "/lib/world/fog_vanilla.glsl"
 
 #ifdef SKY_ENABLED
+    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+        #include "/lib/world/fog_fancy.glsl"
+    #endif
+
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #if SHADOW_TYPE == SHADOW_TYPE_BASIC
             #include "/lib/shadows/basic.glsl"
@@ -425,25 +429,29 @@ void main() {
 
             // TODO: reduce sky-fog distance by underwater length!
 
-            vec3 fogColorFinal;
-            float fogFactorFinal;
-            GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
+            if (lightData.transparentScreenDepth < lightData.opaqueScreenDepth) {
+                #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+                    vec3 transmittance;
+                    vec3 scattering = GetFancyFog(localPos, transmittance);
+                    final = final * transmittance + scattering;
+                #else
+                    vec3 fogColorFinal;
+                    float fogFactorFinal;
+                    GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
 
-            #ifdef SKY_ENABLED
-                vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
+                    #ifdef SKY_ENABLED
+                        vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
 
-                #if !defined VL_SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
-                    fogColorFinal += RGBToLinear(fogColor) * (
-                        skyScatteringF.x * sunColorFinalEye +
-                        skyScatteringF.y * moonColorFinalEye);
+                        #if !defined VL_SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
+                            fogColorFinal += RGBToLinear(fogColor) * (
+                                skyScatteringF.x * sunColorFinalEye +
+                                skyScatteringF.y * moonColorFinalEye);
+                        #endif
+                    #endif
+
+                    ApplyFog(final, fogColorFinal, fogFactorFinal);
                 #endif
-            #endif
-
-            if (lightData.transparentScreenDepth < lightData.opaqueScreenDepth)
-                ApplyFog(final, fogColorFinal, fogFactorFinal);
-
-            //lumFinal = log2(luminance(color) + EPSILON);
-            //colorFinal = clamp(color * exposure, vec3(0.0), vec3(65000.0));
+            }
         }
         else if (lightData.transparentScreenDepth >= 1.0) {
             //final = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
@@ -457,7 +465,7 @@ void main() {
 
         // TODO: add clouds!
         #ifdef SKY_ENABLED
-            if (HasClouds(cameraPosition, localViewDir)) {
+            if (isEyeInWater == 1 && HasClouds(cameraPosition, localViewDir)) {
                 vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
                 float cloudF = GetCloudFactor(cloudPos, localViewDir, 0);
 

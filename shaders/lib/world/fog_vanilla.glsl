@@ -119,7 +119,7 @@ void GetFog(const in LightData lightData, const in vec3 worldPos, const in vec3 
         //vanillaFogFactor = GetFogFactor(viewDist, 0.0, far, p);
 
         // Combine edge-hising fog with a minimum haze amount for depth
-        vanillaFogFactor = max(pow(distF, 3.0), 0.25 * distF);
+        vanillaFogFactor = max(0.5 * pow(distF, 3.0), 0.25 * distF);
     #endif
 
     #ifdef SKY_ENABLED

@@ -74,9 +74,9 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
         float localStepLength = localRayLength * inverseStepCountF;
         vec3 worldStart = localStart + cameraPosition;
         
-        const vec3 SmokeAbsorptionCoefficient = vec3(0.002);
-        const vec3 SmokeScatteringCoefficient = vec3(0.46);
-        const vec3 SmokeExtinctionCoefficient = SmokeScatteringCoefficient + SmokeAbsorptionCoefficient;
+        const vec3 SkyAbsorptionCoefficient = vec3(0.002);
+        const vec3 SkyScatteringCoefficient = vec3(0.46);
+        const vec3 SkyExtinctionCoefficient = SkyScatteringCoefficient + SkyAbsorptionCoefficient;
 
         #ifdef SHADOW_CLOUD
             vec3 viewLightDir = normalize(shadowLightPosition);
@@ -173,10 +173,10 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                 //}
             #endif
 
-            vec3 stepTransmittance = exp(-SmokeExtinctionCoefficient * localStepLength * texDensity);
-            vec3 scatteringIntegral = (1.0 - stepTransmittance) / SmokeExtinctionCoefficient;
+            vec3 stepTransmittance = exp(-SkyExtinctionCoefficient * localStepLength * texDensity);
+            vec3 scatteringIntegral = (1.0 - stepTransmittance) / SkyExtinctionCoefficient;
 
-            scattering += sampleColor * (isotropicPhase * SmokeScatteringCoefficient * scatteringIntegral) * transmittance;
+            scattering += sampleColor * (isotropicPhase * SkyScatteringCoefficient * scatteringIntegral) * transmittance;
 
             transmittance *= stepTransmittance;
         }

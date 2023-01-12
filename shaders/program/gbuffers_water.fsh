@@ -237,9 +237,13 @@ uniform float waterFogDistSmooth;
 #endif
 
 #include "/lib/world/weather.glsl"
-#include "/lib/world/fog.glsl"
+#include "/lib/world/fog_vanilla.glsl"
 
 #ifdef SKY_ENABLED
+    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+        #include "/lib/world/fog_fancy.glsl"
+    #endif
+
     #include "/lib/lighting/basic.glsl"
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE

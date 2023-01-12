@@ -717,24 +717,36 @@
 
         #ifdef RENDER_WATER
             if (isEyeInWater != 1) {
-                vec3 fogColorFinal;
-                float fogFactorFinal;
-                GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
+                #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+                    vec3 transmittance;
+                    vec3 scattering = GetFancyFog(localPos, transmittance);
 
-                if (materialId == MATERIAL_WATER)
-                    fogFactorFinal *= 1.0 - reflectF;
+                    float fogF = 1.0;
+                    if (materialId == MATERIAL_WATER)
+                        fogF = 1.0 - reflectF;
 
-                #ifdef SKY_ENABLED
-                    vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
+                    final.rgb = mix(final.rgb, final.rgb * transmittance + scattering, fogF);
+                    // TODO: increase alpha
+                #else
+                    vec3 fogColorFinal;
+                    float fogFactorFinal;
+                    GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
 
-                    #if !defined VL_SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
-                        fogColorFinal += RGBToLinear(fogColor) * (
-                            skyScatteringF.x * sunColorFinalEye +
-                            skyScatteringF.y * moonColorFinalEye);
+                    if (materialId == MATERIAL_WATER)
+                        fogFactorFinal *= 1.0 - reflectF;
+
+                    #ifdef SKY_ENABLED
+                        vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
+
+                        #if !defined VL_SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
+                            fogColorFinal += RGBToLinear(fogColor) * (
+                                skyScatteringF.x * sunColorFinalEye +
+                                skyScatteringF.y * moonColorFinalEye);
+                        #endif
                     #endif
-                #endif
 
-                ApplyFog(final, fogColorFinal, fogFactorFinal, 1.0/255.0);
+                    ApplyFog(final, fogColorFinal, fogFactorFinal, 1.0/255.0);
+                #endif
             }
         #endif
 

@@ -170,7 +170,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/sky/hillaire_render.glsl"
 #include "/lib/world/scattering.glsl"
 #include "/lib/world/sky.glsl"
-#include "/lib/world/fog.glsl"
+#include "/lib/world/fog_vanilla.glsl"
 #include "/lib/sky/clouds.glsl"
 
 #if (defined VL_SKY_ENABLED || defined VL_WATER_ENABLED) && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE //&& defined VL_PARTICLES
