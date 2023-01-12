@@ -19,7 +19,7 @@ uniform float viewHeight;
 
 const vec2 direction = vec2(1.0, 0.0);
 
-/* RENDERTARGETS: 14 */
+/* RENDERTARGETS: 2 */
 layout(location = 0) out vec3 outColor0;
 
 

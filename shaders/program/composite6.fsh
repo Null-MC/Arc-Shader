@@ -1,6 +1,6 @@
-#define RENDER_FRAG
-#define RENDER_COMPOSITE
 //#define RENDER_COMPOSITE_BLOOM_DOWNSCALE
+#define RENDER_COMPOSITE
+#define RENDER_FRAG
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
@@ -9,8 +9,8 @@ in vec2 texcoord;
 flat in int tileCount;
 flat in float exposure;
 
-uniform sampler2D BUFFER_HDR;
-uniform sampler2D BUFFER_LUMINANCE;
+uniform sampler2D BUFFER_HDR_OPAQUE;
+uniform sampler2D BUFFER_LUM_OPAQUE;
 uniform sampler2D depthtex0;
 
 uniform float viewWidth;
@@ -21,7 +21,7 @@ uniform float nightVision;
 
 #include "/lib/camera/bloom.glsl"
 
-/* RENDERTARGETS: 14 */
+/* RENDERTARGETS: 2 */
 layout(location = 0) out vec3 outColor0;
 
 
@@ -65,18 +65,18 @@ void main() {
             vec2 uv3 = tileTex + vec2(-0.25,  0.75) * tilePixelSize;
             vec2 uv4 = tileTex + vec2( 0.75,  0.75) * tilePixelSize;
 
-            vec3 sample1 = textureLod(BUFFER_HDR, uv1, t).rgb;
-            vec3 sample2 = textureLod(BUFFER_HDR, uv2, t).rgb;
-            vec3 sample3 = textureLod(BUFFER_HDR, uv3, t).rgb;
-            vec3 sample4 = textureLod(BUFFER_HDR, uv4, t).rgb;
+            vec3 sample1 = textureLod(BUFFER_HDR_OPAQUE, uv1, t).rgb;
+            vec3 sample2 = textureLod(BUFFER_HDR_OPAQUE, uv2, t).rgb;
+            vec3 sample3 = textureLod(BUFFER_HDR_OPAQUE, uv3, t).rgb;
+            vec3 sample4 = textureLod(BUFFER_HDR_OPAQUE, uv4, t).rgb;
             
             final = 0.25 * (sample1 + sample2 + sample3 + sample4);
 
-            vec4 lumSample;// = textureGather(BUFFER_LUMINANCE, tileTex, 0);
-            lumSample[0] = textureLod(BUFFER_LUMINANCE, uv1, t).r;
-            lumSample[1] = textureLod(BUFFER_LUMINANCE, uv2, t).r;
-            lumSample[2] = textureLod(BUFFER_LUMINANCE, uv3, t).r;
-            lumSample[3] = textureLod(BUFFER_LUMINANCE, uv4, t).r;
+            vec4 lumSample;// = textureGather(BUFFER_LUM_OPAQUE, tileTex, 0);
+            lumSample[0] = textureLod(BUFFER_LUM_OPAQUE, uv1, t).r;
+            lumSample[1] = textureLod(BUFFER_LUM_OPAQUE, uv2, t).r;
+            lumSample[2] = textureLod(BUFFER_LUM_OPAQUE, uv3, t).r;
+            lumSample[3] = textureLod(BUFFER_LUM_OPAQUE, uv4, t).r;
             float lum = (lumSample[0] + lumSample[1] + lumSample[2] + lumSample[3]) * 0.25;
             // float lum = 0.25 * (
             //     max(exp2(lumSample[0]) - EPSILON, 0.0) +
@@ -85,8 +85,8 @@ void main() {
             //     max(exp2(lumSample[3]) - EPSILON, 0.0));
         #else
             //ivec2 iuv = ivec2(tileTex * viewSize / exp2(t));
-            final = textureLod(BUFFER_HDR, tileTex, t).rgb;// / exposure;
-            float lum = textureLod(BUFFER_LUMINANCE, tileTex, t).r;
+            final = textureLod(BUFFER_HDR_OPAQUE, tileTex, t).rgb;// / exposure;
+            float lum = textureLod(BUFFER_LUM_OPAQUE, tileTex, t).r;
             //lum = max(exp2(lum) - EPSILON, 0.0);
         #endif
 

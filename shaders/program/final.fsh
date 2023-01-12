@@ -1,5 +1,5 @@
-#define RENDER_FRAG
 #define RENDER_FINAL
+#define RENDER_FRAG
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"

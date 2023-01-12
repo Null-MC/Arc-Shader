@@ -89,8 +89,7 @@
 #define BUFFER_RSM_DEPTH colortex9
 #define BUFFER_AO colortex10
 
-//#define BUFFER_BLOOM colortex?
-//#define BUFFER_REFRACT colortex7
+#define BUFFER_BLOOM colortex2
 
 #define MATERIAL_WATER 100
 #define MATERIAL_NETHER_PORTAL 102
