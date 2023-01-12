@@ -25,7 +25,7 @@ flat out int vEntityId;
     out vec3 vViewPos;
 #endif
 
-#if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
+#if defined RSM_ENABLED || defined WATER_FANCY
     out mat3 vMatShadowViewTBN;
 #endif
 
@@ -207,7 +207,7 @@ void main() {
 
     vec4 shadowViewPos = gl_ModelViewMatrix * vec4(vLocalPos, 1.0);
 
-    #if defined WATER_FANCY && defined VL_WATER_ENABLED
+    #ifdef WATER_FANCY
         vViewPos = (gbufferModelView * vec4(vLocalPos, 1.0)).xyz;
     #endif
 
@@ -221,7 +221,7 @@ void main() {
         vOriginPos = (gl_ModelViewMatrix * vec4(vOriginPos, 1.0)).xyz;
     #endif
 
-    #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
+    #if defined RSM_ENABLED || defined WATER_FANCY
         vec3 shadowViewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
         vec3 shadowViewBinormal = normalize(cross(shadowViewTangent, shadowViewNormal) * at_tangent.w);
 
@@ -229,7 +229,7 @@ void main() {
     #endif
 
     #ifdef RSM_ENABLED
-        vMatViewTBN = mat3(gbufferModelView) * mat3(shadowModelViewInverse) * vMatShadowViewTBN;
+        vMatViewTBN = mat3(gbufferModelView) * (mat3(shadowModelViewInverse) * vMatShadowViewTBN);
     #endif
 
     #if defined SSS_ENABLED //|| defined RSM_ENABLED

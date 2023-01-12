@@ -28,7 +28,7 @@ flat in int vEntityId[3];
     in vec3 vViewPos[3];
 #endif
 
-#if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
+#if defined RSM_ENABLED || defined WATER_FANCY
     in mat3 vMatShadowViewTBN[3];
 #endif
 
@@ -55,7 +55,7 @@ flat out int gEntityId;
     out vec3 gViewPos;
 #endif
 
-#if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
+#if defined RSM_ENABLED || defined WATER_FANCY
     out mat3 gMatShadowViewTBN;
 #endif
 
@@ -115,7 +115,7 @@ void ApplyCommonProperties(const in int v) {
 	    gViewPos = vViewPos[v];
 	#endif
 
-	#if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
+	#if defined RSM_ENABLED || defined WATER_FANCY
 	    gMatShadowViewTBN = vMatShadowViewTBN[v];
 	#endif
 

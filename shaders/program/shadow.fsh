@@ -39,11 +39,8 @@ flat in int gEntityId;
     flat in float gMaterialSSS;
 #endif
 
-#if defined RSM_ENABLED || (defined WATER_FANCY)
+#if defined RSM_ENABLED || defined WATER_FANCY
     in vec3 gViewPos;
-#endif
-
-#if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
     in mat3 gMatShadowViewTBN;
 #endif
 
@@ -111,7 +108,7 @@ uniform int entityId;
 #if defined SHADOW_COLOR || (defined SSS_ENABLED && !defined RSM_ENABLED)
     layout(location = 0) out vec4 outColor0;
 #endif
-#if defined RSM_ENABLED || (defined SSS_ENABLED && defined SHADOW_COLOR) || (defined WATER_FANCY && defined VL_WATER_ENABLED)
+#if defined RSM_ENABLED || (defined SSS_ENABLED && defined SHADOW_COLOR) || defined WATER_FANCY
     layout(location = 1) out uvec2 outColor1;
 #endif
 
@@ -149,7 +146,7 @@ void main() {
     }
 
     vec3 normal = vec3(0.0, 0.0, 1.0);
-    #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
+    #if defined RSM_ENABLED || defined WATER_FANCY
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
             vec2 normalMap = textureGrad(normals, gTexcoord, dFdXY[0], dFdXY[1]).rg;
             normal = GetLabPbr_Normal(normalMap);
@@ -219,7 +216,7 @@ void main() {
         #endif
     #endif
 
-    #if defined RSM_ENABLED || (defined WATER_FANCY && defined VL_WATER_ENABLED)
+    #if defined RSM_ENABLED || defined WATER_FANCY
         #ifdef RSM_ENABLED
             vec3 albedo = mix(vec3(0.0), sampleColor.rgb, sampleColor.a);
             vec2 specularMap = textureGrad(specular, gTexcoord, dFdXY[0], dFdXY[1]).rg;
@@ -268,7 +265,7 @@ void main() {
         vec3 shadowViewNormal = vec3(0.0);
     #endif
 
-    #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || (defined WATER_FANCY && defined VL_WATER_ENABLED)
+    #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || defined WATER_FANCY
         uvec2 data;
         data.r = packUnorm4x8(vec4(LinearToRGB(diffuse), 1.0));
         data.g = packUnorm4x8(vec4(shadowViewNormal, sss));

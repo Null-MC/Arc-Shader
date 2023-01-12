@@ -20,10 +20,10 @@ flat out vec3 blockLightColor;
 flat out mat2 atlasBounds;
 
 #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-    flat out float matSmooth;
-    flat out float matF0;
-    flat out float matSSS;
-    flat out float matEmissive;
+    out float matSmooth;
+    out float matF0;
+    out float matSSS;
+    out float matEmissive;
 #endif
 
 #if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX

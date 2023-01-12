@@ -386,8 +386,8 @@ void main() {
 
                 SetNearestDepths(lightData);
 
-                if (lightData.opaqueShadowCascade >= 0 && lightData.transparentShadowCascade >= 0) {
-                    float minOpaqueDepth = min(lightData.shadowPos[lightData.opaqueShadowCascade].z, lightData.opaqueShadowDepth);
+                if (lightData.shadowCascade >= 0) {
+                    float minOpaqueDepth = min(lightData.shadowPos[lightData.shadowCascade].z, lightData.opaqueShadowDepth);
                     lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 3.0 * far;
                 }
             #else

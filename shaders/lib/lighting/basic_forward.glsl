@@ -74,7 +74,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
                 vec3 sunAbsorption = exp(-max(lightData.waterShadowDepth, 0.0) * waterExtinctionInv);
 
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    if (lightData.opaqueShadowDepth < lightData.shadowPos[lightData.opaqueShadowCascade].z - lightData.shadowBias[lightData.opaqueShadowCascade])
+                    if (lightData.opaqueShadowDepth < lightData.shadowPos[lightData.shadowCascade].z - lightData.shadowBias[lightData.shadowCascade])
                         sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - ShadowBrightnessF);
                 #else
                     if (lightData.opaqueShadowDepth < lightData.shadowPos.z - lightData.shadowBias)

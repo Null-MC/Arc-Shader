@@ -42,20 +42,17 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in vec2 shadowProje
     void SetNearestDepths(inout LightData lightData) {
         float shadowResScale = tile_dist_bias_factor * shadowPixelSize;
 
-        lightData.opaqueShadowCascade = GetShadowSampleCascade(lightData.shadowPos, lightData.shadowProjectionSize, 0.0);
-        lightData.transparentShadowCascade = lightData.opaqueShadowCascade;
+        lightData.shadowCascade = GetShadowSampleCascade(lightData.shadowPos, lightData.shadowProjectionSize, 0.0);
 
-        if (lightData.opaqueShadowCascade >= 0) {
+        if (lightData.shadowCascade >= 0) {
             // TODO: ADD BIAS?
 
-            lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos[lightData.opaqueShadowCascade].xy, vec2(0.0));
-            lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos[lightData.opaqueShadowCascade].xy, vec2(0.0));
+            lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos[lightData.shadowCascade].xy, vec2(0.0));
+            lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos[lightData.shadowCascade].xy, vec2(0.0));
         }
         else {
             lightData.opaqueShadowDepth = 1.0;
-            //lightData.opaqueShadowCascade = -1;
             lightData.transparentShadowDepth = 1.0;
-            //lightData.transparentShadowCascade = -1;
         }
     }
 
@@ -207,48 +204,48 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in vec2 shadowProje
         }
 
         float GetShadowing(const in LightData lightData) {
-            int cascade = lightData.opaqueShadowCascade; //GetShadowSampleCascade(lightData.shadowPos, lightData.shadowProjectionSize, shadowPcfSize);
-            if (cascade < 0) return 1.0;
+            //int cascade = GetShadowSampleCascade(lightData.shadowPos, lightData.shadowProjectionSize, shadowPcfSize);
+            if (lightData.shadowCascade < 0) return 1.0;
             
             // blocker search
             int blockerSampleCount = SHADOW_PCF_SAMPLES;
-            vec2 blockerPixelRadius = GetPixelRadius(cascade, shadowPcfSize);
-            float blockerDistance = FindBlockerDistance(lightData, blockerPixelRadius, blockerSampleCount, cascade);
+            vec2 blockerPixelRadius = GetPixelRadius(lightData.shadowCascade, shadowPcfSize);
+            float blockerDistance = FindBlockerDistance(lightData, blockerPixelRadius, blockerSampleCount, lightData.shadowCascade);
             if (blockerDistance <= 0.0) return 1.0;
             if (blockerDistance == 1.0) return 0.0;
 
             // penumbra estimation
-            float penumbraWidth = (lightData.shadowPos[cascade].z - blockerDistance) / blockerDistance;
+            float penumbraWidth = (lightData.shadowPos[lightData.shadowCascade].z - blockerDistance) / blockerDistance;
 
             // percentage-close filtering
             float blockRadius = min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0) * shadowPcfSize; // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
 
             int pcfSampleCount = SHADOW_PCF_SAMPLES;
-            vec2 pixelRadius = GetPixelRadius(cascade, blockRadius);
+            vec2 pixelRadius = GetPixelRadius(lightData.shadowCascade, blockRadius);
             //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) pcfSampleCount = 1;
 
-            return 1.0 - GetShadowing_PCF(lightData, pixelRadius, pcfSampleCount, cascade);
+            return 1.0 - GetShadowing_PCF(lightData, pixelRadius, pcfSampleCount, lightData.shadowCascade);
         }
     #elif SHADOW_FILTER == 1
         // PCF
         float GetShadowing(const in LightData lightData) {
-            int cascade = lightData.opaqueShadowCascade; //GetShadowSampleCascade(lightData.shadowPos, lightData.shadowProjectionSize, shadowPcfSize);
-            if (cascade < 0) return 1.0;
+            //int cascade = GetShadowSampleCascade(lightData.shadowPos, lightData.shadowProjectionSize, shadowPcfSize);
+            if (lightData.shadowCascade < 0) return 1.0;
 
             int sampleCount = SHADOW_PCF_SAMPLES;
-            vec2 pixelRadius = GetPixelRadius(cascade, shadowPcfSize);
+            vec2 pixelRadius = GetPixelRadius(lightData.shadowCascade, shadowPcfSize);
             //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
-            return 1.0 - GetShadowing_PCF(lightData, pixelRadius, sampleCount, cascade);
+            return 1.0 - GetShadowing_PCF(lightData, pixelRadius, sampleCount, lightData.shadowCascade);
         }
     #elif SHADOW_FILTER == 0
         // Unfiltered
         float GetShadowing(const in LightData lightData) {
-            int cascade = lightData.opaqueShadowCascade; //GetShadowSampleCascade(lightData.shadowPos, lightData.shadowProjectionSize, shadowPcfSize);
-            if (cascade < 0) return 1.0;
+            //int cascade = GetShadowSampleCascade(lightData.shadowPos, lightData.shadowProjectionSize, shadowPcfSize);
+            if (lightData.shadowCascade < 0) return 1.0;
 
-            float surfaceDepth = lightData.shadowPos[cascade].z - EPSILON;
-            float texDepth = lightData.opaqueShadowDepth + lightData.shadowBias[cascade];
+            float surfaceDepth = lightData.shadowPos[lightData.shadowCascade].z - EPSILON;
+            float texDepth = lightData.opaqueShadowDepth + lightData.shadowBias[lightData.shadowCascade];
             return step(surfaceDepth, texDepth);
         }
     #endif
@@ -288,28 +285,28 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in vec2 shadowProje
         #ifdef SSS_SCATTER
             // PCF + PCSS
             float GetShadowSSS(const in LightData lightData, const in float materialSSS, out float traceDist) {
-                int cascade = lightData.opaqueShadowCascade; //GetShadowSampleCascade(lightData.shadowPos, lightData.shadowProjectionSize, shadowPcfSize);
-                if (cascade < 0) return 1.0;
+                //int cascade = GetShadowSampleCascade(lightData.shadowPos, lightData.shadowProjectionSize, shadowPcfSize);
+                if (lightData.shadowCascade < 0) return 1.0;
 
-                float texDepth = SampleOpaqueDepth(lightData.shadowPos[cascade].xy, vec2(0.0));
-                traceDist = max(lightData.shadowPos[cascade].z + lightData.shadowBias[cascade] - texDepth, 0.0) * 3.0 * far;
+                float texDepth = SampleOpaqueDepth(lightData.shadowPos[lightData.shadowCascade].xy, vec2(0.0));
+                traceDist = max(lightData.shadowPos[lightData.shadowCascade].z + lightData.shadowBias[lightData.shadowCascade] - texDepth, 0.0) * 3.0 * far;
                 float blockRadius = SSS_PCF_SIZE * saturate(traceDist / SSS_MAXDIST) * (1.0 - 0.85*materialSSS);
 
                 int sampleCount = SSS_PCF_SAMPLES;
-                vec2 pixelRadius = GetPixelRadius(cascade, blockRadius);
+                vec2 pixelRadius = GetPixelRadius(lightData.shadowCascade, blockRadius);
                 if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
-                return GetShadowing_PCF_SSS(lightData, pixelRadius, sampleCount, cascade);
+                return GetShadowing_PCF_SSS(lightData, pixelRadius, sampleCount, lightData.shadowCascade);
             }
         #else
             // Unfiltered
             float GetShadowSSS(const in LightData lightData, const in float materialSSS, out float lightDist) {
-                int cascade = lightData.opaqueShadowCascade; //GetShadowSampleCascade(lightData.shadowPos, lightData.shadowProjectionSize, shadowPcfSize);
-                if (cascade < 0) return 1.0;
+                //int cascade = GetShadowSampleCascade(lightData.shadowPos, lightData.shadowProjectionSize, shadowPcfSize);
+                if (lightData.shadowCascade < 0) return 1.0;
                 
-                lightDist = max(lightData.shadowPos[cascade].z + lightData.shadowBias[cascade] - lightData.opaqueShadowDepth, 0.0) * far * 3.0;
+                lightDist = max(lightData.shadowPos[lightData.shadowCascade].z + lightData.shadowBias[lightData.shadowCascade] - lightData.opaqueShadowDepth, 0.0) * far * 3.0;
 
-                float shadow_sss = SampleShadowSSS(lightData.shadowPos[cascade].xy);
+                float shadow_sss = SampleShadowSSS(lightData.shadowPos[lightData.shadowCascade].xy);
                 if (shadow_sss < EPSILON) return 0.0;
 
                 float maxDist = SSS_MAXDIST * shadow_sss;

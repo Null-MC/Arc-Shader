@@ -29,8 +29,7 @@ struct LightData {
 
         float shadowBias[4];
         vec2 shadowTilePos[4];
-        int opaqueShadowCascade;
-        int transparentShadowCascade;
+        int shadowCascade;
     #else
         vec4 shadowPos;
         float shadowBias;

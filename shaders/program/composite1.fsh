@@ -389,8 +389,8 @@ void main() {
 
                     SetNearestDepths(lightData);
 
-                    if (lightData.opaqueShadowCascade >= 0 && lightData.transparentShadowCascade >= 0) {
-                        float minOpaqueDepth = min(lightData.shadowPos[lightData.opaqueShadowCascade].z, lightData.opaqueShadowDepth);
+                    if (lightData.shadowCascade >= 0) {
+                        float minOpaqueDepth = min(lightData.shadowPos[lightData.shadowCascade].z, lightData.opaqueShadowDepth);
                         lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 3.0 * far;
                     }
                 #else
@@ -491,8 +491,8 @@ void main() {
         // TODO: get actual linear distance
         float viewDist = min(lightData.opaqueScreenDepthLinear, lightData.transparentScreenDepthLinear);
 
-        vec3 waterExtinctionInv = WATER_ABSROPTION_RATE * (1.0 - waterAbsorbColor);
-        final *= exp(-viewDist * waterExtinctionInv);
+        //vec3 waterExtinctionInv = WATER_ABSROPTION_RATE * (1.0 - waterAbsorbColor);
+        //final *= exp(-viewDist * waterExtinctionInv);
 
         // TODO: apply water fog
         #ifdef SKY_ENABLED
