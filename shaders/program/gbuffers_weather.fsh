@@ -193,8 +193,8 @@ void main() {
     vec4 albedo = texture(gtexture, texcoord);
     if (albedo.a < (20.0/255.0)) {discard; return;}
 
-    albedo.rgb = RGBToLinear(albedo.rgb * glcolor.rgb);
-    albedo.a *= WEATHER_OPACITY * 0.01;
+    albedo.rgb = RGBToLinear(albedo.rgb);// * glcolor.rgb);
+    //albedo.a *= WEATHER_OPACITY * 0.01;
 
     LightData lightData;
     lightData.occlusion = 1.0;

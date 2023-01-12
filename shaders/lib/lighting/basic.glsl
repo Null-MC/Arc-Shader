@@ -180,13 +180,13 @@
 
             //     return GetFancySkyLuminance(worldY, n, 6);
             // #else
-                vec3 upDir = normalize(upPosition);
+                //vec3 upDir = normalize(upPosition);
                 vec3 sunLightDir = normalize(sunPosition);
                 vec3 moonLightDir = normalize(moonPosition);
 
-                vec2 skyLightLevels;
-                skyLightLevels.x = dot(upDir, sunLightDir);
-                skyLightLevels.y = dot(upDir, moonLightDir);
+                //vec2 skyLightLevels;
+                //skyLightLevels.x = dot(upDir, sunLightDir);
+                //skyLightLevels.y = dot(upDir, moonLightDir);
 
                 //vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
 

@@ -57,10 +57,15 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
 
     //vec3 skyAmbient = vec3(pow(skyLight, 5.0));
     #ifdef SKY_ENABLED
-        float ambientBrightness = mix(0.8 * skyLight2, 0.95 * skyLight, rainStrength) * ShadowBrightnessF;
-        ambient += GetSkyAmbientLight(lightData, worldPos.y, viewNormal) * ambientBrightness;
+        #ifdef RENDER_WEATHER
+            vec3 skyColorLux = RGBToLinear(skyColor);// * skyTint;
+            //if (all(lessThan(skyColorLux, vec3(EPSILON)))) skyColorLux = vec3(1.0);
+            //skyColorLux = normalize(skyColorLux);
+            skyColorLux = 20000.0 * skyColorLux;
+            ambient += skyColorLux * max(lightData.skyLightLevels.x, 0.0);// * skyLight * ShadowBrightnessF;
+        #else
+            ambient += GetSkyAmbientLight(lightData, worldPos.y, viewNormal) * skyLight * ShadowBrightnessF;
 
-        #ifndef RENDER_WEATHER
             vec3 sunColorFinal = lightData.sunTransmittance * sunColor;// * GetSunLux();
             vec3 moonColorFinal = lightData.moonTransmittance * moonColor * GetMoonPhaseLevel();// * GetMoonLux();
             vec3 skyLightColor = 0.2 * (sunColorFinal + moonColorFinal);
@@ -107,16 +112,16 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
             vec3 sunDir = normalize(sunPosition);
             float sun_VoL = dot(viewDir, sunDir);
             float rainSnowSunVL = mix(
-                ComputeVolumetricScattering(sun_VoL, -0.6),
+                ComputeVolumetricScattering(sun_VoL, -0.2),
                 ComputeVolumetricScattering(sun_VoL, 0.86),
-                0.1);
+                0.2);
 
             vec3 moonDir = normalize(moonPosition);
             float moon_VoL = dot(viewDir, moonDir);
             float rainSnowMoonVL = mix(
-                ComputeVolumetricScattering(moon_VoL, -0.6),
+                ComputeVolumetricScattering(moon_VoL, -0.2),
                 ComputeVolumetricScattering(moon_VoL, 0.86),
-                0.1);
+                0.2);
 
             vec3 weatherLightColor = 3.0 * 
                 max(rainSnowSunVL, 0.0) * sunColorFinalEye +
@@ -124,7 +129,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
 
             //float alpha = mix(WEATHER_OPACITY * 0.01, 1.0, saturate(max(rainSnowSunVL, rainSnowMoonVL)));
 
-            final.rgb += albedo.rgb * weatherLightColor * shadow;
+            final.rgb += albedo.rgb * weatherLightColor;// * shadow;
             final.a = albedo.a * rainStrength * (WEATHER_OPACITY * 0.01);
         #else
             if (isEyeInWater == 1) {
