@@ -363,10 +363,6 @@
         #endif
 
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-            #ifdef SHADOW_DITHER
-                float ditherOffset = (GetScreenBayerValue() - 0.5) * shadowPixelSize;
-            #endif
-
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 for (int i = 0; i < 4; i++) {
                     lightData.shadowPos[i] = shadowPos[i];
@@ -374,10 +370,6 @@
                     lightData.shadowTilePos[i] = GetShadowCascadeClipPos(i);
 
                     lightData.matShadowProjection[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
-                    
-                    #ifdef SHADOW_DITHER
-                        lightData.shadowPos[i].xy += ditherOffset;
-                    #endif
                 }
 
                 lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData.shadowPos, lightData.shadowTilePos, vec2(0.0), lightData.opaqueShadowCascade);
@@ -388,10 +380,6 @@
             #elif SHADOW_TYPE != SHADOW_TYPE_NONE
                 lightData.shadowPos = shadowPos;
                 lightData.shadowBias = shadowBias;
-
-                #ifdef SHADOW_DITHER
-                    lightData.shadowPos.xy += ditherOffset;
-                #endif
 
                 lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
                 lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos, vec2(0.0));
@@ -440,7 +428,8 @@
                     vec3 viewFar = viewDir * min(length(viewPos), far);
                     vec3 vlExt = vec3(1.0);
 
-                    vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, scatteringF);
+                    vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
+                    vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, skyScatteringF);
 
                     finalColor.rgb = finalColor.rgb * vlExt + vlColor;
 
