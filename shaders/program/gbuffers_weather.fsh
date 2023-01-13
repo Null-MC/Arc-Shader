@@ -190,8 +190,10 @@ void main() {
     float worldY = localPos.y + cameraPosition.y;
     if (worldY >= CLOUD_LEVEL) {discard; return;}
 
+    float opacityThreshold = mix(1.0, 0.2, rainStrength);
+
     vec4 albedo = texture(gtexture, texcoord);
-    if (albedo.a < (20.0/255.0)) {discard; return;}
+    if (albedo.a < opacityThreshold) {discard; return;}
 
     albedo.rgb = RGBToLinear(albedo.rgb);// * glcolor.rgb);
     //albedo.a *= WEATHER_OPACITY * 0.01;
@@ -223,10 +225,6 @@ void main() {
     #endif
 
     #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-        // #ifdef SHADOW_DITHER
-        //     float ditherOffset = (GetScreenBayerValue() - 0.5) * shadowPixelSize;
-        // #endif
-
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             for (int i = 0; i < 4; i++) {
                 lightData.shadowPos[i] = shadowPos[i];
@@ -234,10 +232,6 @@ void main() {
                 lightData.shadowTilePos[i] = GetShadowCascadeClipPos(i);
 
                 lightData.matShadowProjection[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
-
-                // #ifdef SHADOW_DITHER
-                //     lightData.shadowPos[i].xy += ditherOffset;
-                // #endif
             }
 
             lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData.shadowPos, lightData.shadowTilePos, vec2(0.0), lightData.shadowCascade);
@@ -248,10 +242,6 @@ void main() {
         #elif SHADOW_TYPE != SHADOW_TYPE_NONE
             lightData.shadowPos = shadowPos;
             lightData.shadowBias = shadowBias;
-
-            // #ifdef SHADOW_DITHER
-            //     lightData.shadowPos.xy += ditherOffset;
-            // #endif
 
             lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
             lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos, vec2(0.0));

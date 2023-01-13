@@ -112,18 +112,18 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
             vec3 sunDir = normalize(sunPosition);
             float sun_VoL = dot(viewDir, sunDir);
             float rainSnowSunVL = mix(
-                ComputeVolumetricScattering(sun_VoL, -0.2),
-                ComputeVolumetricScattering(sun_VoL, 0.86),
-                0.2);
+                ComputeVolumetricScattering(sun_VoL, -0.16),
+                ComputeVolumetricScattering(sun_VoL, 0.66),
+                0.3);
 
             vec3 moonDir = normalize(moonPosition);
             float moon_VoL = dot(viewDir, moonDir);
             float rainSnowMoonVL = mix(
-                ComputeVolumetricScattering(moon_VoL, -0.2),
-                ComputeVolumetricScattering(moon_VoL, 0.86),
-                0.2);
+                ComputeVolumetricScattering(moon_VoL, -0.16),
+                ComputeVolumetricScattering(moon_VoL, 0.66),
+                0.3);
 
-            vec3 weatherLightColor = 3.0 * 
+            vec3 weatherLightColor = 6.0 * 
                 max(rainSnowSunVL, 0.0) * sunColorFinalEye +
                 max(rainSnowMoonVL, 0.0) * moonColorFinalEye;
 
