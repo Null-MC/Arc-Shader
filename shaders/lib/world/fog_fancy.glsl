@@ -1,9 +1,10 @@
 vec3 GetFancyFog(const in vec3 localPos, out vec3 transmittance) {
-    const vec3 SkyAbsorptionCoefficient = vec3(0.002);
-    const vec3 SkyScatteringCoefficient = vec3(0.001);
-    const vec3 SkyExtinctionCoefficient = SkyScatteringCoefficient + SkyAbsorptionCoefficient;
     const float isotropicPhase = 0.25 / PI;
     const float texDensity = 1.0;
+
+    vec3 SkyAbsorptionCoefficient = vec3(mix(0.0024, 0.0020, rainStrength));
+    vec3 SkyScatteringCoefficient = vec3(mix(0.0008, 0.0020, rainStrength));
+    vec3 SkyExtinctionCoefficient = SkyScatteringCoefficient + SkyAbsorptionCoefficient;
 
     vec3 localSunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
 

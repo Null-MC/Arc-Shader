@@ -11,7 +11,7 @@ vec3 getValFromTLUT(const in sampler3D tex, const in vec3 pos, const in vec3 sun
     vec3 uv = vec3(
         0.5 + 0.5*sunCosZenithAngle,
         (height - groundRadiusMM) / (atmosphereRadiusMM - groundRadiusMM),
-        wetness);
+        rainStrength);
     
     return textureLod(tex, uv, 0).rgb;
 }
@@ -24,7 +24,7 @@ vec3 getValFromMultiScattLUT(const in sampler3D tex, const in vec3 pos, const in
     vec3 uv = vec3(
         0.5 + 0.5*sunCosZenithAngle,
         (height - groundRadiusMM) / (atmosphereRadiusMM - groundRadiusMM),
-        wetness);
+        rainStrength);
     
     return textureLod(tex, uv, 0).rgb;
 }
