@@ -69,10 +69,17 @@
         #endif
 
         //#ifndef RENDER_WATER
+        #ifdef RENDER_ENTITIES
+            if (colorMap.a < 10.0/255.0 && entityId != MATERIAL_BOAT) {
+                discard;
+                return;
+            }
+        #else
             if (colorMap.a < 10.0/255.0) {
                 discard;
                 return;
             }
+        #endif
         //#endif
 
         #ifndef RENDER_TEXTURED
