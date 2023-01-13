@@ -1,6 +1,7 @@
 float GetScaledSkyHeight(const in float worldY) {
     float scaleY = (cameraPosition.y - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
-    return groundRadiusMM + saturate(scaleY) * (atmosphereRadiusMM - groundRadiusMM);
+    scaleY = clamp(scaleY, 0.004, 0.996);
+    return groundRadiusMM + scaleY * (atmosphereRadiusMM - groundRadiusMM);
 }
 
 vec3 getValFromTLUT(const in sampler3D tex, const in vec3 pos, const in vec3 sunDir) {
@@ -30,8 +31,7 @@ vec3 getValFromMultiScattLUT(const in sampler3D tex, const in vec3 pos, const in
 
 #if !defined RENDER_PREPARE && ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
     vec3 getValFromSkyLUT(const in float worldY, const in vec3 viewDir, const in float lod) {
-        float height = (worldY - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL);        
-        height = groundRadiusMM + saturate(height) * (atmosphereRadiusMM - groundRadiusMM);
+        float height = GetScaledSkyHeight(worldY);
 
         //vec3 sunDir = GetSunDir();
 

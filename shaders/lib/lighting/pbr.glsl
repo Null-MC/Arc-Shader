@@ -54,8 +54,8 @@
             float horizonFogF = 1.0 - abs(localReflectDir.y);
 
             #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-                float lod = rough * (8.0 - EPSILON);
-                vec3 reflectSkyColor = GetFancySkyLuminance(worldPos.y, localReflectDir, lod);
+                //float lod = rough * (8.0 - EPSILON);
+                vec3 reflectSkyColor = GetFancySkyLuminance(worldPos.y, localReflectDir, 0.0);
             #else
                 vec3 reflectSkyColor = GetVanillaSkyLuminance(reflectDir);
             #endif
