@@ -3,7 +3,7 @@
         viewTangent = normalize(gl_NormalMatrix * at_tangent.xyz);
         tangentW = at_tangent.w;
 
-        #if defined PARALLAX_ENABLED || (WATER_WAVE_TYPE == WATER_WAVE_PARALLAX && (defined RENDER_WATER || defined RENDER_HAND_WATER))
+        #if defined PARALLAX_ENABLED && !defined RENDER_TEXTURED
             vec3 viewBinormal = normalize(cross(viewTangent, viewNormal) * at_tangent.w);
             mat3 matTBN = mat3(viewTangent, viewBinormal, viewNormal);
 
@@ -41,9 +41,9 @@
                     vec3 waterFogColor = GetWaterFogColor(sunColorFinalEye, moonColorFinalEye, waterScatteringF);
 
                     //#if defined SKY_ENABLED && !defined VL_WATER_ENABLED
-                    float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
-                    vec3 vlColor = waterScatteringF.x * sunColorFinalEye + waterScatteringF.y * moonColorFinalEye;
-                    waterFogColor += 0.2 * waterScatterColor * vlColor * pow3(eyeLight);
+                    // float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
+                    // vec3 vlColor = waterScatteringF.x * sunColorFinalEye + waterScatteringF.y * moonColorFinalEye;
+                    // waterFogColor += 0.2 * waterScatterColor * vlColor * pow3(eyeLight);
                     //#endif
 
                     return waterFogColor;
@@ -355,7 +355,7 @@
                     vec2 envBRDF = textureLod(colortex14, vec2(NoVm, rough), 0).rg;
                 #endif
 
-                iblSpec = iblF * envBRDF.r + envBRDF.g;
+                iblSpec = min(iblF * envBRDF.r + envBRDF.g, 1.0);
                 iblSpec *= (1.0 - roughL) * reflectColor * occlusion;
 
                 float iblFmax = maxOf(iblF);
@@ -363,7 +363,8 @@
                 //final.a = min(final.a + iblFmax * exposure * final.a, 1.0);
                 final.a = max(final.a, iblFmax);
 
-                reflectF *= iblFmax;
+                if (isEyeInWater != 1)
+                    reflectF *= iblFmax;
             }
         #endif
 
@@ -665,10 +666,20 @@
                     final.a = saturate(10.0*waterViewDepthFinal - 0.2);
                 }
                 else {
-                    diffuse = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
+                    vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
+                    diffuse = vec3(0.0);// waterFogColor;
+                    iblSpec = vec3(0.0);
 
-                    if (dot(refractDir, refractDir) < EPSILON)
+                    if (dot(refractDir, refractDir) < EPSILON) {
+                        //diffuse *= 1.0 - reflectF;
+
+                        iblSpec = reflectColor;
+                        reflectF = 1.0;
                         final.a = 1.0;
+                    }
+                    else {
+                        final.a = maxOf(iblF);
+                    }
                 }
 
                 ambient = vec3(0.0);
@@ -747,6 +758,20 @@
 
                     ApplyFog(final, fogColorFinal, fogFactorFinal, 1.0/255.0);
                 #endif
+            }
+            else {
+                #ifdef SKY_ENABLED
+                    vec3 waterSunColorEye = sunColorFinalEye * max(skyLightLevels.x, 0.0);
+                    vec3 waterMoonColorEye = moonColorFinalEye * max(skyLightLevels.y, 0.0);
+
+                    vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
+                #else
+                    vec3 waterFogColor = vec3(0.0);
+                #endif
+
+                float waterFogF = GetWaterFogFactor(viewDist);
+                waterFogF *= 1.0 - reflectF;
+                //final = mix(final, vec4(waterFogColor, 1.0), vec4(waterFogF));
             }
         #endif
 

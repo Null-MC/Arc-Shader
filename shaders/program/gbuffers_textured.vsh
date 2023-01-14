@@ -17,6 +17,7 @@ out vec3 viewPos;
 out vec3 viewNormal;
 out vec3 viewTangent;
 flat out float tangentW;
+flat out int materialId;
 
 attribute vec4 at_tangent;
 

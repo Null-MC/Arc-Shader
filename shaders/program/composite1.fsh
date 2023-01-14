@@ -297,6 +297,8 @@ void main() {
         lightData.sunTransmittanceEye = sunTransmittanceEye;
         lightData.moonTransmittanceEye = moonTransmittanceEye;
 
+        vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
+
         vec3 sunColorFinalEye = sunTransmittanceEye * sunColor * max(skyLightLevels.x, 0.0);
         vec3 moonColorFinalEye = moonTransmittanceEye * moonColor * max(skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
     #endif
@@ -427,8 +429,6 @@ void main() {
         if (lightData.opaqueScreenDepth < 1.0) {
             final = PbrLighting2(material, lightData, viewPos).rgb;
 
-            // TODO: reduce sky-fog distance by underwater length!
-
             if (lightData.transparentScreenDepth < lightData.opaqueScreenDepth) {
                 #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
                     vec3 transmittance;
@@ -440,8 +440,6 @@ void main() {
                     GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
 
                     #ifdef SKY_ENABLED
-                        vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
-
                         #if !defined VL_SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
                             fogColorFinal += RGBToLinear(fogColor) * (
                                 skyScatteringF.x * sunColorFinalEye +
@@ -463,24 +461,42 @@ void main() {
         float lum = texelFetch(BUFFER_LUM_OPAQUE, iTex, 0).r;
         final = texelFetch(BUFFER_HDR_OPAQUE, iTex, 0).rgb / exposure;
 
-        // TODO: add clouds!
         #ifdef SKY_ENABLED
-            if (isEyeInWater == 1 && HasClouds(cameraPosition, localViewDir)) {
-                vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
-                float cloudF = GetCloudFactor(cloudPos, localViewDir, 0);
+            if (isEyeInWater == 1) {
+                if (HasClouds(cameraPosition, localViewDir)) {
+                    vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
+                    float cloudF = GetCloudFactor(cloudPos, localViewDir, 0);
 
-                float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
-                //cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
-                cloudF = mix(cloudF, 0.0, pow(cloudHorizonFogF, CLOUD_HORIZON_POWER));
+                    float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
+                    //cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
+                    cloudF = mix(cloudF, 0.0, pow(cloudHorizonFogF, CLOUD_HORIZON_POWER));
 
-                vec3 cloudColor = GetCloudColor(cloudPos, viewDir, skyLightLevels);
+                    vec3 cloudColor = GetCloudColor(cloudPos, viewDir, skyLightLevels);
 
-                //cloudF *= 1.0 - blindness;
+                    //cloudF *= 1.0 - blindness;
 
-                final = mix(final, cloudColor, cloudF);
+                    final = mix(final, cloudColor, cloudF);
+                }
             }
         #endif
     }
+
+    float minViewDist = min(lightData.opaqueScreenDepthLinear, lightData.transparentScreenDepthLinear);
+
+    #if defined SKY_ENABLED && defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        if (isEyeInWater == 1 && lightData.opaqueScreenDepth > lightData.transparentScreenDepth) {
+            vec3 viewNear = viewDir * near;
+            vec3 viewFar = viewDir * minViewDist;
+            vec3 vlExt = vec3(1.0);
+
+            //vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
+            vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, skyScatteringF);
+
+            final = final * vlExt + vlColor;
+
+            // TODO: increase alpha with VL?
+        }
+    #endif
 
     float lumTrans = texelFetch(BUFFER_LUM_TRANS, iTex, 0).r;
     vec4 colorTrans = texelFetch(BUFFER_HDR_TRANS, iTex, 0);
@@ -489,27 +505,31 @@ void main() {
 
     if (isEyeInWater == 1) {
         // TODO: get actual linear distance
-        float viewDist = min(lightData.opaqueScreenDepthLinear, lightData.transparentScreenDepthLinear);
+        //float viewDist = min(lightData.opaqueScreenDepthLinear, lightData.transparentScreenDepthLinear);
 
         //vec3 waterExtinctionInv = WATER_ABSROPTION_RATE * (1.0 - waterAbsorbColor);
         //final *= exp(-viewDist * waterExtinctionInv);
 
-        // TODO: apply water fog
         #ifdef SKY_ENABLED
-            vec3 waterSunColorEye = sunColorFinalEye * max(skyLightLevels.x, 0.0);
-            vec3 waterMoonColorEye = moonColorFinalEye * max(skyLightLevels.y, 0.0);
-
             vec2 waterScatteringF = GetWaterScattering(viewDir);
-            vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
-        #else
-            vec3 waterFogColor = vec3(0.0);
         #endif
 
-        ApplyWaterFog(final, waterFogColor, viewDist);
+        if (lightData.transparentScreenDepth >= lightData.opaqueScreenDepth) {
+            #ifdef SKY_ENABLED
+                vec3 waterSunColorEye = sunColorFinalEye * max(skyLightLevels.x, 0.0);
+                vec3 waterMoonColorEye = moonColorFinalEye * max(skyLightLevels.y, 0.0);
+
+                vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
+            #else
+                vec3 waterFogColor = vec3(0.0);
+            #endif
+
+            //ApplyWaterFog(final, waterFogColor, minViewDist);
+        }
 
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined VL_WATER_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             vec3 nearViewPos = viewDir * near;
-            vec3 farViewPos = viewDir * min(viewDist, waterFogDistSmooth);
+            vec3 farViewPos = viewDir * min(minViewDist, waterFogDistSmooth);
 
             final.rgb += GetWaterVolumetricLighting(lightData, nearViewPos, farViewPos, waterScatteringF);
         #endif

@@ -70,6 +70,7 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
             vec3 shadowClipEnd = (shadowProjection * vec4(shadowViewEnd, 1.0)).xyz;
             vec3 shadowClipStep = (shadowClipEnd - shadowClipStart) * inverseStepCountF;
         #endif
+        //return 10000.0 * (shadowClipEnd - shadowClipStart);
 
         float localStepLength = localRayLength * inverseStepCountF;
         vec3 worldStart = localStart + cameraPosition;
@@ -95,6 +96,10 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
         vec3 shadowMax = 1.0 - vec3(vec2(shadowPixelSize), EPSILON);
         float minFogF = min(VLFogMinF * (1.0 + 0.6 * max(lightData.skyLightLevels.x, 0.0)), 1.0);
         vec3 t;
+
+        #ifndef VL_FOG_NOISE
+            const float texDensity = 0.02;
+        #endif
 
         vec3 scattering = vec3(0.0);
         for (int i = 0; i < VL_SAMPLES_SKY; i++) {
@@ -137,18 +142,20 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                 sampleF *= pow(1.0 - cloudF, 2.0);
             #endif
 
-            #if SHADER_PLATFORM == PLATFORM_IRIS
-                float texDensity = GetSkyFogDensity(texCloudNoise, traceWorldPos, time);
-            #else
-                float texDensity = GetSkyFogDensity(colortex13, traceWorldPos, time);
+            #ifdef VL_FOG_NOISE
+                #if SHADER_PLATFORM == PLATFORM_IRIS
+                    float texDensity = GetSkyFogDensity(texCloudNoise, traceWorldPos, time);
+                #else
+                    float texDensity = GetSkyFogDensity(colortex13, traceWorldPos, time);
+                #endif
+
+                // Change with altitude
+                float altD = 1.0 - saturate((traceWorldPos.y - SEA_LEVEL) / (CLOUD_LEVEL - SEA_LEVEL));
+                texDensity *= pow3(altD);
+
+                // Change with weather
+                texDensity *= minFogF + (1.0 - minFogF) * wetness;
             #endif
-
-            // Change with altitude
-            float altD = 1.0 - saturate((traceWorldPos.y - SEA_LEVEL) / (CLOUD_LEVEL - SEA_LEVEL));
-            texDensity *= pow3(altD);
-
-            // Change with weather
-            texDensity *= minFogF + (1.0 - minFogF) * wetness;
 
             vec3 sampleColor = 16.0 * GetScatteredLighting(traceWorldPos.y, skyLightLevels, scatteringF) * sampleF;
 

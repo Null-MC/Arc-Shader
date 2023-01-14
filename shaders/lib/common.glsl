@@ -200,6 +200,7 @@ const bool colortex10Clear = false;
 #define VL_SAMPLES_SKY 12 // [8 12 16 20 24 32]
 #define VL_SAMPLES_WATER 6 // [4 6 8 12 16 24]
 #define VL_FOG_MIN 6 // [0 2 4 6 8 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
+//#define VL_FOG_NOISE
 #define VL_PARTICLES
 #define AO_TYPE 2 // [0 1 2]
 #define SSAO_SAMPLES 6 // [2 4 6 8 10 12 14 16 24 32]
@@ -236,7 +237,7 @@ const bool colortex10Clear = false;
 #define CLOUD_HORIZON_POWER 1.0
 #define CLOUD_POW_CLEAR 1.6
 #define CLOUD_POW_RAIN 0.3
-#define SHADOW_CLOUD
+//#define SHADOW_CLOUD
 #define SMOKE_ENABLED
 #define VL_SMOKE_DENSITY 0.2
 #define IRIS_FEATURE_BIOMECAT

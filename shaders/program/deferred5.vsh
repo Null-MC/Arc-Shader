@@ -43,28 +43,33 @@ flat out vec3 blockLightColor;
         uniform vec3 shadowLightPosition;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            flat out float cascadeSizes[4];
-            flat out vec3 matShadowProjections_scale[4];
-            flat out vec3 matShadowProjections_translation[4];
+            // layout (shared, binding = 0) buffer csmData {
+            //     float cascadeSize[4];
+            //     mat4 cascadedShadowProjection[4];
+            // }
 
-            uniform mat4 shadowModelView;
-            uniform float near;
-            uniform float far;
+            // flat out float cascadeSizes[4];
+            // flat out vec3 matShadowProjections_scale[4];
+            // flat out vec3 matShadowProjections_translation[4];
 
-            #if MC_VERSION >= 11700 && (SHADER_PLATFORM != PLATFORM_IRIS || defined IRIS_FEATURE_CHUNK_OFFSET)
-                uniform vec3 chunkOffset;
-            #else
-                uniform mat4 gbufferModelViewInverse;
-            #endif
+            // uniform mat4 shadowModelView;
+            // uniform float near;
+            // uniform float far;
 
-            #if SHADER_PLATFORM == PLATFORM_OPTIFINE
-                // NOTE: We are using the previous gbuffer matrices cause the current ones don't work in shadow pass
-                uniform mat4 gbufferPreviousModelView;
-                uniform mat4 gbufferPreviousProjection;
-            #else
-                //uniform mat4 gbufferModelView;
-                uniform mat4 gbufferProjection;
-            #endif
+            // #if MC_VERSION >= 11700 && (SHADER_PLATFORM != PLATFORM_IRIS || defined IRIS_FEATURE_CHUNK_OFFSET)
+            //     uniform vec3 chunkOffset;
+            // #else
+            //     uniform mat4 gbufferModelViewInverse;
+            // #endif
+
+            // #if SHADER_PLATFORM == PLATFORM_OPTIFINE
+            //     // NOTE: We are using the previous gbuffer matrices cause the current ones don't work in shadow pass
+            //     uniform mat4 gbufferPreviousModelView;
+            //     uniform mat4 gbufferPreviousProjection;
+            // #else
+            //     //uniform mat4 gbufferModelView;
+            //     uniform mat4 gbufferProjection;
+            // #endif
         #endif
     #endif
 #endif

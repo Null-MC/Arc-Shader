@@ -18,7 +18,7 @@
         //if (normalMap.z > 0.0 || normalMap.z < 1.0 || isnan(normalMap.z) || isinf(normalMap.z))
         //    normalMap.xyz = vec3(0.5, 0.5, 1.0);
 
-        #ifdef PARALLAX_ENABLED
+        #if defined PARALLAX_ENABLED && !defined RENDER_TEXTURED
             bool skipParallax = isMissingTangent || isMissingNormal;
 
             #ifdef RENDER_ENTITIES
@@ -145,7 +145,7 @@
 
         #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
             if (!isMissingNormal && !isMissingTangent) {
-                #ifdef PARALLAX_ENABLED
+                #if defined PARALLAX_ENABLED && !defined RENDER_TEXTURED
                     #ifdef PARALLAX_SLOPE_NORMALS
                         float dO = max(texDepth - traceCoordDepth.z, 0.0);
                         if (dO >= 2.0 / 255.0) {

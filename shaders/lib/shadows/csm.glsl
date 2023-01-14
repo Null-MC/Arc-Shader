@@ -6,6 +6,14 @@ const vec3 _shadowTileColors[4] = vec3[](
     vec3(0.0, 0.0, 1.0),
     vec3(1.0, 0.0, 1.0));
 
+#if SHADER_PLATFORM == PLATFORM_IRIS
+    layout (shared, binding = 0) buffer csmData {
+        float cascadeSize[4];
+        mat4 cascadedShadowProjection[4];
+    }
+#endif
+
+
 // tile: 0-3
 vec2 GetShadowCascadeClipPos(const in int tile) {
     if (tile < 0) return vec2(10.0);
@@ -24,7 +32,7 @@ int GetCascadeForScreenPos(const in vec2 pos) {
         return pos.x < 0.5 ? 2 : 3;
 }
 
-#if defined RENDER_VERTEX || defined RENDER_GEOMETRY
+#if !defined RENDER_FRAG
     // tile: 0-3
     float GetCascadeDistance(const in int tile) {
         #ifdef SHADOW_CSM_FITRANGE
@@ -140,7 +148,7 @@ int GetCascadeForScreenPos(const in vec2 pos) {
     }
 #endif
 
-#if defined RENDER_VERTEX || defined RENDER_GEOMETRY
+#if !defined RENDER_FRAG
     mat4 GetShadowCascadeProjectionMatrix(const in float cascadeSizes[4], const in int cascade) {
         float cascadePaddedSize = cascadeSizes[cascade] * 2.0 + 3.0;
 

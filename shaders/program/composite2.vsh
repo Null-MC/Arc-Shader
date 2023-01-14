@@ -1,6 +1,6 @@
-#define RENDER_VERTEX
-#define RENDER_COMPOSITE
 //#define RENDER_COMPOSITE_PREV_FRAME
+#define RENDER_COMPOSITE
+#define RENDER_VERTEX
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"

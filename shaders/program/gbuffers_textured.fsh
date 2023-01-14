@@ -2,8 +2,8 @@
 #define RENDER_GBUFFER
 #define RENDER_FRAG
 
-#undef PARALLAX_ENABLED
-#undef AF_ENABLED
+//#undef PARALLAX_ENABLED
+//#undef AF_ENABLED
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
@@ -17,6 +17,7 @@ in vec3 viewPos;
 in vec3 viewNormal;
 in vec3 viewTangent;
 flat in float tangentW;
+flat in int materialId;
 
 uniform sampler2D gtexture;
 uniform sampler2D normals;

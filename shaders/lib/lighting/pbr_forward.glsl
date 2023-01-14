@@ -65,7 +65,7 @@
             #endif
         #endif
 
-        #if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
+        #if defined PARALLAX_ENABLED && !defined RENDER_TEXTURED
             vec3 tanViewDir = normalize(tanViewPos);
         #endif
 
@@ -97,11 +97,9 @@
                         float waveDepth = GetWaveDepth(lightData.skyLight);
 
                         int octaves = WATER_OCTAVES_FAR;
-                        #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
-                            //float viewDist = length(viewPos) - near;
-                            float octaveDistF = saturate(viewDist / WATER_OCTAVES_DIST);
-                            octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, octaveDistF));
-                        #endif
+                        //float viewDist = length(viewPos) - near;
+                        float octaveDistF = saturate(viewDist / WATER_OCTAVES_DIST);
+                        octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, octaveDistF));
 
                         float depth = GetWaves(waterWorldPos.xz, waveDepth, octaves);
                         depth *= waveDepth * WaterWaveDepthF;
@@ -119,57 +117,7 @@
                     #endif
                 #endif
 
-                #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
-                    const float waterWorldScale = rcp(2.0*WATER_RADIUS);
-                    vec2 waterLocalPos = localPos.xz * waterWorldScale;
-
-                    const float texBoundary = 0.5 - waterPixelSize;
-                    if (clamp(waterLocalPos, vec2(-texBoundary), vec2(texBoundary)) == waterLocalPos) {
-                        vec3 waterTex = vec3(waterLocalPos + 0.5, 1.0);
-                        mat2 water_dFdXY = mat2(dFdx(waterLocalPos), dFdy(waterLocalPos));
-
-                        if (viewDist < WATER_RADIUS && tanViewDir.z < 0.0) {
-                            float waterDepth = max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepth, 0.0);
-                            GetWaterParallaxCoord(waterTex, water_dFdXY, tanViewDir, viewDist, waterDepth, lightData.skyLight);
-
-                            //const float waterParallaxDepth = WaterWaveDepthF / (2.0*WATER_RADIUS);
-                            float pomDist = isEyeInWater == 1 ? waterTex.z : (1.0 - waterTex.z);
-                            pomDist /= max(-tanViewDir.z, 0.01);
-                            pomDist *= waveDepth;
-
-                            if (pomDist > 0.0) {
-                                // vec3 viewDir = normalize(viewPosFinal);
-                                vec3 newViewPosFinal = viewPosFinal + viewDir * pomDist;// * waterParallaxDepth;
-                                float fragDepth = 0.5 * ((-gbufferProjection[2].z*-newViewPosFinal.z + gbufferProjection[3].z) / -newViewPosFinal.z) + 0.5;
-
-                                #if defined PARALLAX_ENABLED && defined PARALLAX_DEPTH_WRITE
-                                    viewPosFinal = newViewPosFinal;
-                                    gl_FragDepth = fragDepth;
-                                #endif
-
-                                //float depth = viewPos.z - pomDist * waterParallaxDepth;
-                                lightData.transparentScreenDepth = fragDepth;
-                                lightData.transparentScreenDepthLinear = linearizeDepthFast(fragDepth, near, far);
-                            }
-                        }
-
-                        float depth = textureGrad(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1]).r;
-                        float depthX = textureGradOffset(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1], ivec2(1, 0)).r;
-                        float depthY = textureGradOffset(BUFFER_WATER_WAVES, waterTex.xy, water_dFdXY[0], water_dFdXY[1], ivec2(0, 1)).r;
-
-                        float dx = depthX - depth;
-                        float dy = depthY - depth;
-
-                        float waterParallaxDepth = 8.0 * (waveDepth / (2.0*WATER_RADIUS));
-
-                        material.normal = normalize(cross(
-                          vec3(waterPixelSize, 0.0, dx * waterParallaxDepth * WATER_NORMAL_STRENGTH),
-                          vec3(0.0, waterPixelSize, dy * waterParallaxDepth * WATER_NORMAL_STRENGTH)));
-                    }
-                    else {
-                #endif
-
-                #if WATER_WAVE_TYPE != WATER_WAVE_NONE
+                #if WATER_WAVE_TYPE != WATER_WAVE_NONE || defined PHYSICS_OCEAN
                     #ifdef PHYSICS_OCEAN
                         float waveScaledIterations = 1.0 - saturate((length(localPos) - 16.0) / 200.0);
                         float waveIterations = max(12.0, physics_iterationsNormal * (waveScaledIterations * 0.6 + 0.4));
@@ -210,15 +158,11 @@
                         //}
                     #endif
                 #endif
-
-                #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
-                    }
-                #endif
             }
             else {
         #endif
 
-            #ifdef PARALLAX_ENABLED
+            #if defined PARALLAX_ENABLED && !defined RENDER_TEXTURED
                 // bool skipParallax =
                 //     viewDist >= PARALLAX_DISTANCE ||
                 //     materialId == 101 ||
@@ -377,7 +321,7 @@
 
                 float minTransparentDepth = min(lightData.shadowPos[lightData.shadowCascade].z, lightData.transparentShadowDepth);
                 lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - minTransparentDepth, 0.0) * 3.0 * far;
-            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+            #else
                 lightData.shadowPos = shadowPos;
                 lightData.shadowBias = shadowBias;
 
@@ -394,6 +338,7 @@
             #endif
         #endif
 
+        //return vec4(lightData.shadowPos.xyz * 1000.0, 1.0);
         vec4 finalColor = PbrLighting2(material, lightData, viewPosFinal);
 
         #ifdef SKY_ENABLED
@@ -425,7 +370,7 @@
 
                 #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                     vec3 viewNear = viewDir * near;
-                    vec3 viewFar = viewDir * min(length(viewPos), far);
+                    vec3 viewFar = viewDir * min(viewDist, far);
                     vec3 vlExt = vec3(1.0);
 
                     vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
