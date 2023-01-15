@@ -6,13 +6,6 @@ const vec3 _shadowTileColors[4] = vec3[](
     vec3(0.0, 0.0, 1.0),
     vec3(1.0, 0.0, 1.0));
 
-#if SHADER_PLATFORM == PLATFORM_IRIS
-    layout (shared, binding = 0) buffer csmData {
-        float cascadeSize[4];
-        mat4 cascadedShadowProjection[4];
-    }
-#endif
-
 
 // tile: 0-3
 vec2 GetShadowCascadeClipPos(const in int tile) {

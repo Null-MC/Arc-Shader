@@ -9,20 +9,20 @@ layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 const ivec3 workGroups = ivec3(4, 1, 1);
 
-// layout(shared, binding = 0) buffer layoutName {
-//     float cascadeSize[4];
-//     mat4 cascadedShadowProjection[4];
-// };
+layout(shared, binding = 0) buffer layoutName {
+    float cascadeSize[4];
+    vec2 shadowProjectionPos[4];
+    mat4 cascadeProjection[4];
+};
 
 #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        uniform mat4 gbufferModelView;
-        uniform mat4 gbufferProjection;
-        uniform mat4 shadowModelView;
-        uniform float near;
-        uniform float far;
+    uniform mat4 gbufferModelView;
+    uniform mat4 gbufferProjection;
+    uniform mat4 shadowModelView;
+    uniform float near;
+    uniform float far;
 
-        #include "/lib/shadows/csm.glsl"
-    #endif
+    #include "/lib/shadows/csm.glsl"
 #endif
 
 
@@ -36,7 +36,8 @@ void main() {
 
         int i = int(gl_GlobalInvocationID.x);
         cascadeSize[i] = cascadeSizes[i];
-        cascadedShadowProjection[i] = GetShadowCascadeProjectionMatrix(cascadeSizes, i);
+        shadowProjectionPos[i] = GetShadowCascadeClipPos(i);
+        cascadeProjection[i] = GetShadowCascadeProjectionMatrix(cascadeSizes, i);
     #endif
 
     barrier();
