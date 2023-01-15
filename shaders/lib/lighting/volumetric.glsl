@@ -108,7 +108,7 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                 for (int c = 0; c < 4; c++)
                     shadowPos[c] = shadowClipStart[c] + (i + dither) * shadowClipStep[c];
 
-                int cascade = GetShadowSampleCascade(shadowPos, lightData.shadowProjectionSize, 0.0);
+                int cascade = GetShadowSampleCascade(shadowPos, shadowProjectionSize, 0.0);
                 vec3 traceShadowClipPos = shadowPos[cascade];
 
                 float sampleF = CompareOpaqueDepth(shadowPos[cascade], vec2(0.0), lightData.shadowBias[cascade]);
@@ -269,7 +269,7 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                 for (int c = 0; c < 4; c++)
                     shadowPos[c] = shadowClipStart[c] + (i + dither) * shadowClipStep[c];
 
-                int cascade = GetShadowSampleCascade(shadowPos, lightData.shadowProjectionSize, 0.0);
+                int cascade = GetShadowSampleCascade(shadowPos, shadowProjectionSize, 0.0);
 
                 lightSample = CompareOpaqueDepth(shadowPos[cascade], vec2(0.0), lightData.shadowBias[cascade]);
 

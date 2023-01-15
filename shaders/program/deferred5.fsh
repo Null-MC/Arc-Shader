@@ -2,7 +2,7 @@
 #define RENDER_DEFERRED
 #define RENDER_FRAG
 
-layout (shared, binding = 0) buffer aBuffer {
+layout (std430, binding = 0) buffer aBuffer {
     float cascadeSize[4];
     vec2 shadowProjectionPos[4];
     mat4 cascadeProjection[4];
