@@ -18,25 +18,12 @@ colortex8		RGB16F			 *     	RSM color
 colortex9		R32F			 *     	RSM depth
 colortex10		R16F			1.0	  	AO
 
+colortex11		RGB16F			32x16   irradiance LUT
+
 
 
 CUSTOM TEX
-	PREPARE
-		11: sun transmission
-		12: multiple scattering
-	
-	GBUFFERS
-		11: sun transmission
-		12: multiple scattering
-		13: clouds
-		14: BRDF
-
-	DEFERRED
-		11: sun transmission
-		12: multiple scattering
-		13: clouds
-		14: BRDF
-
-	COMPOSITE
-		 7: sun transmission
+		12: sun transmission
+		13: multiple scattering
+		14: clouds
 		15: BRDF

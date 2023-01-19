@@ -1,4 +1,4 @@
-//#define RENDER_SKY_LUT
+#define RENDER_PREPARE_SKY_LUT
 #define RENDER_PREPARE
 #define RENDER_FRAG
 
@@ -12,8 +12,8 @@ flat in vec3 localSunDir;
     uniform sampler3D texSunTransmittance;
     uniform sampler3D texMultipleScattering;
 #else
-    uniform sampler3D colortex11;
     uniform sampler3D colortex12;
+    uniform sampler3D colortex13;
 #endif
 
 uniform mat4 gbufferModelView;
@@ -66,8 +66,8 @@ vec3 raymarchScattering(const in vec3 pos, const in vec3 rayDir, const in vec3 s
             vec3 sunTransmittance = getValFromTLUT(texSunTransmittance, newPos, sunDir);
             vec3 psiMS = getValFromMultiScattLUT(texMultipleScattering, newPos, sunDir);
         #else
-            vec3 sunTransmittance = getValFromTLUT(colortex11, newPos, sunDir);
-            vec3 psiMS = getValFromMultiScattLUT(colortex12, newPos, sunDir);
+            vec3 sunTransmittance = getValFromTLUT(colortex12, newPos, sunDir);
+            vec3 psiMS = getValFromMultiScattLUT(colortex13, newPos, sunDir);
         #endif
         
         vec3 rayleighInScattering = rayleighScattering * (rayleighPhaseValue*sunTransmittance + psiMS);

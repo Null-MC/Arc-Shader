@@ -44,8 +44,8 @@ flat in mat2 atlasBounds;
         uniform sampler3D texSunTransmittance;
         uniform sampler3D texMultipleScattering;
     #else
-        uniform sampler3D colortex11;
         uniform sampler3D colortex12;
+        uniform sampler3D colortex13;
     #endif
 
     uniform float eyeAltitude;
@@ -94,7 +94,7 @@ flat in mat2 atlasBounds;
             #if SHADER_PLATFORM == PLATFORM_IRIS
                 uniform sampler3D texCloudNoise;
             #else
-                uniform sampler3D colortex13;
+                uniform sampler3D colortex14;
             #endif
             
             //uniform mat4 gbufferModelView;
@@ -127,11 +127,12 @@ uniform usampler2D BUFFER_DEFERRED;
 #if SHADER_PLATFORM == PLATFORM_IRIS
     uniform sampler2D texBRDF;
 #else
-    uniform sampler2D colortex14;
+    uniform sampler2D colortex15;
 #endif
 
 #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
     uniform sampler2D BUFFER_SKY_LUT;
+    uniform sampler2D BUFFER_IRRADIANCE;
 #endif
 
 uniform int worldTime;
@@ -195,6 +196,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/sampling/bayer.glsl"
 #include "/lib/sampling/linear.glsl"
 #include "/lib/sampling/noise.glsl"
+#include "/lib/sampling/erp.glsl"
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/lighting/light_data.glsl"
 

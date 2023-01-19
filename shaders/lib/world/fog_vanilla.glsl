@@ -78,7 +78,7 @@ void GetFog(const in LightData lightData, const in vec3 worldPos, const in vec3 
             #if SHADER_PLATFORM == PLATFORM_IRIS
                 fogColorFinal = getValFromMultiScattLUT(texMultipleScattering, atmosPos, localSunDir) * 256000.0;
             #else
-                fogColorFinal = getValFromMultiScattLUT(colortex12, atmosPos, localSunDir) * 256000.0;
+                fogColorFinal = getValFromMultiScattLUT(colortex13, atmosPos, localSunDir) * 256000.0;
             #endif
         #endif
     #else

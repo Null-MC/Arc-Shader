@@ -59,7 +59,7 @@ vec3 GetVolumetricSmoke(const in LightData lightData, inout vec3 transmittance, 
         #if SHADER_PLATFORM == PLATFORM_IRIS
             float texDensity = GetSmokeDensity(texCloudNoise, traceWorldPos, time);
         #else
-            float texDensity = GetSmokeDensity(colortex13, traceWorldPos, time);
+            float texDensity = GetSmokeDensity(colortex14, traceWorldPos, time);
         #endif
 
         vec3 stepTransmittance = exp(-SmokeExtinctionCoefficient * localStepLength * texDensity);

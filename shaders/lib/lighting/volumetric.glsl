@@ -7,8 +7,8 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
         vec3 sunTransmittance = GetSunTransmittance(texSunTransmittance, worldTraceHeight, skyLightLevels.x);
         vec3 moonTransmittance = GetMoonTransmittance(texSunTransmittance, worldTraceHeight, skyLightLevels.y);
     #else
-        vec3 sunTransmittance = GetSunTransmittance(colortex11, worldTraceHeight, skyLightLevels.x);
-        vec3 moonTransmittance = GetMoonTransmittance(colortex11, worldTraceHeight, skyLightLevels.y);
+        vec3 sunTransmittance = GetSunTransmittance(colortex12, worldTraceHeight, skyLightLevels.x);
+        vec3 moonTransmittance = GetMoonTransmittance(colortex12, worldTraceHeight, skyLightLevels.y);
     #endif
 
     return
@@ -146,7 +146,7 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                 #if SHADER_PLATFORM == PLATFORM_IRIS
                     float texDensity = GetSkyFogDensity(texCloudNoise, traceWorldPos, time);
                 #else
-                    float texDensity = GetSkyFogDensity(colortex13, traceWorldPos, time);
+                    float texDensity = GetSkyFogDensity(colortex14, traceWorldPos, time);
                 #endif
 
                 // Change with altitude
@@ -331,14 +331,14 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
             float waterF = F_schlick(NoL, 0.02, 1.0);
 
             #ifdef VL_WATER_NOISE
-                // float sampleDensity1 = texture(colortex13, traceWorldPos / 96.0).r;
-                // float sampleDensity2 = texture(colortex13, traceWorldPos / 16.0).r;
+                // float sampleDensity1 = texture(colortex14, traceWorldPos / 96.0).r;
+                // float sampleDensity2 = texture(colortex14, traceWorldPos / 16.0).r;
                 // lightSample *= 1.0 - 0.6 * sampleDensity1 - 0.3 * sampleDensity2;
 
                 #if SHADER_PLATFORM == PLATFORM_IRIS
                     lightSample *= GetWaterFogDensity(texCloudNoise, traceWorldPos);
                 #else
-                    lightSample *= GetWaterFogDensity(colortex13, traceWorldPos);
+                    lightSample *= GetWaterFogDensity(colortex14, traceWorldPos);
                 #endif
             #endif
 

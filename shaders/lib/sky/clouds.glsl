@@ -97,8 +97,8 @@ vec3 GetCloudColor(const in vec3 cloudPos, const in vec3 viewDir, const in vec2 
 		vec3 sunTransmittance = getValFromTLUT(texSunTransmittance, atmosPos, sunDir);
 		vec3 moonTransmittance = getValFromTLUT(texSunTransmittance, atmosPos, moonDir);
     #else
-		vec3 sunTransmittance = getValFromTLUT(colortex11, atmosPos, sunDir);
-		vec3 moonTransmittance = getValFromTLUT(colortex11, atmosPos, moonDir);
+		vec3 sunTransmittance = getValFromTLUT(colortex12, atmosPos, sunDir);
+		vec3 moonTransmittance = getValFromTLUT(colortex12, atmosPos, moonDir);
 	#endif
 
     float sunScatterF = mix(

@@ -1,6 +1,6 @@
 vec3 GetFancyFog(const in vec3 localPos, out vec3 transmittance) {
     const float isotropicPhase = 0.25 / PI;
-    const float texDensity = 1.0;
+    const float texDensity = 0.3;
 
     vec3 SkyAbsorptionCoefficient = vec3(mix(0.0024, 0.0020, rainStrength));
     vec3 SkyScatteringCoefficient = vec3(mix(0.0008, 0.0020, rainStrength));
@@ -20,8 +20,10 @@ vec3 GetFancyFog(const in vec3 localPos, out vec3 transmittance) {
     #if SHADER_PLATFORM == PLATFORM_IRIS
         vec3 scatterColor = getValFromMultiScattLUT(texMultipleScattering, atmosPos, localSunDir) * 5.5e6;
     #else
-        vec3 scatterColor = getValFromMultiScattLUT(colortex12, atmosPos, localSunDir) * 5.5e6;
+        vec3 scatterColor = getValFromMultiScattLUT(colortex13, atmosPos, localSunDir) * 5.5e6;
     #endif
+
+    scatterColor *= 0.06 + 0.94 * (eyeBrightnessSmooth.y / 240.0);
 
     return scatterColor * (isotropicPhase * SkyScatteringCoefficient * scatteringIntegral);// * transmittance;
 }

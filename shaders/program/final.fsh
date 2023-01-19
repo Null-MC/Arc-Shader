@@ -117,7 +117,7 @@ uniform float far;
     #if SHADER_PLATFORM == PLATFORM_IRIS
         uniform sampler2D texBRDF;
     #else
-        uniform sampler2D colortex14;
+        uniform sampler2D colortex15;
     #endif
 #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
     // Sun Transmission LUT
@@ -125,11 +125,14 @@ uniform float far;
     #if SHADER_PLATFORM == PLATFORM_IRIS
         uniform sampler3D texSunTransmittance;
     #else
-        uniform sampler3D colortex11;
+        uniform sampler3D colortex12;
     #endif
 #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SKY
     // Sky LUT
     uniform sampler2D BUFFER_SKY_LUT;
+#elif DEBUG_VIEW == DEBUG_VIEW_IRRADIANCE
+    // Irradiance LUT
+    uniform sampler2D BUFFER_IRRADIANCE;
 #else
     uniform float frameTimeCounter;
     uniform float aspectRatio;
@@ -368,7 +371,7 @@ void main() {
         #if SHADER_PLATFORM == PLATFORM_IRIS
             color.rg = textureLod(texBRDF, texcoord, 0).rg;
         #else
-            color.rg = textureLod(colortex14, texcoord, 0).rg;
+            color.rg = textureLod(colortex15, texcoord, 0).rg;
         #endif
         color.b = 0.0;
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
@@ -377,11 +380,14 @@ void main() {
         #if SHADER_PLATFORM == PLATFORM_IRIS
             color = textureLod(texSunTransmittance, t3, 0).rgb;
         #else
-            color = textureLod(colortex11, t3, 0).rgb;
+            color = textureLod(colortex12, t3, 0).rgb;
         #endif
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SKY
         // Sky LUT
         color = textureLod(BUFFER_SKY_LUT, texcoord, 0).rgb;
+    #elif DEBUG_VIEW == DEBUG_VIEW_IRRADIANCE
+        // Irradiance LUT
+        color = textureLod(BUFFER_IRRADIANCE, texcoord, 0).rgb;
     #else
         // None
         color = GetFinalColor();

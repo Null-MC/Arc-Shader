@@ -76,6 +76,7 @@
 #define DEBUG_VIEW_LUT_SUN_TRANSMISSION 25
 #define DEBUG_VIEW_LUT_SKY 26
 #define DEBUG_VIEW_WHITEWORLD 27
+#define DEBUG_VIEW_IRRADIANCE 28
 
 #define BUFFER_DEFERRED colortex0
 #define BUFFER_LUM_TRANS colortex1
@@ -88,6 +89,7 @@
 #define BUFFER_RSM_COLOR colortex8
 #define BUFFER_RSM_DEPTH colortex9
 #define BUFFER_AO colortex10
+#define BUFFER_IRRADIANCE colortex11
 
 #define BUFFER_BLOOM colortex2
 

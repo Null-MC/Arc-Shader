@@ -1,4 +1,4 @@
-//#define RENDER_SKY_LUT
+#define RENDER_PREPARE_SKY_LUT
 #define RENDER_PREPARE
 #define RENDER_VERTEX
 

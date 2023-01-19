@@ -43,7 +43,6 @@
         #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
             float distortFactor = getDistortFactor(shadowPos * 2.0 - 1.0);
             float maxRes = shadowMapSize / SHADOW_DISTORT_FACTOR;
-            //float maxResPixel = 1.0 / maxRes;
 
             vec2 pixelPerBlockScale = maxRes / shadowProjectionSize;
             return blockRadius * pixelPerBlockScale * shadowPixelSize * (1.0 - distortFactor);
@@ -56,14 +55,20 @@
     #if SHADOW_FILTER != 0
         // PCF
         float GetShadowing_PCF(const in LightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
+            float startAngle = hash12(gl_FragCoord.xy) * (2.0 * PI);
+            vec2 rotation = vec2(cos(startAngle), sin(startAngle));
+
+            float angleDiff = PI * -2.0 / sampleCount;
+            vec2 angleStep = vec2(cos(angleDiff), sin(angleDiff));
+            mat2 rotationStep = mat2(angleStep, -angleStep.y, angleStep.x);
+
             float shadow = 0.0;
             for (int i = 0; i < sampleCount; i++) {
-                vec2 offset = hash23(vec3(gl_FragCoord.xy, i))*2.0 - 1.0;
-
-                //if (dot(offset, offset) > pow2(0.8))
-                //    offset = (1.0 - (offset * 0.5 + 0.5)) * 2.0 - 1.0;
+                rotation *= rotationStep;
+                float noiseDist = hash13(vec3(gl_FragCoord.xy, i));
+                vec2 pixelOffset = rotation * noiseDist * pixelRadius;
                 
-                shadow += 1.0 - CompareOpaqueDepth(lightData.shadowPos, offset * pixelRadius, lightData.shadowBias);
+                shadow += 1.0 - CompareOpaqueDepth(lightData.shadowPos, pixelOffset, lightData.shadowBias);
             }
 
             return 1.0 - shadow / sampleCount;
@@ -74,11 +79,19 @@
     #if SHADOW_FILTER == 2
         // PCF + PCSS
         float FindBlockerDistance(const in LightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
-            float avgBlockerDistance = 0.0;
-            int blockers = 0;
+            float startAngle = hash12(gl_FragCoord.xy) * (2.0 * PI);
+            vec2 rotation = vec2(cos(startAngle), sin(startAngle));
 
+            float angleDiff = PI * -2.0 / sampleCount;
+            vec2 angleStep = vec2(cos(angleDiff), sin(angleDiff));
+            mat2 rotationStep = mat2(angleStep, -angleStep.y, angleStep.x);
+
+            int blockers = 0;
+            float avgBlockerDistance = 0.0;
             for (int i = 0; i < sampleCount; i++) {
-                vec2 pixelOffset = (hash23(vec3(gl_FragCoord.xy, i))*2.0 - 1.0) * pixelRadius;
+                rotation *= rotationStep;
+                float noiseDist = hash13(vec3(gl_FragCoord.xy, i + 33.3));
+                vec2 pixelOffset = rotation * noiseDist * pixelRadius;
 
                 vec2 t = lightData.shadowPos.xy + pixelOffset;
                 if (saturate(t) != t) continue;
@@ -98,14 +111,13 @@
             const float shadowPcfSize = SHADOW_PCF_SIZE * 0.01;
             
             int blockerSampleCount = SHADOW_PCF_SAMPLES;
-            int pcfSampleCount = SHADOW_PCF_SAMPLES;
 
             // blocker search
             vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, shadowPcfSize);
             //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) blockerSampleCount = 1;
 
-            float blockerDistance = FindBlockerDistance(lightData, pixelRadius * 2.0, blockerSampleCount);
-            if (blockerDistance < EPSILON) return 1.0;
+            float blockerDistance = FindBlockerDistance(lightData, pixelRadius, blockerSampleCount);
+            if (blockerDistance < 0.0) return 1.0;
             //if (blockerDistance == 1.0) return 0.0;
 
             // penumbra estimation
@@ -114,6 +126,7 @@
             // percentage-close filtering
             pixelRadius *= min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0); // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
 
+            int pcfSampleCount = SHADOW_PCF_SAMPLES;
             //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) pcfSampleCount = 1;
             return GetShadowing_PCF(lightData, pixelRadius, pcfSampleCount);
         }

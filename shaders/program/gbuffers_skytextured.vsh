@@ -16,7 +16,7 @@ flat out vec3 moonTransmittanceEye;
 #if SHADER_PLATFORM == PLATFORM_IRIS
     uniform sampler3D texSunTransmittance;
 #else
-    uniform sampler3D colortex11;
+    uniform sampler3D colortex12;
 #endif
 
 uniform float screenBrightness;
@@ -75,7 +75,7 @@ void main() {
         sunTransmittanceEye = GetSunTransmittance(texSunTransmittance, eyeAltitude, skyLightLevels.x);
         moonTransmittanceEye = GetMoonTransmittance(texSunTransmittance, eyeAltitude, skyLightLevels.y);
     #else
-        sunTransmittanceEye = GetSunTransmittance(colortex11, eyeAltitude, skyLightLevels.x);
-        moonTransmittanceEye = GetMoonTransmittance(colortex11, eyeAltitude, skyLightLevels.y);
+        sunTransmittanceEye = GetSunTransmittance(colortex12, eyeAltitude, skyLightLevels.x);
+        moonTransmittanceEye = GetMoonTransmittance(colortex12, eyeAltitude, skyLightLevels.y);
     #endif
 }

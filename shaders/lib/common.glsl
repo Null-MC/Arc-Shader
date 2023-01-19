@@ -12,6 +12,7 @@ const int colortex7Format = RGB16F;
 const int colortex8Format = RGB16F;
 const int colortex9Format = R32F;
 const int colortex10Format = R16F;
+const int colortex11Format = RGB16F;
 */
 
 const bool noisetexMipmapEnabled = true;
@@ -53,6 +54,9 @@ const bool colortex9Clear = false;
 
 const bool colortex10MipmapEnabled = false;
 const bool colortex10Clear = false;
+
+const bool colortex11MipmapEnabled = false;
+const bool colortex11Clear = false;
 
 
 #define SHADER_PLATFORM 0 // [0 1]
@@ -219,7 +223,7 @@ const bool colortex10Clear = false;
 
 
 // Debug Options
-#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28]
 //#define DEBUG_EXPOSURE_METERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
 #define DITHER_FINAL
@@ -241,6 +245,7 @@ const bool colortex10Clear = false;
 #define SMOKE_ENABLED
 #define VL_SMOKE_DENSITY 0.2
 #define IRIS_FEATURE_BIOMECAT
+#define SKY_FANCY_LUM 180000.0
 
 #if SSR_QUALITY == 2
     #define SSR_SCALE 1

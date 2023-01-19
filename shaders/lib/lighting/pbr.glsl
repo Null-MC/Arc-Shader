@@ -352,7 +352,7 @@
                 #if SHADER_PLATFORM == PLATFORM_IRIS
                     vec2 envBRDF = textureLod(texBRDF, vec2(NoVm, rough), 0).rg;
                 #else
-                    vec2 envBRDF = textureLod(colortex14, vec2(NoVm, rough), 0).rg;
+                    vec2 envBRDF = textureLod(colortex15, vec2(NoVm, rough), 0).rg;
                 #endif
 
                 iblSpec = min(iblF * envBRDF.r + envBRDF.g, 1.0);
@@ -371,15 +371,13 @@
         //return vec4(iblSpec, 1.0);
 
         #ifdef SKY_ENABLED
-            float ambientBrightness = mix(0.8 * skyLight, 0.95 * skyLight, rainStrength) * ShadowBrightnessF;
-
-            // TODO: Doing direct cloud shadows on ambient causes really fucked results
-            //       At least needs a heavy blur distribution
-            // #ifdef SHADOW_CLOUD
-            //     ambientBrightness *= cloudShadow;
-            // #endif
-
-            vec3 skyAmbient = GetSkyAmbientLight(lightData, worldPos.y, viewNormal) * ambientBrightness;
+            #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+                vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
+                vec3 skyAmbient = GetFancySkyAmbientLight(localNormal, skyLight);
+            #else
+                float ambientBrightness = mix(0.8 * skyLight, 0.95 * skyLight, rainStrength) * ShadowBrightnessF;
+                vec3 skyAmbient = GetSkyAmbientLight(lightData, worldPos.y, viewNormal) * ambientBrightness;
+            #endif
 
             bool applyWaterAbsorption = isEyeInWater == 1;
 
@@ -474,7 +472,13 @@
 
                     vec3 sssDiffuseLight = sssLightColor * sssExt * max(scatter, 0.0);
 
-                    sssDiffuseLight += GetSkyAmbientLight(lightData, worldPos.y, viewDir) * ambientBrightness * occlusion * skyLight2;
+                    //sssDiffuseLight += GetSkyAmbientLight(lightData, worldPos.y, viewDir) * ambientBrightness * occlusion * skyLight2;
+                    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+                        vec3 localViewDir = mat3(gbufferModelViewInverse) * viewDir;
+                        sssDiffuseLight += GetFancySkyAmbientLight(localViewDir, skyLight) * occlusion;
+                    #else
+                        sssDiffuseLight += GetSkyAmbientLight(lightData, worldPos.y, viewDir) * occlusion * ambientBrightness * skyLight2;
+                    #endif
 
                     sssDiffuseLight *= sssAlbedo * material.scattering;
 
@@ -722,7 +726,9 @@
 
         vec3 emissive = material.albedo.rgb * pow(material.emission, 2.2) * EmissionLumens;
 
-        final.rgb = final.rgb * (ambient * occlusion)
+        //return vec4(ambient, 1.0);
+
+        final.rgb = final.rgb * (ambient * (1.0 - iblF) * occlusion)
             + diffuse + emissive
             + (specular + iblSpec) * specularTint;
 

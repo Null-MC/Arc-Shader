@@ -233,7 +233,6 @@ mat4 GetShadowCascadeProjectionMatrix_FromParts(const in vec3 scale, const in ve
 }
 
 float GetCascadeBias(const in float geoNoL, const in vec2 shadowProjectionSize) {
-    //vec2 shadowProjectionSize = 2.0 / matShadowProjections_scale[cascade].xy;
     float maxProjSize = max(shadowProjectionSize.x, shadowProjectionSize.y);
     float zRangeBias = 0.05 / (3.0 * far);
 
@@ -246,8 +245,6 @@ float GetCascadeBias(const in float geoNoL, const in vec2 shadowProjectionSize) 
     #endif
 
     float bias = mix(xySizeBias, zRangeBias, geoNoL) * SHADOW_BIAS_SCALE;
-
-    //bias += pow(1.0 - geoNoL, 16.0);
 
     return 0.0001;
 }

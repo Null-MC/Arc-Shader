@@ -37,8 +37,8 @@ flat in vec3 blockLightColor;
         uniform sampler3D texSunTransmittance;
         uniform sampler3D texMultipleScattering;
     #else
-        uniform sampler3D colortex11;
         uniform sampler3D colortex12;
+        uniform sampler3D colortex13;
     #endif
 
     uniform float frameTimeCounter;
@@ -99,7 +99,7 @@ flat in vec3 blockLightColor;
                 #if SHADER_PLATFORM == PLATFORM_IRIS
                     uniform sampler3D texCloudNoise;
                 #else
-                    uniform sampler3D colortex13;
+                    uniform sampler3D colortex14;
                 #endif
                 
                 //uniform mat4 gbufferModelView;
@@ -115,6 +115,7 @@ uniform sampler2D depthtex1;
 
 #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
     uniform sampler2D BUFFER_SKY_LUT;
+    uniform sampler2D BUFFER_IRRADIANCE;
 #endif
 
 uniform ivec2 eyeBrightnessSmooth;
@@ -145,6 +146,7 @@ uniform float waterFogDistSmooth;
 
 #include "/lib/depth.glsl"
 #include "/lib/sampling/noise.glsl"
+#include "/lib/sampling/erp.glsl"
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/lighting/light_data.glsl"
 #include "/lib/lighting/fresnel.glsl"
@@ -219,8 +221,8 @@ void main() {
             lightData.sunTransmittance = GetSunTransmittance(texSunTransmittance, worldY, skyLightLevels.x);
             lightData.moonTransmittance = GetMoonTransmittance(texSunTransmittance, worldY, skyLightLevels.y);
         #else
-            lightData.sunTransmittance = GetSunTransmittance(colortex11, worldY, skyLightLevels.x);
-            lightData.moonTransmittance = GetMoonTransmittance(colortex11, worldY, skyLightLevels.y);
+            lightData.sunTransmittance = GetSunTransmittance(colortex12, worldY, skyLightLevels.x);
+            lightData.moonTransmittance = GetMoonTransmittance(colortex12, worldY, skyLightLevels.y);
         #endif
     #endif
 

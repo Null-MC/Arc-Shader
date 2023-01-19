@@ -64,7 +64,12 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
             skyColorLux = 20000.0 * skyColorLux;
             ambient += skyColorLux * max(lightData.skyLightLevels.x, 0.0);// * skyLight * ShadowBrightnessF;
         #else
-            ambient += GetSkyAmbientLight(lightData, worldPos.y, viewNormal) * skyLight * ShadowBrightnessF;
+            #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+                vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
+                ambient += GetFancySkyAmbientLight(localNormal, skyLight);
+            #else
+                ambient += GetSkyAmbientLight(lightData, worldPos.y, viewNormal) * skyLight * ShadowBrightnessF;
+            #endif
 
             vec3 sunColorFinal = lightData.sunTransmittance * sunColor;// * GetSunLux();
             vec3 moonColorFinal = lightData.moonTransmittance * moonColor * GetMoonPhaseLevel();// * GetMoonLux();

@@ -1,6 +1,7 @@
 <shadow>
 
 prepare1		sky LUT
+prepare2        irradiance LUT
 
 <sky>
 

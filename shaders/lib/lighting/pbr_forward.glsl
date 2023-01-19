@@ -58,10 +58,10 @@
                 lightData.sunTransmittanceEye = GetSunTransmittance(texSunTransmittance, eyeAltitude, skyLightLevels.x);
                 lightData.moonTransmittanceEye = GetMoonTransmittance(texSunTransmittance, eyeAltitude, skyLightLevels.y);
             #else
-                lightData.sunTransmittance = GetSunTransmittance(colortex11, worldPos.y, skyLightLevels.x);
-                lightData.moonTransmittance = GetMoonTransmittance(colortex11, worldPos.y, skyLightLevels.y);
-                lightData.sunTransmittanceEye = GetSunTransmittance(colortex11, eyeAltitude, skyLightLevels.x);
-                lightData.moonTransmittanceEye = GetMoonTransmittance(colortex11, eyeAltitude, skyLightLevels.y);
+                lightData.sunTransmittance = GetSunTransmittance(colortex12, worldPos.y, skyLightLevels.x);
+                lightData.moonTransmittance = GetMoonTransmittance(colortex12, worldPos.y, skyLightLevels.y);
+                lightData.sunTransmittanceEye = GetSunTransmittance(colortex12, eyeAltitude, skyLightLevels.x);
+                lightData.moonTransmittanceEye = GetMoonTransmittance(colortex12, eyeAltitude, skyLightLevels.y);
             #endif
         #endif
 

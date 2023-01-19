@@ -5,22 +5,34 @@
 #define UIF (1.0 / float(0xffffffffU))
 
 
-float hash12(const in uvec2 x) {
-    uvec2 q = 1103515245U * ((x>>1U) ^ (x.yx   ));
-    uint  n = 1103515245U * ((q.x  ) ^ (q.y>>3U));
-    return float(n) * UIF;
+// float hash12(const in uvec2 x) {
+//     uvec2 q = 1103515245U * ((x>>1U) ^ (x.yx   ));
+//     uint  n = 1103515245U * ((q.x  ) ^ (q.y>>3U));
+//     return float(n) * UIF;
+// }
+
+float hash12(const in vec2 seed) {
+    vec3 p3  = fract(vec3(seed.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+}
+
+float hash13(const in vec3 seed) {
+    vec3 p3 = fract(seed * 0.1031);
+    p3 += dot(p3, p3.zyx + 31.32);
+    return fract((p3.x + p3.y) * p3.z);
 }
 
 vec2 hash22(const in vec2 p) {
     vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
-    p3 += dot(p3, p3.yzx+33.33);
-    return fract((p3.xx+p3.yz)*p3.zy);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.xx + p3.yz) * p3.zy);
 }
 
-vec2 hash23(vec3 p3) {
-    p3 = fract(p3 * vec3(.1031, .1030, .0973));
-    p3 += dot(p3, p3.yzx+33.33);
-    return fract((p3.xx+p3.yz)*p3.zy);
+vec2 hash23(const in vec3 seed) {
+    vec3 p3 = fract(seed * vec3(0.1031, 0.1030, 0.0973));
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.xx + p3.yz) * p3.zy);
 }
 
 vec3 hash32(const in uvec2 q) {
@@ -35,6 +47,6 @@ vec3 hash33(const in uvec3 p) {
     return -1.0 + 2.0 * vec3(q) * UIF;
 }
 
-float hash12(const in vec2 x) {return hash12(uvec2(x));}
+//float hash12(const in vec2 x) {return hash12(uvec2(x));}
 vec3 hash32(const in vec2 q) {return hash32(uvec2(q));}
 vec3 hash33(const in vec3 p) {return hash33(uvec3(p));}
