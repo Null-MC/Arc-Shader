@@ -3,16 +3,8 @@
         return textureLod(shadowtex1, shadowPos + offset, 0).r;
     }
 
-    float SampleOpaqueDepth(const in vec4 shadowPos, const in vec2 offset) {
-        return SampleOpaqueDepth(shadowPos.xy, offset); // TODO: JUNK!
-    }
-
     float SampleTransparentDepth(const in vec2 shadowPos, const in vec2 offset) {
         return textureLod(shadowtex0, shadowPos + offset, 0).r;
-    }
-
-    float SampleTransparentDepth(const in vec4 shadowPos, const in vec2 offset) {
-        return SampleTransparentDepth(shadowPos.xy, offset); // TODO: JUNK!
     }
 
     // returns: [0] when depth occluded, [1] otherwise
@@ -23,10 +15,6 @@
             float shadowDepth = textureLod(shadowtex1, shadowPos.xy + offset, 0).r;
             return step(shadowPos.z + EPSILON, shadowDepth + shadowBias);
         #endif
-    }
-
-    float CompareOpaqueDepth(const in vec4 shadowPos, const in vec2 offset, const in float shadowBias) {
-        return CompareOpaqueDepth(shadowPos.xyz, offset, shadowBias);
     }
 
     #ifdef SHADOW_COLOR
@@ -79,10 +67,10 @@
     #if SHADOW_FILTER == 2
         // PCF + PCSS
         float FindBlockerDistance(const in LightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
-            float startAngle = hash12(gl_FragCoord.xy) * (2.0 * PI);
+            float startAngle = hash12(gl_FragCoord.xy + 33.3) * TAU;
             vec2 rotation = vec2(cos(startAngle), sin(startAngle));
 
-            float angleDiff = PI * -2.0 / sampleCount;
+            float angleDiff = -TAU / sampleCount;
             vec2 angleStep = vec2(cos(angleDiff), sin(angleDiff));
             mat2 rotationStep = mat2(angleStep, -angleStep.y, angleStep.x);
 
@@ -96,7 +84,7 @@
                 vec2 t = lightData.shadowPos.xy + pixelOffset;
                 if (saturate(t) != t) continue;
 
-                float texDepth = SampleOpaqueDepth(lightData.shadowPos, pixelOffset);
+                float texDepth = SampleOpaqueDepth(lightData.shadowPos.xy, pixelOffset);
 
                 if (texDepth < lightData.shadowPos.z + lightData.shadowBias) {
                     avgBlockerDistance += texDepth;
@@ -115,7 +103,6 @@
             // blocker search
             vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, shadowPcfSize);
             //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) blockerSampleCount = 1;
-
             float blockerDistance = FindBlockerDistance(lightData, pixelRadius, blockerSampleCount);
             if (blockerDistance < 0.0) return 1.0;
             //if (blockerDistance == 1.0) return 0.0;
@@ -137,8 +124,7 @@
 
             int sampleCount = SHADOW_PCF_SAMPLES;
             vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, shadowPcfSize);
-            if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
-
+            //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
             return GetShadowing_PCF(lightData, pixelRadius, sampleCount);
         }
     #elif SHADOW_FILTER == 0
@@ -178,7 +164,7 @@
                     maxWeight += weight;
 
                     vec2 pixelOffset = offset * pixelRadius;
-                    float texDepth = SampleOpaqueDepth(lightData.shadowPos, pixelOffset);
+                    float texDepth = SampleOpaqueDepth(lightData.shadowPos.xy, pixelOffset);
 
                     if (texDepth < lightData.shadowPos.z + lightData.shadowBias)
                         weight *= SampleShadowSSS(lightData.shadowPos.xy + pixelOffset);

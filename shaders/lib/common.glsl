@@ -132,6 +132,7 @@ const bool colortex11Clear = false;
 #define SHADOW_CONTACT 1 // [0 1 2]
 #define SHADOW_CSM_FIT_FARSCALE 1.1
 #define SHADOW_CSM_FITSCALE 0.1
+#define SHADOW_NORMAL_BIAS 0.012
 #define CSM_PLAYER_ID 0
 
 
@@ -171,7 +172,7 @@ const bool colortex11Clear = false;
 #define CAMERA_EXPOSURE_MODE 2 // [0 1 2]
 #define CAMERA_EXPOSURE 0 // [-17 -16 -15 -14 -13 -12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6]
 #define CAMERA_LUM_MIN 40.0
-#define CAMERA_LUM_MAX 24000.0
+#define CAMERA_LUM_MAX 12000.0
 //#define EXPOSURE_POINT 0.2
 #define EXPOSURE_SPEED_UP 1.0
 #define EXPOSURE_SPEED_DOWN 0.7
@@ -238,14 +239,14 @@ const bool colortex11Clear = false;
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
 //#define WATER_REFRACT_HACK
-#define CLOUD_HORIZON_POWER 1.0
+#define CLOUD_HORIZON_POWER 8.0
 #define CLOUD_POW_CLEAR 1.6
 #define CLOUD_POW_RAIN 0.3
 //#define SHADOW_CLOUD
 #define SMOKE_ENABLED
 #define VL_SMOKE_DENSITY 0.2
 #define IRIS_FEATURE_BIOMECAT
-#define SKY_FANCY_LUM 180000.0
+#define SKY_FANCY_LUM 400000.0
 
 #if SSR_QUALITY == 2
     #define SSR_SCALE 1
@@ -278,7 +279,7 @@ const bool colortex11Clear = false;
 const float sunLumen = 1.6e9;
 const float moonLumen = 800.0;
 const float StarLumen = 200.0;
-const float EmissionLumens = 100000;
+const float EmissionLumens = 30000;
 
 const float SunLux = 64000.0;
 const float SunOvercastLux = 48000.0;
@@ -343,12 +344,6 @@ const float ShadowBrightnessF = SHADOW_BRIGHTNESS * 0.01;
 //     #undef VL_ENABLED
 // #endif
 
-#if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-    #define SHADOW_POS_TYPE vec3 shadowPos[4]
-#else
-    #define SHADOW_POS_TYPE vec4 shadowPos
-#endif
-
 // #if SHADOW_TYPE == 3
 //     // VL is not currently supported with CSM
 //     #undef VL_ENABLED
@@ -405,6 +400,8 @@ const float ShadowBrightnessF = SHADOW_BRIGHTNESS * 0.01;
 #ifdef SSS_NORMALIZE_ALBEDO
 #endif
 #ifdef DOF_ENABLED
+#endif
+#ifdef VL_FOG_NOISE
 #endif
 
 #ifdef PHYSICS_OCEAN

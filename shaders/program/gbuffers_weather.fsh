@@ -72,13 +72,10 @@ flat in vec3 blockLightColor;
             uniform mat4 shadowModelView;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                flat in vec3 matShadowProjections_scale[4];
-                flat in vec3 matShadowProjections_translation[4];
-                flat in float cascadeSizes[4];
                 in vec3 shadowPos[4];
                 in float shadowBias[4];
             #else
-                in vec4 shadowPos;
+                in vec3 shadowPos;
                 in float shadowBias;
 
                 uniform mat4 shadowProjection;
@@ -231,13 +228,10 @@ void main() {
             for (int i = 0; i < 4; i++) {
                 lightData.shadowPos[i] = shadowPos[i];
                 lightData.shadowBias[i] = shadowBias[i];
-                lightData.shadowTilePos[i] = GetShadowCascadeClipPos(i);
-
-                lightData.matShadowProjection[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
             }
 
-            lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData.shadowPos, lightData.shadowTilePos, vec2(0.0), lightData.shadowCascade);
-            lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData.shadowPos, lightData.shadowTilePos, vec2(0.0), lightData.shadowCascade);
+            lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData.shadowPos, vec2(0.0), lightData.shadowCascade);
+            lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData.shadowPos, vec2(0.0), lightData.shadowCascade);
 
             float minTransparentDepth = min(lightData.shadowPos[lightData.shadowCascade].z, lightData.transparentShadowDepth);
             lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - minTransparentDepth, 0.0) * 3.0 * far;
@@ -245,8 +239,8 @@ void main() {
             lightData.shadowPos = shadowPos;
             lightData.shadowBias = shadowBias;
 
-            lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
-            lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos, vec2(0.0));
+            lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
+            lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
 
             lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.shadowPos.z, 0.0) * 3.0 * far;
         #endif

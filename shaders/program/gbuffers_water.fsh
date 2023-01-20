@@ -80,13 +80,10 @@ flat in mat2 atlasBounds;
         #endif
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            flat in vec3 matShadowProjections_scale[4];
-            flat in vec3 matShadowProjections_translation[4];
-            flat in float cascadeSizes[4];
             in vec3 shadowPos[4];
             in float shadowBias[4];
         #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            in vec4 shadowPos;
+            in vec3 shadowPos;
             in float shadowBias;
         #endif
         
@@ -177,6 +174,8 @@ uniform int fogShape;
 #if defined WATER_FANCY || WATER_REFRACTION != WATER_REFRACTION_NONE
     uniform sampler2D BUFFER_HDR_OPAQUE;
 #endif
+
+uniform float blindness;
 
 #if MC_VERSION >= 11900
     uniform float darknessFactor;

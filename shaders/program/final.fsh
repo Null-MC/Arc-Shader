@@ -384,10 +384,10 @@ void main() {
         #endif
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SKY
         // Sky LUT
-        color = textureLod(BUFFER_SKY_LUT, texcoord, 0).rgb;
+        color = 2.0 * textureLod(BUFFER_SKY_LUT, texcoord, 0).rgb;
     #elif DEBUG_VIEW == DEBUG_VIEW_IRRADIANCE
         // Irradiance LUT
-        color = textureLod(BUFFER_IRRADIANCE, texcoord, 0).rgb;
+        color = 20.0 * textureLod(BUFFER_IRRADIANCE, texcoord, 0).rgb;
     #else
         // None
         color = GetFinalColor();

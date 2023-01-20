@@ -175,7 +175,7 @@
         vec3 GetFancySkyAmbientLight(const in vec3 localNormal, const in float skyLight) {
             vec2 sphereCoord = DirectionToUV(localNormal);
             vec3 irradiance = textureLod(BUFFER_IRRADIANCE, sphereCoord, 0).rgb;
-            return irradiance * SKY_FANCY_LUM * (0.06 + 0.94 * skyLight);
+            return invPI * irradiance * SKY_FANCY_LUM * (0.06 + 0.94 * pow2(skyLight));
         }
 
         vec3 GetVanillaSkyAmbientLight(const in LightData lightData, const in float worldY, const in vec3 viewNormal) {

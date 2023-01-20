@@ -308,16 +308,13 @@
 
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                for (int i = 0; i < 4; i++) {
-                    lightData.shadowPos[i] = shadowPos[i];
-                    lightData.shadowBias[i] = shadowBias[i];
-                    lightData.shadowTilePos[i] = GetShadowCascadeClipPos(i);
+                lightData.shadowPos[0] = shadowPos[0];
+                lightData.shadowPos[1] = shadowPos[1];
+                lightData.shadowPos[2] = shadowPos[2];
+                lightData.shadowPos[3] = shadowPos[3];
 
-                    lightData.matShadowProjection[i] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
-                }
-
-                lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData.shadowPos, lightData.shadowTilePos, vec2(0.0), lightData.shadowCascade);
-                lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData.shadowPos, lightData.shadowTilePos, vec2(0.0), lightData.shadowCascade);
+                lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData.shadowPos, vec2(0.0), lightData.shadowCascade);
+                lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData.shadowPos, vec2(0.0), lightData.shadowCascade);
 
                 float minTransparentDepth = min(lightData.shadowPos[lightData.shadowCascade].z, lightData.transparentShadowDepth);
                 lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - minTransparentDepth, 0.0) * 3.0 * far;
@@ -325,8 +322,8 @@
                 lightData.shadowPos = shadowPos;
                 lightData.shadowBias = shadowBias;
 
-                lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
-                lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos, vec2(0.0));
+                lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
+                lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
 
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                     const float maxShadowDepth = 512.0;
@@ -338,7 +335,6 @@
             #endif
         #endif
 
-        //return vec4(lightData.shadowPos.xyz * 1000.0, 1.0);
         vec4 finalColor = PbrLighting2(material, lightData, viewPosFinal);
 
         #ifdef SKY_ENABLED

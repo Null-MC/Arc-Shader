@@ -43,10 +43,6 @@ flat out vec3 blockLightColor;
         uniform vec3 shadowLightPosition;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            flat out float cascadeSizes[4];
-            flat out vec3 matShadowProjections_scale[4];
-            flat out vec3 matShadowProjections_translation[4];
-
             uniform mat4 shadowModelView;
             uniform float near;
             uniform float far;
@@ -99,10 +95,6 @@ uniform float blindness;
     #include "/lib/sky/celestial_position.glsl"
     #include "/lib/sky/celestial_color.glsl"
     #include "/lib/world/sky.glsl"
-
-    #if defined SHADOW_ENABLED && SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        #include "/lib/shadows/csm.glsl"
-    #endif
 #endif
 
 #include "/lib/camera/exposure.glsl"
@@ -124,23 +116,6 @@ void main() {
         #else
             sunTransmittanceEye = GetSunTransmittance(colortex12, eyeAltitude, skyLightLevels.x);
             moonTransmittanceEye = GetMoonTransmittance(colortex12, eyeAltitude, skyLightLevels.y);
-        #endif
-
-        #if defined SHADOW_ENABLED && SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            cascadeSizes[0] = GetCascadeDistance(0);
-            cascadeSizes[1] = GetCascadeDistance(1);
-            cascadeSizes[2] = GetCascadeDistance(2);
-            cascadeSizes[3] = GetCascadeDistance(3);
-
-            mat4 matShadowProjection0 = GetShadowCascadeProjectionMatrix(cascadeSizes, 0);
-            mat4 matShadowProjection1 = GetShadowCascadeProjectionMatrix(cascadeSizes, 1);
-            mat4 matShadowProjection2 = GetShadowCascadeProjectionMatrix(cascadeSizes, 2);
-            mat4 matShadowProjection3 = GetShadowCascadeProjectionMatrix(cascadeSizes, 3);
-
-            GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection0, matShadowProjections_scale[0], matShadowProjections_translation[0]);
-            GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection1, matShadowProjections_scale[1], matShadowProjections_translation[1]);
-            GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection2, matShadowProjections_scale[2], matShadowProjections_translation[2]);
-            GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection3, matShadowProjections_scale[3], matShadowProjections_translation[3]);
         #endif
     #endif
 

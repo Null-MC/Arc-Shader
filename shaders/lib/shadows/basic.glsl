@@ -38,7 +38,7 @@ vec3 undistort(const in vec3 v) {
         const float minBias = 0.0001;
         const float biasZ = 0.0001;
         float biasXY = 0.5 * shadowPixelSize;
-        return (minBias + mix(biasXY, biasZ, saturate(geoNoL))) * (SHADOW_BIAS_SCALE * 0.01);
+        return 0.15 * (minBias + mix(biasXY, biasZ, saturate(geoNoL))) * (SHADOW_BIAS_SCALE * 0.01);
     }
 #else
     float GetShadowBias(const in float geoNoL) {

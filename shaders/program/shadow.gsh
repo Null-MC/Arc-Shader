@@ -151,19 +151,7 @@ void main() {
     #endif
 
 	#if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-		float cascadeSizes[4];
-        cascadeSizes[0] = GetCascadeDistance(0);
-        cascadeSizes[1] = GetCascadeDistance(1);
-        cascadeSizes[2] = GetCascadeDistance(2);
-        cascadeSizes[3] = GetCascadeDistance(3);
-
-		mat4 matShadowProjections[4];
-		matShadowProjections[0] = GetShadowCascadeProjectionMatrix(cascadeSizes, 0);
-		matShadowProjections[1] = GetShadowCascadeProjectionMatrix(cascadeSizes, 1);
-		matShadowProjections[2] = GetShadowCascadeProjectionMatrix(cascadeSizes, 2);
-		matShadowProjections[3] = GetShadowCascadeProjectionMatrix(cascadeSizes, 3);
-
-		int shadowTile = GetShadowCascade(matShadowProjections, vOriginPos[0]);
+		int shadowTile = GetShadowCascade(cascadeProjection, vOriginPos[0]);
 		if (shadowTile < 0) return;
 
 		#ifndef SHADOW_EXCLUDE_ENTITIES
@@ -176,20 +164,18 @@ void main() {
 		for (int c = cascadeMin; c <= cascadeMax; c++) {
 			if (c != shadowTile) {
 				// duplicate geometry if intersecting overlapping cascades
-				if (!CascadeIntersectsPosition(vOriginPos[0], matShadowProjections[c])) continue;
+				if (!CascadeIntersectsPosition(vOriginPos[0], cascadeProjection[c])) continue;
 			}
-
-			vec2 shadowTilePos = GetShadowCascadeClipPos(c);
 
 			for (int v = 0; v < 3; v++) {
 				ApplyCommonProperties(v);
 
-				gShadowTilePos = shadowTilePos;
+				gShadowTilePos = shadowProjectionPos[c];
 
-				gl_Position = matShadowProjections[c] * gl_in[v].gl_Position;
+				gl_Position = cascadeProjection[c] * gl_in[v].gl_Position;
 
 				gl_Position.xy = gl_Position.xy * 0.5 + 0.5;
-				gl_Position.xy = gl_Position.xy * 0.5 + shadowTilePos;
+				gl_Position.xy = gl_Position.xy * 0.5 + shadowProjectionPos[c];
 				gl_Position.xy = gl_Position.xy * 2.0 - 1.0;
 
 				EmitVertex();

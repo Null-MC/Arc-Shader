@@ -85,13 +85,10 @@ flat in mat2 atlasBounds;
         #endif
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            flat in vec3 matShadowProjections_scale[4];
-            flat in vec3 matShadowProjections_translation[4];
-            flat in float cascadeSizes[4];
             out vec3 shadowPos[4];
             out float shadowBias[4];
         #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            in vec4 shadowPos;
+            in vec3 shadowPos;
             in float shadowBias;
         #endif
         
@@ -159,6 +156,8 @@ uniform float fogStart;
 uniform float fogEnd;
 uniform int fogMode;
 uniform int fogShape;
+
+uniform float blindness;
 
 #if MC_VERSION >= 11900
     uniform float darknessFactor;

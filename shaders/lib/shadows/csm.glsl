@@ -6,6 +6,15 @@ const vec3 _shadowTileColors[4] = vec3[](
     vec3(0.0, 0.0, 1.0),
     vec3(1.0, 0.0, 1.0));
 
+#if defined IRIS_FEATURE_SSBO && !defined RENDER_BEGIN
+    layout(std430, binding = 0) readonly buffer csmData {
+        float cascadeSize[4];           // 16
+        vec2 shadowProjectionSize[4];   // 32
+        vec2 shadowProjectionPos[4];    // 32
+        mat4 cascadeProjection[4];      // 256
+    };
+#endif
+
 
 // tile: 0-3
 vec2 GetShadowCascadeClipPos(const in int tile) {
@@ -233,18 +242,18 @@ mat4 GetShadowCascadeProjectionMatrix_FromParts(const in vec3 scale, const in ve
 }
 
 float GetCascadeBias(const in float geoNoL, const in vec2 shadowProjectionSize) {
-    float maxProjSize = max(shadowProjectionSize.x, shadowProjectionSize.y);
-    float zRangeBias = 0.05 / (3.0 * far);
+    // float maxProjSize = max(shadowProjectionSize.x, shadowProjectionSize.y);
+    // float zRangeBias = 0.05 / (3.0 * far);
 
-    maxProjSize = pow(maxProjSize, 1.3);
+    // maxProjSize = pow(maxProjSize, 1.3);
 
-    #if SHADOW_FILTER == 1
-        float xySizeBias = 0.004 * maxProjSize * shadowPixelSize;// * tile_dist_bias_factor * 4.0;
-    #else
-        float xySizeBias = 0.004 * maxProjSize * shadowPixelSize;// * tile_dist_bias_factor;
-    #endif
+    // #if SHADOW_FILTER == 1
+    //     float xySizeBias = 0.004 * maxProjSize * shadowPixelSize;// * tile_dist_bias_factor * 4.0;
+    // #else
+    //     float xySizeBias = 0.004 * maxProjSize * shadowPixelSize;// * tile_dist_bias_factor;
+    // #endif
 
-    float bias = mix(xySizeBias, zRangeBias, geoNoL) * SHADOW_BIAS_SCALE;
+    // float bias = mix(xySizeBias, zRangeBias, geoNoL) * SHADOW_BIAS_SCALE;
 
     return 0.0001;
 }
@@ -254,37 +263,19 @@ float GetCascadeBias(const in float geoNoL, const in vec2 shadowProjectionSize) 
         #ifndef SSS_ENABLED
             if (geoNoL > 0.0) {
         #endif
-            #ifdef RENDER_SHADOW
-                mat4 matShadowModelView = gl_ModelViewMatrix;
-            #else
-                mat4 matShadowModelView = shadowModelView;
-            #endif
-
-            vec3 shadowViewPos = (matShadowModelView * vec4(localPos, 1.0)).xyz;
-
             #if defined PARALLAX_ENABLED && !defined RENDER_SHADOW && defined PARALLAX_SHADOW_FIX
+                #ifdef RENDER_SHADOW
+                    mat4 matShadowModelView = gl_ModelViewMatrix;
+                #else
+                    mat4 matShadowModelView = shadowModelView;
+                #endif
+
                 float geoNoV = dot(vNormal, viewDir);
 
                 vec3 localViewDir = normalize(cameraPosition);
                 vec3 parallaxLocalPos = localPos + (localViewDir / geoNoV) * PARALLAX_DEPTH;
                 vec3 parallaxShadowViewPos = (matShadowModelView * vec4(parallaxLocalPos, 1.0)).xyz;
             #endif
-
-            float cascadeSizes[4];
-            cascadeSizes[0] = GetCascadeDistance(0);
-            cascadeSizes[1] = GetCascadeDistance(1);
-            cascadeSizes[2] = GetCascadeDistance(2);
-            cascadeSizes[3] = GetCascadeDistance(3);
-
-            mat4 matShadowProjection0 = GetShadowCascadeProjectionMatrix(cascadeSizes, 0);
-            mat4 matShadowProjection1 = GetShadowCascadeProjectionMatrix(cascadeSizes, 1);
-            mat4 matShadowProjection2 = GetShadowCascadeProjectionMatrix(cascadeSizes, 2);
-            mat4 matShadowProjection3 = GetShadowCascadeProjectionMatrix(cascadeSizes, 3);
-
-            GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection0, matShadowProjections_scale[0], matShadowProjections_translation[0]);
-            GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection1, matShadowProjections_scale[1], matShadowProjections_translation[1]);
-            GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection2, matShadowProjections_scale[2], matShadowProjections_translation[2]);
-            GetShadowCascadeProjectionMatrix_AsParts(matShadowProjection3, matShadowProjections_scale[3], matShadowProjections_translation[3]);
         #ifndef SSS_ENABLED
             }
         #endif

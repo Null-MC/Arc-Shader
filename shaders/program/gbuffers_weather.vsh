@@ -59,9 +59,6 @@ flat out float exposure;
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             attribute vec3 at_midBlock;
 
-            flat out vec3 matShadowProjections_scale[4];
-            flat out vec3 matShadowProjections_translation[4];
-            flat out float cascadeSizes[4];
             out vec3 shadowPos[4];
             out float shadowBias[4];
 
@@ -73,7 +70,7 @@ flat out float exposure;
             uniform mat4 gbufferProjection;
             uniform float near;
         #else
-            out vec4 shadowPos;
+            out vec3 shadowPos;
             out float shadowBias;
         #endif
     #endif
@@ -156,27 +153,23 @@ void main() {
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             for (int i = 0; i < 4; i++) {
-                mat4 matShadowProjection = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[i], matShadowProjections_translation[i]);
-                shadowPos[i] = (matShadowProjection * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                shadowPos[i] = (cascadeProjection[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowProjectionPos[i];
                 
-                vec2 shadowCascadePos = GetShadowCascadeClipPos(i);
-                shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowCascadePos;
-                
-                vec2 shadowProjectionSize = 2.0 / vec2(matShadowProjection[0].x, matShadowProjection[1].y);;
-                shadowBias[i] = GetCascadeBias(geoNoL, shadowProjectionSize);
+                shadowBias[i] = GetCascadeBias(geoNoL, shadowProjectionSize[i]);
             }
         #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
+            shadowPos = (shadowProjection * vec4(shadowViewPos, 1.0)).xyz;
 
             #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                 float distortFactor = getDistortFactor(shadowPos.xy);
-                shadowPos.xyz = distort(shadowPos.xyz, distortFactor);
+                shadowPos = distort(shadowPos, distortFactor);
                 shadowBias = GetShadowBias(geoNoL, distortFactor);
             #else
                 shadowBias = GetShadowBias(geoNoL);
             #endif
 
-            shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5;
+            shadowPos = shadowPos * 0.5 + 0.5;
         #endif
     #endif
 }

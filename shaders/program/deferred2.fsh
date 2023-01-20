@@ -8,12 +8,6 @@
 in vec2 texcoord;
 flat in float exposure;
 
-#if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-    flat in float cascadeSizes[4];
-    flat in vec3 matShadowProjections_scale[4];
-    flat in vec3 matShadowProjections_translation[4];
-#endif
-
 uniform usampler2D BUFFER_DEFERRED;
 uniform usampler2D shadowcolor1;
 uniform sampler2D depthtex0;
@@ -76,13 +70,7 @@ void main() {
             if (lightingMap >= 1.0 / 16.0) {
         #endif
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                mat4 matShadowProjections[4];
-                matShadowProjections[0] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[0], matShadowProjections_translation[0]);
-                matShadowProjections[1] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[1], matShadowProjections_translation[1]);
-                matShadowProjections[2] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[2], matShadowProjections_translation[2]);
-                matShadowProjections[3] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[3], matShadowProjections_translation[3]);
-
-                color = GetIndirectLighting_RSM(matShadowProjections, shadowViewPos, shadowViewNormal);
+                color = GetIndirectLighting_RSM(cascadeProjection, shadowViewPos, shadowViewNormal);
             #else
                 color = GetIndirectLighting_RSM(shadowViewPos, shadowViewNormal);
             #endif

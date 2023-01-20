@@ -2,12 +2,6 @@
 #define RENDER_DEFERRED
 #define RENDER_FRAG
 
-layout (std430, binding = 0) buffer aBuffer {
-    float cascadeSize[4];
-    vec2 shadowProjectionPos[4];
-    mat4 cascadeProjection[4];
-};
-
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
 
@@ -342,50 +336,31 @@ void main() {
         #endif
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-            vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
+            vec3 dX = dFdx(localPos);
+            vec3 dY = dFdy(localPos);
 
-            // #ifdef SHADOW_DITHER
-            //     float ditherOffset = (GetScreenBayerValue() - 0.5) * shadowPixelSize;
-            // #endif
+            vec3 shadowLocalPos = localPos;
+
+            //if (!any(isinf(dX)) && !any(isinf(dY))) {
+                float viewDist = length(viewPos);
+
+                vec3 geoNormal = normalize(cross(dX, dY));
+                shadowLocalPos += geoNormal * viewDist * SHADOW_NORMAL_BIAS * max(1.0 - lightData.geoNoL, 0.0);
+            //}
+
+            vec3 shadowViewPos = (shadowModelView * vec4(shadowLocalPos, 1.0)).xyz;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                // lightData.matShadowProjection[0] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[0], matShadowProjections_translation[0]);
-                // lightData.matShadowProjection[1] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[1], matShadowProjections_translation[1]);
-                // lightData.matShadowProjection[2] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[2], matShadowProjections_translation[2]);
-                // lightData.matShadowProjection[3] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[3], matShadowProjections_translation[3]);
-                
-                // lightData.shadowProjectionSize[0] = 2.0 / vec2(lightData.matShadowProjection[0][0].x, lightData.matShadowProjection[0][1].y);
-                // lightData.shadowProjectionSize[0] = 2.0 / vec2(lightData.matShadowProjection[1][0].x, lightData.matShadowProjection[1][1].y);
-                // lightData.shadowProjectionSize[0] = 2.0 / vec2(lightData.matShadowProjection[2][0].x, lightData.matShadowProjection[2][1].y);
-                // lightData.shadowProjectionSize[0] = 2.0 / vec2(lightData.matShadowProjection[3][0].x, lightData.matShadowProjection[3][1].y);
-
                 lightData.shadowPos[0] = (cascadeProjection[0] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
                 lightData.shadowPos[1] = (cascadeProjection[1] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
                 lightData.shadowPos[2] = (cascadeProjection[2] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
                 lightData.shadowPos[3] = (cascadeProjection[3] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                
-                // lightData.shadowTilePos[0] = GetShadowCascadeClipPos(0);
-                // lightData.shadowTilePos[1] = GetShadowCascadeClipPos(1);
-                // lightData.shadowTilePos[2] = GetShadowCascadeClipPos(2);
-                // lightData.shadowTilePos[3] = GetShadowCascadeClipPos(3);
-                
+                                
                 lightData.shadowPos[0].xy = lightData.shadowPos[0].xy * 0.5 + shadowProjectionPos[0];
                 lightData.shadowPos[1].xy = lightData.shadowPos[1].xy * 0.5 + shadowProjectionPos[1];
                 lightData.shadowPos[2].xy = lightData.shadowPos[2].xy * 0.5 + shadowProjectionPos[2];
                 lightData.shadowPos[3].xy = lightData.shadowPos[3].xy * 0.5 + shadowProjectionPos[3];
                 
-                // lightData.shadowBias[0] = GetCascadeBias(lightData.geoNoL, lightData.shadowProjectionSize[0]);
-                // lightData.shadowBias[1] = GetCascadeBias(lightData.geoNoL, lightData.shadowProjectionSize[1]);
-                // lightData.shadowBias[2] = GetCascadeBias(lightData.geoNoL, lightData.shadowProjectionSize[2]);
-                // lightData.shadowBias[3] = GetCascadeBias(lightData.geoNoL, lightData.shadowProjectionSize[3]);
-
-                // #ifdef SHADOW_DITHER
-                //     lightData.shadowPos[0].xy += ditherOffset;
-                //     lightData.shadowPos[1].xy += ditherOffset;
-                //     lightData.shadowPos[2].xy += ditherOffset;
-                //     lightData.shadowPos[3].xy += ditherOffset;
-                // #endif
-
                 SetNearestDepths(lightData);
 
                 if (lightData.shadowCascade >= 0) {
@@ -393,24 +368,24 @@ void main() {
                     lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 3.0 * far;
                 }
             #else
-                lightData.shadowPos = shadowProjection * vec4(shadowViewPos, 1.0);
+                lightData.shadowPos = (shadowProjection * vec4(shadowViewPos, 1.0)).xyz;
 
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                     float distortFactor = getDistortFactor(lightData.shadowPos.xy);
-                    lightData.shadowPos.xyz = distort(lightData.shadowPos.xyz, distortFactor);
+                    lightData.shadowPos = distort(lightData.shadowPos, distortFactor);
                     lightData.shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
                 #else
                     lightData.shadowBias = GetShadowBias(lightData.geoNoL);
                 #endif
 
-                lightData.shadowPos.xyz = lightData.shadowPos.xyz * 0.5 + 0.5;
+                lightData.shadowPos = lightData.shadowPos * 0.5 + 0.5;
 
                 // #ifdef SHADOW_DITHER
                 //     lightData.shadowPos.xy += ditherOffset;
                 // #endif
 
-                lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos, vec2(0.0));
-                lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos, vec2(0.0));
+                lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
+                lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
 
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                     const float ShadowMaxDepth = 512.0;
@@ -460,11 +435,11 @@ void main() {
     #endif
 
     if (lightData.opaqueScreenDepth < 1.0) {
-        #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+        #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY && !defined VL_SKY_ENABLED
             vec3 transmittance;
             vec3 scattering = GetFancyFog(localPos, transmittance);
             color = color * transmittance + scattering;
-        #else
+        #elif ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
             vec3 fogColorFinal;
             float fogFactorFinal;
             GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
@@ -489,22 +464,12 @@ void main() {
 
         if (HasClouds(cameraPosition, localViewDir) && (minDepth > 1.0 - EPSILON || cloudDepthTest < 0.0)) {
             vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
+
             float cloudF = GetCloudFactor(cloudPos, localViewDir, 0);
-
-            float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
-            //cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
-            cloudF = mix(cloudF, 0.0, pow(cloudHorizonFogF, CLOUD_HORIZON_POWER));
-
-            // vec3 sunDir = GetSunDir();
-            // float sun_VoL = dot(viewDir, sunDir);
-
-            // vec3 moonDir = GetMoonDir();
-            // float moon_VoL = dot(viewDir, moonDir);
-
-            vec3 cloudColor = GetCloudColor(cloudPos, viewDir, skyLightLevels);
-
+            cloudF *= max(localViewDir.y, 0.0);
             cloudF *= 1.0 - blindness;
 
+            vec3 cloudColor = GetCloudColor(cloudPos, viewDir, skyLightLevels);
             color = mix(color, cloudColor, cloudF);
         }
 
