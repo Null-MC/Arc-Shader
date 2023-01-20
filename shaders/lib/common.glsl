@@ -129,7 +129,7 @@ const bool colortex11Clear = false;
 #define SHADOW_PENUMBRA_SCALE 20.0
 #define SHADOW_BASIC_BIAS 0.035
 //#define SHADOW_DISTORTED_BIAS 0.0016
-#define SHADOW_CONTACT 1 // [0 1 2]
+#define SHADOW_CONTACT 0 // [0 1 2]
 #define SHADOW_CSM_FIT_FARSCALE 1.1
 #define SHADOW_CSM_FITSCALE 0.1
 #define SHADOW_NORMAL_BIAS 0.012
@@ -246,7 +246,7 @@ const bool colortex11Clear = false;
 #define SMOKE_ENABLED
 #define VL_SMOKE_DENSITY 0.2
 #define IRIS_FEATURE_BIOMECAT
-#define SKY_FANCY_LUM 400000.0
+#define SKY_FANCY_LUM 120000.0
 
 #if SSR_QUALITY == 2
     #define SSR_SCALE 1

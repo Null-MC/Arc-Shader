@@ -68,7 +68,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
                 vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
                 ambient += GetFancySkyAmbientLight(localNormal, skyLight);
             #else
-                ambient += GetSkyAmbientLight(lightData, worldPos.y, viewNormal) * skyLight * ShadowBrightnessF;
+                ambient += GetVanillaSkyAmbientLight(lightData, worldPos.y, viewNormal) * skyLight * ShadowBrightnessF;
             #endif
 
             vec3 sunColorFinal = lightData.sunTransmittance * sunColor;// * GetSunLux();

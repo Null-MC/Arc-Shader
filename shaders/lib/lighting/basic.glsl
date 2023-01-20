@@ -170,14 +170,14 @@
     }
 #endif
 
-#ifdef RENDER_FRAG
-    #ifdef SKY_ENABLED
+#if defined SKY_ENABLED && defined RENDER_FRAG
+    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
         vec3 GetFancySkyAmbientLight(const in vec3 localNormal, const in float skyLight) {
             vec2 sphereCoord = DirectionToUV(localNormal);
             vec3 irradiance = textureLod(BUFFER_IRRADIANCE, sphereCoord, 0).rgb;
-            return invPI * irradiance * SKY_FANCY_LUM * (0.06 + 0.94 * pow2(skyLight));
+            return irradiance * SKY_FANCY_LUM * (0.06 + 0.94 * skyLight);
         }
-
+    #else
         vec3 GetVanillaSkyAmbientLight(const in LightData lightData, const in float worldY, const in vec3 viewNormal) {
             //vec3 upDir = normalize(upPosition);
             vec3 sunLightDir = normalize(sunPosition);

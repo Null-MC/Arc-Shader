@@ -375,7 +375,7 @@
                 vec3 skyAmbient = GetFancySkyAmbientLight(localNormal, skyLight);
             #else
                 float ambientBrightness = mix(0.8 * skyLight, 0.95 * skyLight, rainStrength) * ShadowBrightnessF;
-                vec3 skyAmbient = GetSkyAmbientLight(lightData, worldPos.y, viewNormal) * ambientBrightness;
+                vec3 skyAmbient = GetVanillaSkyAmbientLight(lightData, worldPos.y, viewNormal) * ambientBrightness;
             #endif
 
             bool applyWaterAbsorption = isEyeInWater == 1;
@@ -476,7 +476,7 @@
                         vec3 localViewDir = mat3(gbufferModelViewInverse) * viewDir;
                         sssDiffuseLight += GetFancySkyAmbientLight(localViewDir, skyLight) * occlusion;
                     #else
-                        sssDiffuseLight += GetSkyAmbientLight(lightData, worldPos.y, viewDir) * occlusion * ambientBrightness * skyLight2;
+                        sssDiffuseLight += GetVanillaSkyAmbientLight(lightData, worldPos.y, viewDir) * occlusion * ambientBrightness * skyLight2;
                     #endif
 
                     sssDiffuseLight *= sssAlbedo * material.scattering;

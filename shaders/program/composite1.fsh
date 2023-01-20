@@ -343,31 +343,12 @@ void main() {
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
 
-                // #ifdef SHADOW_DITHER
-                //     float ditherOffset = (GetScreenBayerValue() - 0.5) * shadowPixelSize;
-                // #endif
-
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    // lightData.matShadowProjection[0] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[0], matShadowProjections_translation[0]);
-                    // lightData.matShadowProjection[1] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[1], matShadowProjections_translation[1]);
-                    // lightData.matShadowProjection[2] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[2], matShadowProjections_translation[2]);
-                    // lightData.matShadowProjection[3] = GetShadowCascadeProjectionMatrix_FromParts(matShadowProjections_scale[3], matShadowProjections_translation[3]);
-                    
-                    // lightData.shadowProjectionSize[0] = 2.0 / vec2(lightData.matShadowProjection[0][0].x, lightData.matShadowProjection[0][1].y);
-                    // lightData.shadowProjectionSize[0] = 2.0 / vec2(lightData.matShadowProjection[1][0].x, lightData.matShadowProjection[1][1].y);
-                    // lightData.shadowProjectionSize[0] = 2.0 / vec2(lightData.matShadowProjection[2][0].x, lightData.matShadowProjection[2][1].y);
-                    // lightData.shadowProjectionSize[0] = 2.0 / vec2(lightData.matShadowProjection[3][0].x, lightData.matShadowProjection[3][1].y);
-
                     lightData.shadowPos[0] = (cascadeProjection[0] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
                     lightData.shadowPos[1] = (cascadeProjection[1] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
                     lightData.shadowPos[2] = (cascadeProjection[2] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
                     lightData.shadowPos[3] = (cascadeProjection[3] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                    
-                    // lightData.shadowTilePos[0] = GetShadowCascadeClipPos(0);
-                    // lightData.shadowTilePos[1] = GetShadowCascadeClipPos(1);
-                    // lightData.shadowTilePos[2] = GetShadowCascadeClipPos(2);
-                    // lightData.shadowTilePos[3] = GetShadowCascadeClipPos(3);
-                    
+                                        
                     lightData.shadowPos[0].xy = lightData.shadowPos[0].xy * 0.5 + shadowProjectionPos[0];
                     lightData.shadowPos[1].xy = lightData.shadowPos[1].xy * 0.5 + shadowProjectionPos[1];
                     lightData.shadowPos[2].xy = lightData.shadowPos[2].xy * 0.5 + shadowProjectionPos[2];
@@ -377,13 +358,6 @@ void main() {
                     lightData.shadowBias[1] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[1]);
                     lightData.shadowBias[2] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[2]);
                     lightData.shadowBias[3] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[3]);
-
-                    // #ifdef SHADOW_DITHER
-                    //     lightData.shadowPos[0].xy += ditherOffset;
-                    //     lightData.shadowPos[1].xy += ditherOffset;
-                    //     lightData.shadowPos[2].xy += ditherOffset;
-                    //     lightData.shadowPos[3].xy += ditherOffset;
-                    // #endif
 
                     SetNearestDepths(lightData);
 
@@ -403,10 +377,6 @@ void main() {
                     #endif
 
                     lightData.shadowPos = lightData.shadowPos * 0.5 + 0.5;
-
-                    // #ifdef SHADOW_DITHER
-                    //     lightData.shadowPos.xy += ditherOffset;
-                    // #endif
 
                     lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
                     lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
