@@ -230,11 +230,11 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
             vec3 shadowClipStart[4];
             vec3 shadowClipStep[4];
             for (int c = 0; c < 4; c++) {
-                shadowClipStart[c] = (lightData.matShadowProjection[c] * vec4(shadowViewStart, 1.0)).xyz * 0.5 + 0.5;
-                shadowClipStart[c].xy = shadowClipStart[c].xy * 0.5 + lightData.shadowTilePos[c];
+                shadowClipStart[c] = (cascadeProjection[c] * vec4(shadowViewStart, 1.0)).xyz * 0.5 + 0.5;
+                shadowClipStart[c].xy = shadowClipStart[c].xy * 0.5 + shadowProjectionPos[c];
 
-                vec3 shadowClipEnd = (lightData.matShadowProjection[c] * vec4(shadowViewEnd, 1.0)).xyz * 0.5 + 0.5;
-                shadowClipEnd.xy = shadowClipEnd.xy * 0.5 + lightData.shadowTilePos[c];
+                vec3 shadowClipEnd = (cascadeProjection[c] * vec4(shadowViewEnd, 1.0)).xyz * 0.5 + 0.5;
+                shadowClipEnd.xy = shadowClipEnd.xy * 0.5 + shadowProjectionPos[c];
 
                 shadowClipStep[c] = (shadowClipEnd - shadowClipStart[c]) * inverseStepCountF;
             }
@@ -268,13 +268,13 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                 for (int c = 0; c < 4; c++)
                     shadowPos[c] = shadowClipStart[c] + (i + dither) * shadowClipStep[c];
 
-                int cascade = GetShadowSampleCascade(shadowPos, shadowProjectionSize, 0.0);
+                int cascade = GetShadowSampleCascade(shadowPos, 0.0);
 
                 lightSample = CompareOpaqueDepth(shadowPos[cascade], vec2(0.0), lightData.shadowBias[cascade]);
 
                 int waterOpaqueCascade = -1;
                 if (lightSample > EPSILON)
-                    transparentDepth = GetNearestTransparentDepth(shadowPos, lightData.shadowTilePos, vec2(0.0), waterOpaqueCascade);
+                    transparentDepth = GetNearestTransparentDepth(shadowPos, vec2(0.0), waterOpaqueCascade);
 
                 vec3 traceShadowClipPos = waterOpaqueCascade >= 0
                     ? shadowPos[waterOpaqueCascade]

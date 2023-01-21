@@ -54,11 +54,7 @@
                         vec3 worldPos = localPos + cameraPosition;
                         
                         #ifdef PHYSICS_OCEAN
-                            //float waveScaledIterations = 1.0 - saturate((length(localPos) - 20.0) / 60.0);
-                            //float waveIterations = max(6.0, PHYSICS_ITERATIONS_OFFSET * waveScaledIterations);
-
                             physics_localPosition = pos;
-                            //physics_localWaviness = texelFetch(physics_waviness, ivec2(gl_Vertex.xz) - physics_textureOffset, 0).r;
                             physics_localWaviness = physics_GetWaviness(ivec2(pos.xz));
                             float depth = physics_waveHeight(pos, PHYSICS_ITERATIONS_OFFSET, physics_localWaviness, physics_gameTime);
                             physics_localPosition.y += depth;

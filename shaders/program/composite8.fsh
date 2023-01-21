@@ -15,7 +15,7 @@ uniform float viewWidth;
 uniform float viewHeight;
 
 #include "/lib/camera/bloom.glsl"
-#include "/lib/sampling/gaussian_7.glsl"
+#include "/lib/sampling/gaussian_7_bounded.glsl"
 
 const vec2 direction = vec2(0.0, 1.0);
 

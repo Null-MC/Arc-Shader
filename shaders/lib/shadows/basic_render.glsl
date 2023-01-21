@@ -154,10 +154,20 @@
 
         #ifdef SSS_SCATTER
             float GetShadowing_PCF_SSS(const in LightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
+                float startAngle = hash12(gl_FragCoord.xy + 33.3) * TAU;
+                vec2 rotation = vec2(cos(startAngle), sin(startAngle));
+
+                float angleDiff = -TAU / sampleCount;
+                vec2 angleStep = vec2(cos(angleDiff), sin(angleDiff));
+                mat2 rotationStep = mat2(angleStep, -angleStep.y, angleStep.x);
+
                 float light = 0.0;
                 float maxWeight = 0.0;
                 for (int i = 0; i < sampleCount; i++) {
-                    vec2 offset = hash23(vec3(gl_FragCoord.xy, i))*2.0 - 1.0;
+                    //vec2 offset = hash23(vec3(gl_FragCoord.xy, i))*2.0 - 1.0;
+                    rotation *= rotationStep;
+                    float noiseDist = hash13(vec3(gl_FragCoord.xy, i + 33.3));
+                    vec2 offset = rotation * noiseDist;// * pixelRadius;
 
                     float weight = 1.0 - saturate(dot(offset, offset));
 
