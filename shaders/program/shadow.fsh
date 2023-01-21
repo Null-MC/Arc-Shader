@@ -160,8 +160,8 @@ void main() {
     #if defined WATER_ENABLED && defined WATER_FANCY
         if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && gWaterMask == 1) {
             #ifdef PHYSICS_OCEAN
-                float waviness = textureLod(physics_waviness, physics_gLocalPosition.xz / vec2(textureSize(physics_waviness, 0)), 0).r;
-                normal = mat3(gl_ModelViewMatrix) * physics_waveNormal(physics_gLocalPosition.xz, waviness, physics_gameTime);
+                //float waviness = textureLod(physics_waviness, physics_gLocalPosition.xz / vec2(textureSize(physics_waviness, 0)), 0).r;
+                normal = mat3(gl_ModelViewMatrix) * physics_waveNormal(physics_gLocalPosition.xz, physics_gLocalWaviness, physics_gameTime);
             #else
                 //float windSpeed = GetWindSpeed();
                 float skyLight = saturate((gLmcoord.y - (0.5/16.0)) / (15.0/16.0));

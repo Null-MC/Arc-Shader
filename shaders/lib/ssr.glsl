@@ -101,10 +101,10 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         //float traceDepthLinear = linearizeDepthFast(tracePos.z, near, far);
 
         // ignore geometry closer than start pos when tracing away
-        // if (screenRay.z > 0.0 && texDepth < clipPos.z) {
-        //     lastTracePos = tracePos;
-        //     continue;
-        // }
+        if (screenRay.z > 0.0 && texDepth < clipPos.z) {
+            lastTracePos = tracePos;
+            continue;
+        }
 
         // float d = 0.999 * traceDepthLinear; //  1.0e10 * pow(saturate(startDepthLinear / far), 3.0);
         // if (traceDepthLinear > texDepthLinear + d) {

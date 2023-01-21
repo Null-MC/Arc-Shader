@@ -341,12 +341,9 @@ void main() {
 
             vec3 shadowLocalPos = localPos;
 
-            //if (!any(isinf(dX)) && !any(isinf(dY))) {
-                float viewDist = length(viewPos);
-
-                vec3 geoNormal = normalize(cross(dX, dY));
-                shadowLocalPos += geoNormal * viewDist * SHADOW_NORMAL_BIAS * max(1.0 - lightData.geoNoL, 0.0);
-            //}
+            float viewDist = length(viewPos);
+            vec3 geoNormal = normalize(cross(dX, dY));
+            shadowLocalPos += geoNormal * viewDist * SHADOW_NORMAL_BIAS * max(1.0 - lightData.geoNoL, 0.0);
 
             vec3 shadowViewPos = (shadowModelView * vec4(shadowLocalPos, 1.0)).xyz;
 
@@ -361,6 +358,11 @@ void main() {
                 lightData.shadowPos[2].xy = lightData.shadowPos[2].xy * 0.5 + shadowProjectionPos[2];
                 lightData.shadowPos[3].xy = lightData.shadowPos[3].xy * 0.5 + shadowProjectionPos[3];
                 
+                lightData.shadowBias[0] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[0]);
+                lightData.shadowBias[1] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[1]);
+                lightData.shadowBias[2] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[2]);
+                lightData.shadowBias[3] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[3]);
+
                 SetNearestDepths(lightData);
 
                 if (lightData.shadowCascade >= 0) {

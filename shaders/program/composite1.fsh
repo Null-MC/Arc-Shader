@@ -405,12 +405,10 @@ void main() {
                     float fogFactorFinal;
                     GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
 
-                    #ifdef SKY_ENABLED
-                        #if !defined VL_SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
-                            fogColorFinal += RGBToLinear(fogColor) * (
-                                skyScatteringF.x * sunColorFinalEye +
-                                skyScatteringF.y * moonColorFinalEye);
-                        #endif
+                    #if defined SKY_ENABLED && !defined VL_SKY_ENABLED
+                        fogColorFinal += RGBToLinear(fogColor) * (
+                            skyScatteringF.x * sunColorFinalEye +
+                            skyScatteringF.y * moonColorFinalEye);
                     #endif
 
                     ApplyFog(final, fogColorFinal, fogFactorFinal);
@@ -424,7 +422,7 @@ void main() {
     }
 
     if (isEyeInWater != 1 || (lightData.opaqueScreenDepth >= 1.0 && lightData.transparentScreenDepth < 1.0)) {
-        float lum = texelFetch(BUFFER_LUM_OPAQUE, iTex, 0).r;
+        //float lum = texelFetch(BUFFER_LUM_OPAQUE, iTex, 0).r;
         final = texelFetch(BUFFER_HDR_OPAQUE, iTex, 0).rgb / exposure;
 
         #ifdef SKY_ENABLED
@@ -460,7 +458,7 @@ void main() {
         }
     #endif
 
-    float lumTrans = texelFetch(BUFFER_LUM_TRANS, iTex, 0).r;
+    //float lumTrans = texelFetch(BUFFER_LUM_TRANS, iTex, 0).r;
     vec4 colorTrans = texelFetch(BUFFER_HDR_TRANS, iTex, 0);
 
     final = mix(final, colorTrans.rgb / exposure, colorTrans.a);

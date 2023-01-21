@@ -13,9 +13,13 @@ vec3 GetFancyFog(const in vec3 localPos, out vec3 transmittance) {
 
     vec3 scatteringIntegral = (1.0 - transmittance) / SkyExtinctionCoefficient;
 
-    vec3 atmosPos = localPos - vec3(0.0, SEA_LEVEL + cameraPosition.y, 0.0);
-    atmosPos *= (atmosphereRadiusMM - groundRadiusMM) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
-    atmosPos.y = groundRadiusMM + clamp(atmosPos.y, 0.0, atmosphereRadiusMM - groundRadiusMM);
+    vec3 atmosPos = localPos + vec3(0.0, cameraPosition.y - SEA_LEVEL, 0.0);
+    atmosPos /= ATMOSPHERE_LEVEL - SEA_LEVEL;
+    atmosPos.y = clamp(atmosPos.y, 0.004, 0.996);
+    atmosPos *= atmosphereRadiusMM - groundRadiusMM;
+    atmosPos += vec3(0.0, groundRadiusMM, 0.0);
+
+    //atmosPos.y = groundRadiusMM + clamp(atmosPos.y - groundRadiusMM, 0.0, atmosphereRadiusMM - groundRadiusMM);
 
     #if SHADER_PLATFORM == PLATFORM_IRIS
         vec3 scatterColor = getValFromMultiScattLUT(texMultipleScattering, atmosPos, localSunDir) * 5.5e6;

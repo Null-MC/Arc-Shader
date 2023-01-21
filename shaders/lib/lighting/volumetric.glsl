@@ -323,11 +323,11 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
             lightColor *= exp(-waterLightDist * extinctionInv);
 
             // sample normal, get fresnel, darken
-            uint data = textureLod(shadowcolor1, traceShadowClipPos.xy, 0).g;
-            vec3 normal = unpackUnorm4x8(data).xyz;
-            normal = normalize(normal * 2.0 - 1.0);
-            float NoL = max(normal.z, 0.0);
-            float waterF = F_schlick(NoL, 0.02, 1.0);
+            // uint data = textureLod(shadowcolor1, traceShadowClipPos.xy, 0).g;
+            // vec3 normal = unpackUnorm4x8(data).xyz;
+            // normal = normalize(normal * 2.0 - 1.0);
+            // float NoL = max(normal.z, 0.0);
+            float waterF = 0.0;//F_schlick(NoL, 0.02, 1.0);
 
             #ifdef VL_WATER_NOISE
                 // float sampleDensity1 = texture(colortex14, traceWorldPos / 96.0).r;

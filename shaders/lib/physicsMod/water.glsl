@@ -1,3 +1,5 @@
+// https://github.com/haubna/PhysicsMod/blob/main/oceans.glsl
+
 #ifndef RENDER_GEOMETRY
     const int PHYSICS_ITERATIONS_OFFSET = 13;
     const float PHYSICS_DRAG_MULT = 0.048;
@@ -12,47 +14,41 @@
     const float PHYSICS_ITER_INC = 12.0;
     const float PHYSICS_NORMAL_STRENGTH = 0.6;
 
-    // this is the surface detail from the physics options, ranges from 13 to 48 (yeah I know weird)
     uniform int physics_iterationsNormal;
-
-    // used to offset the 0 point of wave meshes to keep the wave function consistent even
-    // though the mesh totally changes
     uniform vec2 physics_waveOffset;
-
-    // time in seconds that can go faster dependent on weather conditions (affected by weather strength
-    // multiplier in ocean settings
+    uniform ivec2 physics_textureOffset;
     uniform float physics_gameTime;
-
-    // base value is 13 and gets multiplied by wave height in ocean settings
     uniform float physics_oceanHeight;
-
-    // basic texture to determine how shallow/far away from the shore the water is
     uniform sampler2D physics_waviness;
-
-    // basic scale for the horizontal size of the waves
     uniform float physics_oceanWaveHorizontalScale;
 #endif
 
 #ifdef RENDER_SHADOW
     #ifdef RENDER_VERTEX
         out vec3 physics_vLocalPosition;
+        out float physics_vLocalWaviness;
     #endif
 
     #ifdef RENDER_GEOMETRY
         in vec3 physics_vLocalPosition[3];
+        in float physics_vLocalWaviness[3];
         out vec3 physics_gLocalPosition;
+        out float physics_gLocalWaviness;
     #endif
 
     #ifdef RENDER_FRAG
         in vec3 physics_gLocalPosition;
+        in float physics_gLocalWaviness;
     #endif
 #else
     #ifdef RENDER_VERTEX
         out vec3 physics_localPosition;
+        out float physics_localWaviness;
     #endif
 
     #ifdef RENDER_FRAG
         in vec3 physics_localPosition;
+        in float physics_localWaviness;
     #endif
 #endif
 

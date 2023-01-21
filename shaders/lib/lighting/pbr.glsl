@@ -362,8 +362,7 @@
                 //final.a = min(final.a + iblFmax * exposure * final.a, 1.0);
                 final.a = max(final.a, iblFmax);
 
-                if (isEyeInWater != 1)
-                    reflectF *= iblFmax;
+                reflectF *= iblFmax;
             }
         #endif
 
@@ -414,24 +413,24 @@
                 //reflectColor *= sunAbsorption;
                 iblSpec *= sunAbsorption;
 
-                #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        uint shadowData = textureLod(shadowcolor1, lightData.shadowPos[lightData.shadowCascade].xy, 0).g;
-                    #else
-                        uint shadowData = textureLod(shadowcolor1, lightData.shadowPos.xy, 0).g;
-                    #endif
+                // #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+                //     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                //         uint shadowData = textureLod(shadowcolor1, lightData.shadowPos[lightData.shadowCascade].xy, 0).g;
+                //     #else
+                //         uint shadowData = textureLod(shadowcolor1, lightData.shadowPos.xy, 0).g;
+                //     #endif
 
-                    // sample normal, get fresnel, darken
-                    vec3 waterNormal = unpackUnorm4x8(shadowData).xyz;
-                    waterNormal = normalize(waterNormal * 2.0 - 1.0);
-                    float water_NoL = max(waterNormal.z, 0.0);
-                    float water_F = F_schlick(water_NoL, 0.02, 1.0);
+                //     // sample normal, get fresnel, darken
+                //     vec3 waterNormal = unpackUnorm4x8(shadowData).xyz;
+                //     waterNormal = normalize(waterNormal * 2.0 - 1.0);
+                //     float water_NoL = max(waterNormal.z, 0.0);
+                //     float water_F = F_schlick(water_NoL, 0.02, 1.0);
 
-                    water_F = 1.0 - water_F;
-                    //water_F = smoothstep(0.5, 1.0, 1.0 - water_F);
+                //     water_F = 1.0 - water_F;
+                //     //water_F = smoothstep(0.5, 1.0, 1.0 - water_F);
 
-                    skyLightColorFinal *= max(water_F, 0.0);
-                #endif
+                //     skyLightColorFinal *= max(water_F, 0.0);
+                // #endif
             }
 
             ambient += skyAmbient;
@@ -584,51 +583,89 @@
 
                     vec3 waterOpaqueClipPos = vec3(refractUV, refractOpaqueScreenDepth) * 2.0 - 1.0;
                     vec3 waterOpaqueViewPos = unproject(gbufferProjectionInverse * vec4(waterOpaqueClipPos, 1.0));
-                    float waterViewDepthFinal = max(length(waterOpaqueViewPos) - viewDist, 0.0);
+
+                    float waterOpaqueViewDist = length(waterOpaqueViewPos);
+                    float waterViewDepthFinal = max(waterOpaqueViewDist - viewDist, 0.0);
 
                     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                        //vec3 waterOpaqueClipPos = vec3(refractUV, refractOpaqueScreenDepth) * 2.0 - 1.0;
                         vec3 waterOpaqueLocalPos = (gbufferModelViewInverse * vec4(waterOpaqueViewPos, 1.0)).xyz;
-                        vec3 waterOpaqueShadowPos = (shadowProjection * (shadowModelView * vec4(waterOpaqueLocalPos, 1.0))).xyz;
 
-                        #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                            waterOpaqueShadowPos = distort(waterOpaqueShadowPos);
-                        #endif
+                        // WARN: This doesn't work right when the dFdxy pos is skewed by refraction
+                        // vec3 dX = dFdx(waterOpaqueLocalPos);
+                        // vec3 dY = dFdy(waterOpaqueLocalPos);
+                        // vec3 geoNormal = normalize(cross(dX, dY));
+                        // waterOpaqueLocalPos += geoNormal * waterOpaqueViewDist * SHADOW_NORMAL_BIAS * max(1.0 - lightData.geoNoL, 0.0);
 
-                        waterOpaqueShadowPos = waterOpaqueShadowPos * 0.5 + 0.5;
-
-                        // #ifdef SHADOW_DITHER
-                        //     float ditherOffset = (GetScreenBayerValue() - 0.5) * shadowPixelSize;
-                        //     waterOpaqueShadowPos.xy += ditherOffset;
-                        // #endif
+                        vec3 waterOpaqueShadowViewPos = (shadowModelView * vec4(waterOpaqueLocalPos, 1.0)).xyz;
+                        vec3 waterOpaqueShadowPos;
+                        float waterOpaqueShadowDepth;
+                        float waterTransparentShadowDepth;
 
                         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                            float ShadowMaxDepth = far * 3.0;
+                            vec3 waterShadowPos[4];
+                            waterShadowPos[0] = (cascadeProjection[0] * vec4(waterOpaqueShadowViewPos, 1.0)).xyz;
+                            waterShadowPos[1] = (cascadeProjection[1] * vec4(waterOpaqueShadowViewPos, 1.0)).xyz;
+                            waterShadowPos[2] = (cascadeProjection[2] * vec4(waterOpaqueShadowViewPos, 1.0)).xyz;
+                            waterShadowPos[3] = (cascadeProjection[3] * vec4(waterOpaqueShadowViewPos, 1.0)).xyz;
 
-                            // float waterOpaqueShadowDepth = GetNearestOpaqueDepth(waterOpaqueShadowPos, vec2(0.0));
-                            // float waterTransparentShadowDepth = GetNearestTransparentDepth(waterOpaqueShadowPos, vec2(0.0));
-                            // TODO: This should be using the lines above, but that requires calulcating waterShadowPos 4x!
-                            float waterOpaqueShadowDepth = SampleOpaqueDepth(waterOpaqueShadowPos.xy, vec2(0.0));
-                            float waterTransparentShadowDepth = SampleTransparentDepth(waterOpaqueShadowPos.xy, vec2(0.0));
+                             // TODO: overlap should not be 0!
+                            int waterCascade = GetShadowSampleCascade(waterShadowPos, 0.0);
+
+                            if (waterCascade >= 0) {
+                                waterOpaqueShadowPos = waterShadowPos[waterCascade];
+
+                                #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                                    waterOpaqueShadowPos = distort(waterOpaqueShadowPos);
+                                #endif
+
+                                waterOpaqueShadowPos = waterOpaqueShadowPos * 0.5 + 0.5;
+
+                                // float waterOpaqueShadowDepth = GetNearestOpaqueDepth(waterOpaqueShadowPos, vec2(0.0));
+                                // float waterTransparentShadowDepth = GetNearestTransparentDepth(waterOpaqueShadowPos, vec2(0.0));
+                                // TODO: This should be using the lines above, but that requires calulcating waterShadowPos 4x!
+                                waterOpaqueShadowDepth = SampleOpaqueDepth(waterOpaqueShadowPos.xy, vec2(0.0));
+                                waterTransparentShadowDepth = SampleTransparentDepth(waterOpaqueShadowPos.xy, vec2(0.0));
+                            }
+                            else {
+                                // TODO: IDK?!
+                                waterOpaqueShadowPos = vec3(0.0);
+                                waterOpaqueShadowDepth = 0.0;
+                                waterTransparentShadowDepth = 0.0;
+                            }
+
+                            float ShadowMaxDepth = far * 3.0;
                         #else
+                            waterOpaqueShadowPos = (shadowProjection * vec4(waterOpaqueShadowViewPos, 1.0)).xyz;
+
+                            #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                                waterOpaqueShadowPos = distort(waterOpaqueShadowPos);
+                            #endif
+
+                            waterOpaqueShadowPos = waterOpaqueShadowPos * 0.5 + 0.5;
+
+                            waterOpaqueShadowDepth = SampleOpaqueDepth(waterOpaqueShadowPos.xy, vec2(0.0));
+                            waterTransparentShadowDepth = SampleTransparentDepth(waterOpaqueShadowPos.xy, vec2(0.0));
+
                             #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                                 const float ShadowMaxDepth = 512.0;
                             #else
                                 const float ShadowMaxDepth = 256.0;
                             #endif
-
-                            float waterOpaqueShadowDepth = SampleOpaqueDepth(waterOpaqueShadowPos.xy, vec2(0.0));
-                            float waterTransparentShadowDepth = SampleTransparentDepth(waterOpaqueShadowPos.xy, vec2(0.0));
                         #endif
 
-                        float waterShadowDepth = max(waterOpaqueShadowPos.z - waterTransparentShadowDepth, 0.0) * ShadowMaxDepth;
+                        #ifdef PHYSICS_OCEAN
+                            // IDK WTF is wrong here, but this breaks with PhysicsMod ocean
+                            const float waterShadowDepth = 0.0;
+                        #else
+                            float waterShadowDepth = max(waterOpaqueShadowPos.z - waterTransparentShadowDepth, 0.0) * ShadowMaxDepth;
+                        #endif
                     #else
                         const float waterShadowDepth = 0.0;
                     #endif
 
                     //uvec4 deferredData = texelFetch(BUFFER_DEFERRED, ivec2(gl_FragCoord.xy), 0);
                     //vec4 waterLightingMap = unpackUnorm4x8(deferredData.a);
-                    float waterGeoNoL = 1.0;//waterLightingMap.z * 2.0 - 1.0; //lightData.geoNoL;
+                    //float waterGeoNoL = 1.0;//waterLightingMap.z * 2.0 - 1.0; //lightData.geoNoL;
 
                     // TODO: This should be based on the refracted opaque fragment!
                     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -673,6 +710,7 @@
                     vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
                     diffuse = vec3(0.0);// waterFogColor;
                     iblSpec = vec3(0.0);
+                    final.a = maxOf(iblF);
 
                     if (dot(refractDir, refractDir) < EPSILON) {
                         //diffuse *= 1.0 - reflectF;
@@ -778,7 +816,7 @@
 
                 float waterFogF = GetWaterFogFactor(viewDist);
                 waterFogF *= 1.0 - reflectF;
-                //final = mix(final, vec4(waterFogColor, 1.0), vec4(waterFogF));
+                final = mix(final, vec4(waterFogColor, 1.0), vec4(waterFogF));
             }
         #endif
 
