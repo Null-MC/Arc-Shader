@@ -85,6 +85,10 @@
     float physics_waveHeight(const in vec3 position, const in float factor, const in float time) {
         return physics_waveHeight(position, PHYSICS_ITERATIONS_OFFSET, factor, time);
     }
+
+    float physics_GetWaviness(const in ivec2 localPos) {
+        return texelFetch(physics_waviness, localPos - physics_textureOffset, 0).r + 0.08;
+    }
 #endif
 
 #ifdef RENDER_FRAG

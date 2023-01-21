@@ -58,7 +58,8 @@
                             //float waveIterations = max(6.0, PHYSICS_ITERATIONS_OFFSET * waveScaledIterations);
 
                             physics_localPosition = pos;
-                            physics_localWaviness = texelFetch(physics_waviness, ivec2(gl_Vertex.xz) - physics_textureOffset, 0).r;
+                            //physics_localWaviness = texelFetch(physics_waviness, ivec2(gl_Vertex.xz) - physics_textureOffset, 0).r;
+                            physics_localWaviness = physics_GetWaviness(ivec2(pos.xz));
                             float depth = physics_waveHeight(pos, PHYSICS_ITERATIONS_OFFSET, physics_localWaviness, physics_gameTime);
                             physics_localPosition.y += depth;
 

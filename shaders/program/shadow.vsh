@@ -156,7 +156,7 @@ void main() {
             #endif
         
             //float waviness = textureLod(physics_waviness, vLocalPos.xz / vec2(textureSize(physics_waviness, 0)), 0).r;
-            physics_vLocalWaviness = texelFetch(physics_waviness, ivec2(gl_Vertex.xz) - physics_textureOffset, 0).r;
+            physics_vLocalWaviness = physics_GetWaviness(ivec2(vLocalPos.xz));
             float depth = physics_waveHeight(vLocalPos, PHYSICS_ITERATIONS_OFFSET, physics_vLocalWaviness, physics_gameTime);
             vLocalPos.y += depth;
             physics_vLocalPosition = vLocalPos;

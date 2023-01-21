@@ -707,7 +707,7 @@
                     final.a = saturate(10.0*waterViewDepthFinal - 0.2);
                 }
                 else {
-                    vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
+                    //vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
                     diffuse = vec3(0.0);// waterFogColor;
                     iblSpec = vec3(0.0);
                     final.a = maxOf(iblF);
@@ -806,17 +806,14 @@
             }
             else {
                 #ifdef SKY_ENABLED
-                    vec3 waterSunColorEye = sunColorFinalEye * max(skyLightLevels.x, 0.0);
-                    vec3 waterMoonColorEye = moonColorFinalEye * max(skyLightLevels.y, 0.0);
-
                     vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
                 #else
                     vec3 waterFogColor = vec3(0.0);
                 #endif
 
                 float waterFogF = GetWaterFogFactor(viewDist);
-                waterFogF *= 1.0 - reflectF;
-                final = mix(final, vec4(waterFogColor, 1.0), vec4(waterFogF));
+                //waterFogF *= 1.0 - reflectF;
+                final = mix(final, vec4(waterFogColor, 1.0), waterFogF);
             }
         #endif
 
