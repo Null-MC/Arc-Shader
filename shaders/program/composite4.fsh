@@ -25,13 +25,13 @@ layout(location = 0) out vec3 outColor0;
 
 
 void main() {
-    #if WATER_CAMERA_BLUR == 2
-        vec2 viewSize = vec2(viewWidth, viewHeight);
-        vec2 pixelSize = rcp(viewSize);
+    vec2 viewSize = vec2(viewWidth, viewHeight);
+    vec2 pixelSize = rcp(viewSize);
 
+    #if WATER_CAMERA_BLUR == 2
         vec3 color = GaussianBlur23(BUFFER_HDR_OPAQUE, texcoord, direction * pixelSize);
     #else
-        vec3 color = GaussianBlur13(BUFFER_HDR_OPAQUE, texcoord, vec2(0.0), vec2(1.0), direction);
+        vec3 color = GaussianBlur13(BUFFER_HDR_OPAQUE, texcoord, direction * pixelSize * 2.0);
     #endif
 
     outColor0 = color;

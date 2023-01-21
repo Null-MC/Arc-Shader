@@ -75,7 +75,7 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
         vec3 worldStart = localStart + cameraPosition;
         
         const vec3 SkyAbsorptionCoefficient = vec3(0.002);
-        const vec3 SkyScatteringCoefficient = vec3(0.46);
+        const vec3 SkyScatteringCoefficient = vec3(0.02);
         const vec3 SkyExtinctionCoefficient = SkyScatteringCoefficient + SkyAbsorptionCoefficient;
 
         #ifdef SHADOW_CLOUD
@@ -97,7 +97,7 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
         vec3 t;
 
         #ifndef VL_FOG_NOISE
-            const float texDensity = 0.02;
+            float texDensity = mix(0.12, 1.0, rainStrength);
         #endif
 
         vec3 scattering = vec3(0.0);

@@ -1,9 +1,9 @@
 vec3 GetFancyFog(const in vec3 localPos, out vec3 transmittance) {
     const float isotropicPhase = 0.25 / PI;
-    const float texDensity = 0.3;
+    float texDensity = mix(0.12, 1.0, rainStrength);
 
-    vec3 SkyAbsorptionCoefficient = vec3(mix(0.0024, 0.0020, rainStrength));
-    vec3 SkyScatteringCoefficient = vec3(mix(0.0008, 0.0020, rainStrength));
+    vec3 SkyAbsorptionCoefficient = vec3(0.002);
+    vec3 SkyScatteringCoefficient = vec3(0.020);
     vec3 SkyExtinctionCoefficient = SkyScatteringCoefficient + SkyAbsorptionCoefficient;
 
     vec3 localSunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
@@ -22,9 +22,9 @@ vec3 GetFancyFog(const in vec3 localPos, out vec3 transmittance) {
     //atmosPos.y = groundRadiusMM + clamp(atmosPos.y - groundRadiusMM, 0.0, atmosphereRadiusMM - groundRadiusMM);
 
     #if SHADER_PLATFORM == PLATFORM_IRIS
-        vec3 scatterColor = getValFromMultiScattLUT(texMultipleScattering, atmosPos, localSunDir) * 5.5e6;
+        vec3 scatterColor = getValFromMultiScattLUT(texMultipleScattering, atmosPos, localSunDir) * 6.0e5;
     #else
-        vec3 scatterColor = getValFromMultiScattLUT(colortex13, atmosPos, localSunDir) * 5.5e6;
+        vec3 scatterColor = getValFromMultiScattLUT(colortex13, atmosPos, localSunDir) * 6.0e5;
     #endif
 
     scatterColor *= 0.06 + 0.94 * (eyeBrightnessSmooth.y / 240.0);

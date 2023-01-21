@@ -119,13 +119,7 @@
 
                 #if WATER_WAVE_TYPE != WATER_WAVE_NONE || defined PHYSICS_OCEAN
                     #ifdef PHYSICS_OCEAN
-                        float waveScaledIterations = 1.0 - saturate((length(localPos) - 16.0) / 200.0);
-                        float waveIterations = max(12.0, physics_iterationsNormal * (waveScaledIterations * 0.6 + 0.4));
-
-                        //float waviness = textureLod(physics_waviness, physics_localPosition.xz / vec2(textureSize(physics_waviness, 0)), 0).r;
-                        //waviness += 0.02 * lightData.skyLight;
-
-                        material.normal = physics_waveNormal(physics_localPosition.xz, physics_localWaviness, physics_gameTime, waveIterations);
+                        material.normal = physics_waveNormal(physics_localPosition.xz, physics_localWaviness, physics_gameTime, physics_iterationsNormal);
                         material.normal = mat3(gl_ModelViewMatrix) * material.normal;
                     #else
                         vec3 viewUp = normalize(upPosition);
