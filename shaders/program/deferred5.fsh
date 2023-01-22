@@ -110,6 +110,11 @@ uniform float fogEnd;
 #ifdef HANDLIGHT_ENABLED
     uniform int heldBlockLightValue;
     uniform int heldBlockLightValue2;
+
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        uniform bool firstPersonCamera;
+        uniform vec3 eyePosition;
+    #endif
 #endif
 
 #ifdef SKY_ENABLED
@@ -256,6 +261,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/lighting/basic.glsl"
 
 #ifdef HANDLIGHT_ENABLED
+    #include "/lib/lighting/handlight_common.glsl"
     #include "/lib/lighting/pbr_handlight.glsl"
 #endif
 

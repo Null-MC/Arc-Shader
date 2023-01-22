@@ -104,6 +104,16 @@ flat in mat2 atlasBounds;
     #endif
 #endif
 
+#ifdef HANDLIGHT_ENABLED
+    uniform int heldBlockLightValue;
+    uniform int heldBlockLightValue2;
+    
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        uniform bool firstPersonCamera;
+        uniform vec3 eyePosition;
+    #endif
+#endif
+
 #ifdef AF_ENABLED
     in vec4 spriteBounds;
 #endif
@@ -140,8 +150,6 @@ uniform mat4 gbufferProjection;
 
 uniform ivec2 eyeBrightnessSmooth;
 uniform ivec2 eyeBrightness;
-uniform int heldBlockLightValue;
-uniform int heldBlockLightValue2;
 
 uniform vec3 cameraPosition;
 uniform vec3 upPosition;
@@ -247,6 +255,7 @@ uniform float waterFogDistSmooth;
 #endif
 
 #ifdef HANDLIGHT_ENABLED
+    #include "/lib/lighting/handlight_common.glsl"
     #include "/lib/lighting/pbr_handlight.glsl"
 #endif
 

@@ -1,32 +1,22 @@
-uniform int heldItemId;
-uniform int heldItemId2;
-
-vec3 itemLightColors[5] = vec3[](
-    vec3(0.904, 0.338, 0.237),  // redstone
-    vec3(0.397, 0.738, 0.909),  // soul
-    vec3(0.773, 0.638, 0.368),  // glowing
-    vec3(0.501, 0.838, 0.808),  // sea
-    vec3(0.664, 0.186, 0.793)); // obsidian
-
-
 float GetHandLightAttenuation(const in float lightLevel, const in float lightDist) {
     float diffuseAtt = saturate(0.0625*lightLevel - 0.08*lightDist);
     return pow(diffuseAtt, 3);
 }
 
 void _ApplyHandLighting(out vec3 diffuse, out vec3 specular, const in vec3 albedo, const in float f0, const in int hcm, const in float scattering, const in vec3 lightPos, const in int lightLevel, const in vec3 viewNormal, const in vec3 viewPos, const in vec3 viewDir, const in float NoVm, const in float roughL, const in int itemId) {
-    vec3 lightDir = normalize(lightPos);
-
-    float NoL = dot(viewNormal, lightDir);
-    float NoLm = max(NoL, 0.0);
-
     float lightDist = length(lightPos);
     float attenuation = GetHandLightAttenuation(lightLevel, lightDist);
+    
     if (attenuation < EPSILON) {
         diffuse = vec3(0.0);
         specular = vec3(0.0);
         return;
     }
+
+    vec3 lightDir = normalize(lightPos);
+
+    float NoL = dot(viewNormal, lightDir);
+    float NoLm = max(NoL, 0.0);
 
     vec3 halfDir = normalize(lightDir + viewDir);
     float LoHm = max(dot(lightDir, halfDir), 0.0);

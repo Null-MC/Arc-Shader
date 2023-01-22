@@ -51,7 +51,11 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
     float skyLight3 = pow3(skyLight);
 
     vec3 ambient = vec3(MinWorldLux);
-    vec3 diffuse = albedo.rgb * pow3(lightData.blockLight) * blockLightColor;
+    vec3 diffuse = vec3(0.0);
+
+    #ifndef RENDER_WEATHER
+        diffuse += albedo.rgb * pow3(lightData.blockLight) * blockLightColor;
+    #endif
 
     vec3 waterExtinctionInv = WATER_ABSROPTION_RATE * (1.0 - waterAbsorbColor);
 
@@ -94,11 +98,22 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
         #endif
     #endif
 
+    //ambient = vec3(0.0);
+    //diffuse = vec3(0.0);
+
     #if defined HANDLIGHT_ENABLED && !defined RENDER_HAND && !defined RENDER_HAND_WATER
         if (heldBlockLightValue + heldBlockLightValue2 > EPSILON) {
-            //const float roughL = 1.0;
-            //const float scattering = 0.0;
-            diffuse += ApplyHandLighting(albedo.rgb, viewPos.xyz);
+            vec3 handViewPos = viewPos.xyz;
+
+            #if SHADER_PLATFORM == PLATFORM_IRIS
+                if (!firstPersonCamera) {
+                    vec3 playerCameraOffset = cameraPosition - eyePosition;
+                    playerCameraOffset = (gbufferModelView * vec4(playerCameraOffset, 1.0)).xyz;
+                    handViewPos += playerCameraOffset;
+                }
+            #endif
+
+            diffuse += ApplyHandLighting(albedo.rgb, handViewPos);
         }
     #endif
 
@@ -134,7 +149,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
 
             //float alpha = mix(WEATHER_OPACITY * 0.01, 1.0, saturate(max(rainSnowSunVL, rainSnowMoonVL)));
 
-            final.rgb += albedo.rgb * weatherLightColor;// * shadow;
+            final.rgb += albedo.rgb * weatherLightColor * (0.2 + 0.8 * shadow);
             final.a = albedo.a * rainStrength * (WEATHER_OPACITY * 0.01);
         #else
             if (isEyeInWater == 1) {

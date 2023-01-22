@@ -730,8 +730,18 @@
 
         #if defined HANDLIGHT_ENABLED
             if (heldBlockLightValue + heldBlockLightValue2 > EPSILON) {
+                vec3 handViewPos = viewPos.xyz;
+
+                #if SHADER_PLATFORM == PLATFORM_IRIS
+                    if (!firstPersonCamera) {
+                        vec3 playerCameraOffset = cameraPosition - eyePosition;
+                        playerCameraOffset = (gbufferModelView * vec4(playerCameraOffset, 1.0)).xyz;
+                        handViewPos += playerCameraOffset;
+                    }
+                #endif
+
                 vec3 handDiffuse, handSpecular;
-                ApplyHandLighting(handDiffuse, handSpecular, material.albedo.rgb, material.f0, material.hcm, material.scattering, viewNormal, viewPos.xyz, -viewDir, NoVm, roughL);
+                ApplyHandLighting(handDiffuse, handSpecular, material.albedo.rgb, material.f0, material.hcm, material.scattering, viewNormal, handViewPos, -viewDir, NoVm, roughL);
 
                 #ifdef RENDER_WATER
                     if (materialId != MATERIAL_WATER) {

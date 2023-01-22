@@ -47,11 +47,12 @@ vec3 WetnessDarkenSurface(const in vec3 albedo, const in float porosity, const i
         float accum = saturate(2.0 * (0.96875 - skyLight));
         float snowFinal = saturate(smoothstep(-0.1, 0.4, NoU));
         snowFinal = pow(snowFinal, 0.5);
+        
+        float blockLightFalloff = saturate(4.0 * (blockLight - 0.75));
 
-        float skySnowFinal = snowFinal * skySnowSmooth * smoothstep(1.0 - skySnowSmooth, 1.0, saturate(weatherNoise - accum));
+        float skySnowFinal = snowFinal * skySnowSmooth * smoothstep(1.0 - skySnowSmooth, 1.0, saturate(weatherNoise - accum - blockLightFalloff));
 
         #if SNOW_MODE == WEATHER_MODE_FULL
-            float blockLightFalloff = saturate(4.0 * (blockLight - 0.75));
             float biomeSnowFinal = snowFinal * biomeSnowSmooth * smoothstep(1.0 - biomeSnowSmooth, 1.0, saturate(weatherNoise - accum - blockLightFalloff));
             float totalSnow = max(biomeSnowFinal, skySnowFinal);
         #else
