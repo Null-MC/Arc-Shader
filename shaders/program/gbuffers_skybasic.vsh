@@ -17,6 +17,7 @@ flat out float exposure;
     uniform sampler3D colortex9;
 #endif
 
+uniform vec3 cameraPosition;
 uniform float screenBrightness;
 uniform float eyeAltitude;
 uniform float wetness;
@@ -53,8 +54,9 @@ uniform float blindness;
 #endif
 
 #include "/lib/lighting/blackbody.glsl"
-#include "/lib/sky/celestial_position.glsl"
-#include "/lib/sky/celestial_color.glsl"
+#include "/lib/sky/hillaire_common.glsl"
+#include "/lib/celestial/position.glsl"
+#include "/lib/celestial/transmittance.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/camera/exposure.glsl"
 
@@ -71,13 +73,14 @@ void main() {
     moonColor = GetMoonLuxColor();// * GetMoonPhaseLevel();
 
     vec2 skyLightLevels = GetSkyLightLevels();
+    float eyeElevation = GetScaledSkyHeight(eyeAltitude);
     
     #if SHADER_PLATFORM == PLATFORM_IRIS
-        sunTransmittanceEye = GetSunTransmittance(texSunTransmittance, eyeAltitude, skyLightLevels.x);
-        moonTransmittanceEye = GetMoonTransmittance(texSunTransmittance, eyeAltitude, skyLightLevels.y);
+        sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
+        moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
     #else
-        sunTransmittanceEye = GetSunTransmittance(colortex9, eyeAltitude, skyLightLevels.x);
-        moonTransmittanceEye = GetMoonTransmittance(colortex9, eyeAltitude, skyLightLevels.y);
+        sunTransmittanceEye = GetTransmittance(colortex9, eyeElevation, skyLightLevels.x);
+        moonTransmittanceEye = GetTransmittance(colortex9, eyeElevation, skyLightLevels.y);
     #endif
 
     exposure = GetExposure();

@@ -2,13 +2,13 @@ const float AirSpeed = 20.0;
 const float isotropicPhase = 0.25 / PI;
 
 
-vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLightLevels, const in vec2 scatteringF) {
+vec3 GetScatteredLighting(const in float elevation, const in vec2 skyLightLevels, const in vec2 scatteringF) {
     #if SHADER_PLATFORM == PLATFORM_IRIS
-        vec3 sunTransmittance = GetSunTransmittance(texSunTransmittance, worldTraceHeight, skyLightLevels.x);
-        vec3 moonTransmittance = GetMoonTransmittance(texSunTransmittance, worldTraceHeight, skyLightLevels.y);
+        vec3 sunTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.x);
+        vec3 moonTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.y);
     #else
-        vec3 sunTransmittance = GetSunTransmittance(colortex12, worldTraceHeight, skyLightLevels.x);
-        vec3 moonTransmittance = GetMoonTransmittance(colortex12, worldTraceHeight, skyLightLevels.y);
+        vec3 sunTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.x);
+        vec3 moonTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.y);
     #endif
 
     return
@@ -74,38 +74,36 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
         float localStepLength = localRayLength * inverseStepCountF;
         vec3 worldStart = localStart + cameraPosition;
         
-        const vec3 SkyAbsorptionCoefficient = vec3(0.002);
-        const vec3 SkyScatteringCoefficient = vec3(0.02);
-        const vec3 SkyExtinctionCoefficient = SkyScatteringCoefficient + SkyAbsorptionCoefficient;
-
-        #ifdef SHADOW_CLOUD
+        //#ifdef SHADOW_CLOUD
             vec3 viewLightDir = normalize(shadowLightPosition);
             vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
-        #endif
-
-        float cameraSkyLight = saturate(eyeBrightnessSmooth.y / 240.0);
-
-        #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-            vec3 sampleAmbient = vec3(mix(NightSkyLumen, 32000.0 * pow2(cameraSkyLight), max(lightData.skyLightLevels.x, 0.0)));
-        #else
-            vec3 sampleAmbient = NightSkyLumen + 32000.0 * RGBToLinear(fogColor) * pow2(cameraSkyLight);
-        #endif
+            vec3 localSunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
+        //#endif
 
         float time = frameTimeCounter / 3600.0;
-        vec3 shadowMax = 1.0 - vec3(vec2(shadowPixelSize), EPSILON);
+        //vec3 shadowMax = 1.0 - vec3(vec2(shadowPixelSize), EPSILON);
         float minFogF = min(VLFogMinF * (1.0 + 0.6 * max(lightData.skyLightLevels.x, 0.0)), 1.0);
-        vec3 t;
 
         #ifndef VL_FOG_NOISE
-            float texDensity = mix(0.12, 1.0, rainStrength);
+            float texDensity = 1.0;//mix(0.02, 1.0, rainStrength);
         #endif
+
+        vec3 viewDir = normalize(farViewPos - nearViewPos);
+        float VoL = dot(viewLightDir, viewDir);
+        float miePhaseValue = getMiePhase(VoL);
+        float rayleighPhaseValue = getRayleighPhase(-VoL);
+
+        const float atmosScale = (atmosphereRadiusMM - groundRadiusMM) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
+        float dt = localStepLength * atmosScale;
 
         vec3 scattering = vec3(0.0);
         for (int i = 0; i < VL_SAMPLES_SKY; i++) {
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 vec3 shadowPos[4];
-                for (int c = 0; c < 4; c++)
-                    shadowPos[c] = shadowClipStart[c] + (i + dither) * shadowClipStep[c];
+                shadowPos[0] = shadowClipStart[0] + (i + dither) * shadowClipStep[0];
+                shadowPos[1] = shadowClipStart[1] + (i + dither) * shadowClipStep[1];
+                shadowPos[2] = shadowClipStart[2] + (i + dither) * shadowClipStep[2];
+                shadowPos[3] = shadowClipStart[3] + (i + dither) * shadowClipStep[3];
 
                 int cascade = GetShadowSampleCascade(shadowPos, 0.0);
                 vec3 traceShadowClipPos = shadowPos[cascade];
@@ -125,11 +123,6 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                 #endif
 
                 traceShadowClipPos = traceShadowClipPos * 0.5 + 0.5;
-
-                if (traceShadowClipPos != clamp(traceShadowClipPos, vec3(0.0), shadowMax)) {
-                    // TODO: perform a screenspace depth check?
-                    continue;
-                }
 
                 float sampleF = CompareOpaqueDepth(traceShadowClipPos, vec2(0.0), lightData.shadowBias);
             #endif
@@ -156,35 +149,59 @@ vec3 GetScatteredLighting(const in float worldTraceHeight, const in vec2 skyLigh
                 texDensity *= minFogF + (1.0 - minFogF) * wetness;
             #endif
 
-            vec3 sampleColor = 16.0 * GetScatteredLighting(traceWorldPos.y, skyLightLevels, scatteringF) * sampleF;
-
-            sampleColor += sampleAmbient;
+            vec3 sampleColor = vec3(1.0);
 
             #ifdef SHADOW_COLOR
-                //if (sampleF > EPSILON) {
-                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        float transparentShadowDepth = SampleTransparentDepth(shadowPos[cascade].xy, vec2(0.0));
-                    #else
-                        float transparentShadowDepth = SampleTransparentDepth(traceShadowClipPos.xy, vec2(0.0));
-                    #endif
+                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                    float transparentShadowDepth = SampleTransparentDepth(shadowPos[cascade].xy, vec2(0.0));
+                #else
+                    float transparentShadowDepth = SampleTransparentDepth(traceShadowClipPos.xy, vec2(0.0));
+                #endif
 
-                    if (traceShadowClipPos.z - transparentShadowDepth >= EPSILON) {
-                        vec3 shadowColor = GetShadowColor(traceShadowClipPos.xy);
+                if (traceShadowClipPos.z - transparentShadowDepth >= EPSILON) {
+                    vec3 shadowColor = GetShadowColor(traceShadowClipPos.xy);
 
-                        if (!any(greaterThan(shadowColor, vec3(EPSILON)))) shadowColor = vec3(1.0);
-                        shadowColor = normalize(shadowColor) * 1.73;
+                    if (!any(greaterThan(shadowColor, vec3(EPSILON)))) shadowColor = vec3(1.0);
+                    shadowColor = normalize(shadowColor) * 1.73;
 
-                        sampleColor *= shadowColor;
-                    }
-                //}
+                    sampleColor *= shadowColor;
+                }
             #endif
 
-            vec3 stepTransmittance = exp(-SkyExtinctionCoefficient * localStepLength * texDensity);
-            vec3 scatteringIntegral = (1.0 - stepTransmittance) / SkyExtinctionCoefficient;
+            vec3 atmosPos = GetAtmospherePosition(traceWorldPos);
+            float sampleElevation = length(atmosPos) - groundRadiusMM;
 
-            scattering += sampleColor * (isotropicPhase * SkyScatteringCoefficient * scatteringIntegral) * transmittance;
+            float mieScattering;
+            vec3 rayleighScattering, extinction;
+            getScatteringValues(atmosPos, rayleighScattering, mieScattering, extinction);
 
-            transmittance *= stepTransmittance;
+            vec3 sampleTransmittance = exp(-dt*extinction);
+
+            #if SHADER_PLATFORM == PLATFORM_IRIS
+                vec3 sunTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.x) * sunColor;
+                vec3 moonTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.y) * moonColor;
+            #else
+                vec3 sunTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.x) * sunColor;
+                vec3 moonTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.y) * moonColor;
+            #endif
+
+            vec3 lightTransmittance = (sunTransmittance + moonTransmittance) * sampleColor * sampleF;
+
+            #if SHADER_PLATFORM == PLATFORM_IRIS
+                vec3 psiMS = getValFromMultiScattLUT(texMultipleScattering, atmosPos, localSunDir) * SKY_FANCY_LUM;
+            #else
+                vec3 psiMS = getValFromMultiScattLUT(colortex13, atmosPos, localSunDir) * SKY_FANCY_LUM;
+            #endif
+
+            vec3 rayleighInScattering = rayleighScattering * (rayleighPhaseValue * lightTransmittance + psiMS);
+            vec3 mieInScattering = mieScattering * (miePhaseValue * lightTransmittance + psiMS);
+            vec3 inScattering = (rayleighInScattering + mieInScattering);
+
+            // Integrated scattering within path segment.
+            vec3 scatteringIntegral = (inScattering - inScattering * sampleTransmittance) / extinction;
+
+            scattering += scatteringIntegral * transmittance;
+            transmittance *= sampleTransmittance;
         }
 
         return scattering;

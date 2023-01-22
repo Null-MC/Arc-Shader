@@ -1,9 +1,3 @@
-float GetScaledSkyHeight(const in float worldY) {
-    float scaleY = (cameraPosition.y - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
-    scaleY = clamp(scaleY, 0.004, 0.996);
-    return groundRadiusMM + scaleY * (atmosphereRadiusMM - groundRadiusMM);
-}
-
 vec3 getValFromTLUT(const in sampler3D tex, const in vec3 pos, const in vec3 sunDir) {
     float height = length(pos);
     vec3 up = pos / height;

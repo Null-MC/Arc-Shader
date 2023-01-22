@@ -38,3 +38,22 @@ float GetMieAbsorptionBase() {
 float safeacos(const in float x) {
     return acos(clamp(x, -1.0, 1.0));
 }
+
+float GetScaledSkyHeight(const in float worldY) {
+    float scaleY = (worldY - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
+    scaleY = clamp(scaleY, 0.004, 0.996);
+    return groundRadiusMM + scaleY * (atmosphereRadiusMM - groundRadiusMM);
+}
+
+vec3 GetAtmospherePosition(const in vec3 worldPos) {
+    vec3 atmosPos = worldPos - vec3(cameraPosition.x, SEA_LEVEL, cameraPosition.z);
+    atmosPos /= ATMOSPHERE_LEVEL - SEA_LEVEL;
+    atmosPos.y = clamp(atmosPos.y, 0.004, 0.996);
+    atmosPos *= atmosphereRadiusMM - groundRadiusMM;
+    return atmosPos + vec3(0.0, groundRadiusMM, 0.0);
+}
+
+float GetAtmosphereElevation(const in vec3 worldPos) {
+    vec3 atmosPos = GetAtmospherePosition(worldPos);
+    return length(atmosPos) - groundRadiusMM;
+}

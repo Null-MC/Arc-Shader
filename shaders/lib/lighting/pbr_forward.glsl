@@ -52,16 +52,19 @@
         #ifdef SKY_ENABLED
             lightData.skyLightLevels = skyLightLevels;
 
+            float eyeElevation = GetScaledSkyHeight(cameraPosition.y);
+            float fragElevation = GetAtmosphereElevation(worldPos);
+
             #if SHADER_PLATFORM == PLATFORM_IRIS
-                lightData.sunTransmittance = GetSunTransmittance(texSunTransmittance, worldPos.y, skyLightLevels.x);
-                lightData.moonTransmittance = GetMoonTransmittance(texSunTransmittance, worldPos.y, skyLightLevels.y);
-                lightData.sunTransmittanceEye = GetSunTransmittance(texSunTransmittance, eyeAltitude, skyLightLevels.x);
-                lightData.moonTransmittanceEye = GetMoonTransmittance(texSunTransmittance, eyeAltitude, skyLightLevels.y);
+                lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
+                lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
+                lightData.sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
+                lightData.moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
             #else
-                lightData.sunTransmittance = GetSunTransmittance(colortex12, worldPos.y, skyLightLevels.x);
-                lightData.moonTransmittance = GetMoonTransmittance(colortex12, worldPos.y, skyLightLevels.y);
-                lightData.sunTransmittanceEye = GetSunTransmittance(colortex12, eyeAltitude, skyLightLevels.x);
-                lightData.moonTransmittanceEye = GetMoonTransmittance(colortex12, eyeAltitude, skyLightLevels.y);
+                lightData.sunTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.x);
+                lightData.moonTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.y);
+                lightData.sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
+                lightData.moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);
             #endif
         #endif
 

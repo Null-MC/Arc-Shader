@@ -213,14 +213,17 @@ uniform float waterFogDistSmooth;
 #endif
 
 #ifdef SKY_ENABLED
-    #include "/lib/sky/sun_moon.glsl"
+    #include "/lib/sky/hillaire_common.glsl"
+    #include "/lib/celestial/position.glsl"
+    #include "/lib/celestial/transmittance.glsl"
+    //#include "/lib/sky/sun_moon.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
 
-    #include "/lib/sky/hillaire_common.glsl"
     #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
         #include "/lib/sky/hillaire.glsl"
     #endif
+    
     #include "/lib/sky/hillaire_render.glsl"
 #endif
 

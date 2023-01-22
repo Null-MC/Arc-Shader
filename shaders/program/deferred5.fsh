@@ -199,8 +199,9 @@ uniform float waterFogDistSmooth;
 #endif
 
 #ifdef SKY_ENABLED
-    #include "/lib/sky/celestial_position.glsl"
-    #include "/lib/sky/celestial_color.glsl"
+    #include "/lib/sky/hillaire_common.glsl"
+    #include "/lib/celestial/position.glsl"
+    #include "/lib/celestial/transmittance.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
 
@@ -210,7 +211,6 @@ uniform float waterFogDistSmooth;
 #endif
 
 #ifdef SKY_ENABLED
-    #include "/lib/sky/hillaire_common.glsl"
     #include "/lib/sky/hillaire_render.glsl"
     #include "/lib/sky/clouds.glsl"
     #include "/lib/sky/stars.glsl"
@@ -236,6 +236,7 @@ uniform float waterFogDistSmooth;
         #endif
 
         #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
+            #include "/lib/sky/hillaire.glsl"
             #include "/lib/lighting/volumetric.glsl"
         #endif
     #endif
@@ -333,12 +334,14 @@ void main() {
         lightData.sunTransmittanceEye = sunTransmittanceEye;
         lightData.moonTransmittanceEye = moonTransmittanceEye;
 
+        float fragElevation = GetAtmosphereElevation(worldPos);
+
         #if SHADER_PLATFORM == PLATFORM_IRIS
-            lightData.sunTransmittance = GetSunTransmittance(texSunTransmittance, worldPos.y, skyLightLevels.x);
-            lightData.moonTransmittance = GetMoonTransmittance(texSunTransmittance, worldPos.y, skyLightLevels.y);
+            lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
+            lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
         #else
-            lightData.sunTransmittance = GetSunTransmittance(colortex12, worldPos.y, skyLightLevels.x);
-            lightData.moonTransmittance = GetMoonTransmittance(colortex12, worldPos.y, skyLightLevels.y);
+            lightData.sunTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.x);
+            lightData.moonTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.y);
         #endif
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE

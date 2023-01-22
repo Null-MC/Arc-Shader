@@ -170,8 +170,10 @@ uniform float waterFogDistSmooth;
     #endif
 #endif
 
-#include "/lib/sky/sun_moon.glsl"
+//#include "/lib/sky/sun_moon.glsl"
 #include "/lib/sky/hillaire_common.glsl"
+#include "/lib/celestial/position.glsl"
+#include "/lib/celestial/transmittance.glsl"
 #include "/lib/sky/hillaire_render.glsl"
 #include "/lib/world/scattering.glsl"
 #include "/lib/world/sky.glsl"
@@ -179,6 +181,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/sky/clouds.glsl"
 
 #if (defined VL_SKY_ENABLED || defined VL_WATER_ENABLED) && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE //&& defined VL_PARTICLES
+    #include "/lib/sky/hillaire.glsl"
     #include "/lib/lighting/volumetric.glsl"
 #endif
 
@@ -192,8 +195,8 @@ layout(location = 1) out vec4 outColor1;
 
 
 void main() {
-    float worldY = localPos.y + cameraPosition.y;
-    if (worldY >= CLOUD_LEVEL) {discard; return;}
+    vec3 worldPos = cameraPosition + localPos;
+    if (worldPos.y >= CLOUD_LEVEL) {discard; return;}
 
     float opacityThreshold = mix(1.0, 0.2, rainStrength);
 
@@ -220,12 +223,14 @@ void main() {
         lightData.sunTransmittanceEye = sunTransmittanceEye;
         lightData.moonTransmittanceEye = moonTransmittanceEye;
 
+        float fragElevation = GetAtmosphereElevation(worldPos);
+
         #if SHADER_PLATFORM == PLATFORM_IRIS
-            lightData.sunTransmittance = GetSunTransmittance(texSunTransmittance, worldY, skyLightLevels.x);
-            lightData.moonTransmittance = GetMoonTransmittance(texSunTransmittance, worldY, skyLightLevels.y);
+            lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
+            lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
         #else
-            lightData.sunTransmittance = GetSunTransmittance(colortex12, worldY, skyLightLevels.x);
-            lightData.moonTransmittance = GetMoonTransmittance(colortex12, worldY, skyLightLevels.y);
+            lightData.sunTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.x);
+            lightData.moonTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.y);
         #endif
     #endif
 

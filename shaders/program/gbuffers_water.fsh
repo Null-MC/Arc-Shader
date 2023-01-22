@@ -232,11 +232,13 @@ uniform float waterFogDistSmooth;
 #endif
 
 #ifdef SKY_ENABLED
-    #include "/lib/sky/sun_moon.glsl"
+    #include "/lib/sky/hillaire_common.glsl"
+    #include "/lib/celestial/position.glsl"
+    #include "/lib/celestial/transmittance.glsl"
+    //#include "/lib/sky/sun_moon.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
 
-    #include "/lib/sky/hillaire_common.glsl"
     #include "/lib/sky/hillaire_render.glsl"
     #include "/lib/sky/clouds.glsl"
     #include "/lib/sky/stars.glsl"
@@ -262,6 +264,7 @@ uniform float waterFogDistSmooth;
         #endif
 
         #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
+            #include "/lib/sky/hillaire.glsl"
             #include "/lib/lighting/volumetric.glsl"
         #endif
     #endif

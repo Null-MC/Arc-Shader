@@ -37,8 +37,8 @@ out vec2 texcoord;
     #endif
 
     #include "/lib/lighting/blackbody.glsl"
-    #include "/lib/sky/celestial_position.glsl"
-    #include "/lib/sky/celestial_color.glsl"
+    #include "/lib/celestial/position.glsl"
+    #include "/lib/celestial/transmittance.glsl"
     #include "/lib/world/sky.glsl"
 
     float GetEyeBrightnessLuminance() {
@@ -46,13 +46,14 @@ out vec2 texcoord;
 
         #ifdef SKY_ENABLED
             vec2 skyLightLevels = GetSkyLightLevels();
+            float eyeElevation = GetScaledSkyHeight(eyeAltitude);
 
             #if SHADER_PLATFORM == PLATFORM_IRIS
-                vec3 sunTransmittanceEye = GetSunTransmittance(texSunTransmittance, eyeAltitude, skyLightLevels.x);
-                vec3 moonTransmittanceEye = GetMoonTransmittance(texSunTransmittance, eyeAltitude, skyLightLevels.y);
+                vec3 sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
+                vec3 moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
             #else
-                vec3 sunTransmittanceEye = GetSunTransmittance(colortex0, eyeAltitude, skyLightLevels.x);
-                vec3 moonTransmittanceEye = GetMoonTransmittance(colortex0, eyeAltitude, skyLightLevels.y);
+                vec3 sunTransmittanceEye = GetTransmittance(colortex0, eyeElevation, skyLightLevels.x);
+                vec3 moonTransmittanceEye = GetTransmittance(colortex0, eyeElevation, skyLightLevels.y);
             #endif
 
             float sunLightLum = luminance(sunTransmittanceEye * GetSunLuxColor());

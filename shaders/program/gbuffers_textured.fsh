@@ -31,7 +31,7 @@ uniform sampler2D lightmap;
 #include "/lib/material/material.glsl"
 
 #include "/lib/material/material_reader.glsl"
-#include "/lib/lighting/basic_gbuffers.glsl"
+//#include "/lib/lighting/basic_gbuffers.glsl"
 #include "/lib/lighting/pbr_gbuffers.glsl"
 
 /* RENDERTARGETS: 0 */

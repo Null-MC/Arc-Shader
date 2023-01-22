@@ -15,15 +15,23 @@ in vec3 viewTangent;
 flat in float tangentW;
 flat in mat2 atlasBounds;
 
+uniform sampler2D gtexture;
+
+uniform float alphaTestRef;
+
+#include "/lib/lighting/basic_gbuffers.glsl"
+
 /* RENDERTARGETS: 0 */
 layout(location = 0) out uvec4 outColor0;
 
 
 void main() {
+    mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
+    
     vec4 colorMap, normalMap, specularMap, lightingMap;
-    //PbrLighting(colorMap, normalMap, specularMap, lightingMap);
-    colorMap = vec4(0.0, 0.0, 0.0, 0.0);
-    normalMap = vec4(0.0, 0.0, 1.0, 0.0);
+    BasicLighting(dFdXY, colorMap);
+    //colorMap = vec4(0.0, 0.0, 0.0, 0.0);
+    normalMap = vec4(0.5, 0.5, 1.0, 0.0);
     specularMap = vec4(0.0, 0.0, 0.0, 0.0);
     lightingMap = vec4(0.0, 0.0, 1.0, 1.0);
 
