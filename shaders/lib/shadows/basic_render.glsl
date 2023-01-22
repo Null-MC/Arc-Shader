@@ -60,7 +60,6 @@
             }
 
             return 1.0 - shadow / sampleCount;
-            //return 1.0 - smoothstep(0.0, 1.0, shadow / sampleCount);
         }
     #endif
 
@@ -164,7 +163,6 @@
                 float light = 0.0;
                 float maxWeight = 0.0;
                 for (int i = 0; i < sampleCount; i++) {
-                    //vec2 offset = hash23(vec3(gl_FragCoord.xy, i))*2.0 - 1.0;
                     rotation *= rotationStep;
                     float noiseDist = hash13(vec3(gl_FragCoord.xy, i + 33.3));
                     vec2 offset = rotation * noiseDist;// * pixelRadius;

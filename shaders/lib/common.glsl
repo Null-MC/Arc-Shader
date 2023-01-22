@@ -238,7 +238,6 @@ const bool colortex11Clear = false;
 //#define SKY_DITHER
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
-//#define WATER_REFRACT_HACK
 #define CLOUD_HORIZON_POWER 8.0
 #define CLOUD_POW_CLEAR 1.6
 #define CLOUD_POW_RAIN 0.3

@@ -14,10 +14,6 @@ vec3 GetWorldTransmittance(const in sampler3D tex, const in float worldY, const 
     return GetTransmittance(tex, elevation, skyLightLevel);
 }
 
-// vec3 GetSunTransmittance(const in sampler3D tex, const in float height, const in float skyLightLevel) {
-//     return GetTransmittance(tex, height, skyLightLevel);
-// }
-
 float GetSunLux() {
     return mix(SunLux, SunOvercastLux, rainStrength);
 }
@@ -29,10 +25,6 @@ vec3 GetSunColor() {
 vec3 GetSunLuxColor() {
     return GetSunLux() * GetSunColor();
 }
-
-// vec3 GetMoonTransmittance(const in sampler3D tex, const in float height, const in float skyLightLevel) {
-//     return GetTransmittance(tex, height, skyLightLevel);
-// }
 
 float GetMoonLux() {
     return mix(MoonLux, MoonOvercastLux, rainStrength);

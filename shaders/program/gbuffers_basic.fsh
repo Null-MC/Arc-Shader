@@ -17,7 +17,9 @@ flat in mat2 atlasBounds;
 
 uniform sampler2D gtexture;
 
-uniform float alphaTestRef;
+#if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
+    uniform float alphaTestRef;
+#endif
 
 #include "/lib/lighting/basic_gbuffers.glsl"
 
