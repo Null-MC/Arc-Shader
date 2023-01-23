@@ -98,7 +98,6 @@ const bool colortex11Clear = false;
 
 
 // Atmosphere Options
-#define ATMOSPHERE_TYPE 1 // [0 1]
 //#define LIGHTLEAK_FIX
 //#define ATMOSFOG_ENABLED
 //#define CAVEFOG_ENABLED
@@ -171,8 +170,8 @@ const bool colortex11Clear = false;
 // Camera Options
 #define CAMERA_EXPOSURE_MODE 2 // [0 1 2]
 #define CAMERA_EXPOSURE 0 // [-17 -16 -15 -14 -13 -12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6]
-#define CAMERA_LUM_MIN 40.0
-#define CAMERA_LUM_MAX 12000.0
+#define CAMERA_LUM_MIN 60.0
+#define CAMERA_LUM_MAX 8000.0
 //#define EXPOSURE_POINT 0.2
 #define EXPOSURE_SPEED_UP 1.0
 #define EXPOSURE_SPEED_DOWN 0.7
@@ -209,10 +208,10 @@ const bool colortex11Clear = false;
 #define VL_PARTICLES
 #define AO_TYPE 2 // [0 1 2]
 #define SSAO_SAMPLES 6 // [2 4 6 8 10 12 14 16 24 32]
-#define SSAO_INTENSITY 40 // [5 10 15 20 25 30 35 40 45 50]
+#define SSAO_INTENSITY 30 // [5 10 15 20 25 30 35 40 45 50]
 #define SSAO_SCALE 8.0
 #define SSAO_BIAS 0.02
-#define SSAO_RADIUS 0.4 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
+#define SSAO_RADIUS 0.3 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
 #define SSAO_MAX_DIST 1.6
 #define SSAO_UPSCALE
 
@@ -282,7 +281,7 @@ const float EmissionLumens = 30000;
 
 const float SunLux = 64000.0;
 const float SunOvercastLux = 48000.0;
-const float MoonLux = 26.0;
+const float MoonLux = 12.0;
 const float MoonOvercastLux = 4.0;
 const float BlockLightLux = 2400.0;
 // const float MinWorldLux = 8.0;

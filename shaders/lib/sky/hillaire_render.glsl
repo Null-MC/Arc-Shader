@@ -23,7 +23,7 @@ vec3 getValFromMultiScattLUT(const in sampler3D tex, const in vec3 pos, const in
     return textureLod(tex, uv, 0).rgb;
 }
 
-#if !defined RENDER_PREPARE_SKY_LUT && ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+#ifndef RENDER_PREPARE_SKY_LUT
     vec3 getValFromSkyLUT(const in float worldY, const in vec3 localViewDir, const in float lod) {
         float height = GetScaledSkyHeight(worldY);
 

@@ -49,33 +49,12 @@
             vec3 localReflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDir);
             float horizonFogF = 1.0 - abs(localReflectDir.y);
 
-            #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-                //float lod = rough * (8.0 - EPSILON);
-                vec3 reflectSkyColor = GetFancySkyLuminance(worldPos.y, localReflectDir, 0.0);
-            #else
-                vec3 reflectSkyColor = GetVanillaSkyLuminance(reflectDir);
-            #endif
+            //float lod = rough * (8.0 - EPSILON);
+            vec3 reflectSkyColor = GetFancySkyLuminance(worldPos.y, localReflectDir, 0.0);
 
             vec3 starF = GetStarLight(localReflectDir);
             starF *= 1.0 - horizonFogF;
             reflectSkyColor += starF * StarLumen;
-
-            #if ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
-                vec2 scatteringF = GetVanillaSkyScattering(reflectDir, lightData.skyLightLevels);
-                vec3 vlColor = scatteringF.x * sunColorFinalEye + scatteringF.y * moonColorFinalEye;
-
-                #ifndef VL_SKY_ENABLED
-                    vlColor *= RGBToLinear(fogColor);
-                #endif
-
-                reflectSkyColor += vlColor;// * (1.0 - horizonFogF);
-            #endif
-
-            // vec3 sunDir = GetSunDir();
-            // float sun_VoL = dot(reflectDir, sunDir);
-
-            // vec3 moonDir = GetMoonDir();
-            // float moon_VoL = dot(reflectDir, moonDir);
 
             if (HasClouds(worldPos, localReflectDir)) {
                 vec3 cloudPos = GetCloudPosition(worldPos, localReflectDir);
@@ -365,13 +344,8 @@
         //return vec4(iblSpec, 1.0);
 
         #ifdef SKY_ENABLED
-            #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-                vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
-                vec3 skyAmbient = GetFancySkyAmbientLight(localNormal, skyLight);
-            #else
-                float ambientBrightness = mix(0.8 * skyLight, 0.95 * skyLight, rainStrength) * ShadowBrightnessF;
-                vec3 skyAmbient = GetVanillaSkyAmbientLight(lightData, worldPos.y, viewNormal) * ambientBrightness;
-            #endif
+            vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
+            vec3 skyAmbient = GetFancySkyAmbientLight(localNormal, skyLight);
 
             bool applyWaterAbsorption = isEyeInWater == 1;
 
@@ -467,12 +441,8 @@
                     vec3 sssDiffuseLight = sssLightColor * sssExt * max(scatter, 0.0);
 
                     //sssDiffuseLight += GetSkyAmbientLight(lightData, worldPos.y, viewDir) * ambientBrightness * occlusion * skyLight2;
-                    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-                        vec3 localViewDir = mat3(gbufferModelViewInverse) * viewDir;
-                        sssDiffuseLight += GetFancySkyAmbientLight(localViewDir, skyLight) * occlusion;
-                    #else
-                        sssDiffuseLight += GetVanillaSkyAmbientLight(lightData, worldPos.y, viewDir) * occlusion * ambientBrightness * skyLight2;
-                    #endif
+                    vec3 localViewDir = mat3(gbufferModelViewInverse) * viewDir;
+                    sssDiffuseLight += GetFancySkyAmbientLight(localViewDir, skyLight) * occlusion;
 
                     sssDiffuseLight *= sssAlbedo * material.scattering;
 
@@ -779,37 +749,16 @@
 
         #ifdef RENDER_WATER
             if (isEyeInWater != 1) {
-                #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-                    #ifndef VL_SKY_ENABLED
-                        vec3 transmittance;
-                        vec3 scattering = GetFancyFog(localPos, transmittance);
+                #ifndef VL_SKY_ENABLED
+                    vec3 transmittance;
+                    vec3 scattering = GetFancyFog(localPos, transmittance);
 
-                        float fogF = 1.0;
-                        if (materialId == MATERIAL_WATER)
-                            fogF = 1.0 - reflectF;
-
-                        final.rgb = mix(final.rgb, final.rgb * transmittance + scattering, fogF);
-                        // TODO: increase alpha
-                    #endif
-                #else
-                    vec3 fogColorFinal;
-                    float fogFactorFinal;
-                    GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
-
+                    float fogF = 1.0;
                     if (materialId == MATERIAL_WATER)
-                        fogFactorFinal *= 1.0 - reflectF;
+                        fogF = 1.0 - reflectF;
 
-                    #ifdef SKY_ENABLED
-                        vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
-
-                        #if !defined VL_SKY_ENABLED && ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA
-                            fogColorFinal += RGBToLinear(fogColor) * (
-                                skyScatteringF.x * sunColorFinalEye +
-                                skyScatteringF.y * moonColorFinalEye);
-                        #endif
-                    #endif
-
-                    ApplyFog(final, fogColorFinal, fogFactorFinal, 1.0/255.0);
+                    final.rgb = mix(final.rgb, final.rgb * transmittance + scattering, fogF);
+                    // TODO: increase alpha
                 #endif
             }
             else {

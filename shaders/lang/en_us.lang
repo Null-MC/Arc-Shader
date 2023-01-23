@@ -169,10 +169,6 @@ option.PARALLAX_DEPTH_WRITE.comment=When enabled, the surface depth will also be
 
 screen.ATMOSPHERE_OPTIONS=Atmosphere
 
-option.ATMOSPHERE_TYPE=Type
-value.ATMOSPHERE_TYPE.0=Vanilla
-value.ATMOSPHERE_TYPE.1=Fancy
-
 option.sunPathRotation=Sun Angle
 suffix.sunPathRotation=°
 

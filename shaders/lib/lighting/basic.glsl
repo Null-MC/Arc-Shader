@@ -169,47 +169,9 @@
 #endif
 
 #if defined SKY_ENABLED && defined RENDER_FRAG
-    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-        vec3 GetFancySkyAmbientLight(const in vec3 localNormal, const in float skyLight) {
-            vec2 sphereCoord = DirectionToUV(localNormal);
-            vec3 irradiance = textureLod(BUFFER_IRRADIANCE, sphereCoord, 0).rgb;
-            //return irradiance * SKY_FANCY_LUM * (0.06 + 0.94 * skyLight);
-            return irradiance * SKY_FANCY_LUM * smoothstep(0.0, 1.0, skyLight);
-        }
-    #else
-        vec3 GetVanillaSkyAmbientLight(const in LightData lightData, const in float worldY, const in vec3 viewNormal) {
-            //vec3 upDir = normalize(upPosition);
-            vec3 sunLightDir = normalize(sunPosition);
-            vec3 moonLightDir = normalize(moonPosition);
-
-            //vec2 skyLightLevels;
-            //skyLightLevels.x = dot(upDir, sunLightDir);
-            //skyLightLevels.y = dot(upDir, moonLightDir);
-
-            //vec2 skyLightTemp = GetSkyLightTemp(skyLightLevels);
-
-            //vec3 sunLightLux = GetSunLightLuxColor(skyLightTemp.x, skyLightLevels.x);
-            vec3 sunColorFinal = lightData.sunTransmittance * GetSunLuxColor();// * smoothstep(-0.1, 0.3, skyLightLevels.x);
-            vec3 result = sunColorFinal * (dot(viewNormal, sunLightDir) * 0.2 + 0.3);
-
-            //vec3 moonLightLux = GetMoonLightLuxColor(skyLightTemp.y, skyLightLevels.y);
-            vec3 moonColorFinal = lightData.moonTransmittance * GetMoonLuxColor() * GetMoonPhaseLevel();// * smoothstep(-0.1, 0.3, skyLightLevels.y);
-            result += moonColorFinal * (dot(viewNormal, moonLightDir) * 0.2 + 0.3);
-
-            // float skyLux = skyLightLevels.x * DaySkyLux + skyLightLevels.y * NightSkyLux;
-            // vec3 skyLightColorLux = RGBToLinear(skyColor) * skyLux;
-            // skyLightColorLux *= saturate(dot(viewNormal, upDir) * 0.3 + 0.6);
-
-            vec3 skyColorLux = RGBToLinear(skyColor);// * skyTint;
-            if (all(lessThan(skyColorLux, vec3(EPSILON)))) skyColorLux = vec3(1.0);
-            skyColorLux = normalize(skyColorLux);
-
-            result += (sunColorFinal + moonColorFinal) * skyColorLux * mix(0.1, 0.01, wetness);
-
-            //return MinWorldLux + sunLightLux + moonLightLux;
-            //result += skyColorLux;
-
-            return result;
-        }
-    #endif
+    vec3 GetFancySkyAmbientLight(const in vec3 localNormal, const in float skyLight) {
+        vec2 sphereCoord = DirectionToUV(localNormal);
+        vec3 irradiance = textureLod(BUFFER_IRRADIANCE, sphereCoord, 0).rgb;
+        return irradiance * SKY_FANCY_LUM * smoothstep(0.0, 1.0, skyLight);
+    }
 #endif

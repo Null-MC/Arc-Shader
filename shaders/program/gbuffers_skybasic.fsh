@@ -12,10 +12,7 @@ flat in vec3 sunTransmittanceEye;
 flat in vec3 moonTransmittanceEye;
 
 uniform sampler2D noisetex;
-
-#if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-    uniform sampler2D BUFFER_SKY_LUT;
-#endif
+uniform sampler2D BUFFER_SKY_LUT;
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
@@ -49,10 +46,8 @@ uniform int moonPhase;
 #include "/lib/world/sky.glsl"
 #include "/lib/world/scattering.glsl"
 
-#if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-    #include "/lib/sky/hillaire_common.glsl"
-    #include "/lib/sky/hillaire_render.glsl"
-#endif
+#include "/lib/sky/hillaire_common.glsl"
+#include "/lib/sky/hillaire_render.glsl"
 
 /* RENDERTARGETS: 4,3 */
 layout(location = 0) out vec3 outColor0;
@@ -65,12 +60,8 @@ void main() {
     vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
     vec3 viewDir = normalize(viewPos);
 
-    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-        vec3 localViewDir = mat3(gbufferModelViewInverse) * viewDir;
-        vec3 color = GetFancySkyLuminance(cameraPosition.y, localViewDir, 0);
-    #else
-        vec3 color = GetVanillaSkyLuminance(viewDir);
-    #endif
+    vec3 localViewDir = mat3(gbufferModelViewInverse) * viewDir;
+    vec3 color = GetFancySkyLuminance(cameraPosition.y, localViewDir, 0);
 
     vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
     vec3 localDir = normalize(localPos);
@@ -82,29 +73,13 @@ void main() {
         color += starF * StarLumen;
     }
 
-    // TODO: fog
-
-    #if ATMOSPHERE_TYPE == ATMOSPHERE_VANILLA && !defined VL_SKY_ENABLED
-        vec2 skyLightLevels = GetSkyLightLevels();
-        vec3 sunColorFinal = sunTransmittanceEye * sunColor * max(skyLightLevels.x, 0.0);
-        vec3 moonColorFinal = moonTransmittanceEye * moonColor * max(skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
-        vec2 scatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
-        vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
-
-        //color *= 1.0 - scatteringF.x * max(skyLightLevels.x, 0.0);
-        //color *= 1.0 - scatteringF.y * max(skyLightLevels.y, 0.0);
-        color += lightColor * RGBToLinear(fogColor);
+    #if SHADER_PLATFORM == PLATFORM_OPTIFINE
+        vec3 localSunDir = normalize(GetFixedSunPosition());
+    #else
+        vec3 localSunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
     #endif
 
-    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-        #if SHADER_PLATFORM == PLATFORM_OPTIFINE
-            vec3 localSunDir = normalize(GetFixedSunPosition());
-        #else
-            vec3 localSunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
-        #endif
-
-        color += GetSunWithBloom(localViewDir, localSunDir) * sunTransmittanceEye * sunColor;
-    #endif
+    color += GetSunWithBloom(localViewDir, localSunDir) * sunTransmittanceEye * sunColor;
 
     outColor1 = log2(luminance(color) + EPSILON);
     outColor0 = clamp(color * exposure, vec3(0.0), vec3(65000));

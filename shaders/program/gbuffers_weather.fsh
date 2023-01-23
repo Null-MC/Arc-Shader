@@ -115,10 +115,8 @@ uniform sampler2D gtexture;
 uniform sampler2D lightmap;
 uniform sampler2D depthtex1;
 
-#if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-    uniform sampler2D BUFFER_SKY_LUT;
-    uniform sampler2D BUFFER_IRRADIANCE;
-#endif
+uniform sampler2D BUFFER_SKY_LUT;
+uniform sampler2D BUFFER_IRRADIANCE;
 
 uniform ivec2 eyeBrightnessSmooth;
 uniform ivec2 eyeBrightness;

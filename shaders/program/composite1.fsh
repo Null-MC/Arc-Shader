@@ -66,10 +66,8 @@ uniform sampler2D noisetex;
     uniform sampler2D colortex15;
 #endif
 
-#if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-    uniform sampler2D BUFFER_SKY_LUT;
-    uniform sampler2D BUFFER_IRRADIANCE;
-#endif
+uniform sampler2D BUFFER_SKY_LUT;
+uniform sampler2D BUFFER_IRRADIANCE;
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     uniform mat4 gbufferPreviousModelView;
@@ -221,9 +219,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/world/fog_vanilla.glsl"
 
 #ifdef SKY_ENABLED
-    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-        #include "/lib/world/fog_fancy.glsl"
-    #endif
+    #include "/lib/world/fog_fancy.glsl"
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #if SHADOW_TYPE == SHADOW_TYPE_BASIC
@@ -404,23 +400,9 @@ void main() {
             final = PbrLighting2(material, lightData, viewPos).rgb;
 
             if (lightData.transparentScreenDepth < lightData.opaqueScreenDepth) {
-                #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-                    vec3 transmittance;
-                    vec3 scattering = GetFancyFog(localPos, transmittance);
-                    final = final * transmittance + scattering;
-                #else
-                    vec3 fogColorFinal;
-                    float fogFactorFinal;
-                    GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactorFinal);
-
-                    #if defined SKY_ENABLED && !defined VL_SKY_ENABLED
-                        fogColorFinal += RGBToLinear(fogColor) * (
-                            skyScatteringF.x * sunColorFinalEye +
-                            skyScatteringF.y * moonColorFinalEye);
-                    #endif
-
-                    ApplyFog(final, fogColorFinal, fogFactorFinal);
-                #endif
+                vec3 transmittance;
+                vec3 scattering = GetFancyFog(localPos, transmittance);
+                final = final * transmittance + scattering;
             }
         }
         else if (lightData.transparentScreenDepth >= 1.0) {

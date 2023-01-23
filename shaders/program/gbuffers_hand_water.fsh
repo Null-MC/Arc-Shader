@@ -136,10 +136,8 @@ uniform sampler2D depthtex1;
     uniform sampler2D colortex15;
 #endif
 
-#if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-    uniform sampler2D BUFFER_SKY_LUT;
-    uniform sampler2D BUFFER_IRRADIANCE;
-#endif
+uniform sampler2D BUFFER_SKY_LUT;
+uniform sampler2D BUFFER_IRRADIANCE;
 
 uniform int worldTime;
 uniform float frameTimeCounter;
@@ -220,14 +218,11 @@ uniform float waterFogDistSmooth;
     #include "/lib/sky/hillaire_common.glsl"
     #include "/lib/celestial/position.glsl"
     #include "/lib/celestial/transmittance.glsl"
-    //#include "/lib/sky/sun_moon.glsl"
+
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
 
-    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-        #include "/lib/sky/hillaire.glsl"
-    #endif
-    
+    #include "/lib/sky/hillaire.glsl"
     #include "/lib/sky/hillaire_render.glsl"
 #endif
 

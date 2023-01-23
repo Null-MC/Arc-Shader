@@ -132,10 +132,8 @@ uniform usampler2D BUFFER_DEFERRED;
     uniform sampler2D colortex15;
 #endif
 
-#if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-    uniform sampler2D BUFFER_SKY_LUT;
-    uniform sampler2D BUFFER_IRRADIANCE;
-#endif
+uniform sampler2D BUFFER_SKY_LUT;
+uniform sampler2D BUFFER_IRRADIANCE;
 
 uniform int worldTime;
 uniform float frameTimeCounter;
@@ -252,10 +250,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/world/fog_vanilla.glsl"
 
 #ifdef SKY_ENABLED
-    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-        #include "/lib/world/fog_fancy.glsl"
-    #endif
-
+    #include "/lib/world/fog_fancy.glsl"
     #include "/lib/lighting/basic.glsl"
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
