@@ -96,6 +96,16 @@ void main() {
         color += lightColor * RGBToLinear(fogColor);
     #endif
 
+    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+        #if SHADER_PLATFORM == PLATFORM_OPTIFINE
+            vec3 localSunDir = normalize(GetFixedSunPosition());
+        #else
+            vec3 localSunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
+        #endif
+
+        color += GetSunWithBloom(localViewDir, localSunDir) * sunTransmittanceEye * sunColor;
+    #endif
+
     outColor1 = log2(luminance(color) + EPSILON);
     outColor0 = clamp(color * exposure, vec3(0.0), vec3(65000));
 }

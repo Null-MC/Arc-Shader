@@ -245,7 +245,7 @@ const bool colortex11Clear = false;
 #define SMOKE_ENABLED
 #define VL_SMOKE_DENSITY 0.2
 #define IRIS_FEATURE_BIOMECAT
-#define SKY_FANCY_LUM 100000.0
+#define SKY_FANCY_LUM 40000.0
 
 #if SSR_QUALITY == 2
     #define SSR_SCALE 1

@@ -19,6 +19,7 @@ flat out vec3 moonTransmittanceEye;
     uniform sampler3D colortex12;
 #endif
 
+uniform int renderStage;
 uniform vec3 cameraPosition;
 uniform float screenBrightness;
 uniform float eyeAltitude;
@@ -63,6 +64,13 @@ uniform float blindness;
 
 
 void main() {
+    #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
+        if (renderStage == MC_RENDER_STAGE_SUN) {
+            gl_Position = vec4(10.0);
+            return;
+        }
+    #endif
+
     gl_Position = ftransform();
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     glcolor = gl_Color;

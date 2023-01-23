@@ -21,10 +21,6 @@
 
             tanViewPos = viewPos * matTBN;
         #endif
-
-        // #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && (defined RENDER_TERRAIN || defined RENDER_WATER)
-        //     ApplyHardCodedMaterials(matF0, matSSS, matSmooth, matEmissive);
-        // #endif
     }
 #endif
 
@@ -784,15 +780,17 @@
         #ifdef RENDER_WATER
             if (isEyeInWater != 1) {
                 #if ATMOSPHERE_TYPE == ATMOSPHERE_FANCY
-                    vec3 transmittance;
-                    vec3 scattering = GetFancyFog(localPos, transmittance);
+                    #ifndef VL_SKY_ENABLED
+                        vec3 transmittance;
+                        vec3 scattering = GetFancyFog(localPos, transmittance);
 
-                    float fogF = 1.0;
-                    if (materialId == MATERIAL_WATER)
-                        fogF = 1.0 - reflectF;
+                        float fogF = 1.0;
+                        if (materialId == MATERIAL_WATER)
+                            fogF = 1.0 - reflectF;
 
-                    final.rgb = mix(final.rgb, final.rgb * transmittance + scattering, fogF);
-                    // TODO: increase alpha
+                        final.rgb = mix(final.rgb, final.rgb * transmittance + scattering, fogF);
+                        // TODO: increase alpha
+                    #endif
                 #else
                     vec3 fogColorFinal;
                     float fogFactorFinal;

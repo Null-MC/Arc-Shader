@@ -63,4 +63,17 @@ vec3 getValFromMultiScattLUT(const in sampler3D tex, const in vec3 pos, const in
     vec3 GetFancySkyLuminance(const in float worldY, const in vec3 localViewDir, const in float lod) {
         return NightSkyLumen + getValFromSkyLUT(worldY, localViewDir, lod) * SKY_FANCY_LUM;
     }
+
+    vec3 GetSunWithBloom(vec3 rayDir, vec3 sunDir) {
+        const float sunSolidAngle = 1.0*(PI/180.0);
+        const float minSunCosTheta = cos(sunSolidAngle);
+
+        float cosTheta = dot(rayDir, sunDir);
+        if (cosTheta >= minSunCosTheta) return vec3(1.0);
+        
+        float offset = minSunCosTheta - cosTheta;
+        float gaussianBloom = exp(-offset*50000.0)*0.5;
+        float invBloom = 1.0/(0.02 + offset*300.0)*0.01;
+        return vec3(gaussianBloom+invBloom);
+    }
 #endif

@@ -90,9 +90,9 @@ uniform int entityId;
 #include "/lib/material/material.glsl"
 #include "/lib/material/material_reader.glsl"
 
-#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
+//#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
     #include "/lib/material/default.glsl"
-#endif
+//#endif
 
 #if defined WATER_ENABLED && defined WATER_FANCY
     #include "/lib/world/wind.glsl"

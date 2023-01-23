@@ -39,7 +39,7 @@ vec3 GetScatteredLighting(const in float elevation, const in vec2 skyLightLevels
         const float inverseStepCountF = rcp(VL_SAMPLES_SKY + 1);
         
         #ifdef VL_DITHER
-            float dither = GetScreenBayerValue();
+            float dither = Bayer16(gl_FragCoord.xy);
         #else
             const float dither = 0.0;
         #endif
@@ -95,6 +95,9 @@ vec3 GetScatteredLighting(const in float elevation, const in vec2 skyLightLevels
 
         const float atmosScale = (atmosphereRadiusMM - groundRadiusMM) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
 
+        vec3 sunColorSky = SunLux * GetSunColor();
+        vec3 moonColorSky = MoonLux * GetMoonColor();
+
         vec3 scattering = vec3(0.0);
         for (int i = 0; i < VL_SAMPLES_SKY; i++) {
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -145,9 +148,9 @@ vec3 GetScatteredLighting(const in float elevation, const in vec2 skyLightLevels
                 texDensity *= smoothstep(0.1, 1.0, altD);
 
                 // Change with weather
-                texDensity *= minFogF + (1.0 - minFogF) * wetness;
+                //texDensity *= minFogF + (1.0 - minFogF) * wetness;
 
-                texDensity = 1.0 + 20.0 * texDensity;
+                texDensity = 1.0 + (8.0 + rainStrength * 32.0) * texDensity;
             #endif
 
             vec3 sampleColor = vec3(1.0);
@@ -180,11 +183,11 @@ vec3 GetScatteredLighting(const in float elevation, const in vec2 skyLightLevels
             vec3 sampleTransmittance = exp(-dt*extinction);
 
             #if SHADER_PLATFORM == PLATFORM_IRIS
-                vec3 sunTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.x) * sunColor;
-                vec3 moonTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.y) * moonColor;
+                vec3 sunTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.x) * sunColorSky;
+                vec3 moonTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.y) * moonColorSky;
             #else
-                vec3 sunTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.x) * sunColor;
-                vec3 moonTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.y) * moonColor;
+                vec3 sunTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.x) * sunColorSky;
+                vec3 moonTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.y) * moonColorSky;
             #endif
 
             vec3 lightTransmittance = (sunTransmittance + moonTransmittance) * sampleColor * sampleF;
