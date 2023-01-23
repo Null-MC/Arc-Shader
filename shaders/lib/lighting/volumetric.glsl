@@ -85,7 +85,7 @@ vec3 GetScatteredLighting(const in float elevation, const in vec2 skyLightLevels
         float minFogF = min(VLFogMinF * (1.0 + 0.6 * max(lightData.skyLightLevels.x, 0.0)), 1.0);
 
         #ifndef VL_FOG_NOISE
-            float texDensity = 1.0;//mix(0.02, 1.0, rainStrength);
+            float texDensity = mix(1.6, 4.0, rainStrength);
         #endif
 
         vec3 viewDir = normalize(farViewPos - nearViewPos);
@@ -94,7 +94,6 @@ vec3 GetScatteredLighting(const in float elevation, const in vec2 skyLightLevels
         float rayleighPhaseValue = getRayleighPhase(-VoL);
 
         const float atmosScale = (atmosphereRadiusMM - groundRadiusMM) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
-        float dt = localStepLength * atmosScale;
 
         vec3 scattering = vec3(0.0);
         for (int i = 0; i < VL_SAMPLES_SKY; i++) {
@@ -143,10 +142,12 @@ vec3 GetScatteredLighting(const in float elevation, const in vec2 skyLightLevels
 
                 // Change with altitude
                 float altD = 1.0 - saturate((traceWorldPos.y - SEA_LEVEL) / (CLOUD_LEVEL - SEA_LEVEL));
-                texDensity *= pow3(altD);
+                texDensity *= smoothstep(0.1, 1.0, altD);
 
                 // Change with weather
                 texDensity *= minFogF + (1.0 - minFogF) * wetness;
+
+                texDensity = 1.0 + 20.0 * texDensity;
             #endif
 
             vec3 sampleColor = vec3(1.0);
@@ -175,6 +176,7 @@ vec3 GetScatteredLighting(const in float elevation, const in vec2 skyLightLevels
             vec3 rayleighScattering, extinction;
             getScatteringValues(atmosPos, rayleighScattering, mieScattering, extinction);
 
+            float dt = localStepLength * atmosScale * texDensity;
             vec3 sampleTransmittance = exp(-dt*extinction);
 
             #if SHADER_PLATFORM == PLATFORM_IRIS
