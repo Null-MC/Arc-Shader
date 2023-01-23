@@ -33,11 +33,11 @@ in vec2 gTexcoord;
 in vec2 gLmcoord;
 in vec4 gColor;
 flat in int gBlockId;
-flat in int gEntityId;
+//flat in int gEntityId;
 
-#ifdef SSS_ENABLED
-    flat in float gMaterialSSS;
-#endif
+// #ifdef SSS_ENABLED
+//     flat in float gMaterialSSS;
+// #endif
 
 #if defined RSM_ENABLED || defined WATER_FANCY
     in vec3 gViewPos;
@@ -77,9 +77,9 @@ uniform int entityId;
 #endif
 
 #if defined WATER_ENABLED && defined WATER_FANCY
-    flat in int gWaterMask;
+    //flat in int gWaterMask;
 
-    uniform sampler2D BUFFER_WATER_WAVES;
+    //uniform sampler2D BUFFER_WATER_WAVES;
 
     uniform vec3 cameraPosition;
     uniform float frameTimeCounter;
@@ -89,6 +89,10 @@ uniform int entityId;
 #include "/lib/material/hcm.glsl"
 #include "/lib/material/material.glsl"
 #include "/lib/material/material_reader.glsl"
+
+#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
+    #include "/lib/material/default.glsl"
+#endif
 
 #if defined WATER_ENABLED && defined WATER_FANCY
     #include "/lib/world/wind.glsl"
@@ -158,7 +162,7 @@ void main() {
     #endif
 
     #if defined WATER_ENABLED && defined WATER_FANCY
-        if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && gWaterMask == 1) {
+        if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && gBlockId == MATERIAL_WATER) {
             #ifdef PHYSICS_OCEAN
                 //float waviness = textureLod(physics_waviness, physics_gLocalPosition.xz / vec2(textureSize(physics_waviness, 0)), 0).r;
                 normal = mat3(gl_ModelViewMatrix) * physics_waveNormal(physics_gLocalPosition.xz, physics_gLocalWaviness, physics_gameTime);
@@ -195,24 +199,27 @@ void main() {
         }
     #endif
 
-    float sss = 0.0;
+    //float sss = 0.0;
+    PbrMaterial material;
     #ifdef SSS_ENABLED
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-            sss = gMaterialSSS;
+            //sss = gMaterialSSS;
+            ApplyHardCodedMaterials(material, gBlockId);
         #else
             float specularMapB = textureGrad(specular, gTexcoord, dFdXY[0], dFdXY[1]).b;
-            sss = GetLabPbr_SSS(specularMapB);
-        #endif
+            material.scattering = GetLabPbr_SSS(specularMapB);
 
-        //#ifdef PHYSICSMOD_ENABLED
-            if (gBlockId == MATERIAL_PHYSICS_SNOW) {
-                sss = gMaterialSSS;
-            }
-        //#endif
+            //#ifdef PHYSICSMOD_ENABLED
+                if (gBlockId == MATERIAL_PHYSICS_SNOW) {
+                    ApplyHardCodedMaterials(material, gBlockId);
+                }
+            //#endif
+
+        #endif
 
         #if !defined SHADOW_COLOR && defined SSS_ENABLED && !defined RSM_ENABLED
             // blending SSS is probably bad, should just ignore transparent
-            outColor0 = vec4(sss, 0.0, 0.0, sampleColor.a);
+            outColor0 = vec4(material.scattering, 0.0, 0.0, sampleColor.a);
         #endif
     #endif
 
@@ -253,7 +260,7 @@ void main() {
         
         vec3 shadowViewNormal = normal;
         #ifdef PHYSICS_OCEAN
-            if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT || gWaterMask != 1)
+            if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT || gBlockId != MATERIAL_WATER)
                 shadowViewNormal = gMatShadowViewTBN * normal;
         #else
             shadowViewNormal = gMatShadowViewTBN * normal;
@@ -268,7 +275,7 @@ void main() {
     #if defined RSM_ENABLED || (defined SHADOW_COLOR && defined SSS_ENABLED) || defined WATER_FANCY
         uvec2 data;
         data.r = packUnorm4x8(vec4(LinearToRGB(diffuse), 1.0));
-        data.g = packUnorm4x8(vec4(shadowViewNormal, sss));
+        data.g = packUnorm4x8(vec4(shadowViewNormal, material.scattering));
         outColor1 = data;
     #endif
 }

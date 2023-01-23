@@ -22,9 +22,9 @@
             tanViewPos = viewPos * matTBN;
         #endif
 
-        #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && (defined RENDER_TERRAIN || defined RENDER_WATER)
-            ApplyHardCodedMaterials(matF0, matSSS, matSmooth, matEmissive);
-        #endif
+        // #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && (defined RENDER_TERRAIN || defined RENDER_WATER)
+        //     ApplyHardCodedMaterials(matF0, matSSS, matSmooth, matEmissive);
+        // #endif
     }
 #endif
 

@@ -11,15 +11,15 @@ out vec2 vLmcoord;
 out vec4 vColor;
 out float vNoV;
 flat out int vBlockId;
-flat out int vEntityId;
+//flat out int vEntityId;
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     flat out vec3 vOriginPos;
 #endif
 
-#ifdef SSS_ENABLED
-    flat out float vMaterialSSS;
-#endif
+// #ifdef SSS_ENABLED
+//     flat out float vMaterialSSS;
+// #endif
 
 #if defined RSM_ENABLED || defined WATER_FANCY
     out vec3 vViewPos;
@@ -33,9 +33,9 @@ flat out int vEntityId;
     flat out mat3 vMatViewTBN;
 #endif
 
-#if defined WATER_ENABLED && defined WATER_FANCY
-    flat out int vWaterMask;
-#endif
+// #if defined WATER_ENABLED && defined WATER_FANCY
+//     flat out int vWaterMask;
+// #endif
 
 attribute vec3 mc_Entity;
 attribute vec4 mc_midTexCoord;
@@ -98,31 +98,33 @@ uniform float far;
     #include "/lib/physicsMod/water.glsl"
 #endif
 
-#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
-    #include "/lib/material/default.glsl"
-#endif
+// #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
+//     #include "/lib/material/default.glsl"
+// #endif
 
 
 void main() {
-    if (renderStage == MC_RENDER_STAGE_ENTITIES) {
-        vBlockId = -1;
-        vEntityId = entityId;
+    vBlockId = -1;
 
-        if (entityId == MATERIAL_LIGHTNING_BOLT) {
-            gl_Position = vec4(10.0);
-            return;
-        }
+    if (renderStage == MC_RENDER_STAGE_ENTITIES) {
+        //blockId = -1;
+        //vEntityId = entityId;
+
+        // if (entityId == MATERIAL_LIGHTNING_BOLT) {
+        //     gl_Position = vec4(10.0);
+        //     return;
+        // }
     }
     else {
         vBlockId = int(mc_Entity.x + 0.5);
-        vEntityId = -1;
+        //vEntityId = -1;
 
-        #ifdef SHADOW_EXCLUDE_FOLIAGE
-            if (vBlockId >= 10000 && vBlockId <= 10004) {
-                gl_Position = vec4(10.0);
-                return;
-            }
-        #endif
+        // #ifdef SHADOW_EXCLUDE_FOLIAGE
+        //     if (vBlockId >= 10000 && vBlockId <= 10004) {
+        //         gl_Position = vec4(10.0);
+        //         return;
+        //     }
+        // #endif
     }
 
     vLocalPos = gl_Vertex.xyz;
@@ -145,15 +147,15 @@ void main() {
         }
     #endif
 
-    #ifdef WATER_FANCY
-        vWaterMask = 0;
-    #endif
+    // #ifdef WATER_FANCY
+    //     vWaterMask = 0;
+    // #endif
 
     if (vBlockId == MATERIAL_WATER) {
         #ifdef PHYSICS_OCEAN
-            #ifdef WATER_FANCY
-                vWaterMask = 1;
-            #endif
+            // #ifdef WATER_FANCY
+            //     vWaterMask = 1;
+            // #endif
         
             //float waviness = textureLod(physics_waviness, vLocalPos.xz / vec2(textureSize(physics_waviness, 0)), 0).r;
             physics_vLocalWaviness = physics_GetWaviness(ivec2(vLocalPos.xz));
@@ -174,9 +176,9 @@ void main() {
             #endif
         #else
             if (gl_Normal.y > 0.5) {
-                #ifdef WATER_FANCY
-                    vWaterMask = 1;
-                #endif
+                // #ifdef WATER_FANCY
+                //     vWaterMask = 1;
+                // #endif
                 
                 #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
                     vec3 worldPos = vLocalPos + cameraPosition;
@@ -235,16 +237,16 @@ void main() {
     #endif
 
     #if defined SSS_ENABLED //|| defined RSM_ENABLED
-        #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-            float matF0, matSmooth, matEmissive;
-            ApplyHardCodedMaterials(matF0, vMaterialSSS, matSmooth, matEmissive);
-        #endif
+        // #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+        //     PbrMaterial material;
+        //     ApplyHardCodedMaterials(material);
+        // #endif
 
         // PhysicsMod snow
-        if (entityId == 829925) {
-            vBlockId = MATERIAL_PHYSICS_SNOW;
-            vMaterialSSS = 0.8;
-        }
+        // if (entityId == 829925) {
+        //     blockId = MATERIAL_PHYSICS_SNOW;
+        //     //vMaterialSSS = 0.8;
+        // }
     #endif
 
     gl_Position = shadowViewPos;

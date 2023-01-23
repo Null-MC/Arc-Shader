@@ -3,26 +3,6 @@
 #endif
 
 #ifdef RENDER_FRAG
-    #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-        void ApplyVanillaProperties(inout PbrMaterial material, const in vec4 colorMap) {
-            material.albedo.rgb = RGBToLinear(colorMap.rgb);
-            material.albedo.a = colorMap.a;
-            material.occlusion = 1.0;
-            material.normal = vec3(0.0, 0.0, 1.0);
-            material.smoothness = matSmooth;
-            material.scattering = matSSS;
-            material.f0 = GetLabPbr_F0(matF0);
-            material.hcm = GetLabPbr_HCM(matF0);
-            material.emission = matEmissive;
-
-            if (materialId == MATERIAL_WATER) {
-                //material.albedo = vec4(1.0, 0.0, 0.0, 1.0);
-                material.smoothness = WATER_SMOOTH;
-                material.f0 = 0.02;
-            }
-        }
-    #endif
-
     vec4 PbrLighting() {
         vec3 traceCoordDepth = vec3(1.0);
         //vec2 waterSolidDepth = vec2(0.0);
@@ -247,7 +227,12 @@
                     }
                 #endif
             #else
-                ApplyVanillaProperties(material, colorMap);
+                material.albedo.rgb = RGBToLinear(colorMap.rgb);
+                material.albedo.a = colorMap.a;
+
+                #ifndef RENDER_ENTITIES
+                    ApplyHardCodedMaterials(material, materialId);
+                #endif
             #endif
 
         #if defined RENDER_WATER && defined WATER_FANCY && defined WATER_ENABLED

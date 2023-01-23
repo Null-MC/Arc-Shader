@@ -1,90 +1,116 @@
-void ApplyHardCodedMaterials(out float f0, out float sss, out float smoothness, out float emissive) {
-    f0 = 0.04;
-    sss = 0.0;
-    smoothness = 0.0;
-    emissive = 0.0;
+void ApplyHardCodedMaterials(inout PbrMaterial material, const in int materialId) {
+    material.occlusion = 1.0;
+    material.normal = vec3(0.0, 0.0, 1.0);
+    material.scattering = 0.0;
+    material.smoothness = 0.0;
+    material.emission = 0.0;
+    material.porosity = 0.7;
+    material.hcm = -1;
+    material.f0 = 0.04;
 
-    if (mc_Entity.x == 100.0 || mc_Entity.x == 101.0) {
+    if (materialId == MATERIAL_WATER) {
+        material.smoothness = WATER_SMOOTH;
+        material.f0 = 0.02;
+        material.porosity = 0.0;
+    }
+    else if (materialId == MATERIAL_PHYSICS_SNOW) {
+        material.scattering = 0.4;
+        //...
+    }
+    else if (materialId == 100 || materialId == 101) {
         // Water
-        smoothness = 0.98;
-        f0 = 0.02;
+        material.smoothness = 0.98;
+        material.f0 = 0.02;
+        material.porosity = 0.0;
     }
-    else if (mc_Entity.x == 102.0) {
+    else if (materialId == 102) {
         // Nether Portal
-        emissive = 0.8;
+        material.emission = 0.8;
+        material.porosity = 0.0;
     }
-    else if (mc_Entity.x >= 10000.5 && mc_Entity.x <= 10004.5) {
+    else if (materialId >= 10000 && materialId <= 10004) {
         // Foliage
-        smoothness = 0.08;
-        sss = 0.7;
-        f0 = 0.03;
+        material.smoothness = 0.08;
+        material.scattering = 0.7;
+        material.f0 = 0.03;
+        material.porosity = 0.3;
     }
-    else if (mc_Entity.x >= 11000.0 && mc_Entity.x < 11010) {
+    else if (materialId >= 11000 && materialId < 11010) {
         // Metals
-        if (mc_Entity.x == 11000) {
+        if (materialId == 11000) {
             // Iron
-            smoothness = 0.8;
-            f0 = 230.5/255.0;
+            material.smoothness = 0.8;
+            material.f0 = 230.5/255.0;
+            material.porosity = 0.0;
         }
-        else if (mc_Entity.x == 11001) {
+        else if (materialId == 11001) {
             // Gold
-            smoothness = 0.9;
-            f0 = 231.5/255.0;
+            material.smoothness = 0.9;
+            material.f0 = 231.5/255.0;
+            material.porosity = 0.0;
         }
-        else if (mc_Entity.x == 11004) {
+        else if (materialId == 11004) {
             // Copper
-            smoothness = 0.75;
-            f0 = 234.5/255.0;
+            material.smoothness = 0.75;
+            material.f0 = 234.5/255.0;
+            material.porosity = 0.0;
         }
     }
-    else if (mc_Entity.x >= 11010.0 && mc_Entity.x < 11100) {
+    else if (materialId >= 11010 && materialId < 11100) {
         // SSS
-        if (mc_Entity.x == 11010) {
+        if (materialId == 11010) {
             // Snow
-            smoothness = 0.4;
-            f0 = 0.02;
-            sss = 0.6;
+            material.smoothness = 0.4;
+            material.f0 = 0.02;
+            material.scattering = 0.6;
+            material.porosity = 0.6;
         }
-        else if (mc_Entity.x == 11011) {
+        else if (materialId == 11011) {
             // Slime
-            smoothness = 0.55;
-            f0 = 0.04;
-            sss = 0.6;
+            material.smoothness = 0.55;
+            material.f0 = 0.04;
+            material.scattering = 0.6;
+            material.porosity = 0.0;
         }
     }
-    else if (mc_Entity.x >= 11100.0 && mc_Entity.x < 11200) {
+    else if (materialId >= 11100 && materialId < 11200) {
         // Smooth
-        if (mc_Entity.x == 11100) {
+        if (materialId == 11100) {
             // Ice
-            smoothness = 0.94;
-            f0 = 0.02;
-            sss = 0.9;
+            material.smoothness = 0.94;
+            material.f0 = 0.02;
+            material.scattering = 0.9;
+            material.porosity = 0.3;
         }
-        else if (mc_Entity.x == 11101) {
+        else if (materialId == 11101) {
             // Polished blocks
-            smoothness = 0.65;
-            f0 = 0.04;
+            material.smoothness = 0.65;
+            material.f0 = 0.04;
+            material.porosity = 0.15;
         }
     }
-    else if (mc_Entity.x >= 11200.0) {
+    else if (materialId >= 11200) {
         // Special
-        if (mc_Entity.x == 11200) {
+        if (materialId == 11200) {
             // Diamond
-            smoothness = 0.98;
-            f0 = 0.172;
-            sss = 0.9;
+            material.smoothness = 0.98;
+            material.f0 = 0.172;
+            material.scattering = 0.9;
+            material.porosity = 0.05;
         }
-        else if (mc_Entity.x == 11201) {
+        else if (materialId == 11201) {
             // Emerald
-            smoothness = 0.8;
-            f0 = 0.053;
-            sss = 0.6;
+            material.smoothness = 0.8;
+            material.f0 = 0.053;
+            material.scattering = 0.6;
+            material.porosity = 0.05;
         }
-        else if (mc_Entity.x == 11202) {
+        else if (materialId == 11202) {
             // Obsidian
-            smoothness = 0.94;
-            f0 = 0.047;
-            sss = 0.2;
+            material.smoothness = 0.94;
+            material.f0 = 0.047;
+            material.scattering = 0.2;
+            material.porosity = 0.05;
         }
     }
 }

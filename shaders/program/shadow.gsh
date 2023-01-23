@@ -14,15 +14,15 @@ in vec2 vLmcoord[3];
 in vec4 vColor[3];
 in float vNoV[3];
 flat in int vBlockId[3];
-flat in int vEntityId[3];
+//flat in int vEntityId[3];
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-	flat in vec3 vOriginPos[3];
+    flat in vec3 vOriginPos[3];
 #endif
 
-#ifdef SSS_ENABLED
-    flat in float vMaterialSSS[3];
-#endif
+// #ifdef SSS_ENABLED
+//     flat in float vMaterialSSS[3];
+// #endif
 
 #if defined RSM_ENABLED || defined WATER_FANCY
     in vec3 vViewPos[3];
@@ -36,20 +36,20 @@ flat in int vEntityId[3];
     flat in mat3 vMatViewTBN[3];
 #endif
 
-#if defined WATER_ENABLED && defined WATER_FANCY
-    flat in int vWaterMask[3];
-#endif
+// #if defined WATER_ENABLED && defined WATER_FANCY
+//     flat in int vWaterMask[3];
+// #endif
 
 out vec3 gLocalPos;
 out vec2 gTexcoord;
 out vec2 gLmcoord;
 out vec4 gColor;
 flat out int gBlockId;
-flat out int gEntityId;
+//flat out int gEntityId;
 
-#ifdef SSS_ENABLED
-    flat out float gMaterialSSS;
-#endif
+// #ifdef SSS_ENABLED
+//     flat out float gMaterialSSS;
+// #endif
 
 #if defined RSM_ENABLED || defined WATER_FANCY
     out vec3 gViewPos;
@@ -63,22 +63,23 @@ flat out int gEntityId;
     flat out mat3 gMatViewTBN;
 #endif
 
-#if defined WATER_ENABLED && defined WATER_FANCY
-    flat out int gWaterMask;
-#endif
+// #if defined WATER_ENABLED && defined WATER_FANCY
+//     flat out int gWaterMask;
+// #endif
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-	flat out vec2 gShadowTilePos;
+    flat out vec2 gShadowTilePos;
 #endif
 
 uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
 uniform vec3 cameraPosition;
 uniform int renderStage;
+uniform int entityId;
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-	uniform float near;
-	uniform float far;
+    uniform float near;
+    uniform float far;
 
     #if SHADER_PLATFORM == PLATFORM_OPTIFINE
         uniform mat4 gbufferPreviousModelView;
@@ -88,9 +89,9 @@ uniform int renderStage;
         uniform mat4 gbufferProjection;
     #endif
 
-	#include "/lib/shadows/csm.glsl"
+    #include "/lib/shadows/csm.glsl"
 #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-	#include "/lib/shadows/basic.glsl"
+    #include "/lib/shadows/basic.glsl"
 #endif
 
 #ifdef PHYSICS_OCEAN
@@ -99,103 +100,111 @@ uniform int renderStage;
 
 
 void ApplyCommonProperties(const in int v) {
-	gLocalPos = vLocalPos[v];
-	gTexcoord = vTexcoord[v];
-	gLmcoord = vLmcoord[v];
-	gColor = vColor[v];
+    gLocalPos = vLocalPos[v];
+    gTexcoord = vTexcoord[v];
+    gLmcoord = vLmcoord[v];
+    gColor = vColor[v];
 
-	gBlockId = vBlockId[v];
-	gEntityId = vEntityId[v];
+    gBlockId = vBlockId[v];
+    //gEntityId = vEntityId[v];
 
-	#ifdef SSS_ENABLED
-	    gMaterialSSS = vMaterialSSS[v];
-	#endif
+    // #ifdef SSS_ENABLED
+    //     gMaterialSSS = vMaterialSSS[v];
+    // #endif
 
-	#if defined RSM_ENABLED || (defined WATER_FANCY)
-	    gViewPos = vViewPos[v];
-	#endif
+    #if defined RSM_ENABLED || (defined WATER_FANCY)
+        gViewPos = vViewPos[v];
+    #endif
 
-	#if defined RSM_ENABLED || defined WATER_FANCY
-	    gMatShadowViewTBN = vMatShadowViewTBN[v];
-	#endif
+    #if defined RSM_ENABLED || defined WATER_FANCY
+        gMatShadowViewTBN = vMatShadowViewTBN[v];
+    #endif
 
-	#ifdef RSM_ENABLED
-	    gMatViewTBN = vMatViewTBN[v];
-	#endif
+    #ifdef RSM_ENABLED
+        gMatViewTBN = vMatViewTBN[v];
+    #endif
 
-	#if defined WATER_ENABLED && defined WATER_FANCY
-	    gWaterMask = vWaterMask[v];
-	#endif
+    // #if defined WATER_ENABLED && defined WATER_FANCY
+    //     gWaterMask = vWaterMask[v];
+    // #endif
 
-	#ifdef PHYSICS_OCEAN
-		physics_gLocalPosition = physics_vLocalPosition[v];
-	#endif
+    #ifdef PHYSICS_OCEAN
+        physics_gLocalPosition = physics_vLocalPosition[v];
+    #endif
 }
 
 void main() {
-	#ifdef SHADOW_EXCLUDE_ENTITIES
-		if (vEntityId[0] == 0) return;
-	#endif
+    //int blockId = -1;
 
-	#ifdef SHADOW_EXCLUDE_FOLIAGE
-		if (vBlockId[0] >= 10000 && vBlockId[0] <= 10004) return;
-	#endif
+    if (renderStage == MC_RENDER_STAGE_ENTITIES) {
+        #ifdef SHADOW_EXCLUDE_ENTITIES
+            //if (vEntityId[0] == 0) return;
+            return;
+        #endif
 
-    if (vEntityId[0] == MATERIAL_LIGHTNING_BOLT) return;
+        if (entityId == MATERIAL_LIGHTNING_BOLT) return;
+    }
 
-    #if SHADER_PLATFORM == PLATFORM_IRIS && !defined PHYSICS_OCEAN
-        // Iris does not cull water backfaces
-        if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
-        	if (vNoV[0] <= 0.0 && vNoV[1] <= 0.0 && vNoV[2] <= 0.0) return;
+    #ifdef SHADOW_EXCLUDE_FOLIAGE
+        if (renderStage == MC_RENDER_STAGE_TERRAIN || renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
+            //blockId = int(mc_Entity.x + 0.5);
+            if (vBlockId[0] >= 10000 && vBlockId[0] <= 10004) return;
         }
     #endif
 
-	#if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-		int shadowTile = GetShadowCascade(cascadeProjection, vOriginPos[0]);
-		if (shadowTile < 0) return;
+    #if SHADER_PLATFORM == PLATFORM_IRIS && !defined PHYSICS_OCEAN
+        // Iris does not cull water backfaces
+        if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && vBlockId[0] == MATERIAL_WATER) {
+            if (vNoV[0] <= 0.0 && vNoV[1] <= 0.0 && vNoV[2] <= 0.0) return;
+        }
+    #endif
 
-		#ifndef SHADOW_EXCLUDE_ENTITIES
-			if (renderStage == MC_RENDER_STAGE_ENTITIES && vEntityId[0] == CSM_PLAYER_ID) shadowTile = 0;
-		#endif
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        int shadowTile = GetShadowCascade(cascadeProjection, vOriginPos[0]);
+        if (shadowTile < 0) return;
 
-		int cascadeMin = max(shadowTile - 1, 0);
-		int cascadeMax = min(shadowTile + 1, 3);
+        #ifndef SHADOW_EXCLUDE_ENTITIES
+            if (renderStage == MC_RENDER_STAGE_ENTITIES && entityId == CSM_PLAYER_ID) shadowTile = 0;
+        #endif
 
-		for (int c = cascadeMin; c <= cascadeMax; c++) {
-			if (c != shadowTile) {
-				// duplicate geometry if intersecting overlapping cascades
-				if (!CascadeIntersectsPosition(vOriginPos[0], cascadeProjection[c])) continue;
-			}
+        int cascadeMin = max(shadowTile - 1, 0);
+        int cascadeMax = min(shadowTile + 1, 3);
 
-			for (int v = 0; v < 3; v++) {
-				ApplyCommonProperties(v);
+        for (int c = cascadeMin; c <= cascadeMax; c++) {
+            if (c != shadowTile) {
+                // duplicate geometry if intersecting overlapping cascades
+                if (!CascadeIntersectsPosition(vOriginPos[0], cascadeProjection[c])) continue;
+            }
 
-				gShadowTilePos = shadowProjectionPos[c];
+            for (int v = 0; v < 3; v++) {
+                ApplyCommonProperties(v);
 
-				gl_Position = cascadeProjection[c] * gl_in[v].gl_Position;
+                gShadowTilePos = shadowProjectionPos[c];
 
-				gl_Position.xy = gl_Position.xy * 0.5 + 0.5;
-				gl_Position.xy = gl_Position.xy * 0.5 + shadowProjectionPos[c];
-				gl_Position.xy = gl_Position.xy * 2.0 - 1.0;
+                gl_Position = cascadeProjection[c] * gl_in[v].gl_Position;
 
-				EmitVertex();
-			}
+                gl_Position.xy = gl_Position.xy * 0.5 + 0.5;
+                gl_Position.xy = gl_Position.xy * 0.5 + shadowProjectionPos[c];
+                gl_Position.xy = gl_Position.xy * 2.0 - 1.0;
 
-			EndPrimitive();
-		}
-	#else
-		for (int v = 0; v < 3; v++) {
-			ApplyCommonProperties(v);
+                EmitVertex();
+            }
 
-			gl_Position = gl_ProjectionMatrix * gl_in[v].gl_Position;
+            EndPrimitive();
+        }
+    #else
+        for (int v = 0; v < 3; v++) {
+            ApplyCommonProperties(v);
 
-			#if SHADOW_TYPE == 2
-				gl_Position.xyz = distort(gl_Position.xyz);
-			#endif
+            gl_Position = gl_ProjectionMatrix * gl_in[v].gl_Position;
 
-			EmitVertex();
-		}
+            #if SHADOW_TYPE == 2
+                gl_Position.xyz = distort(gl_Position.xyz);
+            #endif
 
-		EndPrimitive();
-	#endif
+            EmitVertex();
+        }
+
+        EndPrimitive();
+    #endif
 }

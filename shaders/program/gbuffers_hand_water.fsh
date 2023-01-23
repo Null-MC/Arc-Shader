@@ -204,6 +204,10 @@ uniform float waterFogDistSmooth;
 #include "/lib/lighting/fresnel.glsl"
 #include "/lib/lighting/brdf.glsl"
 
+#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+    #include "/lib/material/default.glsl"
+#endif
+
 #ifdef PARALLAX_ENABLED
     #include "/lib/parallax.glsl"
 #endif

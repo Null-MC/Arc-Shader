@@ -129,14 +129,18 @@
         PopulateMaterial(material, colorMap, normalMap.xyz, specularMap);
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-            #ifdef RENDER_TERRAIN
-                material.f0 = matF0;
-                material.smoothness = matSmooth;
-                material.scattering = matSSS;
-            #else
-                material.f0 = 0.04;
-                material.smoothness = 0.08;
+            #if defined RENDER_TERRAIN || defined RENDER_WATER
+                ApplyHardCodedMaterials(material, materialId);
             #endif
+
+            // #ifdef RENDER_TERRAIN
+            //     material.f0 = matF0;
+            //     material.smoothness = matSmooth;
+            //     material.scattering = matSSS;
+            // #else
+            //     material.f0 = 0.04;
+            //     material.smoothness = 0.08;
+            // #endif
         #endif
 
         #if AO_TYPE == AO_TYPE_VANILLA

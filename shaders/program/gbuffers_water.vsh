@@ -19,12 +19,12 @@ flat out int materialId;
 flat out vec3 blockLightColor;
 flat out mat2 atlasBounds;
 
-#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-    out float matSmooth;
-    out float matF0;
-    out float matSSS;
-    out float matEmissive;
-#endif
+// #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+//     out float matSmooth;
+//     out float matF0;
+//     out float matSSS;
+//     out float matEmissive;
+// #endif
 
 #if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
     out vec2 localCoord;
@@ -139,10 +139,6 @@ uniform float blindness;
 
 #ifdef PHYSICS_OCEAN
     #include "/lib/physicsMod/water.glsl"
-#endif
-
-#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-    #include "/lib/material/default.glsl"
 #endif
 
 #include "/lib/lighting/blackbody.glsl"

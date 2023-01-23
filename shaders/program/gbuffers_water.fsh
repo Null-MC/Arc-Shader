@@ -19,12 +19,12 @@ flat in int materialId;
 flat in vec3 blockLightColor;
 flat in mat2 atlasBounds;
 
-#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-    in float matSmooth;
-    in float matF0;
-    in float matSSS;
-    in float matEmissive;
-#endif
+// #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+//     in float matSmooth;
+//     in float matF0;
+//     in float matSSS;
+//     in float matEmissive;
+// #endif
 
 #if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
     in vec2 localCoord;
@@ -209,6 +209,10 @@ uniform float waterFogDistSmooth;
 #include "/lib/material/material_reader.glsl"
 #include "/lib/lighting/fresnel.glsl"
 #include "/lib/lighting/brdf.glsl"
+
+#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+    #include "/lib/material/default.glsl"
+#endif
 
 #ifdef PARALLAX_ENABLED
     #include "/lib/parallax.glsl"
