@@ -176,37 +176,26 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
         else {
     #endif
 
-        #if !defined SKY_ENABLED || !defined VL_SKY_ENABLED
-            final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
+        // #if !defined SKY_ENABLED || !defined VL_SKY_ENABLED
+        //     final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
+        // #endif
+
+        #if defined SKY_ENABLED && !defined SKY_VL_ENABLED
+            vec3 transmittance;
+            vec3 scattering = GetFancyFog(localPos, transmittance);
+            final.rgb = final.rgb * transmittance + scattering;
+        #elif !defined SKY_ENABLED
+            float fogFactor;
+            vec3 fogColorFinal;
+            GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactor);
+            ApplyFog(final, fogColorFinal, fogFactor, 1.0/255.0);
         #endif
-
-        float fogFactor;
-        vec3 fogColorFinal;
-        GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactor);
-
-        #ifdef SKY_ENABLED
-            vec3 localViewDir = normalize(localPos);
-
-            vec2 scatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
-
-            #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                vec3 viewNear = viewDir * near;
-                vec3 vlExt = vec3(1.0);
-
-                vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewPos, scatteringF);
-
-                final.rgb *= vlExt;
-            #else
-                vec3 lightColor = scatteringF.x * sunColorFinalEye + scatteringF.y * moonColorFinalEye;
-                fogColorFinal += lightColor * RGBToLinear(fogColor);
-            #endif
-        #endif
-
-        ApplyFog(final, fogColorFinal, fogFactor, 1.0/255.0);
 
         #ifdef SKY_ENABLED
             float cloudDepthTest = CLOUD_LEVEL - worldPos.y;
             cloudDepthTest *= sign(CLOUD_LEVEL - cameraPosition.y);
+
+            vec3 localViewDir = normalize(localPos);
 
             if (HasClouds(cameraPosition, localViewDir) && cloudDepthTest < 0.0) {
                 vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
@@ -229,7 +218,11 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
             }
 
             #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                final.rgb += vlColor;
+                vec3 viewNear = viewDir * near;
+
+                vec3 vlExt = vec3(1.0);
+                vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewPos);
+                final.rgb = final.rgb * vlExt + vlColor;
 
                 // TODO: vl alter alpha?
             #endif

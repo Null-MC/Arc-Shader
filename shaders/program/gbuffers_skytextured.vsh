@@ -64,10 +64,12 @@ uniform float blindness;
 
 
 void main() {
-    if (renderStage == MC_RENDER_STAGE_SUN) {
-        gl_Position = vec4(10.0);
-        return;
-    }
+    #ifdef SUN_FANCY
+        if (renderStage == MC_RENDER_STAGE_SUN) {
+            gl_Position = vec4(10.0);
+            return;
+        }
+    #endif
 
     gl_Position = ftransform();
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;

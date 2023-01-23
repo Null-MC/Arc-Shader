@@ -351,8 +351,7 @@
                     vec3 viewFar = viewDir * min(viewDist, far);
                     vec3 vlExt = vec3(1.0);
 
-                    vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
-                    vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, skyScatteringF);
+                    vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar);
 
                     finalColor.rgb = finalColor.rgb * vlExt + vlColor;
 

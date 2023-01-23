@@ -3,17 +3,19 @@ const float isotropicPhase = 0.25 / PI;
 
 
 float GetSmokeDensity(const in sampler3D tex, const in vec3 worldPos, const in float time) {
+    vec3 t;
+
     t = worldPos / 128.0;
     t.xz -= time * 4.0 * SmokeSpeed;
-    float texDensity1 = texture(tex, t).r;
+    float texDensity1 = textureLod(tex, t, 0).r;
 
     t = worldPos / 64.0;
     t.xz += time * 2.0 * SmokeSpeed;
-    float texDensity2 = texture(tex, t).r;
+    float texDensity2 = textureLod(tex, t, 0).r;
 
     t = worldPos / 32.0;
     t.y += time * 1.0 * SmokeSpeed;
-    float texDensity3 = texture(tex, t).r;
+    float texDensity3 = textureLod(tex, t, 0).r;
 
     return 0.4 * texDensity1 * texDensity2 + 0.6 * pow3(texDensity3 * texDensity2);
 }
@@ -46,8 +48,6 @@ vec3 GetVolumetricSmoke(const in LightData lightData, inout vec3 transmittance, 
 
     vec2 viewSize = vec2(viewWidth, viewHeight);
     vec2 pixelSize = rcp(viewSize);
-
-    vec3 t;
 
     float time = frameTimeCounter / 3600.0;
 

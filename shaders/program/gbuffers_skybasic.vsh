@@ -14,7 +14,7 @@ flat out float exposure;
 #if SHADER_PLATFORM == PLATFORM_IRIS
     uniform sampler3D texSunTransmittance;
 #else
-    uniform sampler3D colortex9;
+    uniform sampler3D colortex12;
 #endif
 
 uniform vec3 cameraPosition;
@@ -69,8 +69,8 @@ void main() {
 
     gl_Position = ftransform();
 
-    sunColor = GetSunLuxColor();
-    moonColor = GetMoonLuxColor();// * GetMoonPhaseLevel();
+    sunColor = GetSunColor();
+    moonColor = GetMoonColor();
 
     vec2 skyLightLevels = GetSkyLightLevels();
     float eyeElevation = GetScaledSkyHeight(eyeAltitude);
@@ -79,8 +79,8 @@ void main() {
         sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
         moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
     #else
-        sunTransmittanceEye = GetTransmittance(colortex9, eyeElevation, skyLightLevels.x);
-        moonTransmittanceEye = GetTransmittance(colortex9, eyeElevation, skyLightLevels.y);
+        sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
+        moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);
     #endif
 
     exposure = GetExposure();

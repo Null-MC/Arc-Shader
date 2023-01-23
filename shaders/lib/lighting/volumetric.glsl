@@ -1,20 +1,5 @@
 const float AirSpeed = 20.0;
-const float isotropicPhase = 0.25 / PI;
 
-
-vec3 GetScatteredLighting(const in float elevation, const in vec2 skyLightLevels, const in vec2 scatteringF) {
-    #if SHADER_PLATFORM == PLATFORM_IRIS
-        vec3 sunTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.x);
-        vec3 moonTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.y);
-    #else
-        vec3 sunTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.x);
-        vec3 moonTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.y);
-    #endif
-
-    return
-        scatteringF.x * sunTransmittance * sunColor +
-        scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * moonColor;
-}
 
 #ifdef VL_SKY_ENABLED
     float GetSkyFogDensity(const in sampler3D tex, const in vec3 worldPos, const in float time) {
@@ -35,7 +20,7 @@ vec3 GetScatteredLighting(const in float elevation, const in vec2 skyLightLevels
         return 0.04 + 0.2 * pow(texDensity1 * texDensity2, 2.0) + 0.6 * pow(texDensity3 * texDensity2, 3.0);
     }
 
-    vec3 GetVolumetricLighting(const in LightData lightData, inout vec3 transmittance, const in vec3 nearViewPos, const in vec3 farViewPos, const in vec2 scatteringF) {
+    vec3 GetVolumetricLighting(const in LightData lightData, inout vec3 transmittance, const in vec3 nearViewPos, const in vec3 farViewPos) {
         const float inverseStepCountF = rcp(VL_SAMPLES_SKY + 1);
         
         #ifdef VL_DITHER
@@ -214,6 +199,20 @@ vec3 GetScatteredLighting(const in float elevation, const in vec2 skyLightLevels
 #endif
 
 #ifdef VL_WATER_ENABLED
+    vec3 GetScatteredLighting(const in float elevation, const in vec2 skyLightLevels, const in vec2 scatteringF) {
+        #if SHADER_PLATFORM == PLATFORM_IRIS
+            vec3 sunTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.x);
+            vec3 moonTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.y);
+        #else
+            vec3 sunTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.x);
+            vec3 moonTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.y);
+        #endif
+
+        return
+            scatteringF.x * sunTransmittance * sunColor +
+            scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * moonColor;
+    }
+
     float GetWaterFogDensity(const in sampler3D tex, const in vec3 worldPos) {
         float sampleDensity1 = texture(tex, worldPos / 96.0).r;
         float sampleDensity2 = texture(tex, worldPos / 16.0).r;

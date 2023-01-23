@@ -19,13 +19,6 @@ flat in int materialId;
 flat in vec3 blockLightColor;
 flat in mat2 atlasBounds;
 
-#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-    flat in float matSmooth;
-    flat in float matF0;
-    flat in float matSSS;
-    flat in float matEmissive;
-#endif
-
 #if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
     in vec2 localCoord;
     in vec3 tanViewPos;
@@ -48,7 +41,7 @@ flat in mat2 atlasBounds;
         uniform sampler3D colortex13;
     #endif
     
-    uniform mat4 gbufferModelView;
+    //uniform mat4 gbufferModelView;
 
     uniform float eyeAltitude;
     uniform vec3 sunPosition;
@@ -143,6 +136,7 @@ uniform int worldTime;
 uniform float frameTimeCounter;
 uniform ivec2 atlasSize;
 
+uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
 
@@ -227,7 +221,6 @@ uniform float waterFogDistSmooth;
 #endif
 
 #include "/lib/world/weather.glsl"
-#include "/lib/world/fog_vanilla.glsl"
 
 #ifdef SKY_ENABLED
     #include "/lib/sky/clouds.glsl"

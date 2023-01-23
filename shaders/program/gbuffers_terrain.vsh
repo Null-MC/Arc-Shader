@@ -17,13 +17,6 @@ flat out float tangentW;
 flat out mat2 atlasBounds;
 flat out int materialId;
 
-// #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-//     flat out float matSmooth;
-//     flat out float matF0;
-//     flat out float matSSS;
-//     flat out float matEmissive;
-// #endif
-
 #ifdef PARALLAX_ENABLED
     out vec2 localCoord;
     out vec3 tanViewPos;

@@ -768,7 +768,7 @@
                     vec3 waterFogColor = vec3(0.0);
                 #endif
 
-                float waterFogF = GetWaterFogFactor(viewDist);
+                float waterFogF = GetWaterFogFactor(0.0, viewDist);
                 //waterFogF *= 1.0 - reflectF;
                 final = mix(final, vec4(waterFogColor, 1.0), waterFogF);
             }

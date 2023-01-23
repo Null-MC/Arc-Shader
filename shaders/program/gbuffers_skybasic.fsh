@@ -40,13 +40,13 @@ uniform int moonPhase;
 
 #include "/lib/sampling/noise.glsl"
 #include "/lib/lighting/blackbody.glsl"
-#include "/lib/sky/celestial_position.glsl"
-#include "/lib/sky/celestial_color.glsl"
+#include "/lib/sky/hillaire_common.glsl"
+#include "/lib/celestial/position.glsl"
+#include "/lib/celestial/transmittance.glsl"
 #include "/lib/sky/stars.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/world/scattering.glsl"
 
-#include "/lib/sky/hillaire_common.glsl"
 #include "/lib/sky/hillaire_render.glsl"
 
 /* RENDERTARGETS: 4,3 */
@@ -79,7 +79,9 @@ void main() {
         vec3 localSunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
     #endif
 
-    color += GetSunWithBloom(localViewDir, localSunDir) * sunTransmittanceEye * sunColor;
+    #ifdef SUN_FANCY
+        color += GetSunWithBloom(localViewDir, localSunDir) * sunTransmittanceEye * sunColor * SunLux;
+    #endif
 
     outColor1 = log2(luminance(color) + EPSILON);
     outColor0 = clamp(color * exposure, vec3(0.0), vec3(65000));

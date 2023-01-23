@@ -21,13 +21,6 @@ flat in float tangentW;
 flat in mat2 atlasBounds;
 flat in int materialId;
 
-// #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-//     flat in float matSmooth;
-//     flat in float matF0;
-//     flat in float matSSS;
-//     flat in float matEmissive;
-// #endif
-
 #ifdef PARALLAX_ENABLED
     in vec2 localCoord;
     in vec3 tanViewPos;

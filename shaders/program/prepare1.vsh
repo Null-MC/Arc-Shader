@@ -8,7 +8,6 @@
 out vec2 texcoord;
 flat out vec3 localSunDir;
 
-
 #if SHADER_PLATFORM == PLATFORM_OPTIFINE
     uniform int worldTime;
     uniform mat4 gbufferModelView;
@@ -19,7 +18,7 @@ flat out vec3 localSunDir;
     uniform vec3 moonPosition;
 #endif
 
-#include "/lib/sky/celestial_position.glsl"
+#include "/lib/celestial/position.glsl"
 
 
 void main() {

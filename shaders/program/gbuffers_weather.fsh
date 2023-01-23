@@ -168,7 +168,6 @@ uniform float waterFogDistSmooth;
     #endif
 #endif
 
-//#include "/lib/sky/sun_moon.glsl"
 #include "/lib/sky/hillaire_common.glsl"
 #include "/lib/celestial/position.glsl"
 #include "/lib/celestial/transmittance.glsl"
@@ -176,6 +175,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/world/scattering.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/world/fog_vanilla.glsl"
+#include "/lib/world/fog_fancy.glsl"
 #include "/lib/sky/clouds.glsl"
 
 #if (defined VL_SKY_ENABLED || defined VL_WATER_ENABLED) && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE //&& defined VL_PARTICLES

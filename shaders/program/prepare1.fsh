@@ -18,18 +18,10 @@ flat in vec3 localSunDir;
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
-
-// uniform vec3 sunPosition;
-// uniform vec3 moonPosition;
-//uniform vec3 upPosition;
 uniform vec3 cameraPosition;
-
 uniform float rainStrength;
-//uniform int moonPhase;
 uniform float wetness;
 
-//#include "/lib/lighting/blackbody.glsl"
-//#include "/lib/sky/sun_moon.glsl"
 #include "/lib/sky/hillaire_common.glsl"
 #include "/lib/sky/hillaire_render.glsl"
 #include "/lib/sky/hillaire.glsl"

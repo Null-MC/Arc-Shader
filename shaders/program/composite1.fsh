@@ -78,9 +78,9 @@ uniform sampler2D BUFFER_IRRADIANCE;
     uniform sampler2D BUFFER_DEPTH_PREV;
 #endif
 
-#if !defined SKY_ENABLED && defined SMOKE_ENABLED
-    uniform sampler2D BUFFER_BLOOM;
-#endif
+// #if !defined SKY_ENABLED && defined SMOKE_ENABLED
+//     uniform sampler2D BUFFER_BLOOM;
+// #endif
 
 uniform float frameTimeCounter;
 uniform int worldTime;
@@ -296,8 +296,6 @@ void main() {
         lightData.sunTransmittanceEye = sunTransmittanceEye;
         lightData.moonTransmittanceEye = moonTransmittanceEye;
 
-        vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
-
         vec3 sunColorFinalEye = sunTransmittanceEye * sunColor * max(skyLightLevels.x, 0.0);
         vec3 moonColorFinalEye = moonTransmittanceEye * moonColor * max(skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
     #endif
@@ -400,9 +398,13 @@ void main() {
             final = PbrLighting2(material, lightData, viewPos).rgb;
 
             if (lightData.transparentScreenDepth < lightData.opaqueScreenDepth) {
-                vec3 transmittance;
-                vec3 scattering = GetFancyFog(localPos, transmittance);
-                final = final * transmittance + scattering;
+                #ifdef SKY_ENABLED
+                    vec3 transmittance;
+                    vec3 scattering = GetFancyFog(localPos, transmittance);
+                    final = final * transmittance + scattering;
+                #else
+                    // TODO: ?
+                #endif
             }
         }
         else if (lightData.transparentScreenDepth >= 1.0) {
@@ -439,8 +441,7 @@ void main() {
             vec3 viewFar = viewDir * minViewDist;
             vec3 vlExt = vec3(1.0);
 
-            //vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
-            vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, skyScatteringF);
+            vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar);
 
             final = final * vlExt + vlColor;
 
@@ -474,6 +475,7 @@ void main() {
                 vec3 waterFogColor = vec3(0.0);
             #endif
 
+            //float waterFogF = GetWaterFogFactor();
             ApplyWaterFog(final, waterFogColor, minViewDist);
         }
 

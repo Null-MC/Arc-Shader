@@ -387,10 +387,6 @@ void main() {
 
                 lightData.shadowPos = lightData.shadowPos * 0.5 + 0.5;
 
-                // #ifdef SHADOW_DITHER
-                //     lightData.shadowPos.xy += ditherOffset;
-                // #endif
-
                 lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
                 lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
 
@@ -411,9 +407,9 @@ void main() {
         vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * max(lightData.skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
     #endif
 
-    if (lightData.opaqueScreenDepth > 1.0 - EPSILON) {
+    if (lightData.opaqueScreenDepth >= 1.0) {
         if (blindness > EPSILON) {
-            color = GetAreaFogColor();
+            color = vec3(0.0);//GetAreaFogColor();
             // color = GetVanillaSkyLuminance(viewDir);
             // float horizonFogF = 1.0 - abs(localViewDir.y);
 
@@ -437,15 +433,16 @@ void main() {
         color = PbrLighting2(material, lightData, viewPos).rgb;
     }
 
-    #ifdef SKY_ENABLED
-        vec2 skyScatteringF = GetVanillaSkyScattering(viewDir, skyLightLevels);
-    #endif
-
     if (lightData.opaqueScreenDepth < 1.0) {
-        #ifndef VL_SKY_ENABLED
+        #if defined SKY_ENABLED && !defined VL_SKY_ENABLED
             vec3 transmittance;
             vec3 scattering = GetFancyFog(localPos, transmittance);
             color = color * transmittance + scattering;
+        #elif !defined SKY_ENABLED
+            float fogFactor;
+            vec3 fogColorFinal;
+            GetVanillaFog(lightData, viewPos, fogColorFinal, fogFactor);
+            ApplyFog(color, fogColorFinal, fogFactor);
         #endif
     }
 
@@ -471,7 +468,7 @@ void main() {
             vec3 viewFar = viewDir * min(length(viewPos), far);
             vec3 vlExt = vec3(1.0);
 
-            vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar, skyScatteringF);
+            vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar);
 
             color = color * vlExt + vlColor;
         #endif

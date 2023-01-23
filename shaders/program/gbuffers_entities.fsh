@@ -13,7 +13,6 @@ in vec3 localPos;
 in vec3 viewPos;
 in vec3 viewNormal;
 in vec3 viewTangent;
-//in vec4 mc_midTexCoord;
 flat in float tangentW;
 flat in mat2 atlasBounds;
 flat in int materialId;
@@ -65,10 +64,6 @@ uniform int entityId;
 #ifdef PARALLAX_ENABLED
     #include "/lib/parallax.glsl"
 #endif
-
-// #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
-//     #include "/lib/lighting/directional.glsl"
-// #endif
 
 #include "/lib/physicsMod/snow.glsl"
 

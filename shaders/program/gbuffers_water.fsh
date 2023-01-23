@@ -19,13 +19,6 @@ flat in int materialId;
 flat in vec3 blockLightColor;
 flat in mat2 atlasBounds;
 
-// #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-//     in float matSmooth;
-//     in float matF0;
-//     in float matSSS;
-//     in float matEmissive;
-// #endif
-
 #if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
     in vec2 localCoord;
     in vec3 tanViewPos;
@@ -237,7 +230,6 @@ uniform float waterFogDistSmooth;
     #include "/lib/sky/hillaire_common.glsl"
     #include "/lib/celestial/position.glsl"
     #include "/lib/celestial/transmittance.glsl"
-    //#include "/lib/sky/sun_moon.glsl"
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
 
