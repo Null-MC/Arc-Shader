@@ -85,7 +85,7 @@ vec3 GetScatteredLighting(const in float elevation, const in vec2 skyLightLevels
         float minFogF = min(VLFogMinF * (1.0 + 0.6 * max(lightData.skyLightLevels.x, 0.0)), 1.0);
 
         #ifndef VL_FOG_NOISE
-            float texDensity = mix(1.6, 4.0, rainStrength);
+            float texDensity = mix(1.6, 2.8, rainStrength);
         #endif
 
         vec3 viewDir = normalize(farViewPos - nearViewPos);
