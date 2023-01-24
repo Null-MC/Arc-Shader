@@ -103,7 +103,7 @@ const bool colortex11Clear = false;
 //#define CAVEFOG_ENABLED
 #define WEATHER_OPACITY 50 // [10 20 30 40 50 60 70 80 90 100]
 #define ATMOS_EXTINCTION 0.004
-#define SUN_TEMP 6800.0
+#define SUN_TEMP 4500.0 // [3500 4000 4500 5000 5500 6000 6500 7000]
 #define MOON_TEMP 4000.0
 #define WETNESS_MODE 2 // [0 1 2]
 #define SNOW_MODE 2 // [0 1 2]
