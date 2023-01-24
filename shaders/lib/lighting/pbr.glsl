@@ -411,6 +411,8 @@
 
             vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL);
             sunDiffuse *= skyLightColorFinal * shadowFinal * max(1.0 - sunF, 0.0);// * skyLight2;
+            
+            float VoL = dot(viewDir, viewLightDir);
 
             #if defined SSS_ENABLED && defined SKY_ENABLED
                 if (material.scattering > 0.0 && shadowSSS > 0.0) {
@@ -426,8 +428,6 @@
                     //float NoLmInverse = max(dot(-viewNormal, viewLightDir), 0.0);
                     //float sunFInverse = F_SchlickRoughness(f0, NoLmInverse, roughL);
                     vec3 sssLightColor = shadowSSS * skyLightColorFinal;// * max(1.0 - sunFInverse, 0.0);
-                    
-                    float VoL = dot(viewDir, viewLightDir);
 
                     float scatter = mix(
                         ComputeVolumetricScattering(VoL, -0.2),
@@ -750,14 +750,15 @@
         #ifdef RENDER_WATER
             if (isEyeInWater != 1) {
                 #ifndef VL_SKY_ENABLED
-                    vec3 transmittance;
-                    vec3 scattering = GetFancyFog(localPos, transmittance);
+                    //float VoL = dot(viewLightDir, viewDir);
+                    vec3 localSunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
+                    vec4 scatteringTransmittance = GetFancyFog(localPos, localSunDir, VoL);
 
                     float fogF = 1.0;
                     if (materialId == MATERIAL_WATER)
                         fogF = 1.0 - reflectF;
 
-                    final.rgb = mix(final.rgb, final.rgb * transmittance + scattering, fogF);
+                    final.rgb = mix(final.rgb, final.rgb * scatteringTransmittance.a + scatteringTransmittance.rgb, fogF);
                     // TODO: increase alpha
                 #endif
             }

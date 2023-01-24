@@ -14,15 +14,10 @@ in vec2 vLmcoord[3];
 in vec4 vColor[3];
 in float vNoV[3];
 flat in int vBlockId[3];
-//flat in int vEntityId[3];
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     flat in vec3 vOriginPos[3];
 #endif
-
-// #ifdef SSS_ENABLED
-//     flat in float vMaterialSSS[3];
-// #endif
 
 #if defined RSM_ENABLED || defined WATER_FANCY
     in vec3 vViewPos[3];
@@ -36,20 +31,11 @@ flat in int vBlockId[3];
     flat in mat3 vMatViewTBN[3];
 #endif
 
-// #if defined WATER_ENABLED && defined WATER_FANCY
-//     flat in int vWaterMask[3];
-// #endif
-
 out vec3 gLocalPos;
 out vec2 gTexcoord;
 out vec2 gLmcoord;
 out vec4 gColor;
 flat out int gBlockId;
-//flat out int gEntityId;
-
-// #ifdef SSS_ENABLED
-//     flat out float gMaterialSSS;
-// #endif
 
 #if defined RSM_ENABLED || defined WATER_FANCY
     out vec3 gViewPos;
@@ -62,10 +48,6 @@ flat out int gBlockId;
 #ifdef RSM_ENABLED
     flat out mat3 gMatViewTBN;
 #endif
-
-// #if defined WATER_ENABLED && defined WATER_FANCY
-//     flat out int gWaterMask;
-// #endif
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     flat out vec2 gShadowTilePos;
@@ -106,11 +88,6 @@ void ApplyCommonProperties(const in int v) {
     gColor = vColor[v];
 
     gBlockId = vBlockId[v];
-    //gEntityId = vEntityId[v];
-
-    // #ifdef SSS_ENABLED
-    //     gMaterialSSS = vMaterialSSS[v];
-    // #endif
 
     #if defined RSM_ENABLED || (defined WATER_FANCY)
         gViewPos = vViewPos[v];
@@ -124,21 +101,14 @@ void ApplyCommonProperties(const in int v) {
         gMatViewTBN = vMatViewTBN[v];
     #endif
 
-    // #if defined WATER_ENABLED && defined WATER_FANCY
-    //     gWaterMask = vWaterMask[v];
-    // #endif
-
     #ifdef PHYSICS_OCEAN
         physics_gLocalPosition = physics_vLocalPosition[v];
     #endif
 }
 
 void main() {
-    //int blockId = -1;
-
     if (renderStage == MC_RENDER_STAGE_ENTITIES) {
         #ifdef SHADOW_EXCLUDE_ENTITIES
-            //if (vEntityId[0] == 0) return;
             return;
         #endif
 
@@ -146,8 +116,12 @@ void main() {
     }
 
     #ifdef SHADOW_EXCLUDE_FOLIAGE
-        if (renderStage == MC_RENDER_STAGE_TERRAIN || renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
-            //blockId = int(mc_Entity.x + 0.5);
+        if (
+            renderStage == MC_RENDER_STAGE_TERRAIN_SOLID ||
+            renderStage == MC_RENDER_STAGE_TERRAIN_CUTOUT ||
+            renderStage == MC_RENDER_STAGE_TERRAIN_CUTOUT_MIPPED ||
+            renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT)
+        {
             if (vBlockId[0] >= 10000 && vBlockId[0] <= 10004) return;
         }
     #endif

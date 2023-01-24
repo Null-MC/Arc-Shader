@@ -217,6 +217,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/world/fog_vanilla.glsl"
 
 #ifdef SKY_ENABLED
+    #include "/lib/sky/hillaire.glsl"
     #include "/lib/world/fog_fancy.glsl"
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -232,7 +233,6 @@ uniform float waterFogDistSmooth;
         #endif
 
         #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
-            #include "/lib/sky/hillaire.glsl"
             #include "/lib/lighting/volumetric.glsl"
         #endif
     #endif
@@ -435,9 +435,11 @@ void main() {
 
     if (lightData.opaqueScreenDepth < 1.0) {
         #if defined SKY_ENABLED && !defined VL_SKY_ENABLED
-            vec3 transmittance;
-            vec3 scattering = GetFancyFog(localPos, transmittance);
-            color = color * transmittance + scattering;
+            vec3 viewLightDir = normalize(shadowLightPosition);
+            float VoL = dot(viewLightDir, viewDir);
+            vec3 localSunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
+            vec4 scatteringTransmittance = GetFancyFog(localPos, localSunDir, VoL);
+            color = color * scatteringTransmittance.a + scatteringTransmittance.rgb;
         #elif !defined SKY_ENABLED
             float fogFactor;
             vec3 fogColorFinal;

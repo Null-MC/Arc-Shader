@@ -181,9 +181,11 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
         // #endif
 
         #if defined SKY_ENABLED && !defined SKY_VL_ENABLED
-            vec3 transmittance;
-            vec3 scattering = GetFancyFog(localPos, transmittance);
-            final.rgb = final.rgb * transmittance + scattering;
+            vec3 viewLightDir = normalize(shadowLightPosition);
+            float VoL = dot(viewLightDir, viewDir);
+            vec3 localSunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
+            vec4 scatteringTransmittance = GetFancyFog(localPos, localSunDir, VoL);
+            final.rgb = final.rgb * scatteringTransmittance.a + scatteringTransmittance.rgb;
         #elif !defined SKY_ENABLED
             float fogFactor;
             vec3 fogColorFinal;

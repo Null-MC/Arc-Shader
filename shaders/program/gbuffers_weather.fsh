@@ -172,6 +172,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/celestial/position.glsl"
 #include "/lib/celestial/transmittance.glsl"
 #include "/lib/sky/hillaire_render.glsl"
+#include "/lib/sky/hillaire.glsl"
 #include "/lib/world/scattering.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/world/fog_vanilla.glsl"
@@ -179,7 +180,6 @@ uniform float waterFogDistSmooth;
 #include "/lib/sky/clouds.glsl"
 
 #if (defined VL_SKY_ENABLED || defined VL_WATER_ENABLED) && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE //&& defined VL_PARTICLES
-    #include "/lib/sky/hillaire.glsl"
     #include "/lib/lighting/volumetric.glsl"
 #endif
 

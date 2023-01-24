@@ -1,33 +1,47 @@
-vec3 GetFancyFog(const in vec3 localPos, out vec3 transmittance) {
-    const float isotropicPhase = 0.25 / PI;
-    float texDensity = mix(0.12, 1.0, rainStrength);
+vec4 GetFancyFog(const in vec3 localPos, const in vec3 localSunDir, const in float VoL) {
+    const float atmosScale = (atmosphereRadiusMM - groundRadiusMM) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
 
-    vec3 SkyAbsorptionCoefficient = vec3(0.002);
-    vec3 SkyScatteringCoefficient = vec3(0.020);
-    vec3 SkyExtinctionCoefficient = SkyScatteringCoefficient + SkyAbsorptionCoefficient;
+    vec3 atmosPos = GetAtmospherePosition(cameraPosition + localPos);
+    float sampleElevation = length(atmosPos) - groundRadiusMM;
 
-    vec3 localSunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
+    //vec3 viewDir = normalize(farViewPos - nearViewPos);
+    //float VoL = dot(viewLightDir, viewDir);
+    float miePhaseValue = getMiePhase(VoL);
+    float rayleighPhaseValue = getRayleighPhase(-VoL);
 
-    float viewDist = length(localPos);
-    transmittance = exp(-SkyExtinctionCoefficient * viewDist * texDensity);
+    float mieScattering;
+    vec3 rayleighScattering, extinction;
+    getScatteringValues(atmosPos, rayleighScattering, mieScattering, extinction);
 
-    vec3 scatteringIntegral = (1.0 - transmittance) / SkyExtinctionCoefficient;
+    float texDensity = mix(1.6, 2.8, rainStrength);
+    float dt = length(localPos) * atmosScale * texDensity;
+    vec3 sampleTransmittance = exp(-dt*extinction);
 
-    vec3 atmosPos = localPos + vec3(0.0, cameraPosition.y - SEA_LEVEL, 0.0);
-    atmosPos /= ATMOSPHERE_LEVEL - SEA_LEVEL;
-    atmosPos.y = clamp(atmosPos.y, 0.004, 0.996);
-    atmosPos *= atmosphereRadiusMM - groundRadiusMM;
-    atmosPos += vec3(0.0, groundRadiusMM, 0.0);
-
-    //atmosPos.y = groundRadiusMM + clamp(atmosPos.y - groundRadiusMM, 0.0, atmosphereRadiusMM - groundRadiusMM);
+    vec3 sunColorSky = SunLux * GetSunColor();
+    vec3 moonColorSky = MoonLux * GetMoonColor();
 
     #if SHADER_PLATFORM == PLATFORM_IRIS
-        vec3 scatterColor = getValFromMultiScattLUT(texMultipleScattering, atmosPos, localSunDir) * 6.0e5;
+        vec3 sunTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.x) * sunColorSky;
+        vec3 moonTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.y) * moonColorSky;
     #else
-        vec3 scatterColor = getValFromMultiScattLUT(colortex13, atmosPos, localSunDir) * 6.0e5;
+        vec3 sunTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.x) * sunColorSky;
+        vec3 moonTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.y) * moonColorSky;
     #endif
 
-    scatterColor *= 0.06 + 0.94 * (eyeBrightnessSmooth.y / 240.0);
+    vec3 lightTransmittance = sunTransmittance + moonTransmittance;
 
-    return scatterColor * (isotropicPhase * SkyScatteringCoefficient * scatteringIntegral);// * transmittance;
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        vec3 psiMS = getValFromMultiScattLUT(texMultipleScattering, atmosPos, localSunDir) * SKY_FANCY_LUM;
+    #else
+        vec3 psiMS = getValFromMultiScattLUT(colortex13, atmosPos, localSunDir) * SKY_FANCY_LUM;
+    #endif
+
+    vec3 rayleighInScattering = rayleighScattering * (rayleighPhaseValue * lightTransmittance + psiMS);
+    vec3 mieInScattering = mieScattering * (miePhaseValue * lightTransmittance + psiMS);
+    vec3 inScattering = (rayleighInScattering + mieInScattering);
+
+    // Integrated scattering within path segment.
+    vec3 scatteringIntegral = (inScattering - inScattering * sampleTransmittance) / extinction;
+
+    return vec4(scatteringIntegral, sampleTransmittance);
 }

@@ -242,6 +242,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/world/fog_vanilla.glsl"
 
 #ifdef SKY_ENABLED
+    #include "/lib/sky/hillaire.glsl"
     #include "/lib/world/fog_fancy.glsl"
     #include "/lib/lighting/basic.glsl"
 
@@ -255,7 +256,6 @@ uniform float waterFogDistSmooth;
         #endif
 
         #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
-            #include "/lib/sky/hillaire.glsl"
             #include "/lib/lighting/volumetric.glsl"
         #endif
     #endif
