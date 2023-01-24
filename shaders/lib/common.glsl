@@ -217,8 +217,8 @@ const bool colortex11Clear = false;
 //#define DOF_ENABLED
 #define DOF_SCALE 2.0 // [1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
 // Smaller = nicer blur, larger = faster
-#define DOF_STEP_SIZE 0.7 // [0.5 1.0 1.5 2.0]
-#define DOF_MAX_SIZE 16.0 // [5.0 10.0 15.0 20.0 25.0 30.0]
+#define DOF_STEP_SIZE 0.5 // [0.5 1.0 1.5 2.0]
+#define DOF_MAX_SIZE 10.0 // [5.0 10.0 15.0 20.0 25.0 30.0]
 
 
 // Debug Options
@@ -239,7 +239,7 @@ const bool colortex11Clear = false;
 #define CLOUD_HORIZON_POWER 8.0
 #define CLOUD_POW_CLEAR 1.6
 #define CLOUD_POW_RAIN 0.3
-//#define SHADOW_CLOUD
+#define SHADOW_CLOUD
 #define SMOKE_ENABLED
 #define VL_SMOKE_DENSITY 0.2
 #define IRIS_FEATURE_BIOMECAT

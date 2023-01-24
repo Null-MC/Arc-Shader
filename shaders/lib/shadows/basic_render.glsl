@@ -129,9 +129,13 @@
     #elif SHADOW_FILTER == 0
         // Unfiltered
         float GetShadowing(const in LightData lightData) {
-            float surfaceDepth = lightData.shadowPos.z - lightData.shadowBias;
-            float texDepth = lightData.opaqueShadowDepth + EPSILON;
-            return step(surfaceDepth, texDepth);
+            #ifdef IRIS_FEATURE_SEPARATE_HARDWARE_SAMPLERS
+                return textureLod(shadowtex1HW, lightData.shadowPos + vec3(offset, -lightData.shadowBias), 0);
+            #else
+                float surfaceDepth = lightData.shadowPos.z - lightData.shadowBias;
+                float texDepth = lightData.opaqueShadowDepth + EPSILON;
+                return step(surfaceDepth, texDepth);
+            #endif
         }
     #endif
 

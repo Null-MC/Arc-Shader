@@ -380,6 +380,10 @@ option.DOF_ENABLED=Enabled
 
 option.DOF_SCALE=Scale
 
+option.DOF_STEP_SIZE=Step Size
+
+option.DOF_MAX_SIZE=Max Size
+
 
 option.SHADER_PLATFORM=Platform
 option.SHADER_PLATFORM.comment=Turn this on if you are using Optifine; turn off for Iris.

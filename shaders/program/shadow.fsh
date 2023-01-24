@@ -205,6 +205,7 @@ void main() {
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
             //sss = gMaterialSSS;
             ApplyHardCodedMaterials(material, gBlockId);
+            //if (entityId == MATERIAL_PHYSICS_SNOW) material.scattering = 0.9;
         #else
             float specularMapB = textureGrad(specular, gTexcoord, dFdXY[0], dFdXY[1]).b;
             material.scattering = GetLabPbr_SSS(specularMapB);

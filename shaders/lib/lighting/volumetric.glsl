@@ -183,7 +183,7 @@ const float AirSpeed = 20.0;
                 vec3 psiMS = getValFromMultiScattLUT(colortex13, atmosPos, localSunDir) * SKY_FANCY_LUM;
             #endif
 
-            psiMS *= (eyeBrightnessSmooth.y / 240.0);
+            psiMS *= 0.6 * (eyeBrightnessSmooth.y / 240.0);
 
             vec3 rayleighInScattering = rayleighScattering * (rayleighPhaseValue * lightTransmittance + psiMS);
             vec3 mieInScattering = mieScattering * (miePhaseValue * lightTransmittance + psiMS);
@@ -227,9 +227,6 @@ const float AirSpeed = 20.0;
         #ifdef SHADOW_CLOUD
             vec3 viewLightDir = normalize(shadowLightPosition);
             vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
-
-            //vec3 upDir = normalize(upPosition);
-            //float horizonFogF = 1.0 - abs(dot(viewLightDir, upDir));
 
             if (localLightDir.y <= 0.0) return vec3(0.0);
         #endif

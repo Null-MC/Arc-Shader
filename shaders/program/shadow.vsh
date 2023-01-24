@@ -105,27 +105,11 @@ uniform float far;
 
 void main() {
     vBlockId = -1;
-
-    if (renderStage == MC_RENDER_STAGE_ENTITIES) {
-        //blockId = -1;
-        //vEntityId = entityId;
-
-        // if (entityId == MATERIAL_LIGHTNING_BOLT) {
-        //     gl_Position = vec4(10.0);
-        //     return;
-        // }
-    }
-    else {
+    if (renderStage != MC_RENDER_STAGE_ENTITIES)
         vBlockId = int(mc_Entity.x + 0.5);
-        //vEntityId = -1;
 
-        // #ifdef SHADOW_EXCLUDE_FOLIAGE
-        //     if (vBlockId >= 10000 && vBlockId <= 10004) {
-        //         gl_Position = vec4(10.0);
-        //         return;
-        //     }
-        // #endif
-    }
+    if (entityId == MATERIAL_PHYSICS_SNOW)
+        vBlockId = MATERIAL_PHYSICS_SNOW;
 
     vLocalPos = gl_Vertex.xyz;
     vTexcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;

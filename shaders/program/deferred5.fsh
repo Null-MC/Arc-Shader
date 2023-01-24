@@ -409,17 +409,7 @@ void main() {
 
     if (lightData.opaqueScreenDepth >= 1.0) {
         if (blindness > EPSILON) {
-            color = vec3(0.0);//GetAreaFogColor();
-            // color = GetVanillaSkyLuminance(viewDir);
-            // float horizonFogF = 1.0 - abs(localViewDir.y);
-
-            // vec2 scatteringF = GetVanillaSkyScattering(viewDir, lightData.skyLightLevels);
-            // vec3 vlColor = RGBToLinear(fogColor) * (scatteringF.x * sunColorFinalEye + scatteringF.y * moonColorFinalEye);
-            // color += vlColor * (1.0 - horizonFogF);
-
-            // vec3 starF = GetStarLight(normalize(localViewDir));
-            // starF *= 1.0 - horizonFogF;
-            // color += starF * StarLumen;
+            color = vec3(0.0);
         }
         else {
             #ifdef SKY_ENABLED

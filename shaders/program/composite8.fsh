@@ -1,7 +1,7 @@
-#define RENDER_FRAG
-#define RENDER_COMPOSITE
 #define RENDER_COMPOSITE_BLOOM_BLUR
 //#define RENDER_COMPOSITE_BLOOM_BLUR_V
+#define RENDER_COMPOSITE
+#define RENDER_FRAG
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"

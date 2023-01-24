@@ -101,7 +101,7 @@
         float parallaxShadow = 1.0;
         vec2 lm = lmcoord;
 
-        #if defined PARALLAX_ENABLED && defined PARALLAX_SMOOTH_NORMALS && MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
+        #if defined PARALLAX_ENABLED && defined PARALLAX_SMOOTH_NORMALS && MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT && !defined RENDER_TEXTURED && !defined RENDER_ENTITIES
             if (!isMissingNormal && !isMissingTangent) {
                 ////normalMap.rgb = TexelFetchLinearRGB(normals, atlasCoord * atlasSize);
                 //normalMap.rgb = TextureGradLinearRGB(normals, atlasCoord, atlasSize, dFdXY);

@@ -32,8 +32,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
                 //vec3 upDir = normalize(upPosition);
 
                 float cloudF = GetCloudFactor(worldPos, localLightDir, 0);
-                float cloudShadow = 1.0 - mix(cloudF, 1.0, horizonFogF);
-                shadow *= cloudShadow;
+                shadow *= 1.0 - cloudF;
             #endif
         #endif
     #else

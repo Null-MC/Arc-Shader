@@ -1,6 +1,6 @@
-#define RENDER_FRAG
-#define RENDER_COMPOSITE
 //#define RENDER_COMPOSITE_DOF
+#define RENDER_COMPOSITE
+#define RENDER_FRAG
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
@@ -11,15 +11,10 @@ uniform sampler2D depthtex0;
 uniform sampler2D BUFFER_HDR_OPAQUE;
 
 uniform float centerDepthSmooth;
-//uniform int isEyeInWater;
 uniform float viewWidth;
 uniform float viewHeight;
 uniform float near;
 uniform float far;
-
-// #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-//     uniform sampler2D BUFFER_LUM_OPAQUE;
-// #endif
 
 #include "/lib/depth.glsl"
 

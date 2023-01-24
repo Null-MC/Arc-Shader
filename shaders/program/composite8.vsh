@@ -1,7 +1,7 @@
-#define RENDER_VERTEX
-#define RENDER_COMPOSITE
 #define RENDER_COMPOSITE_BLOOM_BLUR
 //#define RENDER_COMPOSITE_BLOOM_BLUR_V
+#define RENDER_COMPOSITE
+#define RENDER_VERTEX
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
