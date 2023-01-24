@@ -330,8 +330,8 @@
                     vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
                     float cloudF = GetCloudFactor(cloudPos, localViewDir, 0);
 
-                    float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
-                    cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
+                    //float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
+                    //cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
 
                     // vec3 sunDir = GetSunDir();
                     // float sun_VoL = dot(viewDir, sunDir);

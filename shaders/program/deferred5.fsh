@@ -458,7 +458,7 @@ void main() {
             vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
 
             float cloudF = GetCloudFactor(cloudPos, localViewDir, 0);
-            cloudF *= max(localViewDir.y, 0.0);
+            //cloudF *= smoothstep(0.1, 0.8, localViewDir.y);
             cloudF *= 1.0 - blindness;
 
             vec3 cloudColor = GetCloudColor(cloudPos, viewDir, skyLightLevels);

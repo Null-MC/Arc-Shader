@@ -72,6 +72,8 @@ float GetCloudFactor(const in vec3 cloudPos, const in vec3 localViewDir, const i
 
     d = pow(d, 1.0 - 0.6 * wetness);
 
+    d *= smoothstep(0.1, 0.8, localViewDir.y);
+
     return d;
 }
 

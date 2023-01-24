@@ -70,7 +70,7 @@ const float AirSpeed = 20.0;
         float minFogF = min(VLFogMinF * (1.0 + 0.6 * max(lightData.skyLightLevels.x, 0.0)), 1.0);
 
         #ifndef VL_FOG_NOISE
-            float texDensity = mix(1.6, 2.8, rainStrength);
+            float texDensity = mix(1.2, 2.8, rainStrength);
         #endif
 
         vec3 viewDir = normalize(farViewPos - nearViewPos);
@@ -183,6 +183,8 @@ const float AirSpeed = 20.0;
                 vec3 psiMS = getValFromMultiScattLUT(colortex13, atmosPos, localSunDir) * SKY_FANCY_LUM;
             #endif
 
+            psiMS *= (eyeBrightnessSmooth.y / 240.0);
+
             vec3 rayleighInScattering = rayleighScattering * (rayleighPhaseValue * lightTransmittance + psiMS);
             vec3 mieInScattering = mieScattering * (miePhaseValue * lightTransmittance + psiMS);
             vec3 inScattering = (rayleighInScattering + mieInScattering);
@@ -209,8 +211,8 @@ const float AirSpeed = 20.0;
         #endif
 
         return
-            scatteringF.x * sunTransmittance * sunColor +
-            scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * moonColor;
+            scatteringF.x * sunTransmittance * sunColor * max(skyLightLevels.x, 0.0) +
+            scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * moonColor * max(skyLightLevels.y, 0.0);
     }
 
     float GetWaterFogDensity(const in sampler3D tex, const in vec3 worldPos) {

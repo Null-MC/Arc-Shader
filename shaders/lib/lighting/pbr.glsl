@@ -59,7 +59,6 @@
             if (HasClouds(worldPos, localReflectDir)) {
                 vec3 cloudPos = GetCloudPosition(worldPos, localReflectDir);
                 float cloudF = GetCloudFactor(cloudPos, localReflectDir, 0.0);
-                cloudF *= max(localReflectDir.y, 0.0);
                 cloudF *= 1.0 - blindness;
                 
                 vec3 cloudColor = GetCloudColor(cloudPos, reflectDir, lightData.skyLightLevels);
@@ -148,8 +147,7 @@
                 vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
 
                 float cloudF = GetCloudFactor(worldPos, localLightDir, 4.0);
-                float horizonFogF = pow(1.0 - max(localLightDir.y, 0.0), 2.0);
-                float cloudShadow = 1.0 - mix(cloudF, 1.0, horizonFogF);
+                float cloudShadow = 1.0 - cloudF;
                 skyLightColorFinal *= (0.2 + 0.8 * cloudShadow);
             #endif
 
