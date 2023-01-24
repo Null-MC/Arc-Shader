@@ -70,7 +70,7 @@ void main() {
             if (lightingMap >= 1.0 / 16.0) {
         #endif
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                color = GetIndirectLighting_RSM(cascadeProjection, shadowViewPos, shadowViewNormal);
+                color = GetIndirectLighting_RSM(shadowViewPos, shadowViewNormal);
             #else
                 color = GetIndirectLighting_RSM(shadowViewPos, shadowViewNormal);
             #endif
