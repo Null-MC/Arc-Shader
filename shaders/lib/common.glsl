@@ -103,7 +103,7 @@ const bool colortex11Clear = false;
 //#define CAVEFOG_ENABLED
 #define WEATHER_OPACITY 50 // [10 20 30 40 50 60 70 80 90 100]
 #define ATMOS_EXTINCTION 0.004
-#define SUN_TEMP 4500.0 // [3500 4000 4500 5000 5500 6000 6500 7000]
+#define SUN_TEMP 5000.0 // [3500 4000 4500 5000 5500 6000 6500 7000]
 #define MOON_TEMP 4000.0
 #define WETNESS_MODE 2 // [0 1 2]
 #define SNOW_MODE 2 // [0 1 2]
@@ -243,7 +243,6 @@ const bool colortex11Clear = false;
 #define SMOKE_ENABLED
 #define VL_SMOKE_DENSITY 0.2
 #define IRIS_FEATURE_BIOMECAT
-#define SKY_FANCY_LUM 120000.0
 #define SUN_FANCY
 
 #if SSR_QUALITY == 2
@@ -274,22 +273,10 @@ const bool colortex11Clear = false;
 
 #define attribute in
 
-const float sunLumen = 1.6e9;
-const float moonLumen = 800.0;
-const float StarLumen = 200.0;
 const float EmissionLumens = 30000;
 
-const float SunLux = 64000.0;
-const float SunOvercastLux = 48000.0;
-const float MoonLux = 12.0;
-const float MoonOvercastLux = 4.0;
 const float BlockLightLux = 2400.0;
 // const float MinWorldLux = 8.0;
-
-const float DaySkyLumen = 6400.0;
-const float DaySkyOvercastLumen = 3200.0;
-const float NightSkyLumen = 3.0;
-const float NightSkyOvercastLumen = 1.0;
 
 const vec3 ATMOS_EXT_COLOR = vec3(0.510, 0.500, 0.485);
 const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.2;

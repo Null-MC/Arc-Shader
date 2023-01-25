@@ -1,11 +1,9 @@
 vec3 getValFromTLUT(const in sampler3D tex, const in vec3 pos, const in vec3 sunDir) {
     float height = length(pos);
     vec3 up = pos / height;
+
     float sunCosZenithAngle = dot(sunDir, up);
-    vec3 uv = vec3(
-        0.5 + 0.5*sunCosZenithAngle,
-        (height - groundRadiusMM) / (atmosphereRadiusMM - groundRadiusMM),
-        rainStrength);
+    vec3 uv = getAtmosLUT_UV(sunCosZenithAngle, height);
     
     return textureLod(tex, uv, 0).rgb;
 }
@@ -13,12 +11,9 @@ vec3 getValFromTLUT(const in sampler3D tex, const in vec3 pos, const in vec3 sun
 vec3 getValFromMultiScattLUT(const in sampler3D tex, const in vec3 pos, const in vec3 sunDir) {
     float height = length(pos);
     vec3 up = pos / height;
-    float sunCosZenithAngle = dot(sunDir, up);
 
-    vec3 uv = vec3(
-        0.5 + 0.5*sunCosZenithAngle,
-        (height - groundRadiusMM) / (atmosphereRadiusMM - groundRadiusMM),
-        rainStrength);
+    float sunCosZenithAngle = dot(sunDir, up);
+    vec3 uv = getAtmosLUT_UV(sunCosZenithAngle, height);
     
     return textureLod(tex, uv, 0).rgb;
 }
@@ -61,7 +56,13 @@ vec3 getValFromMultiScattLUT(const in sampler3D tex, const in vec3 pos, const in
     }
 
     vec3 GetFancySkyLuminance(const in float worldY, const in vec3 localViewDir, const in float lod) {
-        return NightSkyLumen + getValFromSkyLUT(worldY, localViewDir, lod) * SKY_FANCY_LUM;
+        vec3 lum = getValFromSkyLUT(worldY, localViewDir, lod) * SKY_FANCY_LUM;
+        
+        #ifdef WORLD_OVERWORLD
+            lum += NightSkyLumen;
+        #endif
+
+        return lum;
     }
 
     vec3 GetSunWithBloom(vec3 rayDir, vec3 sunDir) {

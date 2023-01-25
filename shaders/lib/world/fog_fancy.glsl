@@ -18,23 +18,34 @@ vec4 GetFancyFog(const in vec3 localPos, const in vec3 localSunDir, const in flo
     vec3 sampleTransmittance = exp(-dt*extinction);
 
     vec3 sunColorSky = SunLux * GetSunColor();
-    vec3 moonColorSky = MoonLux * GetMoonColor();
 
     #if SHADER_PLATFORM == PLATFORM_IRIS
         vec3 sunTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.x) * sunColorSky;
-        vec3 moonTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.y) * moonColorSky;
     #else
         vec3 sunTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.x) * sunColorSky;
-        vec3 moonTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.y) * moonColorSky;
     #endif
 
-    vec3 lightTransmittance = sunTransmittance + moonTransmittance;
+    vec3 lightTransmittance = sunTransmittance;
+
+    #ifdef WORLD_MOON_ENABLED
+        vec3 moonColorSky = MoonLux * GetMoonColor();
+
+        #if SHADER_PLATFORM == PLATFORM_IRIS
+            vec3 moonTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.y) * moonColorSky;
+        #else
+            vec3 moonTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.y) * moonColorSky;
+        #endif
+
+        lightTransmittance += moonTransmittance;
+    #endif
 
     #if SHADER_PLATFORM == PLATFORM_IRIS
         vec3 psiMS = getValFromMultiScattLUT(texMultipleScattering, atmosPos, localSunDir) * SKY_FANCY_LUM;
     #else
         vec3 psiMS = getValFromMultiScattLUT(colortex13, atmosPos, localSunDir) * SKY_FANCY_LUM;
     #endif
+
+    psiMS *= 0.6 * (eyeBrightnessSmooth.y / 240.0);
 
     vec3 rayleighInScattering = rayleighScattering * (rayleighPhaseValue * lightTransmittance + psiMS);
     vec3 mieInScattering = mieScattering * (miePhaseValue * lightTransmittance + psiMS);

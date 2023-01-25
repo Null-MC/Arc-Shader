@@ -7,9 +7,12 @@
 
 flat in float exposure;
 flat in vec3 sunColor;
-flat in vec3 moonColor;
 flat in vec3 sunTransmittanceEye;
-flat in vec3 moonTransmittanceEye;
+
+#ifdef WORLD_MOON_ENABLED
+    flat in vec3 moonColor;
+    flat in vec3 moonTransmittanceEye;
+#endif
 
 uniform sampler2D noisetex;
 uniform sampler2D BUFFER_SKY_LUT;
@@ -18,9 +21,11 @@ uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjectionInverse;
 uniform float frameTimeCounter;
-uniform vec3 cameraPosition;
 uniform float viewWidth;
 uniform float viewHeight;
+
+uniform vec3 cameraPosition;
+uniform vec3 shadowLightPosition;
 uniform vec3 upPosition;
 uniform vec3 sunPosition;
 uniform vec3 moonPosition;
@@ -33,10 +38,7 @@ uniform float wetness;
 uniform vec3 fogColor;
 uniform vec3 skyColor;
 uniform int moonPhase;
-
-#if SHADER_PLATFORM == PLATFORM_OPTIFINE
-    uniform int worldTime;
-#endif
+uniform int worldTime;
 
 #include "/lib/sampling/noise.glsl"
 #include "/lib/lighting/blackbody.glsl"
@@ -73,13 +75,8 @@ void main() {
         color += starF * StarLumen;
     }
 
-    #if SHADER_PLATFORM == PLATFORM_OPTIFINE
-        vec3 localSunDir = normalize(GetFixedSunPosition());
-    #else
-        vec3 localSunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
-    #endif
-
     #ifdef SUN_FANCY
+        vec3 localSunDir = GetSunLocalDir();
         color += GetSunWithBloom(localViewDir, localSunDir) * sunTransmittanceEye * sunColor * SunLux;
     #endif
 

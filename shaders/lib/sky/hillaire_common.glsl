@@ -14,25 +14,51 @@ const float rayleighAbsorptionBase_clear = 0.0;
 const float mieScatteringBase_clear = 3.996;
 const float mieAbsorptionBase_clear = 4.4;
 
+const vec3 ozoneAbsorptionBase_end = vec3(0.650, 8.381, 8.576);
+const vec3 rayleighScatteringBase_end = vec3(64.802, 6.558, 28.1);
+const float rayleighAbsorptionBase_end = 6.0;
+const float mieScatteringBase_end = 3.996 * 4.0;
+const float mieAbsorptionBase_end = 4.4 * 10.0;
+
 
 vec3 GetOzoneAbsorptionBase() {
-    return mix(ozoneAbsorptionBase_clear, ozoneAbsorptionBase_rain, rainStrength);
+    #ifdef WORLD_END
+        return ozoneAbsorptionBase_end;
+    #else
+        return mix(ozoneAbsorptionBase_clear, ozoneAbsorptionBase_rain, rainStrength);
+    #endif
 }
 
 vec3 GetRayleighScatteringBase() {
-    return mix(rayleighScatteringBase_clear, rayleighScatteringBase_rain, rainStrength);
+    #ifdef WORLD_END
+        return rayleighScatteringBase_end;
+    #else
+        return mix(rayleighScatteringBase_clear, rayleighScatteringBase_rain, rainStrength);
+    #endif
 }
 
 float GetRayleighAbsorptionBase() {
-    return mix(rayleighAbsorptionBase_clear, rayleighAbsorptionBase_rain, rainStrength);
+    #ifdef WORLD_END
+        return rayleighAbsorptionBase_end;
+    #else
+        return mix(rayleighAbsorptionBase_clear, rayleighAbsorptionBase_rain, rainStrength);
+    #endif
 }
 
 float GetMieScatteringBase() {
-    return mix(mieScatteringBase_clear, mieScatteringBase_rain, rainStrength);
+    #ifdef WORLD_END
+        return mieScatteringBase_end;
+    #else
+        return mix(mieScatteringBase_clear, mieScatteringBase_rain, rainStrength);
+    #endif
 }
 
 float GetMieAbsorptionBase() {
-    return mix(mieAbsorptionBase_clear, mieAbsorptionBase_rain, rainStrength);
+    #ifdef WORLD_END
+        return mieAbsorptionBase_end;
+    #else
+        return mix(mieAbsorptionBase_clear, mieAbsorptionBase_rain, rainStrength);
+    #endif
 }
 
 float safeacos(const in float x) {
@@ -56,4 +82,18 @@ vec3 GetAtmospherePosition(const in vec3 worldPos) {
 float GetAtmosphereElevation(const in vec3 worldPos) {
     vec3 atmosPos = GetAtmospherePosition(worldPos);
     return length(atmosPos) - groundRadiusMM;
+}
+
+vec3 getAtmosLUT_UV(const in float sunCosZenithAngle, const in float elevation) {
+    vec3 uv;
+    uv.x = 0.5 + 0.5*sunCosZenithAngle;
+    uv.y = (elevation - groundRadiusMM) / (atmosphereRadiusMM - groundRadiusMM);
+
+    #ifdef WORLD_END
+        uv.z = 4.5/5.0;
+    #else
+        uv.z = (0.5 + rainStrength) / 5.0;
+    #endif
+
+    return uv;
 }

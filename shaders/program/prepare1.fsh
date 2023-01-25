@@ -90,8 +90,7 @@ void main() {
         adjV = coord*coord;
     }
     
-    float height = (cameraPosition.y - SEA_LEVEL) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
-    height = groundRadiusMM + saturate(height) * (atmosphereRadiusMM - groundRadiusMM);
+    float height = GetScaledSkyHeight(cameraPosition.y);
     vec3 skyViewPos = vec3(0.0, height, 0.0);
 
     float horizonAngle = safeacos(sqrt(height * height - groundRadiusMM * groundRadiusMM) / height) - 0.5*PI;

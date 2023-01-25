@@ -35,8 +35,21 @@ const float AirSpeed = 20.0;
         float localRayLength = length(localRay);
         vec3 localStep = localRay * inverseStepCountF;
 
-        vec3 shadowViewStart = (shadowModelView * vec4(localStart, 1.0)).xyz;
-        vec3 shadowViewEnd = (shadowModelView * vec4(localEnd, 1.0)).xyz;
+        mat4 _shadowModelView = shadowModelView;
+        #ifdef WORLD_END
+            vec3 sunPos = GetEndSunPosition();
+
+            vec3 zaxis = normalize(sunPos);    
+            vec3 xaxis = normalize(cross(vec3(0.0, 1.0, 0.0), zaxis));
+            vec3 yaxis = cross(zaxis, xaxis);
+
+            _shadowModelView[0].xyz = vec3(xaxis.x, yaxis.x, zaxis.x);
+            _shadowModelView[1].xyz = vec3(xaxis.y, yaxis.y, zaxis.y);
+            _shadowModelView[2].xyz = vec3(xaxis.z, yaxis.z, zaxis.z);
+        #endif
+
+        vec3 shadowViewStart = (_shadowModelView * vec4(localStart, 1.0)).xyz;
+        vec3 shadowViewEnd = (_shadowModelView * vec4(localEnd, 1.0)).xyz;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             vec3 shadowClipStart[4];
@@ -60,9 +73,9 @@ const float AirSpeed = 20.0;
         vec3 worldStart = localStart + cameraPosition;
         
         //#ifdef SHADOW_CLOUD
-            vec3 viewLightDir = normalize(shadowLightPosition);
-            vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
-            vec3 localSunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
+            vec3 localLightDir = GetShadowLightLocalDir();
+            vec3 viewLightDir = mat3(gbufferModelView) * localLightDir;
+            vec3 localSunDir = GetSunLocalDir();
         //#endif
 
         float time = frameTimeCounter / 3600.0;
@@ -70,7 +83,11 @@ const float AirSpeed = 20.0;
         float minFogF = min(VLFogMinF * (1.0 + 0.6 * max(lightData.skyLightLevels.x, 0.0)), 1.0);
 
         #ifndef VL_FOG_NOISE
-            float texDensity = mix(1.2, 2.8, rainStrength);
+            #ifdef WORLD_END
+                const float texDensity = 9.6;
+            #else
+                float texDensity = mix(1.0, 2.8, rainStrength);
+            #endif
         #endif
 
         vec3 viewDir = normalize(farViewPos - nearViewPos);
@@ -81,7 +98,10 @@ const float AirSpeed = 20.0;
         const float atmosScale = (atmosphereRadiusMM - groundRadiusMM) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
 
         vec3 sunColorSky = SunLux * GetSunColor();
-        vec3 moonColorSky = MoonLux * GetMoonColor();
+
+        #ifdef WORLD_MOON_ENABLED
+            vec3 moonColorSky = MoonLux * GetMoonColor();
+        #endif
 
         vec3 scattering = vec3(0.0);
         for (int i = 0; i < VL_SAMPLES_SKY; i++) {
@@ -116,7 +136,7 @@ const float AirSpeed = 20.0;
 
             vec3 traceWorldPos = worldStart + localStep * (i + dither);
 
-            #ifdef SHADOW_CLOUD
+            #if defined WORLD_CLOUDS_ENABLED && defined SHADOW_CLOUD
                 float cloudF = GetCloudFactor(traceWorldPos, localLightDir, 0);
                 sampleF *= pow(1.0 - cloudF, 2.0);
             #endif
@@ -128,14 +148,18 @@ const float AirSpeed = 20.0;
                     float texDensity = GetSkyFogDensity(colortex14, traceWorldPos, time);
                 #endif
 
-                // Change with altitude
-                float altD = 1.0 - saturate((traceWorldPos.y - SEA_LEVEL) / (CLOUD_LEVEL - SEA_LEVEL));
-                texDensity *= smoothstep(0.1, 1.0, altD);
+                #ifdef WORLD_END
+                    texDensity = 1.0 + 60.0 * texDensity;
+                #else
+                    // Change with altitude
+                    float altD = 1.0 - saturate((traceWorldPos.y - SEA_LEVEL) / (CLOUD_LEVEL - SEA_LEVEL));
+                    texDensity *= smoothstep(0.1, 1.0, altD);
 
-                // Change with weather
-                //texDensity *= minFogF + (1.0 - minFogF) * wetness;
+                    // Change with weather
+                    //texDensity *= minFogF + (1.0 - minFogF) * wetness;
 
-                texDensity = 1.0 + (8.0 + rainStrength * 32.0) * texDensity;
+                    texDensity = 1.0 + (8.0 + rainStrength * 32.0) * texDensity;
+                #endif
             #endif
 
             vec3 sampleColor = vec3(1.0);
@@ -169,13 +193,23 @@ const float AirSpeed = 20.0;
 
             #if SHADER_PLATFORM == PLATFORM_IRIS
                 vec3 sunTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.x) * sunColorSky;
-                vec3 moonTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.y) * moonColorSky;
             #else
                 vec3 sunTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.x) * sunColorSky;
-                vec3 moonTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.y) * moonColorSky;
             #endif
 
-            vec3 lightTransmittance = (sunTransmittance + moonTransmittance) * sampleColor * sampleF;
+            vec3 lightTransmittance = sunTransmittance;
+
+            #ifdef WORLD_MOON_ENABLED
+                #if SHADER_PLATFORM == PLATFORM_IRIS
+                    vec3 moonTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.y) * moonColorSky;
+                #else
+                    vec3 moonTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.y) * moonColorSky;
+                #endif
+
+                lightTransmittance += moonTransmittance;
+            #endif
+
+            lightTransmittance *= sampleColor * sampleF;
 
             #if SHADER_PLATFORM == PLATFORM_IRIS
                 vec3 psiMS = getValFromMultiScattLUT(texMultipleScattering, atmosPos, localSunDir) * SKY_FANCY_LUM;
@@ -204,15 +238,23 @@ const float AirSpeed = 20.0;
     vec3 GetScatteredLighting(const in float elevation, const in vec2 skyLightLevels, const in vec2 scatteringF) {
         #if SHADER_PLATFORM == PLATFORM_IRIS
             vec3 sunTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.x);
-            vec3 moonTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.y);
         #else
             vec3 sunTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.x);
-            vec3 moonTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.y);
         #endif
 
-        return
-            scatteringF.x * sunTransmittance * sunColor * max(skyLightLevels.x, 0.0) +
-            scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * moonColor * max(skyLightLevels.y, 0.0);
+        vec3 result = scatteringF.x * sunTransmittance * sunColor * max(skyLightLevels.x, 0.0);
+
+        #ifdef WORLD_MOON_ENABLED
+            #if SHADER_PLATFORM == PLATFORM_IRIS
+                vec3 moonTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.y);
+            #else
+                vec3 moonTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.y);
+            #endif
+
+            result += scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * moonColor * max(skyLightLevels.y, 0.0);
+        #endif
+
+        return result;
     }
 
     float GetWaterFogDensity(const in sampler3D tex, const in vec3 worldPos) {
@@ -225,9 +267,7 @@ const float AirSpeed = 20.0;
         const float inverseStepCountF = rcp(VL_SAMPLES_WATER + 1);
 
         #ifdef SHADOW_CLOUD
-            vec3 viewLightDir = normalize(shadowLightPosition);
-            vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
-
+            vec3 localLightDir = GetShadowLightLocalDir();
             if (localLightDir.y <= 0.0) return vec3(0.0);
         #endif
 
@@ -322,7 +362,7 @@ const float AirSpeed = 20.0;
 
             vec3 traceWorldPos = worldStart + localStep * (i + dither);
 
-            #ifdef SHADOW_CLOUD
+            #if defined WORLD_CLOUDS_ENABLED && defined SHADOW_CLOUD
                 // when light is shining upwards
                 // if (localLightDir.y <= 0.0) {
                 //     lightSample = 0.0;

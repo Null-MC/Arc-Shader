@@ -31,7 +31,10 @@ flat in mat2 atlasBounds;
 #ifdef SKY_ENABLED
     flat in vec2 skyLightLevels;
     flat in vec3 sunColor;
-    flat in vec3 moonColor;
+
+    #ifdef WORLD_MOON_ENABLED
+        flat in vec3 moonColor;
+    #endif
 
     #if SHADER_PLATFORM == PLATFORM_IRIS
         uniform sampler3D texSunTransmittance;
@@ -40,6 +43,9 @@ flat in mat2 atlasBounds;
         uniform sampler3D colortex12;
         uniform sampler3D colortex13;
     #endif
+
+    uniform sampler2D BUFFER_SKY_LUT;
+    uniform sampler2D BUFFER_IRRADIANCE;
     
     //uniform mat4 gbufferModelView;
 
@@ -128,9 +134,6 @@ uniform sampler2D depthtex1;
 #else
     uniform sampler2D colortex15;
 #endif
-
-uniform sampler2D BUFFER_SKY_LUT;
-uniform sampler2D BUFFER_IRRADIANCE;
 
 uniform int worldTime;
 uniform float frameTimeCounter;

@@ -33,7 +33,7 @@ flat out int vBlockId;
     flat out mat3 vMatViewTBN;
 #endif
 
-// #if defined WATER_ENABLED && defined WATER_FANCY
+// #if defined WORLD_WATER_ENABLED && defined WATER_FANCY
 //     flat out int vWaterMask;
 // #endif
 
@@ -58,11 +58,8 @@ uniform int entityId;
 uniform float rainStrength;
 uniform float frameTimeCounter;
 uniform int renderStage;
+uniform int worldTime;
 uniform float far;
-
-#ifdef ANIM_USE_WORLDTIME
-    uniform int worldTime;
-#endif
 
 #if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
     uniform vec3 chunkOffset;
@@ -72,6 +69,10 @@ uniform float far;
 
 #include "/lib/world/wind.glsl"
 #include "/lib/world/waving.glsl"
+
+#ifdef WORLD_END
+    #include "/lib/celestial/position.glsl"
+#endif
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     uniform float near;
@@ -192,7 +193,30 @@ void main() {
         #endif
     }
 
-    vec4 shadowViewPos = gl_ModelViewMatrix * vec4(vLocalPos, 1.0);
+    mat4 _shadowModelView = gl_ModelViewMatrix;
+
+    vec4 shadowViewPos = vec4(vLocalPos, 1.0);
+
+    #ifdef WORLD_END
+        vec3 sunPos = GetEndSunPosition();
+
+        vec3 zaxis = normalize(sunPos);    
+        vec3 xaxis = normalize(cross(vec3(0.0, 1.0, 0.0), zaxis));
+        vec3 yaxis = cross(zaxis, xaxis);
+
+        if (renderStage == MC_RENDER_STAGE_ENTITIES)
+            _shadowModelView = shadowModelView;
+
+        _shadowModelView[0].xyz = vec3(xaxis.x, yaxis.x, zaxis.x);
+        _shadowModelView[1].xyz = vec3(xaxis.y, yaxis.y, zaxis.y);
+        _shadowModelView[2].xyz = vec3(xaxis.z, yaxis.z, zaxis.z);
+
+        if (renderStage == MC_RENDER_STAGE_ENTITIES) {
+            shadowViewPos = shadowModelViewInverse * (gl_ModelViewMatrix * shadowViewPos);
+        }
+    #endif
+
+    shadowViewPos = _shadowModelView * shadowViewPos;
 
     #ifdef WATER_FANCY
         //vViewPos = (gbufferModelView * vec4(vLocalPos, 1.0)).xyz;
@@ -218,19 +242,6 @@ void main() {
 
     #ifdef RSM_ENABLED
         vMatViewTBN = mat3(gbufferModelView) * (mat3(shadowModelViewInverse) * vMatShadowViewTBN);
-    #endif
-
-    #if defined SSS_ENABLED //|| defined RSM_ENABLED
-        // #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-        //     PbrMaterial material;
-        //     ApplyHardCodedMaterials(material);
-        // #endif
-
-        // PhysicsMod snow
-        // if (entityId == 829925) {
-        //     blockId = MATERIAL_PHYSICS_SNOW;
-        //     //vMaterialSSS = 0.8;
-        // }
     #endif
 
     gl_Position = shadowViewPos;

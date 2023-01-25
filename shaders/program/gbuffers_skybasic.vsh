@@ -6,10 +6,13 @@
 #include "/lib/common.glsl"
 
 flat out vec3 sunTransmittanceEye;
-flat out vec3 moonTransmittanceEye;
 flat out vec3 sunColor;
-flat out vec3 moonColor;
 flat out float exposure;
+
+#ifdef WORLD_MOON_ENABLED
+    flat out vec3 moonTransmittanceEye;
+    flat out vec3 moonColor;
+#endif
 
 #if SHADER_PLATFORM == PLATFORM_IRIS
     uniform sampler3D texSunTransmittance;
@@ -34,20 +37,19 @@ uniform float wetness;
     uniform int heldBlockLightValue;
 #endif
 
-uniform float rainStrength;
+uniform mat4 gbufferModelView;
+uniform mat4 gbufferModelViewInverse;
+uniform vec3 shadowLightPosition;
 uniform vec3 sunPosition;
 uniform vec3 moonPosition;
 uniform vec3 upPosition;
+uniform float rainStrength;
 uniform int moonPhase;
+uniform int worldTime;
 
 uniform int renderStage;
 uniform float nightVision;
 uniform float blindness;
-
-#if SHADER_PLATFORM == PLATFORM_OPTIFINE
-    uniform mat4 gbufferModelView;
-    uniform int worldTime;
-#endif
 
 #if MC_VERSION >= 11900
     uniform float darknessFactor;
@@ -69,18 +71,25 @@ void main() {
 
     gl_Position = ftransform();
 
-    sunColor = GetSunColor();
-    moonColor = GetMoonColor();
-
     vec2 skyLightLevels = GetSkyLightLevels();
     float eyeElevation = GetScaledSkyHeight(eyeAltitude);
     
+    sunColor = GetSunColor();
+
     #if SHADER_PLATFORM == PLATFORM_IRIS
         sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
-        moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
     #else
         sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
-        moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);
+    #endif
+
+    #ifdef WORLD_MOON_ENABLED
+        moonColor = GetMoonColor();
+
+        #if SHADER_PLATFORM == PLATFORM_IRIS
+            moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
+        #else
+            moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);
+        #endif
     #endif
 
     exposure = GetExposure();

@@ -19,12 +19,16 @@ out vec2 texcoord;
     uniform ivec2 eyeBrightness;
 #endif
 
+uniform mat4 gbufferModelView;
+uniform mat4 gbufferModelViewInverse;
 uniform float screenBrightness;
 uniform int heldBlockLightValue;
 uniform float viewWidth;
 uniform float viewHeight;
+uniform int worldTime;
 
 uniform float rainStrength;
+uniform vec3 shadowLightPosition;
 uniform vec3 sunPosition;
 uniform vec3 moonPosition;
 uniform vec3 upPosition;
@@ -46,6 +50,7 @@ uniform float nightVision;
 #endif
 
 #include "/lib/lighting/blackbody.glsl"
+#include "/lib/celestial/position.glsl"
 #include "/lib/world/sky.glsl"
 #include "/lib/camera/exposure.glsl"
 

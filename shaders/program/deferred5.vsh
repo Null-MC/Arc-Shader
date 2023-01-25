@@ -22,10 +22,13 @@ flat out vec3 blockLightColor;
 
 #ifdef SKY_ENABLED
     flat out vec3 sunColor;
-    flat out vec3 moonColor;
     flat out vec2 skyLightLevels;
     flat out vec3 sunTransmittanceEye;
-    flat out vec3 moonTransmittanceEye;
+
+    #ifdef WORLD_MOON_ENABLED
+        flat out vec3 moonColor;
+        flat out vec3 moonTransmittanceEye;
+    #endif
 
     #if SHADER_PLATFORM == PLATFORM_IRIS
         uniform sampler3D texSunTransmittance;
@@ -46,6 +49,7 @@ flat out vec3 blockLightColor;
 
 uniform vec3 cameraPosition;
 uniform mat4 gbufferModelView;
+uniform mat4 gbufferModelViewInverse;
 uniform float screenBrightness;
 uniform int heldBlockLightValue;
 uniform int heldBlockLightValue2;
@@ -55,16 +59,11 @@ uniform vec3 sunPosition;
 uniform vec3 moonPosition;
 uniform vec3 upPosition;
 uniform int moonPhase;
+uniform int worldTime;
 
 //uniform int isEyeInWater;
 uniform float nightVision;
 uniform float blindness;
-
-#if SHADER_PLATFORM == PLATFORM_OPTIFINE
-    uniform int worldTime;
-//#else
-//    uniform mat4 gbufferModelView;
-#endif
 
 #if MC_VERSION >= 11900
     uniform float darknessFactor;
@@ -87,18 +86,25 @@ void main() {
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
     #ifdef SKY_ENABLED
-        sunColor = GetSunLuxColor();
-        moonColor = GetMoonLuxColor();// * GetMoonPhaseLevel();
-
         skyLightLevels = GetSkyLightLevels();
         float eyeElevation = GetScaledSkyHeight(eyeAltitude);
 
+        sunColor = GetSunLuxColor();
+
         #if SHADER_PLATFORM == PLATFORM_IRIS
             sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
-            moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
         #else
             sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
-            moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);
+        #endif
+
+        #ifdef WORLD_MOON_ENABLED
+            moonColor = GetMoonLuxColor();// * GetMoonPhaseLevel();
+
+            #if SHADER_PLATFORM == PLATFORM_IRIS
+                moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
+            #else
+                moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);
+            #endif
         #endif
     #endif
 

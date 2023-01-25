@@ -8,20 +8,15 @@ vec2 GetWaterScattering(const in vec3 viewDir) {
     #ifdef SKY_ENABLED
         vec2 scatteringF;
 
-        #if SHADER_PLATFORM == PLATFORM_OPTIFINE && (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
-            vec3 sunDir = GetFixedSunPosition();
-        #else
-            vec3 sunDir = normalize(sunPosition);
-        #endif
-
-        float sun_VoL = dot(viewDir, sunDir);
+        vec3 sunViewDir = GetSunViewDir();
+        float sun_VoL = dot(viewDir, sunViewDir);
         scatteringF.x = mix(
             ComputeVolumetricScattering(sun_VoL, -0.2),
             ComputeVolumetricScattering(sun_VoL, 0.6),
             0.7);
 
-        vec3 moonDir = normalize(moonPosition);
-        float moon_VoL = dot(viewDir, moonDir);
+        vec3 moonViewDir = GetMoonViewDir();
+        float moon_VoL = dot(viewDir, moonViewDir);
         scatteringF.y = mix(
             ComputeVolumetricScattering(moon_VoL, -0.2),
             ComputeVolumetricScattering(moon_VoL, 0.6),

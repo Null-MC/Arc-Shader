@@ -42,8 +42,10 @@ uniform sampler2D gtexture;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform vec3 cameraPosition;
+uniform int worldTime;
 uniform int entityId;
 
+#include "/lib/celestial/position.glsl"
 #include "/lib/lighting/basic.glsl"
 #include "/lib/lighting/pbr.glsl"
 

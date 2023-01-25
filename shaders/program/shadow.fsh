@@ -76,7 +76,7 @@ uniform int entityId;
     uniform vec3 shadowLightPosition;
 #endif
 
-#if defined WATER_ENABLED && defined WATER_FANCY
+#if defined WORLD_WATER_ENABLED && defined WATER_FANCY
     //flat in int gWaterMask;
 
     //uniform sampler2D BUFFER_WATER_WAVES;
@@ -94,7 +94,7 @@ uniform int entityId;
     #include "/lib/material/default.glsl"
 //#endif
 
-#if defined WATER_ENABLED && defined WATER_FANCY
+#if defined WORLD_WATER_ENABLED && defined WATER_FANCY
     #include "/lib/world/wind.glsl"
     #include "/lib/world/water.glsl"
 #endif
@@ -161,7 +161,7 @@ void main() {
         #endif
     #endif
 
-    #if defined WATER_ENABLED && defined WATER_FANCY
+    #if defined WORLD_WATER_ENABLED && defined WATER_FANCY
         if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && gBlockId == MATERIAL_WATER) {
             #ifdef PHYSICS_OCEAN
                 //float waviness = textureLod(physics_waviness, physics_gLocalPosition.xz / vec2(textureSize(physics_waviness, 0)), 0).r;
@@ -245,7 +245,7 @@ void main() {
 
             vec3 viewDir = normalize(-gViewPos);
             vec3 viewNormal = gMatViewTBN * normal;
-            vec3 viewLightDir = normalize(shadowLightPosition);
+            vec3 viewLightDir = GetShadowLightViewDir();
             vec3 halfDir = normalize(viewLightDir + viewDir);
 
             float NoVm = max(dot(viewNormal, viewDir), 0.0);

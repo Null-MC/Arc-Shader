@@ -60,7 +60,7 @@
             gl_FragDepth = gl_FragCoord.z;
         #endif
 
-        #if defined RENDER_WATER && defined WATER_FANCY && defined WATER_ENABLED
+        #if defined WORLD_WATER_ENABLED && defined WATER_FANCY && defined WATER_ENABLED
             if (materialId == MATERIAL_WATER) {
                 material.albedo = WATER_COLOR;
                 material.normal = vec3(0.0, 0.0, 1.0);
@@ -235,7 +235,7 @@
                 #endif
             #endif
 
-        #if defined RENDER_WATER && defined WATER_FANCY && defined WATER_ENABLED
+        #if defined WORLD_WATER_ENABLED && defined WATER_FANCY && defined WATER_ENABLED
             }
         #endif
 

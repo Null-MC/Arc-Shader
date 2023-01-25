@@ -78,44 +78,49 @@ float GetCloudFactor(const in vec3 cloudPos, const in vec3 localViewDir, const i
 }
 
 vec3 GetCloudColor(const in vec3 cloudPos, const in vec3 viewDir, const in vec2 skyLightLevels) {
-    vec3 sunDir = GetSunDir();
-    vec3 moonDir = GetMoonDir();
-
-    float sun_VoL = dot(viewDir, sunDir);
-    float moon_VoL = dot(viewDir, moonDir);
-
-    sunDir = mat3(gbufferModelViewInverse) * sunDir;
-    moonDir = mat3(gbufferModelViewInverse) * moonDir;
-
     vec3 atmosPos = GetAtmospherePosition(cloudPos);
 
-    #if SHADER_PLATFORM == PLATFORM_IRIS
-        vec3 sunTransmittance = getValFromTLUT(texSunTransmittance, atmosPos, sunDir);
-        vec3 moonTransmittance = getValFromTLUT(texSunTransmittance, atmosPos, moonDir);
-    #else
-        vec3 sunTransmittance = getValFromTLUT(colortex12, atmosPos, sunDir);
-        vec3 moonTransmittance = getValFromTLUT(colortex12, atmosPos, moonDir);
-    #endif
+    vec3 localViewDir = mat3(gbufferModelViewInverse) * viewDir;
+
+    vec3 localSunDir = GetSunLocalDir();
+    float sun_VoL = dot(viewDir, localSunDir);
 
     float sunScatterF = mix(
         ComputeVolumetricScattering(sun_VoL, -0.24),
         ComputeVolumetricScattering(sun_VoL, 0.86),
         0.3);
 
-    float moonScatterF = mix(
-        ComputeVolumetricScattering(moon_VoL, -0.24),
-        ComputeVolumetricScattering(moon_VoL, 0.86),
-        0.3);
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        vec3 sunTransmittance = getValFromTLUT(texSunTransmittance, atmosPos, localSunDir);
+    #else
+        vec3 sunTransmittance = getValFromTLUT(colortex12, atmosPos, localSunDir);
+    #endif
+
+    #ifdef WORLD_MOON_ENABLED
+        vec3 localMoonDir = GetMoonLocalDir();
+        float moon_VoL = dot(viewDir, localMoonDir);
+
+        float moonScatterF = mix(
+            ComputeVolumetricScattering(moon_VoL, -0.24),
+            ComputeVolumetricScattering(moon_VoL, 0.86),
+            0.3);
+
+        #if SHADER_PLATFORM == PLATFORM_IRIS
+            vec3 moonTransmittance = getValFromTLUT(texSunTransmittance, atmosPos, localMoonDir);
+        #else
+            vec3 moonTransmittance = getValFromTLUT(colortex12, atmosPos, localMoonDir);
+        #endif
+    #endif
 
     vec3 sunColor = sunTransmittance * GetSunLuxColor();// * smoothstep(-0.06, 0.6, skyLightLevels.x);
-    //cloudSunColor *= smoothstep(-0.08, 1.0, skyLightLevels.x);
+    vec3 vl = sunColor * sunScatterF;
+    vec3 ambient = sunColor;
 
-    vec3 moonColor = moonTransmittance * GetMoonLuxColor() * GetMoonPhaseLevel();// * smoothstep(-0.06, 0.6, skyLightLevels.y);
-    //cloudSunColor *= smoothstep(-0.08, 1.0, skyLightLevels.y);
+    #ifdef WORLD_MOON_ENABLED
+        vec3 moonColor = moonTransmittance * GetMoonLuxColor() * GetMoonPhaseLevel();// * smoothstep(-0.06, 0.6, skyLightLevels.y);
+        vl += moonColor * moonScatterF;
+        ambient += moonColor;
+    #endif
 
-    vec3 ambient = 0.2 * (sunColor + moonColor);
-
-    vec3 vl = sunColor * sunScatterF + moonColor * moonScatterF;// * max(skyLightLevels.x, 0.0); //+ moonColor * moonScatterF;
-
-    return (ambient + vl) * CLOUD_COLOR * pow(1.0 - 0.9 * rainStrength, 2.0);
+    return (ambient * 0.2 + vl) * CLOUD_COLOR * pow(1.0 - 0.9 * rainStrength, 2.0);
 }

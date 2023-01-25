@@ -61,33 +61,35 @@ float GetFogFactor(const in float dist, const in float start, const in float end
     }
 #endif
 
-vec3 GetWaterFogColor(const in vec3 sunColorFinal, const in vec3 moonColorFinal, const in vec2 scatteringF) {
-    #ifdef SKY_ENABLED
-        vec3 waterFogColor = vec3(0.0);
-
+#ifdef WORLD_WATER_ENABLED
+    vec3 GetWaterFogColor(const in vec3 sunColorFinal, const in vec3 moonColorFinal, const in vec2 scatteringF) {
         #ifdef SKY_ENABLED
-            #ifdef VL_WATER_ENABLED
-                vec3 lightColor = sunColorFinal + moonColorFinal;
-                waterFogColor += 0.004 * waterScatterColor * lightColor;
-            #else
-                vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
-                waterFogColor += 0.4 * waterScatterColor * lightColor;
+            vec3 waterFogColor = vec3(0.0);
+
+            #ifdef SKY_ENABLED
+                #ifdef VL_WATER_ENABLED
+                    vec3 lightColor = sunColorFinal + moonColorFinal;
+                    waterFogColor += 0.004 * waterScatterColor * lightColor;
+                #else
+                    vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
+                    waterFogColor += 0.4 * waterScatterColor * lightColor;
+                #endif
             #endif
+
+            float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
+            return waterFogColor * pow2(eyeLight);
+        #else
+            return vec3(0.0);
         #endif
+    }
 
-        float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
-        return waterFogColor * pow2(eyeLight);
-    #else
-        return vec3(0.0);
-    #endif
-}
+    float GetWaterFogFactor(const in float waterNear, const in float viewDist) {
+        return GetFogFactor(viewDist, waterNear, waterNear + waterFogDistSmooth, 0.25);
+    }
 
-float GetWaterFogFactor(const in float waterNear, const in float viewDist) {
-    return GetFogFactor(viewDist, waterNear, waterNear + waterFogDistSmooth, 0.25);
-}
-
-float ApplyWaterFog(inout vec3 color, const in vec3 fogColor, const in float viewDist) {
-    float fogFactor = GetWaterFogFactor(0.0, viewDist);
-    color = mix(color, fogColor, fogFactor);
-    return fogFactor;
-}
+    float ApplyWaterFog(inout vec3 color, const in vec3 fogColor, const in float viewDist) {
+        float fogFactor = GetWaterFogFactor(0.0, viewDist);
+        color = mix(color, fogColor, fogFactor);
+        return fogFactor;
+    }
+#endif

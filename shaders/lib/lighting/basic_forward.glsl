@@ -27,10 +27,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
             #endif
         
             #ifdef SHADOW_CLOUD
-                vec3 viewLightDir = normalize(shadowLightPosition);
-                vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
-                //vec3 upDir = normalize(upPosition);
-
+                vec3 localLightDir = GetShadowLightLocalDir();
                 float cloudF = GetCloudFactor(worldPos, localLightDir, 0);
                 shadow *= 1.0 - cloudF;
             #endif
@@ -120,14 +117,14 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
         vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * GetMoonPhaseLevel();
 
         #ifdef RENDER_WEATHER
-            vec3 sunDir = normalize(sunPosition);
+            vec3 sunDir = GetSunViewDir();
             float sun_VoL = dot(viewDir, sunDir);
             float rainSnowSunVL = mix(
                 ComputeVolumetricScattering(sun_VoL, -0.16),
                 ComputeVolumetricScattering(sun_VoL, 0.66),
                 0.3);
 
-            vec3 moonDir = normalize(moonPosition);
+            vec3 moonDir = GetMoonViewDir();
             float moon_VoL = dot(viewDir, moonDir);
             float rainSnowMoonVL = mix(
                 ComputeVolumetricScattering(moon_VoL, -0.16),
@@ -150,7 +147,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
         #endif
     #endif
 
-    #ifdef WATER_ENABLED
+    #ifdef WORLD_WATER_ENABLED
         if (isEyeInWater == 1) {
             #ifdef SKY_ENABLED
                 vec3 waterSunColorEye = sunColorFinalEye * max(lightData.skyLightLevels.x, 0.0);
@@ -179,9 +176,9 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
         // #endif
 
         #if defined SKY_ENABLED && !defined SKY_VL_ENABLED
-            vec3 viewLightDir = normalize(shadowLightPosition);
+            vec3 viewLightDir = GetShadowLightViewDir();
             float VoL = dot(viewLightDir, viewDir);
-            vec3 localSunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
+            vec3 localSunDir = GetSunLocalDir();
             vec4 scatteringTransmittance = GetFancyFog(localPos, localSunDir, VoL);
             final.rgb = final.rgb * scatteringTransmittance.a + scatteringTransmittance.rgb;
         #elif !defined SKY_ENABLED
@@ -225,7 +222,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
             #endif
         #endif
 
-    #ifdef WATER_ENABLED
+    #ifdef WORLD_WATER_ENABLED
         }
     #endif
 

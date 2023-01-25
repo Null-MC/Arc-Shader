@@ -58,10 +58,9 @@ attribute vec3 at_midBlock;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform vec3 cameraPosition;
+uniform int worldTime;
 
-#ifdef ANIM_USE_WORLDTIME
-    uniform int worldTime;
-#else
+#ifndef ANIM_USE_WORLDTIME
     uniform float frameTimeCounter;
 #endif
 
@@ -78,6 +77,7 @@ uniform vec3 cameraPosition;
     #include "/lib/material/default.glsl"
 #endif
 
+#include "/lib/celestial/position.glsl"
 #include "/lib/lighting/basic.glsl"
 //#include "/lib/lighting/pbr.glsl"
 

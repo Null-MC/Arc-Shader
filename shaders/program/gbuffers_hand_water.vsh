@@ -30,8 +30,11 @@ flat out mat2 atlasBounds;
 
 #ifdef SKY_ENABLED
     flat out vec3 sunColor;
-    flat out vec3 moonColor;
     flat out vec2 skyLightLevels;
+
+    #ifdef WORLD_MOON_ENABLED
+        flat out vec3 moonColor;
+    #endif
 
     uniform vec3 upPosition;
     uniform vec3 sunPosition;
@@ -97,13 +100,10 @@ uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform float screenBrightness;
 uniform vec3 cameraPosition;
+uniform int worldTime;
 
 uniform float nightVision;
 uniform float blindness;
-
-#if SHADER_PLATFORM == PLATFORM_OPTIFINE
-    uniform int worldTime;
-#endif
 
 #if MC_VERSION >= 11700 && (SHADER_PLATFORM != PLATFORM_IRIS || defined IRIS_FEATURE_CHUNK_OFFSET)
     uniform vec3 chunkOffset;
@@ -156,8 +156,11 @@ void main() {
 
     #ifdef SKY_ENABLED
         sunColor = GetSunLuxColor();
-        moonColor = GetMoonLuxColor() * GetMoonPhaseLevel();
         skyLightLevels = GetSkyLightLevels();
+
+        #ifdef WORLD_MOON_ENABLED
+            moonColor = GetMoonLuxColor() * GetMoonPhaseLevel();
+        #endif
     #endif
 
     blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;

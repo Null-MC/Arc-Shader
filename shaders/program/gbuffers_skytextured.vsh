@@ -19,6 +19,7 @@ flat out vec3 moonTransmittanceEye;
     uniform sampler3D colortex12;
 #endif
 
+uniform mat4 gbufferModelViewInverse;
 uniform int renderStage;
 uniform vec3 cameraPosition;
 uniform float screenBrightness;
@@ -33,6 +34,7 @@ uniform float wetness;
 #endif
 
 uniform float rainStrength;
+uniform vec3 shadowLightPosition;
 uniform vec3 upPosition;
 uniform vec3 sunPosition;
 uniform vec3 moonPosition;

@@ -44,7 +44,9 @@ attribute vec4 at_tangent;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform vec3 cameraPosition;
+uniform int worldTime;
 
+#include "/lib/celestial/position.glsl"
 #include "/lib/lighting/basic.glsl"
 #include "/lib/lighting/pbr.glsl"
 

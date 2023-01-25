@@ -31,7 +31,10 @@ flat in mat2 atlasBounds;
 #ifdef SKY_ENABLED
     flat in vec2 skyLightLevels;
     flat in vec3 sunColor;
-    flat in vec3 moonColor;
+
+    #ifdef WORLD_MOON_ENABLED
+        flat in vec3 moonColor;
+    #endif
 
     #if SHADER_PLATFORM == PLATFORM_IRIS
         uniform sampler3D texSunTransmittance;
@@ -209,7 +212,7 @@ uniform float waterFogDistSmooth;
     #include "/lib/parallax.glsl"
 #endif
 
-#if defined WATER_FANCY && defined WATER_ENABLED
+#if defined WATER_FANCY && defined WORLD_WATER_ENABLED
     #include "/lib/world/wind.glsl"
     #include "/lib/world/water.glsl"
 
