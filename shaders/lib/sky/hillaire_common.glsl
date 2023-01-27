@@ -2,17 +2,17 @@
 const float groundRadiusMM = 9.360;
 const float atmosphereRadiusMM = 9.460;
 
-const vec3 ozoneAbsorptionBase_rain = vec3(0.650, 1.381, 0.576);
-const vec3 rayleighScatteringBase_rain = vec3(5.802, 13.558, 33.1);
-const float rayleighAbsorptionBase_rain = 16.0;
-const float mieScatteringBase_rain = 3.996 * 32.0;
-const float mieAbsorptionBase_rain = 4.4 * 8.0;
-
 const vec3 ozoneAbsorptionBase_clear = vec3(0.650, 1.381, 0.576);
 const vec3 rayleighScatteringBase_clear = vec3(5.802, 13.558, 33.1);
 const float rayleighAbsorptionBase_clear = 0.0;
 const float mieScatteringBase_clear = 3.996 * 12.0;
 const float mieAbsorptionBase_clear = 4.4 * 12.0;
+
+const vec3 ozoneAbsorptionBase_rain = vec3(0.650, 1.381, 0.576);
+const vec3 rayleighScatteringBase_rain = vec3(80.802, 130.558, 200.1);
+const float rayleighAbsorptionBase_rain = 32.0;
+const float mieScatteringBase_rain = 3.996 * 22.0;
+const float mieAbsorptionBase_rain = 4.4 * 12.0;
 
 const vec3 ozoneAbsorptionBase_end = vec3(0.650, 8.381, 8.576);
 const vec3 rayleighScatteringBase_end = vec3(64.802, 6.558, 28.1);
@@ -90,9 +90,9 @@ vec3 getAtmosLUT_UV(const in float sunCosZenithAngle, const in float elevation) 
     uv.y = (elevation - groundRadiusMM) / (atmosphereRadiusMM - groundRadiusMM);
 
     #ifdef WORLD_END
-        uv.z = 4.5/5.0;
+        uv.z = 1.0;
     #else
-        uv.z = (0.5 + rainStrength) / 5.0;
+        uv.z = (0.0 + rainStrength) / 5.0;
     #endif
 
     return uv;

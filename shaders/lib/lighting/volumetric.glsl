@@ -78,7 +78,7 @@ const float AirSpeed = 20.0;
             #ifdef WORLD_END
                 const float texDensity = 9.6;
             #else
-                float texDensity = mix(1.0, 2.8, rainStrength);
+                const float texDensity = 1.0;//mix(1.0, 2.8, rainStrength);
             #endif
         #endif
 
