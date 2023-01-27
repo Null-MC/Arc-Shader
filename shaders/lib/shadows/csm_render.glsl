@@ -146,7 +146,7 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in float blockRadiu
 
     #ifdef SHADOW_COLOR
         vec3 GetShadowColor(const in vec2 shadowPos) {
-            //if (lightData.shadowPos[lightData.transparentShadowCascade].z - lightData.transparentShadowDepth < lightData.shadowBias[lightData.transparentShadowCascade]) return vec3(1.0);
+            //if (lightData.shadowPos[lightData.shadowCascade].z - lightData.transparentShadowDepth < lightData.shadowBias[lightData.shadowCascade]) return vec3(1.0);
 
             vec3 color = textureLod(shadowcolor0, shadowPos, 0).rgb;
             //color = RGBToLinear(color);

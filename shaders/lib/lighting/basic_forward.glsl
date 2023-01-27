@@ -18,8 +18,8 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
 
             #ifdef SHADOW_COLOR
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    if (lightData.shadowPos[lightData.transparentShadowCascade].z - lightData.transparentShadowDepth > lightData.shadowBias[lightData.transparentShadowCascade])
-                        shadowColor = GetShadowColor(lightData.shadowPos[lightData.transparentShadowCascade].xy);
+                    if (lightData.shadowPos[lightData.shadowCascade].z - lightData.transparentShadowDepth > lightData.shadowBias[lightData.shadowCascade])
+                        shadowColor = GetShadowColor(lightData.shadowPos[lightData.shadowCascade].xy);
                 #else
                     if (lightData.shadowPos.z - lightData.transparentShadowDepth > lightData.shadowBias)
                         shadowColor = GetShadowColor(lightData.shadowPos.xy);
@@ -58,35 +58,36 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
     #ifdef SKY_ENABLED
         #ifdef RENDER_WEATHER
             vec3 skyColorLux = RGBToLinear(skyColor);// * skyTint;
-            //if (all(lessThan(skyColorLux, vec3(EPSILON)))) skyColorLux = vec3(1.0);
-            //skyColorLux = normalize(skyColorLux);
             skyColorLux = 20000.0 * skyColorLux;
-            ambient += skyColorLux * max(lightData.skyLightLevels.x, 0.0);// * skyLight * ShadowBrightnessF;
+            vec3 skyAmbient = skyColorLux * max(lightData.skyLightLevels.x, 0.0);
         #else
             vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
-            ambient += GetFancySkyAmbientLight(localNormal, skyLight);
+            vec3 skyAmbient = GetFancySkyAmbientLight(localNormal, skyLight);
 
             vec3 sunColorFinal = lightData.sunTransmittance * sunColor;// * GetSunLux();
             vec3 moonColorFinal = lightData.moonTransmittance * moonColor * GetMoonPhaseLevel();// * GetMoonLux();
             vec3 skyLightColor = 0.2 * (sunColorFinal + moonColorFinal);
 
             if (isEyeInWater == 1) {
-                vec3 sunAbsorption = exp(-max(lightData.waterShadowDepth, 0.0) * waterExtinctionInv);
+                vec3 sunAbsorption = exp(-max(lightData.waterShadowDepth, 0.0) * waterExtinctionInv) * shadowFinal;
+                vec3 viewAbsorption = exp(-max(lightData.opaqueScreenDepthLinear, 0.0) * waterExtinctionInv);
 
-                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    if (lightData.opaqueShadowDepth < lightData.shadowPos[lightData.shadowCascade].z - lightData.shadowBias[lightData.shadowCascade])
-                        sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - ShadowBrightnessF);
-                #else
-                    if (lightData.opaqueShadowDepth < lightData.shadowPos.z - lightData.shadowBias)
-                        sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - ShadowBrightnessF);
-                #endif
+                // #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                //     if (lightData.opaqueShadowDepth < lightData.shadowPos[lightData.shadowCascade].z - lightData.shadowBias[lightData.shadowCascade])
+                //         sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - ShadowBrightnessF);
+                // #else
+                //     if (lightData.opaqueShadowDepth < lightData.shadowPos.z - lightData.shadowBias)
+                //         sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - ShadowBrightnessF);
+                // #endif
 
-                ambient *= sunAbsorption;
+                skyAmbient *= viewAbsorption;
                 skyLightColor *= sunAbsorption;
             }
 
             diffuse += albedo.rgb * lightData.geoNoL * skyLightColor * shadowColor * shadow;
         #endif
+
+        ambient += skyAmbient;
     #endif
 
     #if defined HANDLIGHT_ENABLED && !defined RENDER_HAND && !defined RENDER_HAND_WATER
@@ -170,10 +171,6 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
         }
         else {
     #endif
-
-        // #if !defined SKY_ENABLED || !defined VL_SKY_ENABLED
-        //     final.rgb *= exp(-ATMOS_EXTINCTION * viewDist);
-        // #endif
 
         #if defined SKY_ENABLED && !defined SKY_VL_ENABLED
             vec3 viewLightDir = GetShadowLightViewDir();

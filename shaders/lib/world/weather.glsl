@@ -1,7 +1,7 @@
 // Wetness
 
 vec3 WetnessDarkenSurface(const in vec3 albedo, const in float porosity, const in float wetness) {
-    float f = pow(wetness, 0.5) * porosity * POROSITY_DARKENING;
+    float f = pow(wetness, 0.5) * porosity * PorosityDarkeningF;
     return pow(albedo, vec3(1.0 + f)) * saturate(1.0 - f);
 }
 

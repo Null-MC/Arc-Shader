@@ -13,7 +13,7 @@ vec4 GetFancyFog(const in vec3 localPos, const in vec3 localSunDir, const in flo
     vec3 rayleighScattering, extinction;
     getScatteringValues(atmosPos, rayleighScattering, mieScattering, extinction);
 
-    float texDensity = mix(1.2, 2.8, rainStrength);
+    float texDensity = mix(1.0, 2.8, rainStrength);
     float dt = length(localPos) * atmosScale * texDensity;
     vec3 sampleTransmittance = exp(-dt*extinction);
 
@@ -45,7 +45,8 @@ vec4 GetFancyFog(const in vec3 localPos, const in vec3 localSunDir, const in flo
         vec3 psiMS = getValFromMultiScattLUT(colortex13, atmosPos, localSunDir) * SKY_FANCY_LUM;
     #endif
 
-    psiMS *= 0.6 * (eyeBrightnessSmooth.y / 240.0);
+    //psiMS *= 0.4;
+    psiMS *= (eyeBrightnessSmooth.y / 240.0);
 
     vec3 rayleighInScattering = rayleighScattering * (rayleighPhaseValue * lightTransmittance + psiMS);
     vec3 mieInScattering = mieScattering * (miePhaseValue * lightTransmittance + psiMS);

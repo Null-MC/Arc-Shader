@@ -34,11 +34,13 @@ uniform float wetness;
 #endif
 
 uniform float rainStrength;
+uniform mat4 gbufferModelView;
 uniform vec3 shadowLightPosition;
 uniform vec3 upPosition;
 uniform vec3 sunPosition;
 uniform vec3 moonPosition;
 uniform int moonPhase;
+uniform int worldTime;
 
 #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
     uniform ivec2 eyeBrightness;
@@ -50,11 +52,6 @@ uniform float blindness;
 
 #if MC_VERSION >= 11900
     uniform float darknessFactor;
-#endif
-
-#if SHADER_PLATFORM == PLATFORM_OPTIFINE
-    uniform mat4 gbufferModelView;
-    uniform int worldTime;
 #endif
 
 #include "/lib/lighting/blackbody.glsl"

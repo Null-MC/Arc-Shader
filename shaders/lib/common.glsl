@@ -70,16 +70,14 @@ const bool colortex11Clear = false;
 #define BLOCK_OUTLINE 3 // [0 1 2 3]
 #define BLOCKLIGHT_TEMP 2700 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 0 // [0 10 20 30 40 50 60 70 80 90 100]
-#define SHADOW_BRIGHTNESS 16 // [0 2 4 6 8 10 12 14 16 18 20 25 30 35 40 45 50 60 70 80 90 100]
 //#define ANIM_USE_WORLDTIME
 
 
 // Water Options
-#define WATER_FANCY
 #define WATER_WAVE_TYPE 1 // [0 1 2]
-#define WATER_REFRACTION 1 // [0 1]
+//#define WATER_REFRACTION_FANCY
 #define WATER_REFRACT_QUALITY 1 // [0 1 2]
-#define REFRACTION_STRENGTH 100 // [5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 85 100 110 120 130 140 150 160 170 180 190 200]
+#define REFRACTION_STRENGTH 100 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 85 100 110 120 130 140 150 160 170 180 190 200]
 #define WATER_CAMERA_BLUR 1 // [0 1 2]
 #define WATER_SCALE 16.0
 #define WATER_RADIUS 50
@@ -87,9 +85,7 @@ const bool colortex11Clear = false;
 #define WATER_OCTAVES_FAR 12
 #define WATER_OCTAVES_VERTEX 8
 #define WATER_OCTAVES_DIST 120.0
-#define WATER_PARALLAX_SAMPLES 64
 #define WATER_WAVE_DEPTH 100 // [25 50 100 150 200 250 300]
-#define WATER_RESOLUTION 2048
 #define WATER_NORMAL_STRENGTH 0.1
 #define WATER_ABSROPTION_RATE 1.0
 #define VL_WATER_ENABLED
@@ -102,7 +98,6 @@ const bool colortex11Clear = false;
 //#define ATMOSFOG_ENABLED
 //#define CAVEFOG_ENABLED
 #define WEATHER_OPACITY 50 // [10 20 30 40 50 60 70 80 90 100]
-#define ATMOS_EXTINCTION 0.004
 #define SUN_TEMP 5000.0 // [3500 4000 4500 5000 5500 6000 6500 7000]
 #define MOON_TEMP 4000.0
 #define WETNESS_MODE 2 // [0 1 2]
@@ -231,7 +226,7 @@ const bool colortex11Clear = false;
 //#define PARTICLE_ROUNDING
 #define HCM_LAZANYI
 #define METAL_AMBIENT 0.4
-#define POROSITY_DARKENING 0.8
+#define POROSITY_DARKENING 80 // [0 10 20 30 40 50 60 70 80 90 100]
 //#define SHADOW_CONTACT_DITHER
 //#define SKY_DITHER
 //#define AF_ENABLED
@@ -299,11 +294,25 @@ const float drynessHalflife = 10.0;
     const float alphaTestRef = 0.1;
 #endif
 
+const float PorosityDarkeningF = POROSITY_DARKENING * 0.01;
+const float RefractionStrengthF = REFRACTION_STRENGTH * 0.01;
 const vec3 AtmosExtInv = 1.0 - ATMOS_EXT_COLOR;
 const vec3 WaterExtInv = 1.0 - WATER_COLOR.rgb;
 const float WaterWaveDepthF = WATER_WAVE_DEPTH * 0.01;
 const float VLFogMinF = VL_FOG_MIN * 0.01;
-const float ShadowBrightnessF = SHADOW_BRIGHTNESS * 0.01;
+
+const float shadowDistanceRenderMul = 1.0;
+const float shadowIntervalSize = 2.0f;
+const float shadowDistance = 100; // [0 25 50 75 100 150 200 250 300 400 600 800]
+const int shadowMapResolution = 2048; // [512 1024 2048 3072 4096 6144 8192]
+
+#ifdef MC_SHADOW_QUALITY
+    const float shadowMapSize = shadowMapResolution * MC_SHADOW_QUALITY;
+#else
+    const float shadowMapSize = shadowMapResolution;
+#endif
+
+const float shadowPixelSize = 1.0 / shadowMapSize;
 
 
 // #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
@@ -341,8 +350,6 @@ const float ShadowBrightnessF = SHADOW_BRIGHTNESS * 0.01;
 #ifdef REFLECTION_MODE
 #endif
 #ifdef WATER_WAVE_TYPE
-#endif
-#ifdef WATER_REFRACTION
 #endif
 #ifdef CAVEFOG_ENABLED
 #endif

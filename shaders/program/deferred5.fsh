@@ -224,6 +224,8 @@ uniform float waterFogDistSmooth;
     #include "/lib/world/fog_fancy.glsl"
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        #include "/lib/shadows/common.glsl"
+
         #if SHADOW_TYPE == SHADOW_TYPE_BASIC
             #include "/lib/shadows/basic.glsl"
             #include "/lib/shadows/basic_render.glsl"
@@ -359,20 +361,12 @@ void main() {
             vec3 geoNormal = normalize(cross(dX, dY));
             shadowLocalPos += geoNormal * viewDist * SHADOW_NORMAL_BIAS * max(1.0 - lightData.geoNoL, 0.0);
 
-            mat4 _shadowModelView = shadowModelView;
-            #ifdef WORLD_END
-                vec3 sunPos = GetEndSunPosition();
-
-                vec3 zaxis = normalize(sunPos);    
-                vec3 xaxis = normalize(cross(vec3(0.0, 1.0, 0.0), zaxis));
-                vec3 yaxis = cross(zaxis, xaxis);
-
-                _shadowModelView[0].xyz = vec3(xaxis.x, yaxis.x, zaxis.x);
-                _shadowModelView[1].xyz = vec3(xaxis.y, yaxis.y, zaxis.y);
-                _shadowModelView[2].xyz = vec3(xaxis.z, yaxis.z, zaxis.z);
+            #ifndef IRIS_FEATURE_SSBO
+                mat4 shadowModelViewEx = BuildShadowViewMatrix();
             #endif
 
-            vec3 shadowViewPos = (_shadowModelView * vec4(shadowLocalPos, 1.0)).xyz;
+            vec3 shadowViewPos = shadowLocalPos + GetShadowIntervalOffset();
+            shadowViewPos = (shadowModelViewEx * vec4(shadowViewPos, 1.0)).xyz;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 lightData.shadowPos[0] = (cascadeProjection[0] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
@@ -422,7 +416,7 @@ void main() {
             #endif
         #endif
 
-        vec3 localSunDir = GetShadowLightLocalDir();
+        vec3 localSunDir = GetSunLocalDir();
     #endif
 
     // SKY
@@ -463,19 +457,19 @@ void main() {
         color = PbrLighting2(material, lightData, viewPos).rgb;
     }
 
-    if (lightData.opaqueScreenDepth < 1.0) {
-        #if defined SKY_ENABLED && !defined VL_SKY_ENABLED
-            vec3 localLightDir = GetShadowLightLocalDir();
-            float VoL = dot(localLightDir, localViewDir);
-            vec4 scatteringTransmittance = GetFancyFog(localPos, localSunDir, VoL);
-            color = color * scatteringTransmittance.a + scatteringTransmittance.rgb;
-        #elif !defined SKY_ENABLED
-            float fogFactor;
-            vec3 fogColorFinal;
-            GetVanillaFog(lightData, viewPos, fogColorFinal, fogFactor);
-            ApplyFog(color, fogColorFinal, fogFactor);
-        #endif
-    }
+    // if (lightData.opaqueScreenDepth < 1.0) {
+    //     #if defined SKY_ENABLED && !defined VL_SKY_ENABLED
+    //         vec3 localLightDir = GetShadowLightLocalDir();
+    //         float VoL = dot(localLightDir, localViewDir);
+    //         vec4 scatteringTransmittance = GetFancyFog(localPos, localSunDir, VoL);
+    //         color = color * scatteringTransmittance.a + scatteringTransmittance.rgb;
+    //     #elif !defined SKY_ENABLED
+    //         float fogFactor;
+    //         vec3 fogColorFinal;
+    //         GetVanillaFog(lightData, viewPos, fogColorFinal, fogFactor);
+    //         ApplyFog(color, fogColorFinal, fogFactor);
+    //     #endif
+    // }
 
     #ifdef SKY_ENABLED
         #ifdef WORLD_CLOUDS_ENABLED

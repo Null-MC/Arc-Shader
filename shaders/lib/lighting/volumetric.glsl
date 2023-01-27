@@ -35,21 +35,13 @@ const float AirSpeed = 20.0;
         float localRayLength = length(localRay);
         vec3 localStep = localRay * inverseStepCountF;
 
-        mat4 _shadowModelView = shadowModelView;
-        #ifdef WORLD_END
-            vec3 sunPos = GetEndSunPosition();
-
-            vec3 zaxis = normalize(sunPos);    
-            vec3 xaxis = normalize(cross(vec3(0.0, 1.0, 0.0), zaxis));
-            vec3 yaxis = cross(zaxis, xaxis);
-
-            _shadowModelView[0].xyz = vec3(xaxis.x, yaxis.x, zaxis.x);
-            _shadowModelView[1].xyz = vec3(xaxis.y, yaxis.y, zaxis.y);
-            _shadowModelView[2].xyz = vec3(xaxis.z, yaxis.z, zaxis.z);
+        #ifndef IRIS_FEATURE_SSBO
+            mat4 shadowModelViewEx = BuildShadowViewMatrix();
         #endif
 
-        vec3 shadowViewStart = (_shadowModelView * vec4(localStart, 1.0)).xyz;
-        vec3 shadowViewEnd = (_shadowModelView * vec4(localEnd, 1.0)).xyz;
+        vec3 intervalOffset = GetShadowIntervalOffset();
+        vec3 shadowViewStart = (shadowModelViewEx * vec4(localStart + intervalOffset, 1.0)).xyz;
+        vec3 shadowViewEnd = (shadowModelViewEx * vec4(localEnd + intervalOffset, 1.0)).xyz;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             vec3 shadowClipStart[4];
@@ -217,7 +209,8 @@ const float AirSpeed = 20.0;
                 vec3 psiMS = getValFromMultiScattLUT(colortex13, atmosPos, localSunDir) * SKY_FANCY_LUM;
             #endif
 
-            psiMS *= 0.6 * (eyeBrightnessSmooth.y / 240.0);
+            //psiMS *= 0.4;
+            psiMS *= (eyeBrightnessSmooth.y / 240.0);
 
             vec3 rayleighInScattering = rayleighScattering * (rayleighPhaseValue * lightTransmittance + psiMS);
             vec3 mieInScattering = mieScattering * (miePhaseValue * lightTransmittance + psiMS);
@@ -272,7 +265,7 @@ const float AirSpeed = 20.0;
         #endif
 
         #ifdef VL_DITHER
-            float dither = GetScreenBayerValue();
+            float dither = Bayer16(gl_FragCoord.xy);
         #else
             const float dither = 0.0;
         #endif
@@ -283,8 +276,13 @@ const float AirSpeed = 20.0;
         float localRayLength = length(localRay);
         vec3 localStep = localRay * inverseStepCountF;
 
-        vec3 shadowViewStart = (shadowModelView * vec4(localStart, 1.0)).xyz;
-        vec3 shadowViewEnd = (shadowModelView * vec4(localEnd, 1.0)).xyz;
+        #ifndef IRIS_FEATURE_SSBO
+            mat4 shadowModelViewEx = BuildShadowViewMatrix();
+        #endif
+
+        vec3 intervalOffset = GetShadowIntervalOffset();
+        vec3 shadowViewStart = (shadowModelViewEx * vec4(localStart + intervalOffset, 1.0)).xyz;
+        vec3 shadowViewEnd = (shadowModelViewEx * vec4(localEnd + intervalOffset, 1.0)).xyz;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             vec3 shadowClipStart[4];

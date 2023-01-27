@@ -19,13 +19,9 @@ flat in int vBlockId[3];
     flat in vec3 vOriginPos[3];
 #endif
 
-#if defined RSM_ENABLED || defined WATER_FANCY
-    in vec3 vViewPos[3];
-#endif
+in vec3 vViewPos[3];
 
-#if defined RSM_ENABLED || defined WATER_FANCY
-    in mat3 vMatShadowViewTBN[3];
-#endif
+in mat3 vMatShadowViewTBN[3];
 
 #ifdef RSM_ENABLED
     flat in mat3 vMatViewTBN[3];
@@ -37,13 +33,9 @@ out vec2 gLmcoord;
 out vec4 gColor;
 flat out int gBlockId;
 
-#if defined RSM_ENABLED || defined WATER_FANCY
-    out vec3 gViewPos;
-#endif
+out vec3 gViewPos;
 
-#if defined RSM_ENABLED || defined WATER_FANCY
-    out mat3 gMatShadowViewTBN;
-#endif
+out mat3 gMatShadowViewTBN;
 
 #ifdef RSM_ENABLED
     flat out mat3 gMatViewTBN;
@@ -89,13 +81,9 @@ void ApplyCommonProperties(const in int v) {
 
     gBlockId = vBlockId[v];
 
-    #if defined RSM_ENABLED || (defined WATER_FANCY)
-        gViewPos = vViewPos[v];
-    #endif
+    gViewPos = vViewPos[v];
 
-    #if defined RSM_ENABLED || defined WATER_FANCY
-        gMatShadowViewTBN = vMatShadowViewTBN[v];
-    #endif
+    gMatShadowViewTBN = vMatShadowViewTBN[v];
 
     #ifdef RSM_ENABLED
         gMatViewTBN = vMatViewTBN[v];

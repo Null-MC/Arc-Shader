@@ -58,18 +58,6 @@
                             physics_localWaviness = physics_GetWaviness(ivec2(pos.xz));
                             float depth = physics_waveHeight(pos, PHYSICS_ITERATIONS_OFFSET, physics_localWaviness, physics_gameTime);
                             physics_localPosition.y += depth;
-
-                            #ifndef WATER_FANCY
-                                vec3 waterLocalPosX = pos + vec3(1.0, 0.0, 0.0);
-                                float depthX = physics_waveHeight(waterLocalPosX, PHYSICS_ITERATIONS_OFFSET, physics_localWaviness, physics_gameTime);
-                                vec3 pX = vec3(1.0, 0.0, depthX - depth);
-
-                                vec3 waterLocalPosY = pos + vec3(0.0, 0.0, 1.0);
-                                float depthY = physics_waveHeight(waterLocalPosY, PHYSICS_ITERATIONS_OFFSET, physics_localWaviness, physics_gameTime);
-                                vec3 pY = vec3(0.0, 1.0, depthY - depth);
-
-                                normal = normalize(cross(pX, pY)).xzy;
-                            #endif
                         #else
                             float waveDepth = GetWaveDepth(skyLight);
                             float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
@@ -77,18 +65,6 @@
 
                             float depth = 1.0 - GetWaves(waterWorldPos.xz, waveDepth, WATER_OCTAVES_VERTEX);
                             depth = -depth * waveDepth * WaterWaveDepthF * posY;
-
-                            #ifndef WATER_FANCY
-                                vec2 waterWorldPosX = waterWorldPos.xz + vec2(waterWorldScale, 0.0);
-                                float depthX = GetWaves(waterWorldPosX, waveDepth, WATER_OCTAVES_VERTEX);
-                                vec3 pX = vec3(1.0, 0.0, (depthX - depth) * waveDepth);
-
-                                vec2 waterWorldPosY = waterWorldPos.xz + vec2(0.0, waterWorldScale);
-                                float depthY = GetWaves(waterWorldPosY, waveDepth, WATER_OCTAVES_VERTEX);
-                                vec3 pY = vec3(0.0, 1.0, (depthY - depth) * waveDepth);
-
-                                normal = normalize(cross(pX, pY)).xzy;
-                            #endif
                         #endif
 
                         pos.y += depth;

@@ -29,10 +29,6 @@ value.BLOCK_OUTLINE.1=Black
 value.BLOCK_OUTLINE.2=White
 value.BLOCK_OUTLINE.3=Fancy
 
-option.SHADOW_BRIGHTNESS=Ambient Brightness
-option.SHADOW_BRIGHTNESS.comment=Controls how dark shadows are.
-suffix.SHADOW_BRIGHTNESS=%
-
 option.ENABLE_WAVING=Waving Plants
 option.ENABLE_WAVING.comment=Foliage (and other similar blocks) will wave using artificial wind.
 
@@ -60,15 +56,6 @@ value.SNOW_MODE.2=Full
 
 
 screen.WATER_OPTIONS=Water
-
-option.WATER_FANCY=Fancy
-option.WATER_FANCY.comment=When disabled, the vanilla water texture will be used. When enabled, a realistic generated surface will be used.
-
-option.WATER_REFRACTION=Refraction
-option.WATER_REFRACTION.comment=Enables refraction of light entering water, causing it to bend and be visually displaced. WARNING: Fancy is currently broken!
-value.WATER_REFRACTION.0=None
-value.WATER_REFRACTION.1=Fast
-value.WATER_REFRACTION.2=Fancy
 
 option.WATER_WAVE_TYPE=Waves
 value.WATER_WAVE_TYPE.0=None

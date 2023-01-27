@@ -232,15 +232,14 @@ uniform float eyeHumidity;
     #include "/lib/world/fog_fancy.glsl"
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-        #if SHADOW_TYPE == SHADOW_TYPE_BASIC
-            #include "/lib/shadows/basic.glsl"
-            #include "/lib/shadows/basic_render.glsl"
-        #elif SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-            #include "/lib/shadows/basic.glsl"
-            #include "/lib/shadows/basic_render.glsl"
-        #elif SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        #include "/lib/shadows/common.glsl"
+
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             #include "/lib/shadows/csm.glsl"
             #include "/lib/shadows/csm_render.glsl"
+        #else
+            #include "/lib/shadows/basic.glsl"
+            #include "/lib/shadows/basic_render.glsl"
         #endif
 
         #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
@@ -356,7 +355,22 @@ void main() {
             #endif
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
+                //vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
+                vec3 dX = dFdx(localPos);
+                vec3 dY = dFdy(localPos);
+
+                vec3 shadowLocalPos = localPos;
+
+                float viewDist = length(viewPos);
+                vec3 geoNormal = normalize(cross(dX, dY));
+                shadowLocalPos += geoNormal * viewDist * SHADOW_NORMAL_BIAS * max(1.0 - lightData.geoNoL, 0.0);
+
+                #ifndef IRIS_FEATURE_SSBO
+                    mat4 shadowModelViewEx = BuildShadowViewMatrix();
+                #endif
+
+                vec3 shadowViewPos = shadowLocalPos + GetShadowIntervalOffset();
+                shadowViewPos = (shadowModelViewEx * vec4(shadowViewPos, 1.0)).xyz;
 
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                     lightData.shadowPos[0] = (cascadeProjection[0] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;

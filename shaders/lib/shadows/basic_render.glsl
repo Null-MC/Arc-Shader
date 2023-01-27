@@ -197,7 +197,7 @@
                 int sampleCount = SSS_PCF_SAMPLES;
                 float blockRadius = SSS_PCF_SIZE * lightDist;
                 vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, blockRadius);
-                if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
+                //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
                 return GetShadowing_PCF_SSS(lightData, pixelRadius, sampleCount);
             }

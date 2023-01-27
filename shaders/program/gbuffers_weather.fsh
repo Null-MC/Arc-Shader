@@ -150,6 +150,8 @@ uniform float waterFogDistSmooth;
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/lighting/light_data.glsl"
 #include "/lib/lighting/fresnel.glsl"
+#include "/lib/sky/hillaire_common.glsl"
+#include "/lib/celestial/position.glsl"
 
 #ifdef HANDLIGHT_ENABLED
     #include "/lib/lighting/handlight_common.glsl"
@@ -158,6 +160,7 @@ uniform float waterFogDistSmooth;
 
 #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
     #include "/lib/sampling/bayer.glsl"
+    #include "/lib/shadows/common.glsl"
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         #include "/lib/shadows/csm.glsl"
@@ -168,8 +171,6 @@ uniform float waterFogDistSmooth;
     #endif
 #endif
 
-#include "/lib/sky/hillaire_common.glsl"
-#include "/lib/celestial/position.glsl"
 #include "/lib/celestial/transmittance.glsl"
 #include "/lib/sky/hillaire_render.glsl"
 #include "/lib/sky/hillaire.glsl"

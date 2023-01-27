@@ -115,14 +115,6 @@ uniform float blindness;
     uniform float darknessFactor;
 #endif
 
-#ifdef SHADOW_ENABLED
-    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        #include "/lib/shadows/csm.glsl"
-    #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-        #include "/lib/shadows/basic.glsl"
-    #endif
-#endif
-
 #if defined WORLD_WATER_ENABLED && WATER_WAVE_TYPE == WATER_WAVE_VERTEX
     #include "/lib/world/wind.glsl"
     #include "/lib/world/water.glsl"
@@ -139,6 +131,16 @@ uniform float blindness;
     #include "/lib/celestial/position.glsl"
     #include "/lib/celestial/transmittance.glsl"
     #include "/lib/world/sky.glsl"
+
+    #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        #include "/lib/shadows/common.glsl"
+
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+            #include "/lib/shadows/csm.glsl"
+        #else
+            #include "/lib/shadows/basic.glsl"
+        #endif
+    #endif
 #endif
 
 #include "/lib/lighting/basic.glsl"
@@ -185,7 +187,12 @@ void main() {
     exposure = GetExposure();
 
     #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-        vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
+        #ifndef IRIS_FEATURE_SSBO
+            mat4 shadowModelViewEx = BuildShadowViewMatrix();
+        #endif
+
+        vec3 shadowViewPos = localPos + GetShadowIntervalOffset();
+        shadowViewPos = (shadowModelViewEx * vec4(shadowViewPos, 1.0)).xyz;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             for (int i = 0; i < 4; i++) {

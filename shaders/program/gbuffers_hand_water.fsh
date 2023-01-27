@@ -221,8 +221,10 @@ uniform float waterFogDistSmooth;
 
     #include "/lib/sky/hillaire.glsl"
     #include "/lib/sky/hillaire_render.glsl"
+    #include "/lib/world/fog_fancy.glsl"
 #endif
 
+#include "/lib/world/fog_vanilla.glsl"
 #include "/lib/world/weather.glsl"
 
 #ifdef SKY_ENABLED
@@ -230,10 +232,12 @@ uniform float waterFogDistSmooth;
     #include "/lib/sky/stars.glsl"
     
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        #include "/lib/shadows/common.glsl"
+
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             #include "/lib/shadows/csm.glsl"
             #include "/lib/shadows/csm_render.glsl"
-        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+        #else
             #include "/lib/shadows/basic.glsl"
             #include "/lib/shadows/basic_render.glsl"
         #endif

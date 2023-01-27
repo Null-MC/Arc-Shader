@@ -42,6 +42,7 @@ flat out float exposure;
 
     uniform float eyeAltitude;
     uniform float rainStrength;
+    uniform vec3 shadowLightPosition;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
     uniform vec3 upPosition;
@@ -50,8 +51,8 @@ flat out float exposure;
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         //uniform mat4 gbufferModelView;
-        uniform mat4 gbufferModelViewInverse;
-        uniform vec3 shadowLightPosition;
+        //uniform mat4 gbufferModelViewInverse;
+        //uniform vec3 shadowLightPosition;
         uniform mat4 shadowModelView;
         uniform mat4 shadowProjection;
         uniform float far;
@@ -78,16 +79,12 @@ flat out float exposure;
 
 uniform float screenBrightness;
 uniform mat4 gbufferModelView;
+uniform mat4 gbufferModelViewInverse;
 uniform vec3 cameraPosition;
+uniform int worldTime;
 
 uniform float nightVision;
 uniform float blindness;
-
-#if SHADER_PLATFORM == PLATFORM_OPTIFINE
-    uniform int worldTime;
-//#else
-//    uniform mat4 gbufferModelView;
-#endif
 
 #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
     uniform sampler2D BUFFER_HDR_PREVIOUS;

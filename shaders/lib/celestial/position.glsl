@@ -16,70 +16,57 @@ vec3 GetEndSunPosition() {
     return vec3(sin(pan) * cos(tilt), sin(tilt), cos(pan) * cos(tilt));
 }
 
-vec3 GetSunLocalDir() {
-    #ifdef WORLD_END
-        return normalize(GetEndSunPosition());
-    #elif SHADER_PLATFORM == PLATFORM_OPTIFINE //&& (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
-        return normalize(GetFixedSunPosition());
-    #else
-        return normalize(mat3(gbufferModelViewInverse) * sunPosition);
-    #endif
-}
-
-vec3 GetSunViewDir() {
-    #ifdef WORLD_END
-        return normalize(mat3(gbufferModelView) * GetEndSunPosition());
-    #elif SHADER_PLATFORM == PLATFORM_OPTIFINE //&& (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
-        return normalize(mat3(gbufferModelView) * GetFixedSunPosition());
-    #else
-        return normalize(sunPosition);
-    #endif
-}
-
-vec3 GetMoonLocalDir() {
-    #if SHADER_PLATFORM == PLATFORM_OPTIFINE //&& (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
-        return -GetFixedSunPosition();
-    #else
-        return normalize(mat3(gbufferModelViewInverse) * moonPosition);
-    #endif
-}
-
-vec3 GetMoonViewDir() {
-    #if SHADER_PLATFORM == PLATFORM_OPTIFINE //&& (defined RENDER_SKYBASIC || defined RENDER_SKYTEXTURED || defined RENDER_CLOUDS)
-        return mat3(gbufferModelView) * -GetFixedSunPosition();
-    #else
-        return normalize(moonPosition);
-    #endif
-}
-
-vec3 GetShadowLightLocalPosition() {
+vec3 GetSunLocalPosition() {
     #ifdef WORLD_END
         return GetEndSunPosition();
     #else
-        #if SHADER_PLATFORM == PLATFORM_OPTIFINE
-            return GetFixedSunPosition();
-        #else
-            return (gbufferModelViewInverse * vec4(shadowLightPosition, 1.0)).xyz;
-        #endif
+        return GetFixedSunPosition();
     #endif
 }
 
-vec3 GetShadowLightLocalDir() {
-    return normalize(GetShadowLightLocalPosition());
+vec3 GetSunLocalDir() {
+    return normalize(GetSunLocalPosition());
 }
 
-vec3 GetShadowLightViewPosition() {
-    #ifdef WORLD_END
-        return mat3(gbufferModelView) * GetEndSunPosition();
-    #else
-        #if SHADER_PLATFORM == PLATFORM_OPTIFINE
-            return mat3(gbufferModelView) * GetFixedSunPosition();
+vec3 GetSunViewDir() {
+    return mat3(gbufferModelView) * GetSunLocalDir();
+}
+
+vec3 GetMoonLocalPosition() {
+    return -GetSunLocalPosition();
+}
+
+vec3 GetMoonLocalDir() {
+    return -GetSunLocalDir();
+}
+
+vec3 GetMoonViewDir() {
+    return -GetSunViewDir();
+}
+
+//#if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+    vec3 GetShadowLightLocalPosition() {
+        #ifdef WORLD_END
+            return GetEndSunPosition();
         #else
-            return shadowLightPosition;
-        #endif
-    #endif
-}
+            vec3 sunDir = GetFixedSunPosition();
 
-vec3 GetShadowLightViewDir() {
-    return normalize(GetShadowLightViewPosition());
-}
+            if (worldTime >= 13000 && worldTime <= 23000)
+                sunDir = -sunDir;
+
+            return sunDir;
+        #endif
+    }
+
+    vec3 GetShadowLightLocalDir() {
+        return normalize(GetShadowLightLocalPosition());
+    }
+
+    vec3 GetShadowLightViewPosition() {
+        return mat3(gbufferModelView) * GetShadowLightLocalPosition();
+    }
+
+    vec3 GetShadowLightViewDir() {
+        return normalize(GetShadowLightViewPosition());
+    }
+//#endif

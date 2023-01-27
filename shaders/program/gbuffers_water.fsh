@@ -170,9 +170,7 @@ uniform int fogShape;
     uniform vec3 previousCameraPosition;
 #endif
 
-#if defined WATER_FANCY || WATER_REFRACTION != WATER_REFRACTION_NONE
-    uniform sampler2D BUFFER_HDR_OPAQUE;
-#endif
+uniform sampler2D BUFFER_HDR_OPAQUE;
 
 uniform float blindness;
 
@@ -212,13 +210,9 @@ uniform float waterFogDistSmooth;
     #include "/lib/parallax.glsl"
 #endif
 
-#if defined WATER_FANCY && defined WORLD_WATER_ENABLED
+#ifdef WORLD_WATER_ENABLED
     #include "/lib/world/wind.glsl"
     #include "/lib/world/water.glsl"
-
-    #if WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
-        #include "/lib/water_parallax.glsl"
-    #endif
 #endif
 
 #ifdef PHYSICS_OCEAN
@@ -250,6 +244,8 @@ uniform float waterFogDistSmooth;
     #include "/lib/lighting/basic.glsl"
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        #include "/lib/shadows/common.glsl"
+    
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             #include "/lib/shadows/csm.glsl"
             #include "/lib/shadows/csm_render.glsl"
