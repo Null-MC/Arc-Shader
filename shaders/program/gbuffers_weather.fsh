@@ -145,6 +145,7 @@ uniform vec3 waterAbsorbColor;
 uniform float waterFogDistSmooth;
 
 #include "/lib/depth.glsl"
+#include "/lib/matrix.glsl"
 #include "/lib/sampling/noise.glsl"
 #include "/lib/sampling/erp.glsl"
 #include "/lib/lighting/blackbody.glsl"

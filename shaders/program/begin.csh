@@ -32,6 +32,7 @@ const ivec3 workGroups = ivec3(1, 1, 1);
             uniform float far;
         #endif
 
+        #include "/lib/matrix.glsl"
         #include "/lib/celestial/position.glsl"
         #include "/lib/shadows/common.glsl"
 

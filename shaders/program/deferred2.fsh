@@ -55,14 +55,18 @@ void main() {
     if (clipDepth < 1.0) {
         uvec2 deferredNormalLightingData = texelFetch(BUFFER_DEFERRED, itexFull, 0).ga;
 
+        #ifndef IRIS_FEATURE_SSBO
+            mat4 shadowModelViewEx = BuildShadowViewMatrix();
+        #endif
+
         vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
         vec3 localPos = unproject(gbufferModelViewInverse * (gbufferProjectionInverse * vec4(clipPos, 1.0)));
-        vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
+        vec3 shadowViewPos = (shadowModelViewEx * vec4(localPos, 1.0)).xyz;
 
         vec3 normalMap = unpackUnorm4x8(deferredNormalLightingData.r).xyz;
         vec3 viewNormal = normalize(normalMap * 2.0 - 1.0);
 
-        vec3 shadowViewNormal = mat3(shadowModelView) * (mat3(gbufferModelViewInverse) * viewNormal);
+        vec3 shadowViewNormal = mat3(shadowModelViewEx) * (mat3(gbufferModelViewInverse) * viewNormal);
         //color = shadowViewNormal * 0.5 + 0.5;
 
         #ifdef LIGHTLEAK_FIX

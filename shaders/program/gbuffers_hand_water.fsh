@@ -186,6 +186,7 @@ uniform float waterFogDistSmooth;
 
 #include "/lib/atlas.glsl"
 #include "/lib/depth.glsl"
+#include "/lib/matrix.glsl"
 #include "/lib/sampling/bayer.glsl"
 #include "/lib/sampling/linear.glsl"
 #include "/lib/sampling/noise.glsl"

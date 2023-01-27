@@ -45,10 +45,12 @@ out mat3 gMatShadowViewTBN;
     flat out vec2 gShadowTilePos;
 #endif
 
+uniform mat4 gbufferModelView;
 uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
 uniform vec3 cameraPosition;
 uniform int renderStage;
+uniform int worldTime;
 uniform int entityId;
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -59,10 +61,16 @@ uniform int entityId;
         uniform mat4 gbufferPreviousModelView;
         uniform mat4 gbufferPreviousProjection;
     #else
-        uniform mat4 gbufferModelView;
+        //uniform mat4 gbufferModelView;
         uniform mat4 gbufferProjection;
     #endif
+#endif
 
+#include "/lib/matrix.glsl"
+#include "/lib/celestial/position.glsl"
+#include "/lib/shadows/common.glsl"
+
+#if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     #include "/lib/shadows/csm.glsl"
 #elif SHADOW_TYPE != SHADOW_TYPE_NONE
     #include "/lib/shadows/basic.glsl"

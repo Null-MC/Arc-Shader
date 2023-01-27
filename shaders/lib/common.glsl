@@ -256,7 +256,7 @@ const bool colortex11Clear = false;
 #define TITLE
 #define SEA_LEVEL 62
 #define CLOUD_LEVEL 200 // [120 130 140 150 160 170 180 190 200 210 220 230 240 250 260]
-#define ATMOSPHERE_LEVEL 1086
+#define ATMOSPHERE_LEVEL 768
 #define WATER_SMOOTH 1.0
 #define IOR_AIR 1.000293
 #define IOR_WATER 1.333

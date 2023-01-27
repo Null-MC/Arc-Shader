@@ -187,6 +187,7 @@ uniform float eyeHumidity;
 #endif
 
 #include "/lib/depth.glsl"
+#include "/lib/matrix.glsl"
 #include "/lib/sampling/bayer.glsl"
 #include "/lib/sampling/linear.glsl"
 #include "/lib/sampling/noise.glsl"
@@ -355,7 +356,6 @@ void main() {
             #endif
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                //vec3 shadowViewPos = (shadowModelView * vec4(localPos, 1.0)).xyz;
                 vec3 dX = dFdx(localPos);
                 vec3 dY = dFdy(localPos);
 
@@ -369,8 +369,7 @@ void main() {
                     mat4 shadowModelViewEx = BuildShadowViewMatrix();
                 #endif
 
-                vec3 shadowViewPos = shadowLocalPos + GetShadowIntervalOffset();
-                shadowViewPos = (shadowModelViewEx * vec4(shadowViewPos, 1.0)).xyz;
+                vec3 shadowViewPos = (shadowModelViewEx * vec4(shadowLocalPos, 1.0)).xyz;
 
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                     lightData.shadowPos[0] = (cascadeProjection[0] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;

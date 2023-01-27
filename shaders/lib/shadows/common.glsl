@@ -10,6 +10,10 @@
     };
 #endif
 
+vec3 GetShadowIntervalOffset() {
+    return fract(cameraPosition / shadowIntervalSize) * shadowIntervalSize;
+}
+
 mat4 BuildShadowViewMatrix(const in vec3 localLightDir) {
     const vec3 worldUp = vec3(0.0, 1.0, 0.0);
 
@@ -23,14 +27,13 @@ mat4 BuildShadowViewMatrix(const in vec3 localLightDir) {
     shadowModelViewEx[2].xyz = vec3(xaxis.z, yaxis.z, zaxis.z);
     shadowModelViewEx[3].xyz = vec3(0.0);
 
-    return shadowModelViewEx;
+    vec3 intervalOffset = GetShadowIntervalOffset();
+    mat4 translation = BuildTranslationMatrix(intervalOffset);
+
+    return translation * shadowModelViewEx;
 }
 
 mat4 BuildShadowViewMatrix() {
     vec3 localLightDir = GetShadowLightLocalDir();
     return BuildShadowViewMatrix(localLightDir);
-}
-
-vec3 GetShadowIntervalOffset() {
-    return fract(cameraPosition / shadowIntervalSize) * shadowIntervalSize;
 }

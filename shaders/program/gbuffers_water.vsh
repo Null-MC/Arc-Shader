@@ -115,6 +115,9 @@ uniform float blindness;
     uniform float darknessFactor;
 #endif
 
+#include "/lib/matrix.glsl"
+#include "/lib/lighting/blackbody.glsl"
+
 #if defined WORLD_WATER_ENABLED && WATER_WAVE_TYPE == WATER_WAVE_VERTEX
     #include "/lib/world/wind.glsl"
     #include "/lib/world/water.glsl"
@@ -123,8 +126,6 @@ uniform float blindness;
 #ifdef PHYSICS_OCEAN
     #include "/lib/physicsMod/water.glsl"
 #endif
-
-#include "/lib/lighting/blackbody.glsl"
 
 #ifdef SKY_ENABLED
     #include "/lib/sky/hillaire_common.glsl"
@@ -191,8 +192,7 @@ void main() {
             mat4 shadowModelViewEx = BuildShadowViewMatrix();
         #endif
 
-        vec3 shadowViewPos = localPos + GetShadowIntervalOffset();
-        shadowViewPos = (shadowModelViewEx * vec4(shadowViewPos, 1.0)).xyz;
+        vec3 shadowViewPos = (shadowModelViewEx * vec4(localPos, 1.0)).xyz;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             for (int i = 0; i < 4; i++) {

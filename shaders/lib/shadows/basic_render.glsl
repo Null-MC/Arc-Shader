@@ -111,6 +111,7 @@
 
             // percentage-close filtering
             pixelRadius *= min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0); // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
+            pixelRadius = max(pixelRadius, 1.5 * shadowPixelSize);
 
             int pcfSampleCount = SHADOW_PCF_SAMPLES;
             //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) pcfSampleCount = 1;

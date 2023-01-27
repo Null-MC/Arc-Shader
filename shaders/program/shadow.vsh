@@ -67,6 +67,7 @@ uniform float far;
     #endif
 #endif
 
+#include "/lib/matrix.glsl"
 #include "/lib/world/wind.glsl"
 #include "/lib/world/waving.glsl"
 #include "/lib/celestial/position.glsl"
@@ -146,8 +147,7 @@ void main() {
     vec4 shadowViewPos = shadowModelViewInverse * (gl_ModelViewMatrix * vec4(vLocalPos, 1.0));
 
     vViewPos = (gbufferModelView * shadowViewPos).xyz;
-
-    shadowViewPos.xyz += GetShadowIntervalOffset();
+    
     shadowViewPos = shadowModelViewEx * shadowViewPos;
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED

@@ -573,8 +573,7 @@
                             mat4 shadowModelViewEx = BuildShadowViewMatrix();
                         #endif
 
-                        vec3 waterOpaqueShadowViewPos = waterOpaqueLocalPos + GetShadowIntervalOffset();
-                        waterOpaqueShadowViewPos = (shadowModelViewEx * vec4(waterOpaqueShadowViewPos, 1.0)).xyz;
+                        vec3 waterOpaqueShadowViewPos = (shadowModelViewEx * vec4(waterOpaqueLocalPos, 1.0)).xyz;
 
                         vec3 waterOpaqueShadowPos;
                         float waterOpaqueShadowDepth;

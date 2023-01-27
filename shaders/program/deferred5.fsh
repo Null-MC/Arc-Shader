@@ -182,6 +182,7 @@ uniform vec3 waterAbsorbColor;
 uniform float waterFogDistSmooth;
 
 #include "/lib/depth.glsl"
+#include "/lib/matrix.glsl"
 #include "/lib/sampling/bayer.glsl"
 #include "/lib/sampling/linear.glsl"
 #include "/lib/sampling/noise.glsl"
@@ -365,8 +366,7 @@ void main() {
                 mat4 shadowModelViewEx = BuildShadowViewMatrix();
             #endif
 
-            vec3 shadowViewPos = shadowLocalPos + GetShadowIntervalOffset();
-            shadowViewPos = (shadowModelViewEx * vec4(shadowViewPos, 1.0)).xyz;
+            vec3 shadowViewPos = (shadowModelViewEx * vec4(shadowLocalPos, 1.0)).xyz;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 lightData.shadowPos[0] = (cascadeProjection[0] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
@@ -457,19 +457,19 @@ void main() {
         color = PbrLighting2(material, lightData, viewPos).rgb;
     }
 
-    // if (lightData.opaqueScreenDepth < 1.0) {
-    //     #if defined SKY_ENABLED && !defined VL_SKY_ENABLED
-    //         vec3 localLightDir = GetShadowLightLocalDir();
-    //         float VoL = dot(localLightDir, localViewDir);
-    //         vec4 scatteringTransmittance = GetFancyFog(localPos, localSunDir, VoL);
-    //         color = color * scatteringTransmittance.a + scatteringTransmittance.rgb;
-    //     #elif !defined SKY_ENABLED
-    //         float fogFactor;
-    //         vec3 fogColorFinal;
-    //         GetVanillaFog(lightData, viewPos, fogColorFinal, fogFactor);
-    //         ApplyFog(color, fogColorFinal, fogFactor);
-    //     #endif
-    // }
+    if (lightData.opaqueScreenDepth >= 1.0) {
+        #if defined SKY_ENABLED && !defined VL_SKY_ENABLED
+            vec3 localLightDir = GetShadowLightLocalDir();
+            float VoL = dot(localLightDir, localViewDir);
+            vec4 scatteringTransmittance = GetFancyFog(localPos, localSunDir, VoL);
+            color = color * scatteringTransmittance.a + scatteringTransmittance.rgb;
+        #elif !defined SKY_ENABLED
+            float fogFactor;
+            vec3 fogColorFinal;
+            GetVanillaFog(lightData, viewPos, fogColorFinal, fogFactor);
+            ApplyFog(color, fogColorFinal, fogFactor);
+        #endif
+    }
 
     #ifdef SKY_ENABLED
         #ifdef WORLD_CLOUDS_ENABLED

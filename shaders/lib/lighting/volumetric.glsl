@@ -39,9 +39,8 @@ const float AirSpeed = 20.0;
             mat4 shadowModelViewEx = BuildShadowViewMatrix();
         #endif
 
-        vec3 intervalOffset = GetShadowIntervalOffset();
-        vec3 shadowViewStart = (shadowModelViewEx * vec4(localStart + intervalOffset, 1.0)).xyz;
-        vec3 shadowViewEnd = (shadowModelViewEx * vec4(localEnd + intervalOffset, 1.0)).xyz;
+        vec3 shadowViewStart = (shadowModelViewEx * vec4(localStart, 1.0)).xyz;
+        vec3 shadowViewEnd = (shadowModelViewEx * vec4(localEnd, 1.0)).xyz;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             vec3 shadowClipStart[4];
@@ -280,9 +279,8 @@ const float AirSpeed = 20.0;
             mat4 shadowModelViewEx = BuildShadowViewMatrix();
         #endif
 
-        vec3 intervalOffset = GetShadowIntervalOffset();
-        vec3 shadowViewStart = (shadowModelViewEx * vec4(localStart + intervalOffset, 1.0)).xyz;
-        vec3 shadowViewEnd = (shadowModelViewEx * vec4(localEnd + intervalOffset, 1.0)).xyz;
+        vec3 shadowViewStart = (shadowModelViewEx * vec4(localStart, 1.0)).xyz;
+        vec3 shadowViewEnd = (shadowModelViewEx * vec4(localEnd, 1.0)).xyz;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             vec3 shadowClipStart[4];
