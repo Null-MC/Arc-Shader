@@ -30,24 +30,24 @@ const bool shadowHardwareFiltering1 = true;
 
 in vec3 gLocalPos;
 in vec2 gTexcoord;
-in vec2 gLmcoord;
+//in vec2 gLmcoord;
 in vec4 gColor;
 flat in int gBlockId;
 
 in vec3 gViewPos;
-in mat3 gMatShadowViewTBN;
+//in mat3 gMatShadowViewTBN;
 
-#ifdef RSM_ENABLED
-    flat in mat3 gMatViewTBN;
-#endif
+//#ifdef RSM_ENABLED
+//    flat in mat3 gMatViewTBN;
+//#endif
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     flat in vec2 gShadowTilePos;
 #endif
 
 uniform sampler2D gtexture;
-uniform sampler2D normals;
-uniform sampler2D specular;
+//uniform sampler2D normals;
+//uniform sampler2D specular;
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
@@ -67,9 +67,9 @@ uniform int entityId;
     uniform float rainStrength;
 #endif
 
-#include "/lib/material/hcm.glsl"
-#include "/lib/material/material.glsl"
-#include "/lib/material/material_reader.glsl"
+//#include "/lib/material/hcm.glsl"
+//#include "/lib/material/material.glsl"
+//#include "/lib/material/material_reader.glsl"
 #include "/lib/celestial/position.glsl"
 
 //#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
@@ -85,21 +85,16 @@ uniform int entityId;
     #include "/lib/physicsMod/water.glsl"
 #endif
 
-#ifdef RSM_ENABLED
-    #include "/lib/lighting/fresnel.glsl"
-    #include "/lib/lighting/brdf.glsl"
-#endif
+// #ifdef RSM_ENABLED
+//     #include "/lib/lighting/fresnel.glsl"
+//     #include "/lib/lighting/brdf.glsl"
+// #endif
 
-/* RENDERTARGETS: 0,1 */
-#if defined SHADOW_COLOR || (defined SSS_ENABLED && !defined RSM_ENABLED)
-    layout(location = 0) out vec4 outColor0;
-#endif
-layout(location = 1) out uvec2 outColor1;
+/* RENDERTARGETS: 0 */
+layout(location = 0) out vec4 outColor0;
 
 
 void main() {
-    mat2 dFdXY = mat2(dFdx(gTexcoord), dFdy(gTexcoord));
-
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         vec2 screenCascadePos = 2.0 * (gl_FragCoord.xy / shadowMapSize - gShadowTilePos);
         if (saturate(screenCascadePos.xy) != screenCascadePos.xy) discard;
@@ -110,133 +105,21 @@ void main() {
         sampleColor = WATER_COLOR;
     }
     else {
-        sampleColor = textureGrad(gtexture, gTexcoord, dFdXY[0], dFdXY[1]);
+        //mat2 dFdXY = mat2(dFdx(gTexcoord), dFdy(gTexcoord));
+        sampleColor = texture(gtexture, gTexcoord);
         sampleColor.rgb = RGBToLinear(sampleColor.rgb * gColor.rgb);
     }
-
-    #if defined SHADOW_COLOR
-        vec4 lightColor = sampleColor;
-
-        if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
-            lightColor.rgb = vec3(1.0);
-        }
-
-        outColor0 = lightColor;
-    #endif
 
     if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
         if (sampleColor.a < alphaTestRef) discard;
         sampleColor.a = 1.0;
     }
 
-    vec3 normal = vec3(0.0, 0.0, 1.0);
-    #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
-        vec2 normalMap = textureGrad(normals, gTexcoord, dFdXY[0], dFdXY[1]).rg;
-        normal = GetLabPbr_Normal(normalMap);
-    #else
-        vec3 normalMap = textureGrad(normals, gTexcoord, dFdXY[0], dFdXY[1]).rgb;
-        if (any(greaterThan(normalMap, vec3(0.0))))
-            normal = GetOldPbr_Normal(normalMap);
-    #endif
+    vec4 lightColor = sampleColor;
 
-    #ifdef WORLD_WATER_ENABLED
-        if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && gBlockId == MATERIAL_WATER) {
-            #ifdef PHYSICS_OCEAN
-                normal = mat3(gl_ModelViewMatrix) * physics_waveNormal(physics_gLocalPosition.xz, physics_gLocalWaviness, physics_gameTime);
-            #else
-                //float windSpeed = GetWindSpeed();
-                float skyLight = saturate((gLmcoord.y - (0.5/16.0)) / (15.0/16.0));
-                //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
-                float waveDepth = GetWaveDepth(skyLight);
+    if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
+        lightColor.rgb = vec3(1.0);
+    }
 
-                float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
-                vec2 waterWorldPos = waterScale * (gLocalPos.xz + cameraPosition.xz);
-
-                int octaves = WATER_OCTAVES_FAR;
-                #if WATER_WAVE_TYPE != WATER_WAVE_PARALLAX
-                    float viewDist = length(gViewPos);
-                    float octaveDistF = saturate(viewDist / WATER_OCTAVES_DIST);
-                    octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, octaveDistF));
-                #endif
-
-                float finalDepth = GetWaves(waterWorldPos, waveDepth, octaves);
-                vec3 waterPos = vec3(waterWorldPos.x, waterWorldPos.y, finalDepth);
-                waterPos.z *= waveDepth * WaterWaveDepthF * WATER_NORMAL_STRENGTH;
-
-                normal = normalize(
-                    cross(
-                        dFdy(waterPos),
-                        dFdx(waterPos))
-                    );
-            #endif
-        }
-    #endif
-
-    PbrMaterial material;
-    #ifdef SSS_ENABLED
-        #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-            ApplyHardCodedMaterials(material, gBlockId);
-        #else
-            float specularMapB = textureGrad(specular, gTexcoord, dFdXY[0], dFdXY[1]).b;
-            material.scattering = GetLabPbr_SSS(specularMapB);
-
-            if (gBlockId == MATERIAL_PHYSICS_SNOW) {
-                ApplyHardCodedMaterials(material, gBlockId);
-            }
-        #endif
-
-        #if !defined SHADOW_COLOR && defined SSS_ENABLED && !defined RSM_ENABLED
-            // blending SSS is probably bad, should just ignore transparent
-            outColor0 = vec4(material.scattering, 0.0, 0.0, sampleColor.a);
-        #endif
-    #endif
-
-    #ifdef RSM_ENABLED
-        vec3 albedo = mix(vec3(0.0), sampleColor.rgb, sampleColor.a);
-        vec2 specularMap = textureGrad(specular, gTexcoord, dFdXY[0], dFdXY[1]).rg;
-
-        #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
-            float roughL = pow2(specularMap.r);
-            float f0 = GetLabPbr_F0(specularMap.g);
-            int hcm = GetLabPbr_HCM(specularMap.g);
-        #elif MATERIAL_FORMAT == MATERIAL_FORMAT_OLDPBR
-            float roughL = pow2(specularMap.r);
-            float f0 = specularMap.g;
-            int hcm = -1;
-        #else
-            float roughL = 1.0; //pow2(matRough);
-            float f0 = 0.04; //specularMap.g;
-            int hcm = -1;
-        #endif
-
-        vec3 viewDir = normalize(-gViewPos);
-        vec3 viewNormal = gMatViewTBN * normal;
-        vec3 viewLightDir = GetShadowLightViewDir();
-        vec3 halfDir = normalize(viewLightDir + viewDir);
-
-        float NoVm = max(dot(viewNormal, viewDir), 0.0);
-        float LoHm = max(dot(viewLightDir, halfDir), 0.0);
-        float NoLm = max(dot(viewNormal, viewLightDir), 0.0);
-
-        // TODO: diffuse lighting
-        vec3 sunF = GetFresnel(albedo, f0, hcm, LoHm, roughL);
-        vec3 diffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * max(1.0 - sunF, 0.0);
-    #else
-        vec3 diffuse = vec3(0.0);
-    #endif
-    
-    vec3 shadowViewNormal = normal;
-    #ifdef PHYSICS_OCEAN
-        if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT || gBlockId != MATERIAL_WATER)
-            shadowViewNormal = gMatShadowViewTBN * normal;
-    #else
-        shadowViewNormal = gMatShadowViewTBN * normal;
-    #endif
-
-    shadowViewNormal = shadowViewNormal * 0.5 + 0.5;
-
-    uvec2 data;
-    data.r = packUnorm4x8(vec4(LinearToRGB(diffuse), 1.0));
-    data.g = packUnorm4x8(vec4(shadowViewNormal, material.scattering));
-    outColor1 = data;
+    outColor0 = lightColor;
 }

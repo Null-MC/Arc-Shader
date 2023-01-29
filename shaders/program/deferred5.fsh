@@ -391,7 +391,11 @@ void main() {
                     lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 3.0 * far;
                 }
             #else
-                lightData.shadowPos = (shadowProjection * vec4(shadowViewPos, 1.0)).xyz;
+                #ifndef IRIS_FEATURE_SSBO
+                    mat4 shadowProjectionEx = BuildShadowProjectionMatrix();
+                #endif
+
+                lightData.shadowPos = (shadowProjectionEx * vec4(shadowViewPos, 1.0)).xyz;
 
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                     float distortFactor = getDistortFactor(lightData.shadowPos.xy);

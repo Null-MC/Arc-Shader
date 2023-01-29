@@ -55,8 +55,12 @@ const float AirSpeed = 20.0;
                 shadowClipStep[c] = (shadowClipEnd - shadowClipStart[c]) * inverseStepCountF;
             }
         #else
-            vec3 shadowClipStart = (shadowProjection * vec4(shadowViewStart, 1.0)).xyz;
-            vec3 shadowClipEnd = (shadowProjection * vec4(shadowViewEnd, 1.0)).xyz;
+            #ifndef IRIS_FEATURE_SSBO
+                mat4 shadowProjectionEx = BuildShadowProjectionMatrix();
+            #endif
+
+            vec3 shadowClipStart = (shadowProjectionEx * vec4(shadowViewStart, 1.0)).xyz;
+            vec3 shadowClipEnd = (shadowProjectionEx * vec4(shadowViewEnd, 1.0)).xyz;
             vec3 shadowClipStep = (shadowClipEnd - shadowClipStart) * inverseStepCountF;
         #endif
 
@@ -95,7 +99,7 @@ const float AirSpeed = 20.0;
         #endif
 
         vec3 scattering = vec3(0.0);
-        for (int i = 0; i < VL_SAMPLES_SKY; i++) {
+        for (int i = 1; i < VL_SAMPLES_SKY; i++) {
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 vec3 shadowPos[4];
                 shadowPos[0] = shadowClipStart[0] + (i + dither) * shadowClipStep[0];
@@ -295,8 +299,12 @@ const float AirSpeed = 20.0;
                 shadowClipStep[c] = (shadowClipEnd - shadowClipStart[c]) * inverseStepCountF;
             }
         #else
-            vec3 shadowClipStart = (shadowProjection * vec4(shadowViewStart, 1.0)).xyz;
-            vec3 shadowClipEnd = (shadowProjection * vec4(shadowViewEnd, 1.0)).xyz;
+            #ifndef IRIS_FEATURE_SSBO
+                mat4 shadowProjectionEx = BuildShadowProjectionMatrix();
+            #endif
+        
+            vec3 shadowClipStart = (shadowProjectionEx * vec4(shadowViewStart, 1.0)).xyz;
+            vec3 shadowClipEnd = (shadowProjectionEx * vec4(shadowViewEnd, 1.0)).xyz;
             vec3 shadowClipStep = (shadowClipEnd - shadowClipStart) * inverseStepCountF;
         #endif
 

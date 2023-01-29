@@ -361,9 +361,12 @@ void main() {
 
                 vec3 shadowLocalPos = localPos;
 
-                float viewDist = length(viewPos);
                 vec3 geoNormal = normalize(cross(dX, dY));
-                shadowLocalPos += geoNormal * viewDist * SHADOW_NORMAL_BIAS * max(1.0 - lightData.geoNoL, 0.0);
+                vec3 localLightDir = GetShadowLightLocalDir();
+                float geoNoL = max(dot(geoNormal, localLightDir), 0.0);
+
+                float viewDist = length(viewPos);
+                shadowLocalPos += geoNormal * viewDist * SHADOW_NORMAL_BIAS * max(1.0 - geoNoL, 0.0);
 
                 #ifndef IRIS_FEATURE_SSBO
                     mat4 shadowModelViewEx = BuildShadowViewMatrix();
@@ -382,10 +385,10 @@ void main() {
                     lightData.shadowPos[2].xy = lightData.shadowPos[2].xy * 0.5 + shadowProjectionPos[2];
                     lightData.shadowPos[3].xy = lightData.shadowPos[3].xy * 0.5 + shadowProjectionPos[3];
                     
-                    lightData.shadowBias[0] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[0]);
-                    lightData.shadowBias[1] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[1]);
-                    lightData.shadowBias[2] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[2]);
-                    lightData.shadowBias[3] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[3]);
+                    lightData.shadowBias[0] = GetCascadeBias(geoNoL, shadowProjectionSize[0]);
+                    lightData.shadowBias[1] = GetCascadeBias(geoNoL, shadowProjectionSize[1]);
+                    lightData.shadowBias[2] = GetCascadeBias(geoNoL, shadowProjectionSize[2]);
+                    lightData.shadowBias[3] = GetCascadeBias(geoNoL, shadowProjectionSize[3]);
 
                     SetNearestDepths(lightData);
 
@@ -394,7 +397,11 @@ void main() {
                         lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 3.0 * far;
                     }
                 #else
-                    lightData.shadowPos = (shadowProjection * vec4(shadowViewPos, 1.0)).xyz;
+                    #ifndef IRIS_FEATURE_SSBO
+                        mat4 shadowProjectionEx = BuildShadowProjectionMatrix();
+                    #endif
+                
+                    lightData.shadowPos = (shadowProjectionEx * vec4(shadowViewPos, 1.0)).xyz;
 
                     #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                         float distortFactor = getDistortFactor(lightData.shadowPos.xy);

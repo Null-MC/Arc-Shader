@@ -11,6 +11,7 @@ const ivec3 workGroups = ivec3(1, 1, 1);
 #ifdef IRIS_FEATURE_SSBO
     layout(std430, binding = 0) buffer csmData {
         mat4 shadowModelViewEx;         // 64
+        mat4 shadowProjectionEx;        // 64
 
         // CSM
         float cascadeSize[4];           // 16
@@ -23,13 +24,15 @@ const ivec3 workGroups = ivec3(1, 1, 1);
         uniform mat4 gbufferModelView;
         uniform mat4 shadowModelView;
         uniform vec3 cameraPosition;
+        uniform float viewWidth;
+        uniform float viewHeight;
         uniform int worldTime;
+        uniform float far;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             //uniform mat4 gbufferModelView;
             uniform mat4 gbufferProjection;
             uniform float near;
-            uniform float far;
         #endif
 
         #include "/lib/matrix.glsl"
@@ -64,6 +67,8 @@ void main() {
                         cascadeProjection[i][0].x,
                         cascadeProjection[i][1].y);
                 }
+            #else
+                shadowProjectionEx = BuildShadowProjectionMatrix();
             #endif
         #endif
     #endif

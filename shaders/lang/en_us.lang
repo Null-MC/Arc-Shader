@@ -104,9 +104,6 @@ screen.MATERIAL_SSS_OPTIONS.comment=Allows light to scatter thorugh surfaces.
 option.SSS_ENABLED=Enabled
 option.SSS_ENABLED.comment=When enabled, surfaces with SSS will allow light to scatter through.
 
-option.SSS_SCATTER=Scattering
-option.SSS_SCATTER.comment=When enabled, multiple shadowmap samples will be used to simulate the internal scattering of light.
-
 option.SSS_STRENGTH=Strength
 option.SSS_STRENGTH.comment=A multiplier for how strong subsurface scattered light will be.
 suffix.SSS_STRENGTH=%

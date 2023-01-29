@@ -91,9 +91,12 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         //texDepth = minOf(depthSamples);
 
         if (texDepth > tracePos.z + depthBias) {
+            #ifdef SSR_HIZ
+                level = min(level + 2, maxLevel);
+            #endif
+
             //i += l2;
             lastTracePos = tracePos;
-            level = min(level + 2, maxLevel);
             continue;
         }
 

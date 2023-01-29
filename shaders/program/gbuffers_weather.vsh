@@ -167,7 +167,11 @@ void main() {
                 shadowBias[i] = GetCascadeBias(geoNoL, shadowProjectionSize[i]);
             }
         #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            shadowPos = (shadowProjection * vec4(shadowViewPos, 1.0)).xyz;
+            #ifndef IRIS_FEATURE_SSBO
+                mat4 shadowProjectionEx = BuildShadowProjectionMatrix();
+            #endif
+
+            shadowPos = (shadowProjectionEx * vec4(shadowViewPos, 1.0)).xyz;
 
             #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                 float distortFactor = getDistortFactor(shadowPos.xy);

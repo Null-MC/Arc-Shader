@@ -134,14 +134,13 @@ const bool colortex11Clear = false;
 #define REFLECTION_MODE 2 // [0 1 2]
 #define SSR_QUALITY 1 // [0 1 2]
 #define SSR_IGNORE_HAND
+#define SSR_HIZ
 #define SSS_ENABLED
-#define SSS_SCATTER
 #define SSS_DITHER
 #define SSS_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define SSS_MAXDIST 7 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
 #define SSS_PCF_SIZE 0.08 // [0.02 0.04 0.06 0.08 0.1 0.2 0.3 0.4 0.5 0.6 0.8 1.0]
 #define SSS_PCF_SAMPLES 4 // [2 3 4 5 6 8 10 12]
-//#define SSR_HIZ
 //#define SSS_NORMALIZE_ALBEDO
 
 
@@ -163,7 +162,7 @@ const bool colortex11Clear = false;
 
 // Camera Options
 #define CAMERA_EXPOSURE_MODE 2 // [0 1 2]
-#define CAMERA_EXPOSURE 0 // [-17 -16 -15 -14 -13 -12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6]
+#define CAMERA_EXPOSURE 0 // [-17 -16 -15 -14 -13 -12 -11 -10 -9.0 -8.0 -7.0 -6.0 -5.0 -4.0 -3.0 -2.0 -1.5 -1.0 -0.5 0.0 0.5 1.0 1.5 2.0 3.0 4.0 5.0 6.0]
 #define CAMERA_LUM_MIN 60.0
 #define CAMERA_LUM_MAX 8000.0
 //#define EXPOSURE_POINT 0.2

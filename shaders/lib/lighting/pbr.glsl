@@ -288,15 +288,15 @@
             }
         #endif
 
-        #if defined SKY_ENABLED && defined RSM_ENABLED && defined RENDER_DEFERRED
-            #ifdef RSM_UPSCALE
-                vec2 rsmViewSize = viewSize / exp2(RSM_SCALE);
-                vec3 rsmColor = BilateralGaussianDepthBlurRGB_5x(BUFFER_RSM_COLOR, rsmViewSize, BUFFER_RSM_DEPTH, rsmViewSize, lightData.opaqueScreenDepthLinear, 30.0);
-            #else
-                vec2 tex = screenUV;
-                vec3 rsmColor = textureLod(BUFFER_RSM_COLOR, tex, 0).rgb;
-            #endif
-        #endif
+        // #if defined SKY_ENABLED && defined RSM_ENABLED && defined RENDER_DEFERRED
+        //     #ifdef RSM_UPSCALE
+        //         vec2 rsmViewSize = viewSize / exp2(RSM_SCALE);
+        //         vec3 rsmColor = BilateralGaussianDepthBlurRGB_5x(BUFFER_RSM_COLOR, rsmViewSize, BUFFER_RSM_DEPTH, rsmViewSize, lightData.opaqueScreenDepthLinear, 30.0);
+        //     #else
+        //         vec2 tex = screenUV;
+        //         vec3 rsmColor = textureLod(BUFFER_RSM_COLOR, tex, 0).rgb;
+        //     #endif
+        // #endif
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
             float metalDarkF = 1.0;
@@ -436,8 +436,8 @@
 
                     float scatter = mix(
                         ComputeVolumetricScattering(VoL, -0.2),
-                        ComputeVolumetricScattering(VoL, 0.6),
-                        0.4);
+                        ComputeVolumetricScattering(VoL, 0.3),
+                        0.6);
 
                     sssDist = max(sssDist / (shadowSSS * SSS_MAXDIST), 0.0001);
                     vec3 sssExt = CalculateExtinction(material.albedo.rgb, sssDist);
@@ -590,13 +590,9 @@
                             int waterCascade = GetShadowSampleCascade(waterShadowPos, 0.0);
 
                             if (waterCascade >= 0) {
-                                waterOpaqueShadowPos = waterShadowPos[waterCascade];
+                                waterOpaqueShadowPos = waterShadowPos[waterCascade] * 0.5 + 0.5;
 
-                                #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                                    waterOpaqueShadowPos = distort(waterOpaqueShadowPos);
-                                #endif
-
-                                waterOpaqueShadowPos = waterOpaqueShadowPos * 0.5 + 0.5;
+                                waterOpaqueShadowPos.xy = waterOpaqueShadowPos.xy * 0.5 + shadowProjectionPos[waterCascade];
 
                                 // float waterOpaqueShadowDepth = GetNearestOpaqueDepth(waterOpaqueShadowPos, vec2(0.0));
                                 // float waterTransparentShadowDepth = GetNearestTransparentDepth(waterOpaqueShadowPos, vec2(0.0));
@@ -613,7 +609,11 @@
 
                             float ShadowMaxDepth = far * 3.0;
                         #else
-                            waterOpaqueShadowPos = (shadowProjection * vec4(waterOpaqueShadowViewPos, 1.0)).xyz;
+                            #ifndef IRIS_FEATURE_SSBO
+                                mat4 shadowProjectionEx = BuildShadowProjectionMatrix();
+                            #endif
+                        
+                            waterOpaqueShadowPos = (shadowProjectionEx * vec4(waterOpaqueShadowViewPos, 1.0)).xyz;
 
                             #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                                 waterOpaqueShadowPos = distort(waterOpaqueShadowPos);

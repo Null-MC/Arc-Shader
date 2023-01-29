@@ -10,7 +10,7 @@ layout(triangle_strip, max_vertices=12) out;
 
 in vec3 vLocalPos[3];
 in vec2 vTexcoord[3];
-in vec2 vLmcoord[3];
+//in vec2 vLmcoord[3];
 in vec4 vColor[3];
 in float vNoV[3];
 flat in int vBlockId[3];
@@ -21,25 +21,25 @@ flat in int vBlockId[3];
 
 in vec3 vViewPos[3];
 
-in mat3 vMatShadowViewTBN[3];
+//in mat3 vMatShadowViewTBN[3];
 
-#ifdef RSM_ENABLED
-    flat in mat3 vMatViewTBN[3];
-#endif
+// #ifdef RSM_ENABLED
+//     flat in mat3 vMatViewTBN[3];
+// #endif
 
 out vec3 gLocalPos;
 out vec2 gTexcoord;
-out vec2 gLmcoord;
+//out vec2 gLmcoord;
 out vec4 gColor;
 flat out int gBlockId;
 
 out vec3 gViewPos;
 
-out mat3 gMatShadowViewTBN;
+// out mat3 gMatShadowViewTBN;
 
-#ifdef RSM_ENABLED
-    flat out mat3 gMatViewTBN;
-#endif
+// #ifdef RSM_ENABLED
+//     flat out mat3 gMatViewTBN;
+// #endif
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     flat out vec2 gShadowTilePos;
@@ -84,18 +84,18 @@ uniform int entityId;
 void ApplyCommonProperties(const in int v) {
     gLocalPos = vLocalPos[v];
     gTexcoord = vTexcoord[v];
-    gLmcoord = vLmcoord[v];
+    //gLmcoord = vLmcoord[v];
     gColor = vColor[v];
 
     gBlockId = vBlockId[v];
 
     gViewPos = vViewPos[v];
 
-    gMatShadowViewTBN = vMatShadowViewTBN[v];
+    //gMatShadowViewTBN = vMatShadowViewTBN[v];
 
-    #ifdef RSM_ENABLED
-        gMatViewTBN = vMatViewTBN[v];
-    #endif
+    // #ifdef RSM_ENABLED
+    //     gMatViewTBN = vMatViewTBN[v];
+    // #endif
 
     #ifdef PHYSICS_OCEAN
         physics_gLocalPosition = physics_vLocalPosition[v];
@@ -163,10 +163,14 @@ void main() {
             EndPrimitive();
         }
     #else
+        #ifndef IRIS_FEATURE_SSBO
+            mat4 shadowProjectionEx = BuildShadowProjectionMatrix();
+        #endif
+
         for (int v = 0; v < 3; v++) {
             ApplyCommonProperties(v);
 
-            gl_Position = gl_ProjectionMatrix * gl_in[v].gl_Position;
+            gl_Position = shadowProjectionEx * gl_in[v].gl_Position;
 
             #if SHADOW_TYPE == 2
                 gl_Position.xyz = distort(gl_Position.xyz);
