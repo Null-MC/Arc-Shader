@@ -29,10 +29,9 @@ const float AirSpeed = 20.0;
             const float dither = 0.0;
         #endif
 
-        vec3 localStart = localViewDir * nearDist; //(gbufferModelViewInverse * vec4(nearViewPos, 1.0)).xyz;
-        vec3 localEnd = localViewDir * farDist; //(gbufferModelViewInverse * vec4(farViewPos, 1.0)).xyz;
-        //vec3 localRay = localEnd - localStart;
-        float localRayLength = farDist - nearDist; //length(localRay);
+        vec3 localStart = localViewDir * nearDist;
+        vec3 localEnd = localViewDir * farDist;
+        float localRayLength = farDist - nearDist;
         vec3 localStep = localViewDir * (localRayLength * inverseStepCountF);
 
         #ifndef IRIS_FEATURE_SSBO

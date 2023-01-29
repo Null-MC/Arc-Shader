@@ -1,4 +1,4 @@
-#version 400 compatibility
+#version 430 compatibility
 
 #include "overworld.glsl"
-#include "program/gbuffers_entities.vsh"
+#include "/program/gbuffers_entities.vsh"

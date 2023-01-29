@@ -1,6 +1,4 @@
-#version 400 compatibility
-
-#extension GL_ARB_gpu_shader5 : enable
+#version 430 compatibility
 
 #include "overworld.glsl"
-#include "program/gbuffers_entities.fsh"
+#include "/program/gbuffers_entities.fsh"

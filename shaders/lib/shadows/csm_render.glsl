@@ -234,7 +234,7 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in float blockRadiu
 
             // percentage-close filtering
             pixelRadius *= min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0); // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
-            pixelRadius = max(pixelRadius, 1.5 * shadowPixelSize);
+            //pixelRadius = max(pixelRadius, 1.5 * shadowPixelSize);
 
             int pcfSampleCount = SHADOW_PCF_SAMPLES;
             //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) pcfSampleCount = 1;
@@ -265,16 +265,16 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in float blockRadiu
     #endif
 
     #ifdef SSS_ENABLED
-        float SampleShadowSSS(const in vec2 shadowPos) {
-            #ifdef SHADOW_COLOR
-                uint data = textureLod(shadowcolor1, shadowPos, 0).g;
-                return unpackUnorm4x8(data).a;
-            #else
-                return textureLod(shadowcolor0, shadowPos, 0).r;
-            #endif
-        }
+        // float SampleShadowSSS(const in vec2 shadowPos) {
+        //     #ifdef SHADOW_COLOR
+        //         uint data = textureLod(shadowcolor1, shadowPos, 0).g;
+        //         return unpackUnorm4x8(data).a;
+        //     #else
+        //         return textureLod(shadowcolor0, shadowPos, 0).r;
+        //     #endif
+        // }
 
-        float GetShadowing_PCF_SSS(const in LightData lightData, const in vec2 pixelRadius, const in int sampleCount, const in int cascade) {
+        float GetShadowing_PCF_SSS(const in LightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
             float startAngle = hash12(gl_FragCoord.xy + 11.1) * TAU;
             vec2 rotation = vec2(cos(startAngle), sin(startAngle));
 
@@ -288,12 +288,16 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in float blockRadiu
                 float noiseDist = hash13(vec3(gl_FragCoord.xy, i));
                 vec2 pixelOffset = rotation * noiseDist * pixelRadius;
 
-                float texDepth = SampleOpaqueDepth(lightData.shadowPos[cascade].xy, pixelOffset);
+                float texDepth = SampleOpaqueDepth(lightData.shadowPos[lightData.shadowCascade].xy, pixelOffset);
 
-                float shadow_sss = SampleShadowSSS(lightData.shadowPos[cascade].xy + pixelOffset);
+                //float shadow_sss = SampleShadowSSS(lightData.shadowPos[lightData.shadowCascade].xy + pixelOffset);
 
-                float dist = max(lightData.shadowPos[cascade].z + lightData.shadowBias[cascade] - texDepth, 0.0) * far * 3.0;
-                light += max(shadow_sss - dist / SSS_MAXDIST, 0.0);
+                //float dist = max(lightData.shadowPos[lightData.shadowCascade].z + lightData.shadowBias[lightData.shadowCascade] - texDepth, 0.0) * (far * 3.0);
+                float weight = 1.0;
+                if (texDepth < lightData.shadowPos[lightData.shadowCascade].z + lightData.shadowBias[lightData.shadowCascade])
+                    weight = max(1.0 - noiseDist, 0.0);//SampleShadowSSS(lightData.shadowPos.xy + pixelOffset);
+                
+                light += weight;//max(shadow_sss - dist / SSS_MAXDIST, 0.0);
             }
 
             return light / sampleCount;
@@ -301,17 +305,17 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in float blockRadiu
 
         // PCF + PCSS
         float GetShadowSSS(const in LightData lightData, const in float materialSSS, out float traceDist) {
-            if (lightData.shadowCascade < 0) return 1.0;
+            if (lightData.shadowCascade < 0) return 0.0;
 
             float texDepth = SampleOpaqueDepth(lightData.shadowPos[lightData.shadowCascade].xy, vec2(0.0));
-            traceDist = max(lightData.shadowPos[lightData.shadowCascade].z + lightData.shadowBias[lightData.shadowCascade] - texDepth, 0.0) * 3.0 * far;
+            traceDist = max(lightData.shadowPos[lightData.shadowCascade].z + lightData.shadowBias[lightData.shadowCascade] - texDepth, 0.0) * (far * 3.0);
             float blockRadius = SSS_PCF_SIZE * saturate(traceDist / SSS_MAXDIST) * (1.0 - 0.85*materialSSS);
 
             int sampleCount = SSS_PCF_SAMPLES;
             vec2 pixelRadius = GetPixelRadius(lightData.shadowCascade, blockRadius);
             //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
 
-            return GetShadowing_PCF_SSS(lightData, pixelRadius, sampleCount, lightData.shadowCascade);
+            return GetShadowing_PCF_SSS(lightData, pixelRadius, sampleCount);
         }
     #endif
 #endif

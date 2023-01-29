@@ -6,8 +6,11 @@
 #include "/lib/common.glsl"
 
 in vec2 texcoord;
-flat in float exposure;
 flat in vec3 blockLightColor;
+
+#ifndef IRIS_FEATURE_SSBO
+    flat in float sceneExposure;
+#endif
 
 #ifdef SKY_ENABLED
     flat in vec2 skyLightLevels;
@@ -427,7 +430,7 @@ void main() {
 
                     color += GetSunWithBloom(localViewDir, localSunDir) * sunTransmittanceEye * sunColor;
                 #else
-                    color = texelFetch(BUFFER_HDR_OPAQUE, iTex, 0).rgb / exposure;
+                    color = texelFetch(BUFFER_HDR_OPAQUE, iTex, 0).rgb / sceneExposure;
                 #endif
             #else
                 color = GetAreaFogColor();
@@ -485,7 +488,7 @@ void main() {
         // vec3 clipPosPrev = unproject(gbufferPreviousProjection * vec4(viewPosPrev, 1.0));
         // vec2 lightTexcoord = clipPosPrev.xy * 0.5 + 0.5;
 
-        // vec3 lightColor = textureLod(BUFFER_HDR_PREVIOUS, lightTexcoord, 8).rgb / exposure;
+        // vec3 lightColor = textureLod(BUFFER_HDR_PREVIOUS, lightTexcoord, 8).rgb / sceneExposure;
 
         vec3 vlColor = GetVolumetricSmoke(lightData, vlExt, viewNear, viewFar);
 
@@ -494,6 +497,6 @@ void main() {
 
     outColor1 = log2(luminance(color) + EPSILON);
 
-    color = clamp(color * exposure, vec3(0.0), vec3(65000.0));
+    color = clamp(color * sceneExposure, vec3(0.0), vec3(65000.0));
     outColor0 = vec4(color, 1.0);
 }

@@ -10,6 +10,7 @@ const ivec3 workGroups = ivec3(1, 1, 1);
 
 #ifdef IRIS_FEATURE_SSBO
     layout(std430, binding = 0) buffer csmData {
+        float sceneExposure;            // 4
         mat4 shadowModelViewEx;         // 64
         mat4 shadowProjectionEx;        // 64
 
@@ -20,12 +21,27 @@ const ivec3 workGroups = ivec3(1, 1, 1);
         mat4 cascadeProjection[4];      // 256
     };
 
+    uniform float viewWidth;
+    uniform float viewHeight;
+
+    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+        uniform sampler2D BUFFER_HDR_PREVIOUS;
+    #endif
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        uniform ivec2 eyeBrightness;
+    #endif
+
+    uniform float nightVision;
+
+    #if MC_VERSION >= 11900
+        uniform float darknessFactor;
+    #endif
+
     #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         uniform mat4 gbufferModelView;
         uniform mat4 shadowModelView;
         uniform vec3 cameraPosition;
-        uniform float viewWidth;
-        uniform float viewHeight;
         uniform int worldTime;
         uniform float far;
 
@@ -43,12 +59,14 @@ const ivec3 workGroups = ivec3(1, 1, 1);
             #include "/lib/shadows/csm.glsl"
         #endif
     #endif
+
+    #include "/lib/camera/exposure.glsl"
 #endif
 
 
 void main() {
     #ifdef IRIS_FEATURE_SSBO
-        // Sky stuff
+        sceneExposure = GetExposure();
 
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             shadowModelViewEx = BuildShadowViewMatrix();

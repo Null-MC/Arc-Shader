@@ -7,7 +7,8 @@ prepare2        irradiance LUT
 
 <opaque>
 
-deferred4		AO Render
+
+deferred4		AO + Shadows
 deferred5		Opaque PBR (out of water)
 
 <transparent>

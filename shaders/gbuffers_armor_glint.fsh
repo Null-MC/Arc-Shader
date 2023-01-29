@@ -1,4 +1,4 @@
-#version 400 compatibility
+#version 430 compatibility
 
 #include "overworld.glsl"
-#include "program/gbuffers_armor_glint.fsh"
+#include "/program/gbuffers_armor_glint.fsh"

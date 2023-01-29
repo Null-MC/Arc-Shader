@@ -1,16 +1,3 @@
-#if defined IRIS_FEATURE_SSBO && !defined RENDER_BEGIN
-    layout(std430, binding = 0) readonly buffer csmData {
-        mat4 shadowModelViewEx;         // 64
-        mat4 shadowProjectionEx;        // 64
-
-        // CSM
-        float cascadeSize[4];           // 16
-        vec2 shadowProjectionSize[4];   // 32
-        vec2 shadowProjectionPos[4];    // 32
-        mat4 cascadeProjection[4];      // 256
-    };
-#endif
-
 vec3 GetShadowIntervalOffset() {
     return fract(cameraPosition / shadowIntervalSize) * shadowIntervalSize;
 }

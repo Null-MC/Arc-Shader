@@ -28,24 +28,44 @@ uniform float far;
 #include "/lib/depth.glsl"
 
 #if DEBUG_VIEW == DEBUG_VIEW_GBUFFER_COLOR
-    // Deferred Color
+    // GBuffer Color
     uniform usampler2D BUFFER_DEFERRED;
 #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_NORMAL
-    // Deferred Normal
+    // GBuffer Normal
     uniform usampler2D BUFFER_DEFERRED;
     uniform mat4 gbufferModelViewInverse;
 #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_OCCLUSION
-    // Deferred Occlusion
+    // GBuffer Occlusion
     uniform usampler2D BUFFER_DEFERRED;
 #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SPECULAR
-    // Deferred Specular
+    // GBuffer Specular
     uniform usampler2D BUFFER_DEFERRED;
 #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_LIGHTING
-    // Deferred Lighting
+    // GBuffer Lighting
     uniform usampler2D BUFFER_DEFERRED;
 #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SHADOW
-    // Deferred Shadow
+    // GBuffer Shadow
     uniform sampler2D BUFFER_DEFERRED2;
+#elif DEBUG_VIEW == DEBUG_VIEW_DEFERRED_SHADOW
+    // Deferred Shadow
+    uniform sampler2D BUFFER_AO;
+
+    //#ifdef SSAO_UPSCALE
+        uniform sampler2D depthtex0;
+        uniform sampler2D depthtex1;
+
+        #include "/lib/sampling/bilateral_gaussian.glsl"
+    //#endif
+#elif DEBUG_VIEW == DEBUG_VIEW_DEFERRED_A0
+    // Deferred Ambient Occlusion
+    uniform sampler2D BUFFER_AO;
+
+    //#ifdef SSAO_UPSCALE
+        uniform sampler2D depthtex0;
+        uniform sampler2D depthtex1;
+
+        #include "/lib/sampling/bilateral_gaussian.glsl"
+    //#endif
 #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_COLOR
     // Shadow Color
     uniform sampler2D shadowcolor0;
@@ -76,16 +96,6 @@ uniform float far;
 #elif DEBUG_VIEW == DEBUG_VIEW_DEPTH_TILES
     // Depth Tiles
     uniform sampler2D BUFFER_DEPTH_PREV;
-#elif DEBUG_VIEW == DEBUG_VIEW_A0
-    // Ambient Occlusion
-    uniform sampler2D BUFFER_AO;
-
-    #ifdef SSAO_UPSCALE
-        uniform sampler2D depthtex0;
-        uniform sampler2D depthtex1;
-
-        #include "/lib/sampling/bilateral_gaussian.glsl"
-    #endif
 #elif DEBUG_VIEW == DEBUG_VIEW_LUT_BRDF
     // BRDF LUT
     #if SHADER_PLATFORM == PLATFORM_IRIS
@@ -219,11 +229,11 @@ void main() {
 
     vec3 color = vec3(0.0);
     #if DEBUG_VIEW == DEBUG_VIEW_GBUFFER_COLOR
-        // Deferred Color
+        // GBuffer Color
         uint deferredDataR = texelFetch(BUFFER_DEFERRED, iuv, 0).r;
         color = unpackUnorm4x8(deferredDataR).rgb;
     #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_NORMAL
-        // Deferred Normal
+        // GBuffer Normal
         uint deferredDataG = texelFetch(BUFFER_DEFERRED, iuv, 0).g;
         vec3 normal = unpackUnorm4x8(deferredDataG).rgb;
         if (any(greaterThan(normal, vec3(0.0)))) {
@@ -233,20 +243,41 @@ void main() {
         }
         color = normal;
     #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_OCCLUSION
-        // Deferred Occlusion
+        // GBuffer Occlusion
         uint deferredDataG = texelFetch(BUFFER_DEFERRED, iuv, 0).g;
         color = unpackUnorm4x8(deferredDataG).aaa;
     #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SPECULAR
-        // Deferred Specular
+        // GBuffer Specular
         uint deferredDataB = texelFetch(BUFFER_DEFERRED, iuv, 0).b;
         color = unpackUnorm4x8(deferredDataB).rgb;
     #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_LIGHTING
-        // Deferred Lighting
+        // GBuffer Lighting
         uint deferredDataA = texelFetch(BUFFER_DEFERRED, iuv, 0).a;
         color = unpackUnorm4x8(deferredDataA).rgb;
     #elif DEBUG_VIEW == DEBUG_VIEW_GBUFFER_SHADOW
-        // Deferred Shadow
+        // GBuffer Shadow
         color = texelFetch(BUFFER_DEFERRED2, iuv, 0).rgb;
+    #elif DEBUG_VIEW == DEBUG_VIEW_DEFERRED_SHADOW
+        // Deferred Shadow
+        //#ifdef SSAO_UPSCALE
+            ivec2 iTex = ivec2(gl_FragCoord.xy);
+            float opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
+            float opaqueScreenDepthLinear = linearizeDepthFast(opaqueScreenDepth, near, far);
+            color = BilateralGaussianDepthBlurRGB_5x(BUFFER_AO, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, 9.0);
+        //#else
+        //    color = textureLod(BUFFER_AO, texcoord, 0).rgb;
+        //#endif
+    #elif DEBUG_VIEW == DEBUG_VIEW_DEFERRED_A0
+        // Deferred Ambient Occlusion
+        //#ifdef SSAO_UPSCALE
+            ivec2 iTex = ivec2(gl_FragCoord.xy);
+            float opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
+            float opaqueScreenDepthLinear = linearizeDepthFast(opaqueScreenDepth, near, far);
+            float occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, 0.9, 3);
+            color = vec3(occlusion);
+        //#else
+        //    color = textureLod(BUFFER_AO, texcoord, 0).aaa;
+        //#endif
     #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_COLOR
         // Shadow Color
         color = textureLod(shadowcolor0, texcoord, 0).rgb;
@@ -297,17 +328,6 @@ void main() {
     #elif DEBUG_VIEW == DEBUG_VIEW_DEPTH_TILES
         // Prev Depth Tiles
         color = textureLod(BUFFER_DEPTH_PREV, texcoord, 0).rrr;
-    #elif DEBUG_VIEW == DEBUG_VIEW_A0
-        // Ambient Occlusion
-        #ifdef SSAO_UPSCALE
-            ivec2 iTex = ivec2(gl_FragCoord.xy);
-            float opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
-            float opaqueScreenDepthLinear = linearizeDepthFast(opaqueScreenDepth, near, far);
-            float occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, 0.5 * viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, 0.9);
-            color = vec3(occlusion);
-        #else
-            color = textureLod(BUFFER_AO, texcoord, 0).rrr;
-        #endif
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_BRDF
         // BRDF LUT
         #if SHADER_PLATFORM == PLATFORM_IRIS

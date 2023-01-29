@@ -6,8 +6,11 @@
 #include "/lib/common.glsl"
 
 out vec2 texcoord;
-flat out float exposure;
 flat out vec3 blockLightColor;
+
+#ifndef IRIS_FEATURE_SSBO
+    flat out float sceneExposure;
+#endif
 
 #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
     uniform sampler2D BUFFER_HDR_PREVIOUS;
@@ -73,7 +76,9 @@ uniform float blindness;
     #include "/lib/world/sky.glsl"
 #endif
 
-#include "/lib/camera/exposure.glsl"
+#ifndef IRIS_FEATURE_SSBO
+    #include "/lib/camera/exposure.glsl"
+#endif
 
 
 void main() {
@@ -105,5 +110,7 @@ void main() {
 
     blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
 
-    exposure = GetExposure();
+    #ifndef IRIS_FEATURE_SSBO
+        sceneExposure = GetExposure();
+    #endif
 }

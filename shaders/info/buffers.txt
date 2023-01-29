@@ -1,8 +1,4 @@
-shadowcolor0	RGBA8			1.0   	light-color OR sss*
-shadowcolor1	RG32UI			1.0   	R: rsm-color; G: normal-XYZ, sss*
-
-* SSS is only in shadowcolor0 if colored lighting is disabled!
-
+shadowcolor0	RGBA8			1.0   	light-color
 
 
 colortex0		RGBA32UI		1.0   	deferred= R: color; G: normal; B: specular; A: lighting
@@ -14,7 +10,7 @@ colortex4		RGB16F			1.0   	HDR Opaque
 colortex5		RGBA16F			0.25	HDR previous frame [RGB: pre-exposed HDR, A: Log Luminance]
 colortex6		R32F			0.25  	Depth Prev
 colortex7		RGB16F			256   	sky LUT
-colortex10		R16F			1.0	  	AO
+colortex10		RGBA16F			1.0	  	AO + Shadow
 
 colortex11		RGB16F			32x16   irradiance LUT
 

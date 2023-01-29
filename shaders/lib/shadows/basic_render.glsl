@@ -111,7 +111,7 @@
 
             // percentage-close filtering
             pixelRadius *= min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0); // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
-            pixelRadius = max(pixelRadius, 1.5 * shadowPixelSize);
+            //pixelRadius = max(pixelRadius, 1.5 * shadowPixelSize);
 
             int pcfSampleCount = SHADOW_PCF_SAMPLES;
             //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) pcfSampleCount = 1;
@@ -141,11 +141,11 @@
     #endif
 
     #if defined SSS_ENABLED
-        #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-            const float ShadowMaxDepth = 512.0;
-        #else
-            const float ShadowMaxDepth = 256.0;
-        #endif
+        // #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+        //     const float ShadowMaxDepth = 512.0;
+        // #else
+        //     const float ShadowMaxDepth = 256.0;
+        // #endif
 
         float GetShadowing_PCF_SSS(const in LightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
             float startAngle = hash12(gl_FragCoord.xy + 33.3) * TAU;
@@ -156,32 +156,28 @@
             mat2 rotationStep = mat2(angleStep, -angleStep.y, angleStep.x);
 
             float light = 0.0;
-            float maxWeight = 0.0;
+            //float maxWeight = 0.0;
             for (int i = 0; i < sampleCount; i++) {
                 rotation *= rotationStep;
                 float noiseDist = hash13(vec3(gl_FragCoord.xy, i + 33.3));
-                vec2 offset = rotation * noiseDist;// * pixelRadius;
+                vec2 pixelOffset = rotation * noiseDist * pixelRadius;
 
-                float weight = 1.0;// - saturate(dot(offset, offset));
-
-                maxWeight += weight;
-
-                vec2 pixelOffset = offset * pixelRadius;
                 float texDepth = SampleOpaqueDepth(lightData.shadowPos.xy, pixelOffset);
 
+                float weight = 1.0;
                 if (texDepth < lightData.shadowPos.z + lightData.shadowBias)
                     weight = max(1.0 - noiseDist, 0.0);//SampleShadowSSS(lightData.shadowPos.xy + pixelOffset);
 
                 light += weight;
             }
 
-            if (maxWeight < EPSILON) return 1.0;
-            return light / maxWeight;
+            //if (maxWeight < EPSILON) return 1.0;
+            return light / sampleCount;
         }
 
         // PCF + PCSS
         float GetShadowSSS(const in LightData lightData, const in float materialSSS, out float lightDist) {
-            lightDist = max(lightData.shadowPos.z + lightData.shadowBias - lightData.opaqueShadowDepth, 0.0) * ShadowMaxDepth;
+            lightDist = max(lightData.shadowPos.z + lightData.shadowBias - lightData.opaqueShadowDepth, 0.0) * (far * 2.0);
 
             int sampleCount = SSS_PCF_SAMPLES;
             float blockRadius = SSS_PCF_SIZE * lightDist;

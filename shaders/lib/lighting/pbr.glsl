@@ -149,6 +149,10 @@
             shadow *= lightLeakFix;
         #endif
 
+        #if (AO_TYPE == AO_TYPE_SS || defined SHADOW_BLUR) && !defined RENDER_WATER && !defined RENDER_HAND_WATER
+            vec4 shadowOcclusion = BilateralGaussianDepthBlurRGBA_5x(BUFFER_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, 3.0);
+        #endif
+
         #ifdef SKY_ENABLED
             vec3 worldPos = cameraPosition + localPos;
             float sssDist = 0.0;
@@ -157,8 +161,14 @@
                 if (materialId != MATERIAL_WATER) {
             #endif
 
-                shadow *= step(EPSILON, lightData.geoNoL);
-                shadow *= step(EPSILON, NoL);
+                #if defined SHADOW_BLUR && !defined RENDER_WATER && !defined RENDER_HAND_WATER
+                    shadowColor = shadowOcclusion.rgb;
+                #else
+                    shadow *= step(EPSILON, lightData.geoNoL);
+                    shadow *= step(EPSILON, NoL);
+
+                    // TODO: more stuff needs to go in here!
+                #endif
 
                 #if defined WORLD_CLOUDS_ENABLED && defined SHADOW_CLOUD
                     vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
@@ -235,6 +245,7 @@
             #endif
         #endif
 
+        vec3 skyLightColorShadow = skyLightColorFinal * shadowColor;
         float shadowFinal = shadow;
 
         #ifdef LIGHTLEAK_FIX
@@ -320,11 +331,12 @@
         #endif
 
         #if AO_TYPE == AO_TYPE_SS && !defined RENDER_WATER && !defined RENDER_HAND_WATER
-            #ifdef SSAO_UPSCALE
-                occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, 0.5 * viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, 0.9);
-            #else
-                occlusion = textureLod(BUFFER_AO, screenUV, 0).r;
-            #endif
+            // #ifdef SSAO_UPSCALE
+            //     occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, 0.9, 3);
+            // #else
+            //     occlusion = textureLod(BUFFER_AO, screenUV, 0).a;
+            // #endif
+            occlusion = min(occlusion, shadowOcclusion.a);
         #endif
 
         occlusion *= material.occlusion;
@@ -346,7 +358,7 @@
 
                 float iblFmax = maxOf(iblF);
                 //final.a += iblFmax * max(1.0 - final.a, 0.0);
-                //final.a = min(final.a + iblFmax * exposure * final.a, 1.0);
+                //final.a = min(final.a + iblFmax * sceneExposure * final.a, 1.0);
                 final.a = max(final.a, iblFmax);
 
                 reflectF *= iblFmax;
@@ -381,6 +393,7 @@
 
                 skyAmbient *= viewAbsorption;
                 skyLightColorFinal *= sunAbsorption;
+                skyLightColorShadow *= sunAbsorption;
                 iblSpec *= sunAbsorption;
 
                 // #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -408,7 +421,7 @@
             vec3 sunF = GetFresnel(material.albedo.rgb, material.f0, material.hcm, LoHm, roughL);
 
             vec3 sunDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL);
-            sunDiffuse *= skyLightColorFinal * shadowFinal * max(1.0 - sunF, 0.0);
+            sunDiffuse *= skyLightColorShadow * max(1.0 - sunF, 0.0);
 
             float VoL = dot(viewDir, viewLightDir);
             vec3 localViewDir = mat3(gbufferModelViewInverse) * viewDir;
@@ -448,11 +461,11 @@
             if (NoLm > EPSILON) {
                 float NoHm = max(dot(viewNormal, halfDir), 0.0);
 
-                vec3 sunSpec = GetSpecularBRDF(sunF, NoVm, NoLm, NoHm, roughL) * skyLightColorFinal * skyLight2 * shadowFinal;// * final.a;
+                vec3 sunSpec = GetSpecularBRDF(sunF, NoVm, NoLm, NoHm, roughL) * skyLightColorShadow * skyLight2;// * final.a;
                 
                 specular += sunSpec;// * material.albedo.a;
 
-                final.a = min(final.a + luminance(sunSpec) * exposure, 1.0);
+                final.a = min(final.a + luminance(sunSpec) * sceneExposure, 1.0);
             }
         #endif
 
@@ -534,7 +547,7 @@
                             #endif
                         #endif
 
-                        refractColor = textureLod(BUFFER_HDR_OPAQUE, refractUV, 0).rgb / exposure;
+                        refractColor = textureLod(BUFFER_HDR_OPAQUE, refractUV, 0).rgb / sceneExposure;
                     }
                     else {
                         // TIR
@@ -711,7 +724,7 @@
                 #endif
 
                     diffuse += handDiffuse;
-                    final.a = min(final.a + luminance(handSpecular) * exposure, 1.0);
+                    final.a = min(final.a + luminance(handSpecular) * sceneExposure, 1.0);
 
                 #ifdef RENDER_WATER
                     }
@@ -727,9 +740,9 @@
                 //    ApplyLightning(diffuse, specular, material.albedo.rgb, material.f0, material.hcm, material.scattering, viewNormal, viewPos.xyz, -viewDir, NoVm, roughL);
             #endif
 
-            #if defined RSM_ENABLED && defined RENDER_DEFERRED
-                ambient += rsmColor * skyLightColorFinal;
-            #endif
+            // #if defined RSM_ENABLED && defined RENDER_DEFERRED
+            //     ambient += rsmColor * skyLightColorFinal;
+            // #endif
         #endif
 
         //diffuse *= metalDarkF;
@@ -741,7 +754,11 @@
         //return vec4(ambient, 1.0);
         //return vec4(final.rgb * (ambient * (1.0 - iblF) * occlusion), 1.0);
 
-        final.rgb = final.rgb * (ambient * (1.0 - iblF) * occlusion)
+        #if !(defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)
+            diffuse *= occlusion;
+        #endif
+
+        final.rgb = final.rgb * (ambient * occlusion * (1.0 - iblF))
             + diffuse + emissive
             + (specular + iblSpec) * specularTint;
 

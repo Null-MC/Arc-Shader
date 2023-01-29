@@ -9,7 +9,7 @@ const int colortex4Format = RGB16F;
 const int colortex5Format = RGBA16F;
 const int colortex6Format = R32F;
 const int colortex7Format = RGB16F;
-const int colortex10Format = R16F;
+const int colortex10Format = RGBA16F;
 const int colortex11Format = RGB16F;
 */
 
@@ -119,6 +119,7 @@ const bool colortex11Clear = false;
 #define SHADOW_CSM_FITSCALE 0.1
 #define SHADOW_NORMAL_BIAS 0.012
 #define CSM_PLAYER_ID 0
+#define SHADOW_BLUR
 
 
 // Material Options
@@ -192,7 +193,7 @@ const bool colortex11Clear = false;
 #define SSAO_BIAS 0.02
 #define SSAO_RADIUS 0.3 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
 #define SSAO_MAX_DIST 1.6
-#define SSAO_UPSCALE
+//#define SSAO_UPSCALE
 
 //#define DOF_ENABLED
 #define DOF_SCALE 2.0 // [1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
@@ -202,7 +203,7 @@ const bool colortex11Clear = false;
 
 
 // Debug Options
-#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 10 11 12 13 17 18 19 20 22 23 24 25 26 27 28]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 17 18 19 20 22 24 25 26 27 28]
 //#define DEBUG_EXPOSURE_METERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
 #define DITHER_FINAL
@@ -299,6 +300,21 @@ const int shadowMapResolution = 2048; // [512 1024 2048 3072 4096 6144 8192]
 #endif
 
 const float shadowPixelSize = 1.0 / shadowMapSize;
+
+
+#if defined IRIS_FEATURE_SSBO && !defined RENDER_BEGIN
+    layout(std430, binding = 0) readonly buffer csmData {
+        float sceneExposure;            // 4
+        mat4 shadowModelViewEx;         // 64
+        mat4 shadowProjectionEx;        // 64
+
+        // CSM
+        float cascadeSize[4];           // 16
+        vec2 shadowProjectionSize[4];   // 32
+        vec2 shadowProjectionPos[4];    // 32
+        mat4 cascadeProjection[4];      // 256
+    };
+#endif
 
 
 // #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
