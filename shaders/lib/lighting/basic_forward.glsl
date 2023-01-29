@@ -209,10 +209,8 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
             }
 
             #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                vec3 viewNear = viewDir * near;
-
                 vec3 vlExt = vec3(1.0);
-                vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewPos);
+                vec3 vlColor = GetVolumetricLighting(lightData, vlExt, localViewDir, near, viewDist);
                 final.rgb = final.rgb * vlExt + vlColor;
 
                 // TODO: vl alter alpha?

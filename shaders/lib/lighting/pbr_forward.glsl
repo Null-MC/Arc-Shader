@@ -324,12 +324,8 @@
                 }
 
                 #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                    vec3 viewNear = viewDir * near;
-                    vec3 viewFar = viewDir * min(viewDist, far);
                     vec3 vlExt = vec3(1.0);
-
-                    vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar);
-
+                    vec3 vlColor = GetVolumetricLighting(lightData, vlExt, localViewDir, near, min(viewDist, far));
                     finalColor.rgb = finalColor.rgb * vlExt + vlColor;
 
                     // TODO: increase alpha with VL?

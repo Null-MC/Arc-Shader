@@ -472,12 +472,8 @@ void main() {
         #endif
 
         #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-            vec3 viewNear = viewDir * near;
-            vec3 viewFar = viewDir * min(length(viewPos), far);
             vec3 vlExt = vec3(1.0);
-
-            vec3 vlColor = GetVolumetricLighting(lightData, vlExt, viewNear, viewFar);
-
+            vec3 vlColor = GetVolumetricLighting(lightData, vlExt, localViewDir, near, min(length(viewPos), far));
             color = color * vlExt + vlColor;
         #endif
     #elif defined SMOKE_ENABLED

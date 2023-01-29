@@ -20,7 +20,7 @@ const float AirSpeed = 20.0;
         return 0.04 + 0.2 * pow(texDensity1 * texDensity2, 2.0) + 0.6 * pow(texDensity3 * texDensity2, 3.0);
     }
 
-    vec3 GetVolumetricLighting(const in LightData lightData, inout vec3 transmittance, const in vec3 nearViewPos, const in vec3 farViewPos) {
+    vec3 GetVolumetricLighting(const in LightData lightData, inout vec3 transmittance, const in vec3 localViewDir, const in float nearDist, const in float farDist) {
         const float inverseStepCountF = rcp(VL_SAMPLES_SKY + 1);
         
         #ifdef VL_DITHER
@@ -29,11 +29,11 @@ const float AirSpeed = 20.0;
             const float dither = 0.0;
         #endif
 
-        vec3 localStart = (gbufferModelViewInverse * vec4(nearViewPos, 1.0)).xyz;
-        vec3 localEnd = (gbufferModelViewInverse * vec4(farViewPos, 1.0)).xyz;
-        vec3 localRay = localEnd - localStart;
-        float localRayLength = length(localRay);
-        vec3 localStep = localRay * inverseStepCountF;
+        vec3 localStart = localViewDir * nearDist; //(gbufferModelViewInverse * vec4(nearViewPos, 1.0)).xyz;
+        vec3 localEnd = localViewDir * farDist; //(gbufferModelViewInverse * vec4(farViewPos, 1.0)).xyz;
+        //vec3 localRay = localEnd - localStart;
+        float localRayLength = farDist - nearDist; //length(localRay);
+        vec3 localStep = localViewDir * (localRayLength * inverseStepCountF);
 
         #ifndef IRIS_FEATURE_SSBO
             mat4 shadowModelViewEx = BuildShadowViewMatrix();
@@ -69,7 +69,7 @@ const float AirSpeed = 20.0;
         
         //#ifdef SHADOW_CLOUD
             vec3 localLightDir = GetShadowLightLocalDir();
-            vec3 viewLightDir = mat3(gbufferModelView) * localLightDir;
+            //vec3 viewLightDir = mat3(gbufferModelView) * localLightDir;
             vec3 localSunDir = GetSunLocalDir();
         //#endif
 
@@ -85,8 +85,8 @@ const float AirSpeed = 20.0;
             #endif
         #endif
 
-        vec3 viewDir = normalize(farViewPos - nearViewPos);
-        float VoL = dot(viewLightDir, viewDir);
+        //vec3 viewDir = normalize(farViewPos - nearViewPos);
+        float VoL = dot(localLightDir, localViewDir);
         float miePhaseValue = getMiePhase(VoL);
         float rayleighPhaseValue = getRayleighPhase(-VoL);
 
