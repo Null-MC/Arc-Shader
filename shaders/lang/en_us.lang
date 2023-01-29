@@ -319,30 +319,6 @@ option.BLOOM_THRESHOLD=Scale
 option.BLOOM_POWER.comment=Adjusts the brightness scale of bloom light.
 
 
-screen.EFFECT_RSM_OPTIONS=Global Illumination
-screen.EFFECT_RSM_OPTIONS.comment=Reflective Shadow Mapping for Global Illumination.
-
-option.RSM_ENABLED=Enabled
-screen.EFFECT_RSM_OPTIONS.comment=Enables Reflective Shadow Mapping.
-
-option.RSM_SCALE=Scale
-option.RSM_SCALE.comment=The percentage of the screen-size at which RSM is processed.
-value.RSM_SCALE.0=Full
-value.RSM_SCALE.1=Half
-value.RSM_SCALE.2=Quarter
-
-option.RSM_FILTER_SIZE=Radius
-option.RSM_FILTER_SIZE.comment=The radius of the blur filter, in blocks/meters.
-
-option.RSM_INTENSITY=Intensity
-
-option.RSM_SAMPLE_COUNT=Sample Count
-option.RSM_SAMPLE_COUNT.comment=The number of samples-per-pixel to process.
-
-option.RSM_UPSCALE=Upscale
-option.RSM_UPSCALE.comment=When downscaled RSM is enabled with this option, the edges of objects will be processed in full-resolution when upscaling to prevent blurred edges.
-
-
 screen.EFFECT_AO_OPTIONS=Ambient Occlusion
 
 option.AO_TYPE=Type
@@ -385,15 +361,10 @@ value.DEBUG_VIEW.4=Deferred Specular
 value.DEBUG_VIEW.5=Deferred Lighting
 value.DEBUG_VIEW.6=Deferred Shadow
 value.DEBUG_VIEW.7=Shadow Color
-value.DEBUG_VIEW.8=Shadow Normal
-value.DEBUG_VIEW.9=Shadow SSS
 value.DEBUG_VIEW.10=Shadow Depth [0]
 value.DEBUG_VIEW.11=Shadow Depth [1]
 value.DEBUG_VIEW.12=HDR
 value.DEBUG_VIEW.13=Luminance
-value.DEBUG_VIEW.14=RSM Color
-value.DEBUG_VIEW.15=RSM Normal
-value.DEBUG_VIEW.16=RSM Final
 value.DEBUG_VIEW.17=Bloom
 value.DEBUG_VIEW.18=Previous Color
 value.DEBUG_VIEW.19=Previous Luminance

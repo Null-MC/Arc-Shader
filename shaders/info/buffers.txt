@@ -14,8 +14,6 @@ colortex4		RGB16F			1.0   	HDR Opaque
 colortex5		RGBA16F			0.25	HDR previous frame [RGB: pre-exposed HDR, A: Log Luminance]
 colortex6		R32F			0.25  	Depth Prev
 colortex7		RGB16F			256   	sky LUT
-colortex8		RGB16F			 *     	RSM color
-colortex9		R32F			 *     	RSM depth
 colortex10		R16F			1.0	  	AO
 
 colortex11		RGB16F			32x16   irradiance LUT

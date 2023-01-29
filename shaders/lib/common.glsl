@@ -9,8 +9,6 @@ const int colortex4Format = RGB16F;
 const int colortex5Format = RGBA16F;
 const int colortex6Format = R32F;
 const int colortex7Format = RGB16F;
-const int colortex8Format = RGB16F;
-const int colortex9Format = R32F;
 const int colortex10Format = R16F;
 const int colortex11Format = RGB16F;
 */
@@ -46,12 +44,6 @@ const bool colortex6Clear = false;
 const bool colortex7MipmapEnabled = false;
 const bool colortex7Clear = false;
 
-const bool colortex8MipmapEnabled = false;
-const bool colortex8Clear = false;
-
-const bool colortex9MipmapEnabled = false;
-const bool colortex9Clear = false;
-
 const bool colortex10MipmapEnabled = false;
 const bool colortex10Clear = false;
 
@@ -76,7 +68,6 @@ const bool colortex11Clear = false;
 // Water Options
 #define WATER_WAVE_TYPE 1 // [0 1 2]
 //#define WATER_REFRACTION_FANCY
-#define WATER_REFRACT_QUALITY 1 // [0 1 2]
 #define REFRACTION_STRENGTH 100 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 85 100 110 120 130 140 150 160 170 180 190 200]
 #define WATER_CAMERA_BLUR 1 // [0 1 2]
 #define WATER_SCALE 16.0
@@ -175,12 +166,6 @@ const bool colortex11Clear = false;
 
 
 // Effect Options
-//#define RSM_ENABLED
-#define RSM_INTENSITY 140 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
-#define RSM_FILTER_SIZE 1.8 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0 3.5 4.0 4.5 5.0 5.5 6.0 7.0 8.0 10.0 12.0 14.0 16.0]
-#define RSM_SAMPLE_COUNT 80 // [5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100 120 140 160 180 200]
-#define RSM_SCALE 2 // [0 1 2]
-#define RSM_UPSCALE
 //#define BLOOM_ENABLED
 #define BLOOM_SMOOTH
 //#define BLOOM_SCALE 60.0
@@ -216,7 +201,7 @@ const bool colortex11Clear = false;
 
 
 // Debug Options
-#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 10 11 12 13 17 18 19 20 22 23 24 25 26 27 28]
 //#define DEBUG_EXPOSURE_METERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
 #define DITHER_FINAL

@@ -7,7 +7,6 @@ prepare2        irradiance LUT
 
 <opaque>
 
-deferred2		RSM
 deferred4		AO Render
 deferred5		Opaque PBR (out of water)
 

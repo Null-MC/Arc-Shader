@@ -69,10 +69,6 @@ flat in mat2 atlasBounds;
             #if defined SHADOW_COLOR || defined SSS_ENABLED
                 uniform sampler2D shadowcolor0;
             #endif
-
-            // #if (defined RSM_ENABLED && defined RSM_UPSCALE) || (defined SSS_ENABLED && defined SHADOW_COLOR)
-            //     uniform usampler2D shadowcolor1;
-            // #endif
         #endif
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED

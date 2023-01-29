@@ -288,16 +288,6 @@
             }
         #endif
 
-        // #if defined SKY_ENABLED && defined RSM_ENABLED && defined RENDER_DEFERRED
-        //     #ifdef RSM_UPSCALE
-        //         vec2 rsmViewSize = viewSize / exp2(RSM_SCALE);
-        //         vec3 rsmColor = BilateralGaussianDepthBlurRGB_5x(BUFFER_RSM_COLOR, rsmViewSize, BUFFER_RSM_DEPTH, rsmViewSize, lightData.opaqueScreenDepthLinear, 30.0);
-        //     #else
-        //         vec2 tex = screenUV;
-        //         vec3 rsmColor = textureLod(BUFFER_RSM_COLOR, tex, 0).rgb;
-        //     #endif
-        // #endif
-
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
             float metalDarkF = 1.0;
             if (material.hcm >= 0) {
@@ -544,7 +534,6 @@
                             #endif
                         #endif
 
-                        //const float refractScale = rcp(exp2(WATER_REFRACT_QUALITY));
                         refractColor = textureLod(BUFFER_HDR_OPAQUE, refractUV, 0).rgb / exposure;
                     }
                     else {

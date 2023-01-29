@@ -39,17 +39,9 @@ flat in vec3 blockLightColor;
         //uniform sampler2D shadowcolor0;
     #endif
 
-    #ifdef RSM_ENABLED
-        uniform sampler2D BUFFER_RSM_COLOR;
-    #endif
-
     #if defined SHADOW_COLOR || defined SSS_ENABLED
         uniform sampler2D shadowcolor0;
     #endif
-
-    // #if (defined RSM_ENABLED && defined RSM_UPSCALE) || (defined SSS_ENABLED && defined SHADOW_COLOR)
-    //     uniform usampler2D shadowcolor1;
-    // #endif
 #endif
 
 #if AO_TYPE == AO_TYPE_SS
@@ -145,21 +137,6 @@ uniform float fogEnd;
 
         #ifdef IRIS_FEATURE_SEPARATE_HARDWARE_SAMPLERS
             uniform sampler2DShadow shadowtex1HW;
-        #endif
-
-        // #if defined SSS_ENABLED || (defined RSM_ENABLED && defined RSM_UPSCALE)
-        //     uniform usampler2D shadowcolor1;
-        // #endif
-
-        // #ifdef SHADOW_CONTACT
-        //     uniform mat4 gbufferProjection;
-        // #endif
-
-        #if defined RSM_ENABLED && defined RSM_UPSCALE
-            uniform sampler2D BUFFER_RSM_DEPTH;
-            //uniform usampler2D shadowcolor1;
-
-            uniform mat4 shadowProjectionInverse;
         #endif
     #endif
 #endif
@@ -260,10 +237,6 @@ uniform float eyeHumidity;
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     #include "/lib/ssr.glsl"
-#endif
-
-#if defined RSM_ENABLED && defined RSM_UPSCALE
-    #include "/lib/rsm.glsl"
 #endif
 
 #include "/lib/lighting/basic.glsl"

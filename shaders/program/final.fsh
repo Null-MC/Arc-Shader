@@ -49,16 +49,6 @@ uniform float far;
 #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_COLOR
     // Shadow Color
     uniform sampler2D shadowcolor0;
-#elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_NORMAL
-    // Shadow Normal
-    uniform usampler2D shadowcolor1;
-#elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_SSS
-    // Shadow SSS
-    #ifdef SHADOW_COLOR
-        uniform usampler2D shadowcolor1;
-    #else
-        uniform sampler2D shadowcolor0;
-    #endif
 #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_DEPTH0
     // Shadow Depth [0]
     uniform sampler2D shadowtex0;
@@ -71,22 +61,6 @@ uniform float far;
 #elif DEBUG_VIEW == DEBUG_VIEW_LUMINANCE
     // Luminance
     uniform sampler2D BUFFER_LUM_OPAQUE;
-#elif DEBUG_VIEW == DEBUG_VIEW_RSM_COLOR
-    // RSM Color
-    uniform usampler2D shadowcolor1;
-#elif DEBUG_VIEW == DEBUG_VIEW_RSM_NORMAL
-    // RSM Normal
-    uniform usampler2D shadowcolor1;
-#elif DEBUG_VIEW == DEBUG_VIEW_RSM_FINAL
-    // RSM Final
-    uniform sampler2D BUFFER_RSM_COLOR;
-
-    #ifdef RSM_UPSCALE
-        uniform sampler2D BUFFER_RSM_DEPTH;
-        uniform sampler2D depthtex0;
-
-        #include "/lib/sampling/bilateral_gaussian.glsl"
-    #endif
 #elif DEBUG_VIEW == DEBUG_VIEW_BLOOM
     // Bloom Tiles
     uniform sampler2D BUFFER_BLOOM;
@@ -277,18 +251,6 @@ void main() {
         // Shadow Color
         color = textureLod(shadowcolor0, texcoord, 0).rgb;
         color = LinearToRGB(color);
-    #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_NORMAL
-        // Shadow Normal
-        uint data = textureLod(shadowcolor1, texcoord, 0).g;
-        color = unpackUnorm4x8(data).rgb;
-    #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_SSS
-        // Shadow SSS
-        #ifdef SHADOW_COLOR
-            uint data = textureLod(shadowcolor1, texcoord, 0).g;
-            color = unpackUnorm4x8(data).aaa;
-        #else
-            color = textureLod(shadowcolor0, texcoord, 0).rrr;
-        #endif
     #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_DEPTH0
         // Shadow Depth [0]
         color = textureLod(shadowtex0, texcoord, 0).rrr;
@@ -306,26 +268,6 @@ void main() {
 
         #if defined DEBUG_EXPOSURE_METERS && CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
             RenderLuminanceMeters(color, averageLuminance, EV100);
-        #endif
-    #elif DEBUG_VIEW == DEBUG_VIEW_RSM_COLOR
-        // RSM Color
-        uint data = textureLod(shadowcolor1, texcoord, 0).r;
-        color = unpackUnorm4x8(data).rgb;
-    #elif DEBUG_VIEW == DEBUG_VIEW_RSM_NORMAL
-        // RSM Normal
-        uint data = textureLod(shadowcolor1, texcoord, 0).g;
-        vec2 normalXY = unpackUnorm4x8(data).rg;
-        color = RestoreNormalZ(normalXY) * 0.5 + 0.5;
-    #elif DEBUG_VIEW == DEBUG_VIEW_RSM_FINAL
-        // RSM Final
-        //color = textureLod(BUFFER_RSM_COLOR, texcoord, 0).rgb;
-        #ifdef RSM_UPSCALE
-            vec2 rsmViewSize = viewSize / exp2(RSM_SCALE);
-            float clipDepth = texelFetch(depthtex0, iuv, 0).r;
-            clipDepth = linearizeDepthFast(clipDepth, near, far);
-            color = BilateralGaussianDepthBlurRGB_5x(BUFFER_RSM_COLOR, rsmViewSize, BUFFER_RSM_DEPTH, rsmViewSize, clipDepth, 0.2);
-        #else
-            color = textureLod(BUFFER_RSM_COLOR, texcoord, 0).rgb;
         #endif
     #elif DEBUG_VIEW == DEBUG_VIEW_BLOOM
         // Bloom Tiles
