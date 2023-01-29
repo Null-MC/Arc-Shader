@@ -29,6 +29,9 @@ value.BLOCK_OUTLINE.1=Black
 value.BLOCK_OUTLINE.2=White
 value.BLOCK_OUTLINE.3=Fancy
 
+option.FOG_DENSITY=Fog Density
+suffix.FOG_DENSITY=%
+
 option.ENABLE_WAVING=Waving Plants
 option.ENABLE_WAVING.comment=Foliage (and other similar blocks) will wave using artificial wind.
 

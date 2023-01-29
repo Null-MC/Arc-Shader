@@ -62,6 +62,7 @@ const bool colortex11Clear = false;
 #define BLOCK_OUTLINE 3 // [0 1 2 3]
 #define BLOCKLIGHT_TEMP 2700 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 0 // [0 10 20 30 40 50 60 70 80 90 100]
+#define FOG_DENSITY 100 // [0 20 40 60 80 100 120 140 160 180 200 240 280 320 400]
 //#define ANIM_USE_WORLDTIME
 
 
@@ -129,9 +130,9 @@ const bool colortex11Clear = false;
 #define SSS_ENABLED
 #define SSS_DITHER
 #define SSS_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
-#define SSS_MAXDIST 7 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
-#define SSS_PCF_SIZE 0.08 // [0.02 0.04 0.06 0.08 0.1 0.2 0.3 0.4 0.5 0.6 0.8 1.0]
-#define SSS_PCF_SAMPLES 4 // [2 3 4 5 6 8 10 12]
+#define SSS_MAXDIST 9 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
+#define SSS_PCF_SIZE 0.2 // [0.02 0.04 0.06 0.08 0.1 0.2 0.3 0.4 0.5 0.6 0.8 1.0]
+#define SSS_PCF_SAMPLES 2 // [2 3 4 5 6 8 10 12]
 //#define SSS_NORMALIZE_ALBEDO
 
 
@@ -278,6 +279,7 @@ const float drynessHalflife = 10.0;
     const float alphaTestRef = 0.1;
 #endif
 
+const float FogDensityF = FOG_DENSITY * 0.01;
 const float PorosityDarkeningF = POROSITY_DARKENING * 0.01;
 const float RefractionStrengthF = REFRACTION_STRENGTH * 0.01;
 const vec3 AtmosExtInv = 1.0 - ATMOS_EXT_COLOR;

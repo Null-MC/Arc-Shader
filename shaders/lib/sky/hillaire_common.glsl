@@ -4,9 +4,9 @@ const float atmosphereRadiusMM = 3.460;
 
 const vec3 ozoneAbsorptionBase_clear = vec3(0.650, 1.381, 0.576);
 const vec3 rayleighScatteringBase_clear = vec3(5.802, 13.558, 33.1);
-const float rayleighAbsorptionBase_clear = 1.0;
-const float mieScatteringBase_clear = 3.996 * 8.0;
-const float mieAbsorptionBase_clear = 4.4 * 8.0;
+const float rayleighAbsorptionBase_clear = 8.0;
+const float mieScatteringBase_clear = 3.996 * 12.0;
+const float mieAbsorptionBase_clear = 4.4 * 4.0;
 
 const vec3 ozoneAbsorptionBase_rain = vec3(0.650, 1.381, 0.576);
 const vec3 rayleighScatteringBase_rain = vec3(80.802, 130.558, 200.1);
