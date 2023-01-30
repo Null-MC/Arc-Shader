@@ -73,13 +73,8 @@ uniform int worldTime;
     #include "/lib/world/waving.glsl"
 #endif
 
-// #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-//     #include "/lib/material/default.glsl"
-// #endif
-
 #include "/lib/celestial/position.glsl"
 #include "/lib/lighting/basic.glsl"
-//#include "/lib/lighting/pbr.glsl"
 
 
 void main() {
@@ -89,5 +84,4 @@ void main() {
 
     vec3 localPos = gl_Vertex.xyz;
     BasicVertex(localPos);
-    //PbrVertex(viewPos);
 }

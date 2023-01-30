@@ -150,7 +150,8 @@
         #endif
 
         #if (AO_TYPE == AO_TYPE_SS || (defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)) && !defined RENDER_WATER && !defined RENDER_HAND_WATER
-            vec4 shadowOcclusion = BilateralGaussianDepthBlurRGBA_5x(BUFFER_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, 0.3);
+            float shadowOcclusionSigma = 3.0 / (viewDist + 1.0);
+            vec4 shadowOcclusion = BilateralGaussianDepthBlurRGBA_5x(BUFFER_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, shadowOcclusionSigma);
         #endif
 
         #ifdef SKY_ENABLED

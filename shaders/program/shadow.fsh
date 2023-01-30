@@ -7,17 +7,14 @@
 
 /*
 const int shadowcolor0Format = RGBA8;
-const int shadowcolor1Format = RG32UI;
 */
+
+const bool generateShadowMipmap = false;
+const bool generateShadowColorMipmap = false;
 
 const bool shadowcolor0Nearest = false;
 const vec4 shadowcolor0ClearColor = vec4(1.0, 1.0, 1.0, 1.0);
 const bool shadowcolor0Clear = true;
-
-const bool shadowcolor1Nearest = true;
-const bool shadowcolor1Clear = true;
-
-const bool generateShadowMipmap = false;
 
 const bool shadowtex0Mipmap = false;
 const bool shadowtex0Nearest = false;
@@ -30,24 +27,16 @@ const bool shadowHardwareFiltering1 = true;
 
 in vec3 gLocalPos;
 in vec2 gTexcoord;
-//in vec2 gLmcoord;
 in vec4 gColor;
 flat in int gBlockId;
 
 in vec3 gViewPos;
-//in mat3 gMatShadowViewTBN;
-
-//#ifdef RSM_ENABLED
-//    flat in mat3 gMatViewTBN;
-//#endif
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     flat in vec2 gShadowTilePos;
 #endif
 
 uniform sampler2D gtexture;
-//uniform sampler2D normals;
-//uniform sampler2D specular;
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
@@ -67,14 +56,7 @@ uniform int entityId;
     uniform float rainStrength;
 #endif
 
-//#include "/lib/material/hcm.glsl"
-//#include "/lib/material/material.glsl"
-//#include "/lib/material/material_reader.glsl"
 #include "/lib/celestial/position.glsl"
-
-//#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
-//    #include "/lib/material/default.glsl"
-//#endif
 
 #ifdef WORLD_WATER_ENABLED
     #include "/lib/world/wind.glsl"
@@ -84,11 +66,6 @@ uniform int entityId;
 #ifdef PHYSICS_OCEAN
     #include "/lib/physicsMod/water.glsl"
 #endif
-
-// #ifdef RSM_ENABLED
-//     #include "/lib/lighting/fresnel.glsl"
-//     #include "/lib/lighting/brdf.glsl"
-// #endif
 
 /* RENDERTARGETS: 0 */
 layout(location = 0) out vec4 outColor0;
@@ -105,21 +82,14 @@ void main() {
         sampleColor = WATER_COLOR;
     }
     else {
-        //mat2 dFdXY = mat2(dFdx(gTexcoord), dFdy(gTexcoord));
         sampleColor = texture(gtexture, gTexcoord);
         sampleColor.rgb = RGBToLinear(sampleColor.rgb * gColor.rgb);
     }
 
     if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
         if (sampleColor.a < alphaTestRef) discard;
-        sampleColor.a = 1.0;
+        sampleColor = vec4(1.0);
     }
 
-    vec4 lightColor = sampleColor;
-
-    if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
-        lightColor.rgb = vec3(1.0);
-    }
-
-    outColor0 = lightColor;
+    outColor0 = sampleColor;
 }
