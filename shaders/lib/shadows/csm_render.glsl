@@ -42,7 +42,8 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in float blockRadiu
     void SetNearestDepths(inout LightData lightData) {
         float shadowResScale = tile_dist_bias_factor * shadowPixelSize;
 
-        lightData.shadowCascade = GetShadowSampleCascade(lightData.shadowPos, 0.0);
+        const float shadowPcfSize = SHADOW_PCF_SIZE * 0.01;
+        lightData.shadowCascade = GetShadowSampleCascade(lightData.shadowPos, shadowPcfSize);
 
         if (lightData.shadowCascade >= 0) {
             // TODO: ADD BIAS?
@@ -171,14 +172,14 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in float blockRadiu
             vec2 angleStep = vec2(cos(angleDiff), sin(angleDiff));
             mat2 rotationStep = mat2(angleStep, -angleStep.y, angleStep.x);
 
-            float surfaceDepth = lightData.shadowPos[cascade].z;
-            float texDepth = lightData.opaqueShadowDepth + lightData.shadowBias[cascade];
-            float shadow = step(texDepth, surfaceDepth);
+            //float surfaceDepth = lightData.shadowPos[cascade].z;
+            //float texDepth = lightData.opaqueShadowDepth + lightData.shadowBias[cascade];
+            float shadow = 0.0;//step(texDepth, surfaceDepth);
 
-            for (int i = 1; i < sampleCount; i++) {
+            for (int i = 0; i < sampleCount; i++) {
                 rotation *= rotationStep;
                 float noiseDist = hash13(vec3(gl_FragCoord.xy, i));
-                vec2 pixelOffset = rotation * noiseDist * pixelRadius;
+                vec2 pixelOffset = rotation * (1.0 - pow2(noiseDist)) * pixelRadius;
 
                 shadow += 1.0 - CompareOpaqueDepth(lightData.shadowPos[cascade], pixelOffset, lightData.shadowBias[cascade]);
             }
@@ -197,19 +198,24 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in float blockRadiu
             vec2 angleStep = vec2(cos(angleDiff), sin(angleDiff));
             mat2 rotationStep = mat2(angleStep, -angleStep.y, angleStep.x);
             
-            int blockers = 0;
+            float blockers = 0.0;
             float avgBlockerDistance = 0.0;
             for (int i = 0; i < sampleCount; i++) {
                 rotation *= rotationStep;
                 float noiseDist = hash13(vec3(gl_FragCoord.xy, i + 33.3));
-                vec2 pixelOffset = rotation * noiseDist * pixelRadius;
+                vec2 pixelOffset = rotation * (1.0 - pow2(noiseDist)) * pixelRadius;
 
                 float texDepth = SampleOpaqueDepth(lightData.shadowPos[cascade].xy, pixelOffset);
 
-                if (texDepth < lightData.shadowPos[cascade].z - lightData.shadowBias[cascade]) {
-                    avgBlockerDistance += texDepth;
-                    blockers++;
-                }
+                float hitDist = max((lightData.shadowPos[cascade].z - lightData.shadowBias[cascade]) - texDepth, 0.0);
+
+                avgBlockerDistance += hitDist * (far * 2.0);
+                blockers += step(0.0, hitDist);
+
+                // if (texDepth < lightData.shadowPos[cascade].z - lightData.shadowBias[cascade]) {
+                //     avgBlockerDistance += texDepth;
+                //     blockers++;
+                // }
             }
 
             //if (blockers == sampleCount) return 1.0;
@@ -223,17 +229,17 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in float blockRadiu
             vec2 pixelRadius = GetPixelRadius(lightData.shadowCascade, shadowPcfSize);
             
             // blocker search
-            int blockerSampleCount = SHADOW_PCF_SAMPLES;
+            int blockerSampleCount = SHADOW_PCSS_SAMPLES;
             //vec2 blockerPixelRadius = GetPixelRadius(lightData.shadowCascade, shadowPcfSize);
             float blockerDistance = FindBlockerDistance(lightData, pixelRadius, blockerSampleCount, lightData.shadowCascade);
-            if (blockerDistance < 0.0) return 1.0;
+            if (blockerDistance <= 0.0) return 1.0;
             //if (blockerDistance == 1.0) return 0.0;
 
             // penumbra estimation
-            float penumbraWidth = (lightData.shadowPos[lightData.shadowCascade].z - blockerDistance) / blockerDistance;
+            //float penumbraWidth = (lightData.shadowPos[lightData.shadowCascade].z - blockerDistance) / blockerDistance;
 
             // percentage-close filtering
-            pixelRadius *= min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0); // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
+            pixelRadius *= min(blockerDistance * 0.3, 1.0); // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
             //pixelRadius = max(pixelRadius, 1.5 * shadowPixelSize);
 
             int pcfSampleCount = SHADOW_PCF_SAMPLES;

@@ -44,7 +44,7 @@ flat in vec3 blockLightColor;
     #endif
 #endif
 
-#if AO_TYPE == AO_TYPE_SS
+#if AO_TYPE == AO_TYPE_SS || (defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)
     uniform sampler2D BUFFER_AO;
 #endif
 
@@ -178,9 +178,9 @@ uniform float eyeHumidity;
 #include "/lib/lighting/fresnel.glsl"
 #include "/lib/lighting/brdf.glsl"
 
-#if AO_TYPE == AO_TYPE_SS || (defined RSM_ENABLED && defined RSM_UPSCALE)
+//#if AO_TYPE == AO_TYPE_SS || (defined RSM_ENABLED && defined RSM_UPSCALE)
     #include "/lib/sampling/bilateral_gaussian.glsl"
-#endif
+//#endif
 
 #ifdef SKY_ENABLED
     #include "/lib/sky/hillaire_common.glsl"

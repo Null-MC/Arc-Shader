@@ -259,25 +259,19 @@ void main() {
         color = texelFetch(BUFFER_DEFERRED2, iuv, 0).rgb;
     #elif DEBUG_VIEW == DEBUG_VIEW_DEFERRED_SHADOW
         // Deferred Shadow
-        //#ifdef SSAO_UPSCALE
-            ivec2 iTex = ivec2(gl_FragCoord.xy);
-            float opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
-            float opaqueScreenDepthLinear = linearizeDepthFast(opaqueScreenDepth, near, far);
-            color = BilateralGaussianDepthBlurRGB_5x(BUFFER_AO, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, 9.0);
-        //#else
-        //    color = textureLod(BUFFER_AO, texcoord, 0).rgb;
-        //#endif
+        ivec2 iTex = ivec2(gl_FragCoord.xy);
+        float opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
+        float opaqueScreenDepthLinear = linearizeDepthFast(opaqueScreenDepth, near, far);
+        color = BilateralGaussianDepthBlurRGB_5x(BUFFER_AO, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, 0.3);
+        //color = textureLod(BUFFER_AO, texcoord, 0).rgb;
     #elif DEBUG_VIEW == DEBUG_VIEW_DEFERRED_A0
         // Deferred Ambient Occlusion
-        //#ifdef SSAO_UPSCALE
-            ivec2 iTex = ivec2(gl_FragCoord.xy);
-            float opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
-            float opaqueScreenDepthLinear = linearizeDepthFast(opaqueScreenDepth, near, far);
-            float occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, 0.9, 3);
-            color = vec3(occlusion);
-        //#else
-        //    color = textureLod(BUFFER_AO, texcoord, 0).aaa;
-        //#endif
+        ivec2 iTex = ivec2(gl_FragCoord.xy);
+        float opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
+        float opaqueScreenDepthLinear = linearizeDepthFast(opaqueScreenDepth, near, far);
+        float occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, 0.9, 3);
+        color = vec3(occlusion);
+        //color = textureLod(BUFFER_AO, texcoord, 0).aaa;
     #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_COLOR
         // Shadow Color
         color = textureLod(shadowcolor0, texcoord, 0).rgb;

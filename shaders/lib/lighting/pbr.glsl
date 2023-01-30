@@ -149,8 +149,8 @@
             shadow *= lightLeakFix;
         #endif
 
-        #if (AO_TYPE == AO_TYPE_SS || defined SHADOW_BLUR) && !defined RENDER_WATER && !defined RENDER_HAND_WATER
-            vec4 shadowOcclusion = BilateralGaussianDepthBlurRGBA_5x(BUFFER_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, 3.0);
+        #if (AO_TYPE == AO_TYPE_SS || (defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)) && !defined RENDER_WATER && !defined RENDER_HAND_WATER
+            vec4 shadowOcclusion = BilateralGaussianDepthBlurRGBA_5x(BUFFER_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, 0.3);
         #endif
 
         #ifdef SKY_ENABLED
@@ -161,7 +161,7 @@
                 if (materialId != MATERIAL_WATER) {
             #endif
 
-                #if defined SHADOW_BLUR && !defined RENDER_WATER && !defined RENDER_HAND_WATER
+                #if defined SHADOW_BLUR && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && !defined RENDER_WATER && !defined RENDER_HAND_WATER
                     shadowColor = shadowOcclusion.rgb;
                 #else
                     shadow *= step(EPSILON, lightData.geoNoL);
@@ -193,7 +193,7 @@
                     }
                 #endif
 
-                #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+                #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && !defined SHADOW_BLUR
                     if (shadow > EPSILON) {
                         float shadowF = 1.0 - GetShadowing(lightData);
 
@@ -211,10 +211,13 @@
                                 shadowColor = GetShadowColor(lightData.shadowPos.xy);
                         #endif
 
-                        //shadowColor = RGBToLinear(shadowColor);
-                        skyLightColorFinal *= shadowColor;
+                        //skyLightColorFinal *= shadowColor;
                     #endif
 
+                    shadowColor *= shadow;
+                #endif
+
+                #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                     #ifdef SSS_ENABLED
                         if (material.scattering > EPSILON) {
                             shadowSSS = GetShadowSSS(lightData, material.scattering, sssDist);

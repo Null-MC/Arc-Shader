@@ -97,7 +97,7 @@
         float GetShadowing(const in LightData lightData) {
             const float shadowPcfSize = SHADOW_PCF_SIZE * 0.01;
             
-            int blockerSampleCount = SHADOW_PCF_SAMPLES;
+            int blockerSampleCount = SHADOW_PCSS_SAMPLES;
 
             // blocker search
             vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, shadowPcfSize);
