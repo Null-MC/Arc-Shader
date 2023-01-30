@@ -52,10 +52,10 @@ uniform vec3 cameraPosition;
 uniform int renderStage;
 uniform int worldTime;
 uniform int entityId;
+uniform float far;
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     uniform float near;
-    uniform float far;
 
     #if SHADER_PLATFORM == PLATFORM_OPTIFINE
         uniform mat4 gbufferPreviousModelView;

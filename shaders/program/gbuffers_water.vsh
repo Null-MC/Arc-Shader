@@ -14,10 +14,26 @@ out vec3 localPos;
 out vec3 viewNormal;
 out vec3 viewTangent;
 flat out float tangentW;
-flat out float exposure;
 flat out int materialId;
 flat out vec3 blockLightColor;
 flat out mat2 atlasBounds;
+
+#ifndef IRIS_FEATURE_SSBO
+    flat out float sceneExposure;
+
+    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+        uniform sampler2D BUFFER_HDR_PREVIOUS;
+        
+        uniform float viewWidth;
+        uniform float viewHeight;
+    #endif
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        uniform ivec2 eyeBrightness;
+        uniform int heldBlockLightValue;
+        uniform int heldBlockLightValue2;
+    #endif
+#endif
 
 #if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
     out vec2 localCoord;
@@ -69,19 +85,6 @@ flat out mat2 atlasBounds;
 
 #ifdef AF_ENABLED
     out vec4 spriteBounds;
-#endif
-
-#if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-    uniform sampler2D BUFFER_HDR_PREVIOUS;
-    
-    uniform float viewWidth;
-    uniform float viewHeight;
-#endif
-
-#if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-    uniform ivec2 eyeBrightness;
-    uniform int heldBlockLightValue;
-    uniform int heldBlockLightValue2;
 #endif
 
 attribute vec3 mc_Entity;
@@ -146,7 +149,10 @@ uniform float blindness;
 
 #include "/lib/lighting/basic.glsl"
 #include "/lib/lighting/pbr.glsl"
-#include "/lib/camera/exposure.glsl"
+
+#ifndef IRIS_FEATURE_SSBO
+    #include "/lib/camera/exposure.glsl"
+#endif
 
 
 void main() {
@@ -185,8 +191,10 @@ void main() {
 
     blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
 
-    exposure = GetExposure();
-
+    #ifndef IRIS_FEATURE_SSBO
+        sceneExposure = GetExposure();
+    #endif
+    
     #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #ifndef IRIS_FEATURE_SSBO
             mat4 shadowModelViewEx = BuildShadowViewMatrix();

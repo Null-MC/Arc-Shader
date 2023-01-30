@@ -73,7 +73,7 @@
             vec2 angleStep = vec2(cos(angleDiff), sin(angleDiff));
             mat2 rotationStep = mat2(angleStep, -angleStep.y, angleStep.x);
 
-            int blockers = 0;
+            float blockers = 0.0;
             float avgBlockerDistance = 0.0;
             for (int i = 0; i < sampleCount; i++) {
                 rotation *= rotationStep;
@@ -85,10 +85,15 @@
 
                 float texDepth = SampleOpaqueDepth(lightData.shadowPos.xy, pixelOffset);
 
-                if (texDepth < lightData.shadowPos.z + lightData.shadowBias) {
-                    avgBlockerDistance += texDepth;
-                    blockers++;
-                }
+                float hitDist = max((lightData.shadowPos.z - lightData.shadowBias) - texDepth, 0.0);
+
+                avgBlockerDistance += hitDist * (far * 2.0);
+                blockers += step(0.0, hitDist);
+
+                // if (texDepth < lightData.shadowPos.z + lightData.shadowBias) {
+                //     avgBlockerDistance += texDepth;
+                //     blockers++;
+                // }
             }
 
             return blockers > 0 ? avgBlockerDistance / blockers : -1.0;
@@ -103,14 +108,14 @@
             vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, shadowPcfSize);
             //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) blockerSampleCount = 1;
             float blockerDistance = FindBlockerDistance(lightData, pixelRadius, blockerSampleCount);
-            if (blockerDistance < 0.0) return 1.0;
+            if (blockerDistance <= 0.0) return 1.0;
             //if (blockerDistance == 1.0) return 0.0;
 
             // penumbra estimation
-            float penumbraWidth = (lightData.shadowPos.z - blockerDistance) / blockerDistance;
+            //float penumbraWidth = (lightData.shadowPos.z - blockerDistance) / blockerDistance;
 
             // percentage-close filtering
-            pixelRadius *= min(penumbraWidth * SHADOW_PENUMBRA_SCALE, 1.0); // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
+            pixelRadius *= min(blockerDistance * 0.3, 1.0); // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
             //pixelRadius = max(pixelRadius, 1.5 * shadowPixelSize);
 
             int pcfSampleCount = SHADOW_PCF_SAMPLES;

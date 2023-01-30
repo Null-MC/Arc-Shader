@@ -172,10 +172,7 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in float blockRadiu
             vec2 angleStep = vec2(cos(angleDiff), sin(angleDiff));
             mat2 rotationStep = mat2(angleStep, -angleStep.y, angleStep.x);
 
-            //float surfaceDepth = lightData.shadowPos[cascade].z;
-            //float texDepth = lightData.opaqueShadowDepth + lightData.shadowBias[cascade];
-            float shadow = 0.0;//step(texDepth, surfaceDepth);
-
+            float shadow = 0.0;
             for (int i = 0; i < sampleCount; i++) {
                 rotation *= rotationStep;
                 float noiseDist = hash13(vec3(gl_FragCoord.xy, i));
@@ -209,7 +206,7 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in float blockRadiu
 
                 float hitDist = max((lightData.shadowPos[cascade].z - lightData.shadowBias[cascade]) - texDepth, 0.0);
 
-                avgBlockerDistance += hitDist * (far * 2.0);
+                avgBlockerDistance += hitDist * (far * 3.0);
                 blockers += step(0.0, hitDist);
 
                 // if (texDepth < lightData.shadowPos[cascade].z - lightData.shadowBias[cascade]) {

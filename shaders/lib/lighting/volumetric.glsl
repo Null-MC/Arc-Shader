@@ -84,7 +84,6 @@ const float AirSpeed = 20.0;
             #endif
         #endif
 
-        //vec3 viewDir = normalize(farViewPos - nearViewPos);
         float VoL = dot(localLightDir, localViewDir);
         float miePhaseValue = getMiePhase(VoL);
         float rayleighPhaseValue = getRayleighPhase(-VoL);

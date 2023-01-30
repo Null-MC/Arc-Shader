@@ -6,8 +6,11 @@
 #include "/lib/common.glsl"
 
 in vec2 texcoord;
-flat in float exposure;
 flat in vec3 blockLightColor;
+
+#ifndef IRIS_FEATURE_SSBO
+    flat in float sceneExposure;
+#endif
 
 #ifdef SKY_ENABLED
     flat in vec2 skyLightLevels;
@@ -423,7 +426,7 @@ void main() {
 
     if (isEyeInWater == 0 || (lightData.opaqueScreenDepth >= 1.0 && lightData.transparentScreenDepth < 1.0)) {
         //float lum = texelFetch(BUFFER_LUM_OPAQUE, iTex, 0).r;
-        final = texelFetch(BUFFER_HDR_OPAQUE, iTex, 0).rgb / exposure;
+        final = texelFetch(BUFFER_HDR_OPAQUE, iTex, 0).rgb / sceneExposure;
 
         #ifdef WORLD_CLOUDS_ENABLED
             if (isEyeInWater == 1) {
@@ -456,7 +459,7 @@ void main() {
     //float lumTrans = texelFetch(BUFFER_LUM_TRANS, iTex, 0).r;
     vec4 colorTrans = texelFetch(BUFFER_HDR_TRANS, iTex, 0);
 
-    final = mix(final, colorTrans.rgb / exposure, colorTrans.a);
+    final = mix(final, colorTrans.rgb / sceneExposure, colorTrans.a);
 
     #ifdef WORLD_WATER_ENABLED
         if (isEyeInWater == 1) {
@@ -500,6 +503,6 @@ void main() {
 
     outColor1 = log2(luminance(final) + EPSILON);
 
-    final = clamp(final * exposure, vec3(0.0), vec3(65000.0));
+    final = clamp(final * sceneExposure, vec3(0.0), vec3(65000.0));
     outColor0 = vec4(final, 1.0);
 }

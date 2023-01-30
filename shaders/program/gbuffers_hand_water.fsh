@@ -14,10 +14,13 @@ in vec3 viewNormal;
 in vec3 viewTangent;
 in vec3 localPos;
 flat in float tangentW;
-flat in float exposure;
 flat in int materialId;
 flat in vec3 blockLightColor;
 flat in mat2 atlasBounds;
+
+#ifndef IRIS_FEATURE_SSBO
+    flat in float sceneExposure;
+#endif
 
 #if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
     in vec2 localCoord;
@@ -275,6 +278,6 @@ void main() {
     outLum.a = color.a;
     outColor1 = outLum;
 
-    color.rgb = clamp(color.rgb * exposure, vec3(0.0), vec3(65000));
+    color.rgb = clamp(color.rgb * sceneExposure, vec3(0.0), vec3(65000));
     outColor0 = color;
 }

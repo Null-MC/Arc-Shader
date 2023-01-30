@@ -73,7 +73,7 @@ uniform int entityId;
 #include "/lib/celestial/position.glsl"
 
 //#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT && defined SSS_ENABLED
-    #include "/lib/material/default.glsl"
+//    #include "/lib/material/default.glsl"
 //#endif
 
 #ifdef WORLD_WATER_ENABLED

@@ -32,13 +32,15 @@ uniform float viewHeight;
     uniform mat4 shadowProjection;
     uniform vec3 cameraPosition;
     uniform float rainStrength;
-    uniform float far;
+    uniform int moonPhase;
     uniform int worldTime;
+    uniform float far;
 #endif
 
 #include "/lib/sampling/noise.glsl"
 
 #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined SHADOW_BLUR && SHADOW_TYPE != SHADOW_TYPE_NONE
+    #include "/lib/matrix.glsl"
     #include "/lib/lighting/blackbody.glsl"
     #include "/lib/lighting/light_data.glsl"
     #include "/lib/sky/hillaire_common.glsl"
