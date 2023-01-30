@@ -47,6 +47,8 @@ const ivec3 workGroups = ivec3(1, 1, 1);
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             //uniform mat4 gbufferModelView;
+            uniform mat4 gbufferPreviousModelView;
+            uniform mat4 gbufferPreviousProjection;
             uniform mat4 gbufferProjection;
             uniform float near;
         #endif
