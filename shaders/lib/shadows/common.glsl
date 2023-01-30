@@ -30,5 +30,5 @@ mat4 BuildShadowViewMatrix() {
 }
 
 mat4 BuildShadowProjectionMatrix() {
-    return BuildOrthoProjectionMatrix(viewWidth, viewHeight, -far, far);
+    return BuildOrthoProjectionMatrix(shadowDistance, shadowDistance, -far, far);
 }
