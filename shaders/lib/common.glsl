@@ -398,6 +398,8 @@ const float shadowPixelSize = 1.0 / shadowMapSize;
 #endif
 #ifdef VL_FOG_NOISE
 #endif
+#ifdef SHADOW_BLUR
+#endif
 
 #ifdef PHYSICS_OCEAN
 #endif
