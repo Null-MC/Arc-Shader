@@ -459,6 +459,9 @@ void main() {
     //float lumTrans = texelFetch(BUFFER_LUM_TRANS, iTex, 0).r;
     vec4 colorTrans = texelFetch(BUFFER_HDR_TRANS, iTex, 0);
 
+    //outColor0 = vec4(mix(vec3(0.0), colorTrans.rgb, colorTrans.a), 1.0);
+    //return;
+
     final = mix(final, colorTrans.rgb / sceneExposure, colorTrans.a);
 
     #ifdef WORLD_WATER_ENABLED

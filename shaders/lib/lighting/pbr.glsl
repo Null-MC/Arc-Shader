@@ -781,7 +781,9 @@
 
                         vec3 localSunDir = GetSunLocalDir();
                         vec4 scatteringTransmittance = GetFancyFog(localPos, localSunDir, VoL);
-                        final = mix(final, vec4(final.rgb * scatteringTransmittance.a + scatteringTransmittance.rgb, 1.0), fogF);
+                        final.rgb = final.rgb * scatteringTransmittance.a + scatteringTransmittance.rgb;
+                        //final = mix(final, vec4(final.rgb, 1.0), fogF);
+                        // TODO: increase alpha with fog
                     #else
                         float fogFactor;
                         vec3 fogColorFinal;

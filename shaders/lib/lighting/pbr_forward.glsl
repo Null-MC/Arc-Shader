@@ -272,6 +272,11 @@
                 lightData.shadowPos[2] = shadowPos[2];
                 lightData.shadowPos[3] = shadowPos[3];
 
+                lightData.shadowBias[0] = 0.0;
+                lightData.shadowBias[1] = 0.0;
+                lightData.shadowBias[2] = 0.0;
+                lightData.shadowBias[3] = 0.0;
+
                 lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData.shadowPos, vec2(0.0), lightData.shadowCascade);
                 lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData.shadowPos, vec2(0.0), lightData.shadowCascade);
 

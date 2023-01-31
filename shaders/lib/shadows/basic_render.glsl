@@ -169,11 +169,8 @@
 
                 float texDepth = SampleOpaqueDepth(lightData.shadowPos.xy, pixelOffset);
 
-                float weight = 1.0;
-                if (texDepth < lightData.shadowPos.z + lightData.shadowBias)
-                    weight = max(1.0 - noiseDist, 0.0);//SampleShadowSSS(lightData.shadowPos.xy + pixelOffset);
-
-                light += weight;
+                float hitDepth = max(texDepth - (lightData.shadowPos.z - lightData.shadowBias), 0.0);
+                light += max(1.0 - hitDepth, 0.0);
             }
 
             //if (maxWeight < EPSILON) return 1.0;
@@ -182,7 +179,7 @@
 
         // PCF + PCSS
         float GetShadowSSS(const in LightData lightData, const in float materialSSS, out float lightDist) {
-            lightDist = max(lightData.shadowPos.z + lightData.shadowBias - lightData.opaqueShadowDepth, 0.0) * (far * 2.0);
+            lightDist = max(lightData.shadowPos.z - lightData.shadowBias - lightData.opaqueShadowDepth, 0.0) * (far * 2.0);
 
             int sampleCount = SSS_PCF_SAMPLES;
             float blockRadius = SSS_PCF_SIZE * lightDist;
