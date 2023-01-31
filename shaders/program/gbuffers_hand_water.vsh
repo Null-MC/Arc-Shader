@@ -15,7 +15,6 @@ out vec3 viewTangent;
 out vec3 localPos;
 flat out float tangentW;
 flat out int materialId;
-flat out vec3 blockLightColor;
 flat out mat2 atlasBounds;
 
 #ifndef IRIS_FEATURE_SSBO
@@ -33,6 +32,18 @@ flat out mat2 atlasBounds;
         uniform int heldBlockLightValue;
         uniform int heldBlockLightValue2;
     #endif
+
+    flat out vec3 blockLightColor;
+
+    #ifdef SKY_ENABLED
+        flat out vec2 skyLightLevels;
+
+        flat out vec3 skySunColor;
+
+        #ifdef WORLD_MOON_ENABLED
+            flat out vec3 skyMoonColor;
+        #endif
+    #endif
 #endif
 
 #if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
@@ -45,13 +56,6 @@ flat out mat2 atlasBounds;
 #endif
 
 #ifdef SKY_ENABLED
-    flat out vec3 sunColor;
-    flat out vec2 skyLightLevels;
-
-    #ifdef WORLD_MOON_ENABLED
-        flat out vec3 moonColor;
-    #endif
-
     uniform vec3 upPosition;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
@@ -161,21 +165,6 @@ void main() {
         vec3 viewDir = normalize(viewPos);
         ApplyShadows(localPos, viewDir);
     #endif
-
-    #ifdef SKY_ENABLED
-        sunColor = GetSunLuxColor();
-        skyLightLevels = GetSkyLightLevels();
-
-        #ifdef WORLD_MOON_ENABLED
-            moonColor = GetMoonLuxColor() * GetMoonPhaseLevel();
-        #endif
-    #endif
-
-    blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
-
-    #ifndef IRIS_FEATURE_SSBO
-        sceneExposure = GetExposure();
-    #endif
     
     #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #ifndef IRIS_FEATURE_SSBO
@@ -207,6 +196,22 @@ void main() {
             #endif
 
             shadowPos = shadowPos * 0.5 + 0.5;
+        #endif
+    #endif
+
+    #ifndef IRIS_FEATURE_SSBO
+        sceneExposure = GetExposure();
+
+        blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
+
+        #ifdef SKY_ENABLED
+            skyLightLevels = GetSkyLightLevels();
+
+            skySunColor = GetSunColor();
+
+            #ifdef WORLD_MOON_ENABLED
+                skyMoonColor = GetMoonColor();
+            #endif
         #endif
     #endif
 }

@@ -6,22 +6,26 @@
 #include "/lib/common.glsl"
 
 in vec2 texcoord;
-flat in vec3 blockLightColor;
 
 #ifndef IRIS_FEATURE_SSBO
     flat in float sceneExposure;
+    
+    flat in vec3 blockLightColor;
+
+    #ifdef SKY_ENABLED
+        flat in vec2 skyLightLevels;
+
+        flat in vec3 skySunColor;
+        flat in vec3 sunTransmittanceEye;
+
+        #ifdef WORLD_MOON_ENABLED
+            flat in vec3 skyMoonColor;
+            flat in vec3 moonTransmittanceEye;
+        #endif
+    #endif
 #endif
 
 #ifdef SKY_ENABLED
-    flat in vec2 skyLightLevels;
-    flat in vec3 sunColor;
-    flat in vec3 sunTransmittanceEye;
-
-    #ifdef WORLD_MOON_ENABLED
-        flat in vec3 moonColor;
-        flat in vec3 moonTransmittanceEye;
-    #endif
-
     uniform sampler2D BUFFER_SKY_LUT;
     uniform sampler2D BUFFER_IRRADIANCE;
 
@@ -33,13 +37,8 @@ flat in vec3 blockLightColor;
         uniform sampler3D colortex13;
     #endif
 
-    //#ifdef SHADOW_ENABLED
-    //    flat in vec3 skyLightColor;
-    //#endif
-
     #ifdef SHADOW_COLOR
         uniform sampler2D BUFFER_DEFERRED2;
-        //uniform sampler2D shadowcolor0;
     #endif
 
     #if defined SHADOW_COLOR || defined SSS_ENABLED
@@ -56,7 +55,6 @@ uniform sampler2D BUFFER_LUM_OPAQUE;
 uniform sampler2D BUFFER_HDR_OPAQUE;
 uniform sampler2D BUFFER_LUM_TRANS;
 uniform sampler2D BUFFER_HDR_TRANS;
-//uniform sampler2D lightmap;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
@@ -75,10 +73,6 @@ uniform sampler2D noisetex;
     uniform sampler2D BUFFER_HDR_PREVIOUS;
     uniform sampler2D BUFFER_DEPTH_PREV;
 #endif
-
-// #if !defined SKY_ENABLED && defined SMOKE_ENABLED
-//     uniform sampler2D BUFFER_BLOOM;
-// #endif
 
 uniform float frameTimeCounter;
 uniform int worldTime;
@@ -144,13 +138,11 @@ uniform float fogEnd;
     #endif
 #endif
 
-//#if defined WORLD_CLOUDS_ENABLED && (defined VL_SKY_ENABLED || defined VL_WATER_ENABLED || defined SMOKE_ENABLED)
-    #if SHADER_PLATFORM == PLATFORM_IRIS
-        uniform sampler3D texCloudNoise;
-    #else
-        uniform sampler3D colortex14;
-    #endif
-//#endif
+#if SHADER_PLATFORM == PLATFORM_IRIS
+    uniform sampler3D texCloudNoise;
+#else
+    uniform sampler3D colortex14;
+#endif
 
 uniform float blindness;
 
@@ -277,15 +269,15 @@ void main() {
     vec3 viewDir = normalize(viewPos);
 
     #ifdef SKY_ENABLED
-        lightData.skyLightLevels = skyLightLevels;
-        lightData.sunTransmittanceEye = sunTransmittanceEye;
+        //lightData.skyLightLevels = skyLightLevels;
+        //lightData.sunTransmittanceEye = sunTransmittanceEye;
 
-        vec3 sunColorFinalEye = sunTransmittanceEye * sunColor * max(skyLightLevels.x, 0.0);
+        vec3 sunColorFinalEye = sunTransmittanceEye * skySunColor * max(skyLightLevels.x, 0.0);
 
         #ifdef WORLD_MOON_ENABLED
-            lightData.moonTransmittanceEye = moonTransmittanceEye;
+            //lightData.moonTransmittanceEye = moonTransmittanceEye;
 
-            vec3 moonColorFinalEye = moonTransmittanceEye * moonColor * max(skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
+            vec3 moonColorFinalEye = moonTransmittanceEye * skyMoonColor * max(skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
         #endif
     #endif
 
@@ -449,7 +441,7 @@ void main() {
     #if defined SKY_ENABLED && defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         if (isEyeInWater == 1 && lightData.opaqueScreenDepth > lightData.transparentScreenDepth) {
             vec3 vlExt = vec3(1.0);
-            vec3 vlColor = GetVolumetricLighting(lightData, vlExt, localViewDir, near, minViewDist);
+            vec3 vlColor = GetVolumetricLighting(vlExt, localViewDir, near, minViewDist);
             final = final * vlExt + vlColor;
 
             // TODO: increase alpha with VL?
@@ -496,10 +488,7 @@ void main() {
             }
 
             #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined VL_WATER_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                vec3 nearViewPos = viewDir * near;
-                vec3 farViewPos = viewDir * min(minViewDist, waterFogDistSmooth);
-
-                final.rgb += GetWaterVolumetricLighting(lightData, nearViewPos, farViewPos, waterScatteringF);
+                final.rgb += GetWaterVolumetricLighting(waterScatteringF, localViewDir, near, min(minViewDist, waterFogDistSmooth));
             #endif
         }
     #endif

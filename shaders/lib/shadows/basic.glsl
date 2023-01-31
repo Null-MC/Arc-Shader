@@ -14,11 +14,11 @@ vec2 getUndistortFactor(const in vec2 v) {
 }
 
 vec3 distort(const in vec3 v, const in float factor) {
-    return vec3(v.xy / factor, v.z * 0.5);
+    return vec3(v.xy / factor, v.z);
 }
 
 vec3 undistort(const in vec3 v, const in vec2 factor) {
-    return vec3(v.xy * factor, v.z * 2.0);
+    return vec3(v.xy * factor, v.z);
 }
 
 vec3 distort(const in vec3 v) {

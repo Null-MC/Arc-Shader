@@ -15,11 +15,24 @@ in vec3 viewTangent;
 in vec3 localPos;
 flat in float tangentW;
 flat in int materialId;
-flat in vec3 blockLightColor;
 flat in mat2 atlasBounds;
 
 #ifndef IRIS_FEATURE_SSBO
     flat in float sceneExposure;
+
+    flat in vec3 blockLightColor;
+
+    #ifdef SKY_ENABLED
+        flat in vec2 skyLightLevels;
+
+        flat in vec3 skySunColor;
+        vec3 sunTransmittanceEye;
+
+        #ifdef WORLD_MOON_ENABLED
+            flat in vec3 skyMoonColor;
+            vec3 moonTransmittanceEye;
+        #endif
+    #endif
 #endif
 
 #if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
@@ -32,13 +45,6 @@ flat in mat2 atlasBounds;
 #endif
 
 #ifdef SKY_ENABLED
-    flat in vec2 skyLightLevels;
-    flat in vec3 sunColor;
-
-    #ifdef WORLD_MOON_ENABLED
-        flat in vec3 moonColor;
-    #endif
-
     #if SHADER_PLATFORM == PLATFORM_IRIS
         uniform sampler3D texSunTransmittance;
         uniform sampler3D texMultipleScattering;
@@ -271,6 +277,24 @@ layout(location = 1) out vec4 outColor1;
 
 
 void main() {
+    #if !defined IRIS_FEATURE_SSBO && defined SKY_ENABLED
+        float eyeElevation = GetScaledSkyHeight(eyeAltitude);
+
+        #if SHADER_PLATFORM == PLATFORM_IRIS
+            sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
+        #else
+            sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
+        #endif
+
+        #ifdef WORLD_MOON_ENABLED
+            #if SHADER_PLATFORM == PLATFORM_IRIS
+                moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
+            #else
+                moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);
+            #endif
+        #endif
+    #endif
+
     vec4 color = PbrLighting();
 
     vec4 outLum = vec4(0.0);

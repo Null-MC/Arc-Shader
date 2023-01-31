@@ -30,7 +30,7 @@
         #endif
 
         #ifdef SKY_ENABLED
-            lightData.skyLightLevels = skyLightLevels;
+            //lightData.skyLightLevels = skyLightLevels;
 
             float eyeElevation = GetScaledSkyHeight(cameraPosition.y);
             float fragElevation = GetAtmosphereElevation(worldPos);
@@ -38,13 +38,13 @@
             #if SHADER_PLATFORM == PLATFORM_IRIS
                 lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
                 lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
-                lightData.sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
-                lightData.moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
+                //lightData.sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
+                //lightData.moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
             #else
                 lightData.sunTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.x);
                 lightData.moonTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.y);
-                lightData.sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
-                lightData.moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);
+                //lightData.sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
+                //lightData.moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);
             #endif
         #endif
 
@@ -272,7 +272,7 @@
                 lightData.shadowPos[2] = shadowPos[2];
                 lightData.shadowPos[3] = shadowPos[3];
 
-                lightData.shadowBias[0] = 0.0;
+                lightData.shadowBias[0] = 0.0; // TODO!
                 lightData.shadowBias[1] = 0.0;
                 lightData.shadowBias[2] = 0.0;
                 lightData.shadowBias[3] = 0.0;
@@ -289,12 +289,7 @@
                 lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
                 lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
 
-                #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                    const float maxShadowDepth = 512.0;
-                #else
-                    const float maxShadowDepth = 256.0;
-                #endif
-
+                const float maxShadowDepth = far * 2.0;
                 lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.shadowPos.z, 0.0) * maxShadowDepth;
             #endif
         #endif
@@ -330,7 +325,7 @@
 
                 #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                     vec3 vlExt = vec3(1.0);
-                    vec3 vlColor = GetVolumetricLighting(lightData, vlExt, localViewDir, near, min(viewDist, far));
+                    vec3 vlColor = GetVolumetricLighting(vlExt, localViewDir, near, min(viewDist, far));
                     finalColor.rgb = finalColor.rgb * vlExt + vlColor;
 
                     // TODO: increase alpha with VL?

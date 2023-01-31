@@ -133,6 +133,7 @@ void main() {
 
     gl_Position = gl_ModelViewMatrix * vec4(vLocalPos, 1.0);
     vec3 shadowLocalPos = (shadowModelViewInverse * gl_Position).xyz;
+    gl_Position = shadowModelViewEx * vec4(shadowLocalPos, 1.0);
 
     vViewPos = (gbufferModelView * vec4(shadowLocalPos, 1.0)).xyz;
     
@@ -142,5 +143,7 @@ void main() {
 
         // TODO: use custom view matrix!
         vOriginPos = (gl_ModelViewMatrix * vec4(vOriginPos, 1.0)).xyz;
+        vOriginPos = (shadowModelViewInverse * vec4(vOriginPos, 1.0)).xyz;
+        vOriginPos = (shadowModelViewEx * vec4(vOriginPos, 1.0)).xyz;
     #endif
 }

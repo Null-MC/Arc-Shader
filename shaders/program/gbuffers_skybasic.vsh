@@ -5,37 +5,40 @@
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
 
-flat out vec3 sunTransmittanceEye;
-flat out vec3 sunColor;
-flat out float exposure;
+#ifndef IRIS_FEATURE_SSBO
+    flat out float sceneExposure;
 
-#ifdef WORLD_MOON_ENABLED
-    flat out vec3 moonTransmittanceEye;
-    flat out vec3 moonColor;
-#endif
+    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+        uniform sampler2D BUFFER_HDR_PREVIOUS;
+        
+        uniform float viewWidth;
+        uniform float viewHeight;
+    #endif
 
-#if SHADER_PLATFORM == PLATFORM_IRIS
-    uniform sampler3D texSunTransmittance;
-#else
-    uniform sampler3D colortex12;
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        uniform ivec2 eyeBrightness;
+        uniform int heldBlockLightValue;
+    #endif
+
+    flat out vec3 skySunColor;
+    flat out vec3 sunTransmittanceEye;
+
+    // #ifdef WORLD_MOON_ENABLED
+    //     flat out vec3 skyMoonColor;
+    //     flat out vec3 moonTransmittanceEye;
+    // #endif
+
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        uniform sampler3D texSunTransmittance;
+    #else
+        uniform sampler3D colortex12;
+    #endif
 #endif
 
 uniform vec3 cameraPosition;
 uniform float screenBrightness;
 uniform float eyeAltitude;
 uniform float wetness;
-
-#if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-    uniform sampler2D BUFFER_HDR_PREVIOUS;
-    
-    uniform float viewWidth;
-    uniform float viewHeight;
-#endif
-
-#if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-    uniform ivec2 eyeBrightness;
-    uniform int heldBlockLightValue;
-#endif
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
@@ -60,7 +63,10 @@ uniform float blindness;
 #include "/lib/celestial/position.glsl"
 #include "/lib/celestial/transmittance.glsl"
 #include "/lib/world/sky.glsl"
-#include "/lib/camera/exposure.glsl"
+
+#ifndef IRIS_FEATURE_SSBO
+    #include "/lib/camera/exposure.glsl"
+#endif
 
 
 void main() {
@@ -71,26 +77,28 @@ void main() {
 
     gl_Position = ftransform();
 
-    vec2 skyLightLevels = GetSkyLightLevels();
-    float eyeElevation = GetScaledSkyHeight(eyeAltitude);
-    
-    sunColor = GetSunColor();
+    #ifndef IRIS_FEATURE_SSBO
+        sceneExposure = GetExposure();
 
-    #if SHADER_PLATFORM == PLATFORM_IRIS
-        sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
-    #else
-        sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
-    #endif
-
-    #ifdef WORLD_MOON_ENABLED
-        moonColor = GetMoonColor();
+        vec2 skyLightLevels = GetSkyLightLevels();
+        float eyeElevation = GetScaledSkyHeight(eyeAltitude);
+        
+        skySunColor = GetSunColor();
 
         #if SHADER_PLATFORM == PLATFORM_IRIS
-            moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
+            sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
         #else
-            moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);
+            sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
         #endif
-    #endif
 
-    exposure = GetExposure();
+        // #ifdef WORLD_MOON_ENABLED
+        //     skyMoonColor = GetMoonColor();
+
+        //     #if SHADER_PLATFORM == PLATFORM_IRIS
+        //         moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
+        //     #else
+        //         moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);
+        //     #endif
+        // #endif
+    #endif
 }

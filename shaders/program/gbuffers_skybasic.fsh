@@ -5,13 +5,16 @@
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
 
-flat in float exposure;
-flat in vec3 sunColor;
-flat in vec3 sunTransmittanceEye;
+#ifndef IRIS_FEATURE_SSBO
+    flat in float sceneExposure;
 
-#ifdef WORLD_MOON_ENABLED
-    flat in vec3 moonColor;
-    flat in vec3 moonTransmittanceEye;
+    flat in vec3 skySunColor;
+    flat in vec3 sunTransmittanceEye;
+
+    // #ifdef WORLD_MOON_ENABLED
+    //     flat in vec3 skyMoonColor;
+    //     flat in vec3 moonTransmittanceEye;
+    // #endif
 #endif
 
 uniform sampler2D noisetex;
@@ -77,9 +80,9 @@ void main() {
 
     #ifdef SUN_FANCY
         vec3 localSunDir = GetSunLocalDir();
-        color += GetSunWithBloom(localViewDir, localSunDir) * sunTransmittanceEye * sunColor * SunLux;
+        color += GetSunWithBloom(localViewDir, localSunDir) * sunTransmittanceEye * skySunColor * SunLux;
     #endif
 
     outColor1 = log2(luminance(color) + EPSILON);
-    outColor0 = clamp(color * exposure, vec3(0.0), vec3(65000));
+    outColor0 = clamp(color * sceneExposure, vec3(0.0), vec3(65000));
 }

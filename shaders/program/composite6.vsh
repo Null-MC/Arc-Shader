@@ -7,13 +7,26 @@
 
 out vec2 texcoord;
 flat out int tileCount;
-flat out float exposure;
+
+#ifndef IRIS_FEATURE_SSBO
+    flat out float sceneExposure;
+
+    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+        uniform sampler2D BUFFER_HDR_PREVIOUS;
+    #endif
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        uniform ivec2 eyeBrightness;
+
+        uniform float rainStrength;
+        uniform vec3 sunPosition;
+        uniform vec3 moonPosition;
+        uniform vec3 upPosition;
+        uniform int moonPhase;
+    #endif
+#endif
 
 uniform sampler2D BUFFER_HDR;
-
-#if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-    uniform sampler2D BUFFER_HDR_PREVIOUS;
-#endif
 
 uniform int heldBlockLightValue;
 uniform float screenBrightness;
@@ -27,21 +40,16 @@ uniform float blindness;
     uniform float darknessFactor;
 #endif
 
-#if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-    uniform ivec2 eyeBrightness;
-
-    uniform float rainStrength;
-    uniform vec3 sunPosition;
-    uniform vec3 moonPosition;
-    uniform vec3 upPosition;
-    uniform int moonPhase;
-    
-    #include "/lib/lighting/blackbody.glsl"
-    #include "/lib/world/sky.glsl"
-#endif
-
 #include "/lib/camera/bloom.glsl"
-#include "/lib/camera/exposure.glsl"
+
+#ifndef IRIS_FEATURE_SSBO
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        #include "/lib/lighting/blackbody.glsl"
+        #include "/lib/world/sky.glsl"
+    #endif
+
+    #include "/lib/camera/exposure.glsl"
+#endif
 
 
 void main() {
@@ -50,5 +58,7 @@ void main() {
 
     tileCount = GetBloomTileCount();
 
-    exposure = GetExposure();
+    #ifndef IRIS_FEATURE_SSBO
+        sceneExposure = GetExposure();
+    #endif
 }

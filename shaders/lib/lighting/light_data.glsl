@@ -5,11 +5,11 @@ struct LightData {
     float skyLight;
     float geoNoL;
 
-    vec2 skyLightLevels;
+    //vec2 skyLightLevels;
     vec3 sunTransmittance;
     vec3 moonTransmittance;
-    vec3 sunTransmittanceEye;
-    vec3 moonTransmittanceEye;
+    // vec3 sunTransmittanceEye;
+    // vec3 moonTransmittanceEye;
 
     float opaqueScreenDepth;
     float opaqueScreenDepthLinear;
@@ -19,7 +19,6 @@ struct LightData {
     float opaqueShadowDepth;
     float transparentShadowDepth;
     float waterShadowDepth;
-
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         vec3 shadowPos[4];

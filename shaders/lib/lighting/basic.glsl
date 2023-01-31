@@ -16,20 +16,20 @@
         #ifdef RENDER_WATER
             if (abs(mc_Entity.x - 100.0) < 0.5) {
                 #ifndef PHYSICS_OCEAN
-                    if (all(greaterThan(mc_midTexCoord, vec4(EPSILON)))) {
-                        if (isEyeInWater == 1 && gl_Normal.y > 0.01) {
-                            //the bottom face doesn't have a backface.
-                            gl_Position = vec4(10.0);
-                            return;
-                        }
-                        if (isEyeInWater == 0 && gl_Normal.y < -0.01) {
-                            //sneaky back face of top needs weird checks.
-                            if (at_midBlock.y < 30.75) {
-                                gl_Position = vec4(10.0);
-                                return;
-                            }
-                        }
-                    }
+                    // if (all(greaterThan(mc_midTexCoord, vec4(EPSILON)))) {
+                    //     if (isEyeInWater == 1 && gl_Normal.y > 0.01) {
+                    //         //the bottom face doesn't have a backface.
+                    //         gl_Position = vec4(10.0);
+                    //         return;
+                    //     }
+                    //     if (isEyeInWater == 0 && gl_Normal.y < -0.01) {
+                    //         //sneaky back face of top needs weird checks.
+                    //         if (at_midBlock.y < 30.75) {
+                    //             gl_Position = vec4(10.0);
+                    //             return;
+                    //         }
+                    //     }
+                    // }
                 #endif
 
                 #if defined WORLD_WATER_ENABLED && (WATER_WAVE_TYPE == WATER_WAVE_VERTEX || defined PHYSICS_OCEAN)

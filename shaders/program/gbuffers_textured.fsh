@@ -24,12 +24,15 @@ uniform sampler2D normals;
 uniform sampler2D specular;
 uniform sampler2D lightmap;
 
+uniform mat4 gbufferModelView;
+uniform int worldTime;
+
 #if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
     uniform float alphaTestRef;
 #endif
 
+#include "/lib/celestial/position.glsl"
 #include "/lib/material/material.glsl"
-
 #include "/lib/material/material_reader.glsl"
 #include "/lib/lighting/pbr_gbuffers.glsl"
 

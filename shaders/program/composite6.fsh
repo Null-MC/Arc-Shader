@@ -7,7 +7,10 @@
 
 in vec2 texcoord;
 flat in int tileCount;
-flat in float exposure;
+
+#ifndef IRIS_FEATURE_SSBO
+    flat in float sceneExposure;
+#endif
 
 uniform sampler2D BUFFER_HDR_OPAQUE;
 uniform sampler2D BUFFER_LUM_OPAQUE;
@@ -85,12 +88,12 @@ void main() {
             //     max(exp2(lumSample[3]) - EPSILON, 0.0));
         #else
             //ivec2 iuv = ivec2(tileTex * viewSize / exp2(t));
-            final = textureLod(BUFFER_HDR_OPAQUE, tileTex, t).rgb;// / exposure;
+            final = textureLod(BUFFER_HDR_OPAQUE, tileTex, t).rgb;// / sceneExposure;
             float lum = textureLod(BUFFER_LUM_OPAQUE, tileTex, t).r;
             //lum = max(exp2(lum) - EPSILON, 0.0);
         #endif
 
-        lum = max(exp2(lum) - EPSILON, 0.0) * exposure;
+        lum = max(exp2(lum) - EPSILON, 0.0) * sceneExposure;
 
         float threshold = isEyeInWater == 1 ? BLOOM_THRESHOLD_WATER : BLOOM_THRESHOLD;
         float power = isEyeInWater == 1 ? BLOOM_POWER_WATER : BLOOM_POWER;

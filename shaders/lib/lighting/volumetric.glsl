@@ -20,7 +20,7 @@ const float AirSpeed = 20.0;
         return 0.04 + 0.2 * pow(texDensity1 * texDensity2, 2.0) + 0.6 * pow(texDensity3 * texDensity2, 3.0);
     }
 
-    vec3 GetVolumetricLighting(const in LightData lightData, inout vec3 transmittance, const in vec3 localViewDir, const in float nearDist, const in float farDist) {
+    vec3 GetVolumetricLighting(inout vec3 transmittance, const in vec3 localViewDir, const in float nearDist, const in float farDist) {
         const float inverseStepCountF = rcp(VL_SAMPLES_SKY + 1);
         
         #ifdef VL_DITHER
@@ -74,7 +74,7 @@ const float AirSpeed = 20.0;
 
         float time = frameTimeCounter / 3600.0;
         //vec3 shadowMax = 1.0 - vec3(vec2(shadowPixelSize), EPSILON);
-        float minFogF = min(VLFogMinF * (1.0 + 0.6 * max(lightData.skyLightLevels.x, 0.0)), 1.0);
+        float minFogF = min(VLFogMinF * (1.0 + 0.6 * max(skyLightLevels.x, 0.0)), 1.0);
 
         #ifndef VL_FOG_NOISE
             #ifdef WORLD_END
@@ -108,12 +108,12 @@ const float AirSpeed = 20.0;
                 int cascade = GetShadowSampleCascade(shadowPos, 0.0);
                 vec3 traceShadowClipPos = shadowPos[cascade];
 
-                float sampleF = CompareOpaqueDepth(shadowPos[cascade], vec2(0.0), lightData.shadowBias[cascade]);
+                const float sampleBias = 0.0;
+                float sampleF = CompareOpaqueDepth(shadowPos[cascade], vec2(0.0), sampleBias);
             #else
                 vec3 traceShadowClipPos = shadowClipStart + shadowClipStep * (i + dither);
 
-                float sampleBias = 0.0;
-
+                const float sampleBias = 0.0;
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                     traceShadowClipPos = distort(traceShadowClipPos);
 
@@ -124,7 +124,7 @@ const float AirSpeed = 20.0;
 
                 traceShadowClipPos = traceShadowClipPos * 0.5 + 0.5;
 
-                float sampleF = CompareOpaqueDepth(traceShadowClipPos, vec2(0.0), lightData.shadowBias);
+                float sampleF = CompareOpaqueDepth(traceShadowClipPos, vec2(0.0), sampleBias);
             #endif
 
             vec3 traceWorldPos = worldStart + localStep * (i + dither);
@@ -229,14 +229,14 @@ const float AirSpeed = 20.0;
 #endif
 
 #ifdef VL_WATER_ENABLED
-    vec3 GetScatteredLighting(const in float elevation, const in vec2 skyLightLevels, const in vec2 scatteringF) {
+    vec3 GetScatteredLighting(const in float elevation, const in vec2 scatteringF) {
         #if SHADER_PLATFORM == PLATFORM_IRIS
             vec3 sunTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.x);
         #else
             vec3 sunTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.x);
         #endif
 
-        vec3 result = scatteringF.x * sunTransmittance * sunColor * max(skyLightLevels.x, 0.0);
+        vec3 result = scatteringF.x * sunTransmittance * skySunColor * SunLux * max(skyLightLevels.x, 0.0);
 
         #ifdef WORLD_MOON_ENABLED
             #if SHADER_PLATFORM == PLATFORM_IRIS
@@ -245,7 +245,7 @@ const float AirSpeed = 20.0;
                 vec3 moonTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.y);
             #endif
 
-            result += scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * moonColor * max(skyLightLevels.y, 0.0);
+            result += scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * skyMoonColor * MoonLux * max(skyLightLevels.y, 0.0);
         #endif
 
         return result;
@@ -257,7 +257,7 @@ const float AirSpeed = 20.0;
         return 1.0 - 0.6 * sampleDensity1 - 0.3 * sampleDensity2;
     }
 
-    vec3 GetWaterVolumetricLighting(const in LightData lightData, const in vec3 nearViewPos, const in vec3 farViewPos, const in vec2 scatteringF) {
+    vec3 GetWaterVolumetricLighting(const in vec2 scatteringF, const in vec3 localViewDir, const in float nearDist, const in float farDist) {
         const float inverseStepCountF = rcp(VL_SAMPLES_WATER + 1);
 
         #ifdef SHADOW_CLOUD
@@ -271,11 +271,10 @@ const float AirSpeed = 20.0;
             const float dither = 0.0;
         #endif
 
-        vec3 localStart = (gbufferModelViewInverse * vec4(nearViewPos, 1.0)).xyz;
-        vec3 localEnd = (gbufferModelViewInverse * vec4(farViewPos, 1.0)).xyz;
-        vec3 localRay = localEnd - localStart;
-        float localRayLength = length(localRay);
-        vec3 localStep = localRay * inverseStepCountF;
+        vec3 localStart = localViewDir * nearDist;
+        vec3 localEnd = localViewDir * farDist;
+        float localRayLength = farDist - nearDist;
+        vec3 localStep = localViewDir * (localRayLength * inverseStepCountF);
 
         #ifndef IRIS_FEATURE_SSBO
             mat4 shadowModelViewEx = BuildShadowViewMatrix();
@@ -314,10 +313,8 @@ const float AirSpeed = 20.0;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             float MaxShadowDist = far * 3.0;
-        #elif SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-            const float MaxShadowDist = 512.0;
         #else
-            const float MaxShadowDist = 256.0;
+            float MaxShadowDist = far * 2.0;
         #endif
 
         vec3 extinctionInv = (1.0 - waterAbsorbColor) * WATER_ABSROPTION_RATE;
@@ -327,20 +324,20 @@ const float AirSpeed = 20.0;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 vec3 shadowPos[4];
-                for (int c = 0; c < 4; c++)
-                    shadowPos[c] = shadowClipStart[c] + (i + dither) * shadowClipStep[c];
+                shadowPos[0] = shadowClipStart[0] + (i + dither) * shadowClipStep[0];
+                shadowPos[1] = shadowClipStart[1] + (i + dither) * shadowClipStep[1];
+                shadowPos[2] = shadowClipStart[2] + (i + dither) * shadowClipStep[2];
+                shadowPos[3] = shadowClipStart[3] + (i + dither) * shadowClipStep[3];
 
                 int cascade = GetShadowSampleCascade(shadowPos, 0.0);
 
-                lightSample = CompareOpaqueDepth(shadowPos[cascade], vec2(0.0), lightData.shadowBias[cascade]);
+                const float bias = 0.0; // TODO
+                lightSample = CompareOpaqueDepth(shadowPos[cascade], vec2(0.0), bias);
 
-                int waterOpaqueCascade = -1;
                 if (lightSample > EPSILON)
-                    transparentDepth = GetNearestTransparentDepth(shadowPos, vec2(0.0), waterOpaqueCascade);
+                    transparentDepth = SampleTransparentDepth(shadowPos[cascade].xy, vec2(0.0));
 
-                vec3 traceShadowClipPos = waterOpaqueCascade >= 0
-                    ? shadowPos[waterOpaqueCascade]
-                    : shadowPos[cascade];
+                vec3 traceShadowClipPos = shadowPos[cascade];
             #else
                 vec3 traceShadowClipPos = shadowClipStart + shadowClipStep * (i + dither);
 
@@ -381,7 +378,7 @@ const float AirSpeed = 20.0;
             float waterLightDist = max((traceShadowClipPos.z - transparentDepth) * MaxShadowDist, 0.0);
             waterLightDist += i * localStepLength;
 
-            vec3 lightColor = GetScatteredLighting(traceWorldPos.y, lightData.skyLightLevels, scatteringF);
+            vec3 lightColor = GetScatteredLighting(traceWorldPos.y, scatteringF);
             lightColor *= exp(-waterLightDist * extinctionInv);
 
             // sample normal, get fresnel, darken

@@ -3,9 +3,9 @@ vec3 GetShadowIntervalOffset() {
 }
 
 mat4 BuildShadowViewMatrix(const in vec3 localLightDir) {
-    #ifndef WORLD_END
-        return shadowModelView;
-    #else
+    //#ifndef WORLD_END
+    //    return shadowModelView;
+    //#else
         const vec3 worldUp = vec3(1.0, 0.0, 0.0);
 
         vec3 zaxis = localLightDir;
@@ -21,7 +21,7 @@ mat4 BuildShadowViewMatrix(const in vec3 localLightDir) {
         mat4 translation = BuildTranslationMatrix(intervalOffset);
 
         return shadowModelViewEx * translation;
-    #endif
+    //#endif
 }
 
 mat4 BuildShadowViewMatrix() {

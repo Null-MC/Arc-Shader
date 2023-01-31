@@ -15,8 +15,24 @@ in vec3 localPos;
 in vec3 viewPos;
 in vec3 viewNormal;
 in float geoNoL;
-flat in float exposure;
-flat in vec3 blockLightColor;
+
+#ifndef IRIS_FEATURE_SSBO
+    flat in float sceneExposure;
+
+    flat in vec3 blockLightColor;
+
+    #ifdef SKY_ENABLED
+        flat in vec2 skyLightLevels;
+
+        flat in vec3 skySunColor;
+        flat in vec3 sunTransmittanceEye;
+
+        #ifdef WORLD_MOON_ENABLED
+            flat in vec3 skyMoonColor;
+            flat in vec3 moonTransmittanceEye;
+        #endif
+    #endif
+#endif
 
 #ifdef HANDLIGHT_ENABLED
     uniform int heldBlockLightValue;
@@ -29,12 +45,6 @@ flat in vec3 blockLightColor;
 #endif
 
 #ifdef SKY_ENABLED
-    flat in vec3 sunColor;
-    flat in vec3 moonColor;
-    flat in vec2 skyLightLevels;
-    flat in vec3 sunTransmittanceEye;
-    flat in vec3 moonTransmittanceEye;
-
     uniform sampler2D noisetex;
     uniform usampler2D shadowcolor1;
 
@@ -219,9 +229,9 @@ void main() {
     lightData.transparentScreenDepthLinear = linearizeDepthFast(lightData.transparentScreenDepth, near, far);
 
     #ifdef SKY_ENABLED
-        lightData.skyLightLevels = skyLightLevels;
-        lightData.sunTransmittanceEye = sunTransmittanceEye;
-        lightData.moonTransmittanceEye = moonTransmittanceEye;
+        //lightData.skyLightLevels = skyLightLevels;
+        //lightData.sunTransmittanceEye = sunTransmittanceEye;
+        //lightData.moonTransmittanceEye = moonTransmittanceEye;
 
         float fragElevation = GetAtmosphereElevation(worldPos);
 
@@ -266,6 +276,6 @@ void main() {
     outLuminance.a = color.a;
     outColor1 = outLuminance;
 
-    color.rgb = clamp(color.rgb * exposure, vec3(0.0), vec3(65000));
+    color.rgb = clamp(color.rgb * sceneExposure, vec3(0.0), vec3(65000));
     outColor0 = vec4(color.rgb, color.a);
 }

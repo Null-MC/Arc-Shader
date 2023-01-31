@@ -14,6 +14,14 @@ const ivec3 workGroups = ivec3(1, 1, 1);
         mat4 shadowModelViewEx;         // 64
         mat4 shadowProjectionEx;        // 64
 
+        vec2 skyLightLevels;            // 8
+        vec3 skySunColor;               // 12
+        vec3 sunTransmittanceEye;       // 12
+        vec3 skyMoonColor;              // 12
+        vec3 moonTransmittanceEye;      // 12
+        //float skyMoonPhaseLevel,
+        vec3 blockLightColor;           // 12
+
         // CSM
         float cascadeSize[4];           // 16
         vec2 shadowProjectionSize[4];   // 32
@@ -38,27 +46,51 @@ const ivec3 workGroups = ivec3(1, 1, 1);
         uniform float darknessFactor;
     #endif
 
-    #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-        uniform mat4 gbufferModelView;
-        uniform mat4 shadowModelView;
-        uniform vec3 cameraPosition;
-        uniform int worldTime;
-        uniform float far;
+    #ifdef SKY_ENABLED
+        uniform sampler3D texSunTransmittance;
 
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            //uniform mat4 gbufferModelView;
-            uniform mat4 gbufferPreviousModelView;
-            uniform mat4 gbufferPreviousProjection;
-            uniform mat4 gbufferProjection;
-            uniform float near;
+        uniform float eyeAltitude;
+        uniform float rainStrength;
+        uniform vec3 upPosition;
+
+        // uniform vec3 shadowLightPosition;
+        // uniform vec3 sunPosition;
+        // uniform vec3 moonPosition;
+        // uniform int moonPhase;
+        // uniform float wetness;
+
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+            uniform mat4 gbufferModelView;
+            uniform mat4 shadowModelView;
+            uniform vec3 cameraPosition;
+            uniform int worldTime;
+            uniform float far;
+
+            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                //uniform mat4 gbufferModelView;
+                uniform mat4 gbufferPreviousModelView;
+                uniform mat4 gbufferPreviousProjection;
+                uniform mat4 gbufferProjection;
+                uniform float near;
+            #endif
         #endif
+    #endif
 
-        #include "/lib/matrix.glsl"
+    #ifdef SKY_ENABLED
+        #include "/lib/lighting/blackbody.glsl"
+        #include "/lib/sky/hillaire_common.glsl"
         #include "/lib/celestial/position.glsl"
-        #include "/lib/shadows/common.glsl"
+        #include "/lib/celestial/transmittance.glsl"
+        #include "/lib/world/sky.glsl"
+        
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+            #include "/lib/matrix.glsl"
+            //#include "/lib/celestial/position.glsl"
+            #include "/lib/shadows/common.glsl"
 
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            #include "/lib/shadows/csm.glsl"
+            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                #include "/lib/shadows/csm.glsl"
+            #endif
         #endif
     #endif
 
@@ -69,6 +101,31 @@ const ivec3 workGroups = ivec3(1, 1, 1);
 void main() {
     #ifdef IRIS_FEATURE_SSBO
         sceneExposure = GetExposure();
+
+        blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
+
+        #ifdef SKY_ENABLED
+            skyLightLevels = GetSkyLightLevels();
+            float eyeElevation = GetScaledSkyHeight(eyeAltitude);
+
+            skySunColor = GetSunColor();
+
+            #if SHADER_PLATFORM == PLATFORM_IRIS
+                sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
+            #else
+                sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
+            #endif
+
+            #ifdef WORLD_MOON_ENABLED
+                skyMoonColor = GetMoonColor();
+
+                #if SHADER_PLATFORM == PLATFORM_IRIS
+                    moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
+                #else
+                    moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);
+                #endif
+            #endif
+        #endif
 
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             shadowModelViewEx = BuildShadowViewMatrix();

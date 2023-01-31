@@ -7,10 +7,6 @@
 
 in vec2 texcoord;
 
-// #ifndef IRIS_FEATURE_SSBO
-//     flat in float sceneExposure;
-// #endif
-
 uniform usampler2D BUFFER_DEFERRED;
 uniform sampler2D depthtex0;
 
@@ -123,8 +119,8 @@ void main() {
             vec3 dY = dFdy(localPos);
             vec3 geoNormal = normalize(cross(dX, dY));
 
-            vec3 localLightDir = GetShadowLightLocalDir();
-            lightData.geoNoL = dot(geoNormal, localLightDir);
+            uint gbufferData = texelFetch(BUFFER_DEFERRED, itexFull, 0).a;
+            lightData.geoNoL = unpackUnorm4x8(gbufferData).z * 2.0 - 1.0;
 
             float viewDist = length(localPos);
             localPos += geoNormal * viewDist * SHADOW_NORMAL_BIAS * max(1.0 - lightData.geoNoL, 0.0);

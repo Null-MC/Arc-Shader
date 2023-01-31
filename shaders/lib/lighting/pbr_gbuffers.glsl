@@ -232,7 +232,9 @@
         // if (any(isnan(_viewNormal)))
         //     _viewNormal = vec3(0.0, 0.0, 1.0);
 
-        #ifndef RENDER_TEXTURED
+        #ifdef RENDER_TEXTURED
+            material.normal = GetShadowLightViewDir();
+        #else
             material.normal = normalize(matTBN * material.normal);
         #endif
 

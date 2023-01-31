@@ -6,22 +6,26 @@
 #include "/lib/common.glsl"
 
 in vec2 texcoord;
-flat in vec3 blockLightColor;
 
 #ifndef IRIS_FEATURE_SSBO
     flat in float sceneExposure;
+
+    flat in vec3 blockLightColor;
+
+    #ifdef SKY_ENABLED
+        flat in vec2 skyLightLevels;
+
+        flat in vec3 skySunColor;
+        flat in vec3 sunTransmittanceEye;
+
+        #ifdef WORLD_MOON_ENABLED
+            flat in vec3 skyMoonColor;
+            flat in vec3 moonTransmittanceEye;
+        #endif
+    #endif
 #endif
 
 #ifdef SKY_ENABLED
-    flat in vec2 skyLightLevels;
-    flat in vec3 sunColor;
-    flat in vec3 sunTransmittanceEye;
-
-    #ifdef WORLD_MOON_ENABLED
-        flat in vec3 moonColor;
-        flat in vec3 moonTransmittanceEye;
-    #endif
-
     uniform sampler2D BUFFER_SKY_LUT;
     uniform sampler2D BUFFER_IRRADIANCE;
 
@@ -45,10 +49,6 @@ flat in vec3 blockLightColor;
     #if defined SHADOW_COLOR || defined SSS_ENABLED
         uniform sampler2D shadowcolor0;
     #endif
-
-    // #if (defined RSM_ENABLED && defined RSM_UPSCALE) || (defined SSS_ENABLED && defined SHADOW_COLOR)
-    //     uniform usampler2D shadowcolor1;
-    // #endif
 #endif
 
 #if AO_TYPE == AO_TYPE_SS || (defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)
@@ -58,7 +58,6 @@ flat in vec3 blockLightColor;
 uniform usampler2D BUFFER_DEFERRED;
 uniform sampler2D BUFFER_HDR_OPAQUE;
 uniform sampler2D BUFFER_LUM_OPAQUE;
-//uniform sampler2D lightmap;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
@@ -313,8 +312,8 @@ void main() {
         vec3 upDir = normalize(upPosition);
         float fragElevation = GetAtmosphereElevation(worldPos);
 
-        lightData.skyLightLevels = skyLightLevels;
-        lightData.sunTransmittanceEye = sunTransmittanceEye;
+        //lightData.skyLightLevels = skyLightLevels;
+        //lightData.sunTransmittanceEye = sunTransmittanceEye;
 
         #if SHADER_PLATFORM == PLATFORM_IRIS
             lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
@@ -323,7 +322,7 @@ void main() {
         #endif
 
         #ifdef WORLD_MOON_ENABLED
-            lightData.moonTransmittanceEye = moonTransmittanceEye;
+            //lightData.moonTransmittanceEye = moonTransmittanceEye;
 
             #if SHADER_PLATFORM == PLATFORM_IRIS
                 lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
@@ -390,12 +389,7 @@ void main() {
                 lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
                 lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
 
-                #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                    const float ShadowMaxDepth = 512.0;
-                #else
-                    const float ShadowMaxDepth = 256.0;
-                #endif
-
+                const float ShadowMaxDepth = 2.0 * far;
                 lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.transparentShadowDepth, 0.0) * ShadowMaxDepth;
             #endif
         #endif
@@ -428,7 +422,7 @@ void main() {
                         color += starF * StarLumen;
                     }
 
-                    color += GetSunWithBloom(localViewDir, localSunDir) * sunTransmittanceEye * sunColor;
+                    color += GetSunWithBloom(localViewDir, localSunDir) * sunTransmittanceEye * skySunColor * SunLux;
                 #else
                     color = texelFetch(BUFFER_HDR_OPAQUE, iTex, 0).rgb / sceneExposure;
                 #endif
@@ -476,7 +470,7 @@ void main() {
 
         #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             vec3 vlExt = vec3(1.0);
-            vec3 vlColor = GetVolumetricLighting(lightData, vlExt, localViewDir, near, min(length(viewPos), far));
+            vec3 vlColor = GetVolumetricLighting(vlExt, localViewDir, near, min(length(viewPos), far));
             color = color * vlExt + vlColor;
         #endif
     #elif defined SMOKE_ENABLED

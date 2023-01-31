@@ -27,11 +27,11 @@
 
 #ifdef RENDER_FRAG
     #ifdef SKY_ENABLED
-        vec3 GetSkyReflectionColor(const in LightData lightData, const in vec3 worldPos, const in vec3 viewDir, const in vec3 reflectDir, const in float rough) {
-            vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor * max(lightData.skyLightLevels.x, 0.0);
+        vec3 GetSkyReflectionColor(const in vec3 worldPos, const in vec3 viewDir, const in vec3 reflectDir, const in float rough) {
+            vec3 sunColorFinalEye = sunTransmittanceEye * skySunColor * SunLux * max(skyLightLevels.x, 0.0);
 
             #ifdef WORLD_MOON_ENABLED
-                vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * max(lightData.skyLightLevels.y, 0.0);
+                vec3 moonColorFinalEye = moonTransmittanceEye * skyMoonColor * max(skyLightLevels.y, 0.0);
             #else
                 const vec3 moonColorFinalEye = vec3(0.0);
             #endif
@@ -68,7 +68,7 @@
                     float cloudF = GetCloudFactor(cloudPos, localReflectDir, 0.0);
                     cloudF *= 1.0 - blindness;
                     
-                    vec3 cloudColor = GetCloudColor(cloudPos, reflectDir, lightData.skyLightLevels);
+                    vec3 cloudColor = GetCloudColor(cloudPos, reflectDir, skyLightLevels);
                     reflectSkyColor = mix(reflectSkyColor, cloudColor, cloudF);
                 }
             #endif
@@ -99,14 +99,14 @@
         //return vec4(viewNormal * 1000.0, 1.0);
 
         #ifdef SKY_ENABLED
-            vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor;// * max(lightData.skyLightLevels.x, 0.0);
-            vec3 sunColorFinal = lightData.sunTransmittance * sunColor;// * max(lightData.skyLightLevels.x, 0.0);
+            vec3 sunColorFinalEye = sunTransmittanceEye * skySunColor * SunLux;// * max(lightData.skyLightLevels.x, 0.0);
+            vec3 sunColorFinal = lightData.sunTransmittance * skySunColor * SunLux;// * max(lightData.skyLightLevels.x, 0.0);
 
             vec3 skyLightColorFinal = sunColorFinal;
 
             #ifdef WORLD_MOON_ENABLED
-                vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor;// * max(lightData.skyLightLevels.y, 0.0);
-                vec3 moonColorFinal = lightData.moonTransmittance * moonColor;// * max(lightData.skyLightLevels.y, 0.0);
+                vec3 moonColorFinalEye = moonTransmittanceEye * skyMoonColor;// * max(lightData.skyLightLevels.y, 0.0);
+                vec3 moonColorFinal = lightData.moonTransmittance * skyMoonColor;// * max(lightData.skyLightLevels.y, 0.0);
 
                 skyLightColorFinal += moonColorFinal;
             #endif
@@ -158,9 +158,9 @@
             vec3 worldPos = cameraPosition + localPos;
             float sssDist = 0.0;
 
-            #ifdef RENDER_WATER
-                if (materialId != MATERIAL_WATER) {
-            #endif
+            // #ifdef RENDER_WATER
+            //     if (materialId != MATERIAL_WATER) {
+            // #endif
 
                 #if defined SHADOW_BLUR && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && !defined RENDER_WATER && !defined RENDER_HAND_WATER
                     shadowColor = shadowOcclusion.rgb;
@@ -194,7 +194,7 @@
                     }
                 #endif
 
-                #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && !defined SHADOW_BLUR
+                #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (!defined SHADOW_BLUR || defined RENDER_WATER)
                     if (shadow > EPSILON) {
                         float shadowF = 1.0 - GetShadowing(lightData);
 
@@ -244,9 +244,9 @@
                     shadowSSS = mix(shadowSSS, contactSSS, contactShadowMix);
                 #endif
 
-            #ifdef RENDER_WATER
-                }
-            #endif
+            // #ifdef RENDER_WATER
+            //     }
+            // #endif
         #endif
 
         vec3 skyLightColorShadow = skyLightColorFinal * shadowColor;
@@ -293,12 +293,12 @@
 
                     #ifdef SKY_ENABLED
                         if (roughReflectColor.a + EPSILON < 1.0) {
-                            vec3 skyReflectColor = GetSkyReflectionColor(lightData, worldPos, viewDir, reflectDir, rough) * skyLight;
+                            vec3 skyReflectColor = GetSkyReflectionColor(worldPos, viewDir, reflectDir, rough) * skyLight;
                             reflectColor += skyReflectColor * (1.0 - roughReflectColor.a);
                         }
                     #endif
                 #elif REFLECTION_MODE == REFLECTION_MODE_SKY && defined SKY_ENABLED
-                    reflectColor = GetSkyReflectionColor(lightData, worldPos, viewDir, reflectDir, rough) * skyLight;
+                    reflectColor = GetSkyReflectionColor(worldPos, viewDir, reflectDir, rough) * skyLight;
                 #endif
             }
         #endif
@@ -475,10 +475,10 @@
 
         #if defined SKY_ENABLED && defined WORLD_WATER_ENABLED
             vec2 waterScatteringF = GetWaterScattering(viewDir);
-            vec3 waterSunColorEye = sunColorFinalEye * max(lightData.skyLightLevels.x, 0.0);
+            vec3 waterSunColorEye = sunColorFinalEye * max(skyLightLevels.x, 0.0);
 
             #ifdef WORLD_MOON_ENABLED
-                vec3 waterMoonColorEye = moonColorFinalEye * max(lightData.skyLightLevels.y, 0.0);
+                vec3 waterMoonColorEye = moonColorFinalEye * max(skyLightLevels.y, 0.0);
             #else
                 const vec3 waterMoonColorEye = vec3(0.0);
             #endif
@@ -674,10 +674,7 @@
                     ApplyWaterFog(refractColor, waterFogColor, waterViewDepthFinal);
 
                     #if defined VL_WATER_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                        float dist = waterFogDistSmooth;
-                        vec3 farViewPos = viewPos + viewDir * dist;
-
-                        refractColor += GetWaterVolumetricLighting(lightData, viewPos, farViewPos, waterScatteringF);
+                        refractColor += GetWaterVolumetricLighting(waterScatteringF, localViewDir, viewDist, viewDist + waterFogDistSmooth);
                     #endif
                     
                     // TODO: refract out shadowing

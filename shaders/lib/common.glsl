@@ -309,6 +309,14 @@ const float shadowPixelSize = 1.0 / shadowMapSize;
         mat4 shadowModelViewEx;         // 64
         mat4 shadowProjectionEx;        // 64
 
+        vec2 skyLightLevels;            // 8
+        vec3 skySunColor;               // 12
+        vec3 sunTransmittanceEye;       // 12
+        vec3 skyMoonColor;              // 12
+        vec3 moonTransmittanceEye;      // 12
+        //float skyMoonPhaseLevel,
+        vec3 blockLightColor;           // 12
+
         // CSM
         float cascadeSize[4];           // 16
         vec2 shadowProjectionSize[4];   // 32

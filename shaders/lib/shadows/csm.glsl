@@ -143,7 +143,7 @@ int GetCascadeForScreenPos(const in vec2 pos) {
             SetProjectionRange(matSceneProjectionRanged, rangeNear, rangeFar);
 
             mat4 matModelViewProjectionInv = inverse(matSceneProjectionRanged * matSceneModelView);
-            mat4 matSceneToShadow = matShadowProjection * shadowModelViewEx * matModelViewProjectionInv;
+            mat4 matSceneToShadow = matShadowProjection * (shadowModelViewEx * matModelViewProjectionInv);
 
             vec3 clipMin, clipMax;
             GetFrustumMinMax(matSceneToShadow, clipMin, clipMax);

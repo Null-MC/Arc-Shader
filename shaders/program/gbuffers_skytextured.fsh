@@ -7,11 +7,18 @@
 
 in vec4 glcolor;
 in vec2 texcoord;
-flat in float exposure;
-flat in vec3 sunColor;
-flat in vec3 moonColor;
-flat in vec3 sunTransmittanceEye;
-flat in vec3 moonTransmittanceEye;
+
+#ifndef IRIS_FEATURE_SSBO
+    flat in float sceneExposure;
+
+    flat in vec3 skySunColor;
+    flat in vec3 sunTransmittanceEye;
+
+    #ifdef WORLD_MOON_ENABLED
+        flat in vec3 skyMoonColor;
+        flat in vec3 moonTransmittanceEye;
+    #endif
+#endif
 
 uniform sampler2D gtexture;
 
@@ -35,14 +42,14 @@ void main() {
 
     if (renderStage == MC_RENDER_STAGE_SUN) {
         lumF = sunLumen;
-        color *= sunColor * sunTransmittanceEye * 100000.0 * (1.0 - 0.7 * rainStrength);//sunLumen
-        lum *= luminance(sunColor * sunTransmittanceEye);
+        color *= skySunColor * sunTransmittanceEye * 100000.0 * (1.0 - 0.7 * rainStrength);//sunLumen
+        lum *= luminance(skySunColor * sunTransmittanceEye);
         alpha *= min(luminance(sunTransmittanceEye), 1.0);
     }
     else if (renderStage == MC_RENDER_STAGE_MOON) {
         lumF = moonLumen;
-        color *= moonColor * moonTransmittanceEye * moonLumen;
-        lum *= luminance(moonColor * moonTransmittanceEye);
+        color *= skyMoonColor * moonTransmittanceEye * moonLumen;
+        lum *= luminance(skyMoonColor * moonTransmittanceEye);
         alpha *= min(luminance(moonTransmittanceEye), 1.0);
     }
     else if (renderStage == MC_RENDER_STAGE_CUSTOM_SKY) {
@@ -53,7 +60,7 @@ void main() {
         //lum = 10.0;
     }
 
-    color = clamp(color * exposure, vec3(0.0), vec3(65000));
+    color = clamp(color * sceneExposure, vec3(0.0), vec3(65000));
     outColor0 = vec4(color, alpha);
 
     float lumFinal = log2(lum * lumF + EPSILON);
