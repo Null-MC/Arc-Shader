@@ -221,7 +221,7 @@ const bool colortex11Clear = false;
 #define CLOUD_POW_RAIN 0.3
 #define SHADOW_CLOUD
 #define SMOKE_ENABLED
-#define VL_SMOKE_DENSITY 0.2
+#define VL_SMOKE_DENSITY 40 // [0 10 20 30 40 50 60 70 80 90 100]
 #define IRIS_FEATURE_BIOMECAT
 #define SUN_FANCY
 
@@ -287,6 +287,7 @@ const vec3 WaterExtInv = 1.0 - WATER_COLOR.rgb;
 const float WaterWaveDepthF = WATER_WAVE_DEPTH * 0.01;
 const float VLFogMinF = VL_FOG_MIN * 0.01;
 const float shadowPcfSize = SHADOW_PCF_SIZE * 0.01;
+//const float SmokeDensityF = VL_SMOKE_DENSITY * 0.01;
 
 const float shadowDistanceRenderMul = 1.0;
 const float shadowIntervalSize = 2.0f;

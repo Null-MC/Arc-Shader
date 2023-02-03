@@ -1,5 +1,5 @@
-const float SmokeSpeed = 65.0;
 const float isotropicPhase = 0.25 / PI;
+const float SmokeSpeed = 18.0;
 
 
 float GetSmokeDensity(const in sampler3D tex, const in vec3 worldPos, const in float time) {
@@ -39,11 +39,11 @@ vec3 GetVolumetricSmoke(const in LightData lightData, inout vec3 transmittance, 
 
     if (localRayLength < EPSILON) return vec3(0.0);
 
-    vec3 fogColorLinear = RGBToLinear(fogColor);
-    vec3 ambient = 80000.0 * fogColorLinear * inverseStepCountF;
+    vec3 fogColorLinear = vec3(1.0); //RGBToLinear(fogColor);
+    vec3 ambient = 20000.0 * fogColorLinear * inverseStepCountF;
 
-    vec3 SmokeAbsorptionCoefficient = vec3(0.01);
-    vec3 SmokeScatteringCoefficient = vec3(0.16);
+    const vec3 SmokeAbsorptionCoefficient = 1.0 - vec3(0.529, 0.439, 0.369);
+    vec3 SmokeScatteringCoefficient = RGBToLinear(fogColor);
     vec3 SmokeExtinctionCoefficient = SmokeScatteringCoefficient + SmokeAbsorptionCoefficient;
 
     vec2 viewSize = vec2(viewWidth, viewHeight);
@@ -61,6 +61,8 @@ vec3 GetVolumetricSmoke(const in LightData lightData, inout vec3 transmittance, 
         #else
             float texDensity = GetSmokeDensity(colortex14, traceWorldPos, time);
         #endif
+
+        texDensity = pow(texDensity, 3.0) * VL_SMOKE_DENSITY;
 
         vec3 stepTransmittance = exp(-SmokeExtinctionCoefficient * localStepLength * texDensity);
         vec3 scatteringIntegral = (1.0 - stepTransmittance) / SmokeExtinctionCoefficient;
