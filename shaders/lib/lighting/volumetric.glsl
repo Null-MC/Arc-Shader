@@ -99,7 +99,7 @@ const float AirSpeed = 20.0;
                 vec3 shadowViewPos = shadowViewStart + (i + dither) * shadowViewStep;
                 vec3 traceShadowClipPos = vec3(0.0);
 
-                int cascade = GetShadowCascade(shadowViewPos, 1.0);
+                int cascade = GetShadowCascade(shadowViewPos, -1.0);
                 
                 float sampleF = 0.0;
                 if (cascade >= 0) {
