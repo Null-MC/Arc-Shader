@@ -43,6 +43,7 @@ uniform float viewHeight;
     #include "/lib/celestial/position.glsl"
     #include "/lib/celestial/transmittance.glsl"
 
+    #include "/lib/sampling/ign.glsl"
     #include "/lib/shadows/common.glsl"
 
     #if SHADOW_TYPE == SHADOW_TYPE_BASIC

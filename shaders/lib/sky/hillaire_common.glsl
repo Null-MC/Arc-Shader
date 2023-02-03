@@ -10,9 +10,9 @@ const float mieAbsorptionBase_clear = 4.4 * 4.0;
 
 const vec3 ozoneAbsorptionBase_rain = vec3(0.650, 1.381, 0.576);
 const vec3 rayleighScatteringBase_rain = vec3(80.802, 130.558, 200.1);
-const float rayleighAbsorptionBase_rain = 32.0;
-const float mieScatteringBase_rain = 3.996 * 22.0;
-const float mieAbsorptionBase_rain = 4.4 * 12.0;
+const float rayleighAbsorptionBase_rain = 8.0;
+const float mieScatteringBase_rain = 3.996 * 96.0;
+const float mieAbsorptionBase_rain = 4.4 * 6.0;
 
 const vec3 ozoneAbsorptionBase_end = vec3(0.650, 8.381, 8.576);
 const vec3 rayleighScatteringBase_end = vec3(64.802, 6.558, 28.1);

@@ -40,6 +40,7 @@ const float AirSpeed = 20.0;
 
         vec3 shadowViewStart = (shadowModelViewEx * vec4(localStart, 1.0)).xyz;
         vec3 shadowViewEnd = (shadowModelViewEx * vec4(localEnd, 1.0)).xyz;
+        vec3 shadowViewStep = (shadowViewEnd - shadowViewStart) * inverseStepCountF;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             vec3 shadowClipStart[4];
@@ -74,7 +75,7 @@ const float AirSpeed = 20.0;
 
         float time = frameTimeCounter / 3600.0;
         //vec3 shadowMax = 1.0 - vec3(vec2(shadowPixelSize), EPSILON);
-        float minFogF = min(VLFogMinF * (1.0 + 0.6 * max(skyLightLevels.x, 0.0)), 1.0);
+        //float minFogF = min(VLFogMinF * (1.0 + 0.6 * max(skyLightLevels.x, 0.0)), 1.0);
 
         #ifndef VL_FOG_NOISE
             #ifdef WORLD_END
@@ -90,30 +91,26 @@ const float AirSpeed = 20.0;
 
         const float atmosScale = (atmosphereRadiusMM - groundRadiusMM) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
 
-        vec3 sunColorSky = SunLux * GetSunColor();
-
-        #ifdef WORLD_MOON_ENABLED
-            vec3 moonColorSky = MoonLux * GetMoonColor();
-        #endif
-
         vec3 scattering = vec3(0.0);
         for (int i = 1; i < VL_SAMPLES_SKY; i++) {
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                vec3 shadowPos[4];
-                shadowPos[0] = shadowClipStart[0] + (i + dither) * shadowClipStep[0];
-                shadowPos[1] = shadowClipStart[1] + (i + dither) * shadowClipStep[1];
-                shadowPos[2] = shadowClipStart[2] + (i + dither) * shadowClipStep[2];
-                shadowPos[3] = shadowClipStart[3] + (i + dither) * shadowClipStep[3];
-
-                int cascade = GetShadowSampleCascade(shadowPos, 0.0);
-                vec3 traceShadowClipPos = shadowPos[cascade];
-
                 const float sampleBias = 0.0;
-                float sampleF = CompareOpaqueDepth(shadowPos[cascade], vec2(0.0), sampleBias);
+
+                vec3 shadowViewPos = shadowViewStart + (i + dither) * shadowViewStep;
+                vec3 traceShadowClipPos = vec3(0.0);
+
+                int cascade = GetShadowCascade(shadowViewPos, 1.0);
+                
+                float sampleF = 0.0;
+                if (cascade >= 0) {
+                    traceShadowClipPos = shadowClipStart[cascade] + (i + dither) * shadowClipStep[cascade];
+                    sampleF = CompareOpaqueDepth(traceShadowClipPos, vec2(0.0), sampleBias);
+                }
             #else
+                const float sampleBias = 0.0;
+
                 vec3 traceShadowClipPos = shadowClipStart + shadowClipStep * (i + dither);
 
-                const float sampleBias = 0.0;
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                     traceShadowClipPos = distort(traceShadowClipPos);
 
@@ -130,8 +127,11 @@ const float AirSpeed = 20.0;
             vec3 traceWorldPos = worldStart + localStep * (i + dither);
 
             #if defined WORLD_CLOUDS_ENABLED && defined SHADOW_CLOUD
-                float cloudF = GetCloudFactor(traceWorldPos, localLightDir, 0);
-                sampleF *= pow(1.0 - cloudF, 2.0);
+                if (HasClouds(traceWorldPos, localLightDir)) {
+                    vec3 cloudPos = GetCloudPosition(traceWorldPos, localLightDir);
+                    float cloudF = GetCloudFactor(cloudPos, localLightDir, 0);
+                    sampleF *= pow(1.0 - cloudF, 4.0);
+                }
             #endif
 
             #ifdef VL_FOG_NOISE
@@ -185,21 +185,21 @@ const float AirSpeed = 20.0;
             vec3 sampleTransmittance = exp(-dt*extinction);
 
             #if SHADER_PLATFORM == PLATFORM_IRIS
-                vec3 sunTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.x) * sunColorSky;
+                vec3 sunTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.x);
             #else
-                vec3 sunTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.x) * sunColorSky;
+                vec3 sunTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.x);
             #endif
 
-            vec3 lightTransmittance = sunTransmittance;
+            vec3 lightTransmittance = sunTransmittance * skySunColor * SunLux;
 
             #ifdef WORLD_MOON_ENABLED
                 #if SHADER_PLATFORM == PLATFORM_IRIS
-                    vec3 moonTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.y) * moonColorSky;
+                    vec3 moonTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.y);
                 #else
-                    vec3 moonTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.y) * moonColorSky;
+                    vec3 moonTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.y);
                 #endif
 
-                lightTransmittance += moonTransmittance;
+                lightTransmittance += moonTransmittance * skyMoonColor * MoonLux;
             #endif
 
             lightTransmittance *= sampleColor * sampleF;

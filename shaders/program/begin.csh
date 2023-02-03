@@ -10,10 +10,12 @@ const ivec3 workGroups = ivec3(1, 1, 1);
 
 #ifdef IRIS_FEATURE_SSBO
     layout(std430, binding = 0) buffer csmData {
+        // [132]
         float sceneExposure;            // 4
         mat4 shadowModelViewEx;         // 64
         mat4 shadowProjectionEx;        // 64
 
+        // [68]
         vec2 skyLightLevels;            // 8
         vec3 skySunColor;               // 12
         vec3 sunTransmittanceEye;       // 12
@@ -22,11 +24,13 @@ const ivec3 workGroups = ivec3(1, 1, 1);
         //float skyMoonPhaseLevel,
         vec3 blockLightColor;           // 12
 
-        // CSM
+        // CSM [400]
         float cascadeSize[4];           // 16
         vec2 shadowProjectionSize[4];   // 32
         vec2 shadowProjectionPos[4];    // 32
         mat4 cascadeProjection[4];      // 256
+        vec2 cascadeViewMin[4];         // 32
+        vec2 cascadeViewMax[4];         // 32
     };
 
     uniform float viewWidth;
@@ -49,9 +53,12 @@ const ivec3 workGroups = ivec3(1, 1, 1);
     #ifdef SKY_ENABLED
         uniform sampler3D texSunTransmittance;
 
+        uniform mat4 gbufferModelView;
+        uniform vec3 cameraPosition;
         uniform float eyeAltitude;
         uniform float rainStrength;
         uniform vec3 upPosition;
+        uniform int worldTime;
 
         // uniform vec3 shadowLightPosition;
         // uniform vec3 sunPosition;
@@ -60,10 +67,8 @@ const ivec3 workGroups = ivec3(1, 1, 1);
         // uniform float wetness;
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-            uniform mat4 gbufferModelView;
+            //uniform mat4 gbufferModelView;
             uniform mat4 shadowModelView;
-            uniform vec3 cameraPosition;
-            uniform int worldTime;
             uniform float far;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -76,8 +81,9 @@ const ivec3 workGroups = ivec3(1, 1, 1);
         #endif
     #endif
 
+    #include "/lib/lighting/blackbody.glsl"
+
     #ifdef SKY_ENABLED
-        #include "/lib/lighting/blackbody.glsl"
         #include "/lib/sky/hillaire_common.glsl"
         #include "/lib/celestial/position.glsl"
         #include "/lib/celestial/transmittance.glsl"
@@ -138,7 +144,7 @@ void main() {
 
                 for (int i = 0; i < 4; i++) {
                     shadowProjectionPos[i] = GetShadowCascadeClipPos(i);
-                    cascadeProjection[i] = GetShadowCascadeProjectionMatrix(cascadeSize, i);
+                    cascadeProjection[i] = GetShadowCascadeProjectionMatrix(i, cascadeViewMin[i], cascadeViewMax[i]);
 
                     shadowProjectionSize[i] = 2.0 / vec2(
                         cascadeProjection[i][0].x,

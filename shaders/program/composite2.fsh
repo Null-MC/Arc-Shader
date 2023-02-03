@@ -42,8 +42,9 @@ layout(location = 0) out vec4 outColor0;
 
 
 void main() {
-    const int scaleLod = int(log2(SSR_SCALE));
-    vec3 color = texelFetch(BUFFER_HDR_OPAQUE, ivec2(gl_FragCoord.xy), scaleLod).rgb;
+    //const int scaleLod = int(log2(SSR_SCALE));
+    //vec3 color = texelFetch(BUFFER_HDR_OPAQUE, ivec2(gl_FragCoord.xy), scaleLod).rgb;
+    vec3 color = textureLod(BUFFER_HDR_OPAQUE, texcoord, 0).rgb;
     float lum = 0.0;
 
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL

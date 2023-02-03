@@ -32,7 +32,7 @@ const bool colortex3MipmapEnabled = false;
 const bool colortex3Clear = true;
 
 const vec4 colortex4ClearColor = vec4(0.0, 0.0, 0.0, 1.0);
-const bool colortex4MipmapEnabled = true;
+const bool colortex4MipmapEnabled = false;
 const bool colortex4Clear = true;
 
 const bool colortex5MipmapEnabled = true;
@@ -110,9 +110,7 @@ const bool colortex11Clear = false;
 #define SHADOW_BIAS_SCALE 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200 210 220 230 240 250]
 #define SHADOW_DISTORT_FACTOR 0.25 // [0.00 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.10 0.11 0.12 0.13 0.14 0.15 0.16 0.17 0.18 0.19 0.20 0.21 0.22 0.23 0.24 0.25 0.26 0.27 0.28 0.29 0.30 0.31 0.32 0.33 0.34 0.35 0.36 0.37 0.38 0.39 0.40 0.41 0.42 0.43 0.44 0.45 0.46 0.47 0.48 0.49 0.50 0.51 0.52 0.53 0.54 0.55 0.56 0.57 0.58 0.59 0.60 0.61 0.62 0.63 0.64 0.65 0.66 0.67 0.68 0.69 0.70 0.71 0.72 0.73 0.74 0.75 0.76 0.77 0.78 0.79 0.80 0.81 0.82 0.83 0.84 0.85 0.86 0.87 0.88 0.89 0.90 0.91 0.92 0.93 0.94 0.95 0.96 0.97 0.98 0.99 1.00]
 #define SHADOW_ENTITY_CASCADE 1 // [0 1 2 3]
-#define SHADOW_CSM_FITRANGE
-#define SHADOW_CSM_TIGHTEN
-#define SHADOW_PENUMBRA_SCALE 20.0
+#define SHADOW_PENUMBRA_SCALE 0.1
 #define SHADOW_BASIC_BIAS 0.035
 //#define SHADOW_DISTORTED_BIAS 0.0016
 #define SHADOW_CONTACT 0 // [0 1 2]
@@ -131,10 +129,10 @@ const bool colortex11Clear = false;
 #define SSR_HIZ
 #define SSS_ENABLED
 #define SSS_DITHER
-#define SSS_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
-#define SSS_MAXDIST 9 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
-#define SSS_PCF_SIZE 0.2 // [0.02 0.04 0.06 0.08 0.1 0.2 0.3 0.4 0.5 0.6 0.8 1.0]
-#define SSS_PCF_SAMPLES 2 // [2 3 4 5 6 8 10 12]
+#define SSS_STRENGTH 120 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
+#define SSS_MAXDIST 3 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
+#define SSS_PCF_SIZE 0.1 // [0.02 0.04 0.06 0.08 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.5 0.6 0.8 1.0]
+#define SSS_PCF_SAMPLES 6 // [2 4 6 8 10 12 14 16]
 //#define SSS_NORMALIZE_ALBEDO
 
 
@@ -156,7 +154,7 @@ const bool colortex11Clear = false;
 
 // Camera Options
 #define CAMERA_EXPOSURE_MODE 2 // [0 1 2]
-#define CAMERA_EXPOSURE 0 // [-17 -16 -15 -14 -13 -12 -11 -10 -9.0 -8.0 -7.0 -6.0 -5.0 -4.0 -3.0 -2.0 -1.5 -1.0 -0.5 0.0 0.5 1.0 1.5 2.0 3.0 4.0 5.0 6.0]
+#define CAMERA_EXPOSURE 0.0 // [-17 -16 -15 -14 -13 -12 -11 -10 -9.0 -8.0 -7.0 -6.0 -5.0 -4.0 -3.0 -2.0 -1.5 -1.0 -0.5 0.0 0.5 1.0 1.5 2.0 3.0 4.0 5.0 6.0]
 #define CAMERA_LUM_MIN 60.0
 #define CAMERA_LUM_MAX 8000.0
 //#define EXPOSURE_POINT 0.2
@@ -243,7 +241,7 @@ const bool colortex11Clear = false;
 #define TITLE
 #define SEA_LEVEL 62
 #define CLOUD_LEVEL 200 // [120 130 140 150 160 170 180 190 200 210 220 230 240 250 260]
-#define ATMOSPHERE_LEVEL 768
+#define ATMOSPHERE_LEVEL 2400
 #define WATER_SMOOTH 1.0
 #define IOR_AIR 1.000293
 #define IOR_WATER 1.333
@@ -288,6 +286,7 @@ const vec3 AtmosExtInv = 1.0 - ATMOS_EXT_COLOR;
 const vec3 WaterExtInv = 1.0 - WATER_COLOR.rgb;
 const float WaterWaveDepthF = WATER_WAVE_DEPTH * 0.01;
 const float VLFogMinF = VL_FOG_MIN * 0.01;
+const float shadowPcfSize = SHADOW_PCF_SIZE * 0.01;
 
 const float shadowDistanceRenderMul = 1.0;
 const float shadowIntervalSize = 2.0f;
@@ -322,41 +321,11 @@ const float shadowPixelSize = 1.0 / shadowMapSize;
         vec2 shadowProjectionSize[4];   // 32
         vec2 shadowProjectionPos[4];    // 32
         mat4 cascadeProjection[4];      // 256
+        vec2 cascadeViewMin[4];         // 32
+        vec2 cascadeViewMax[4];         // 32
     };
 #endif
 
-
-// #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-//     #undef PARALLAX_ENABLED
-// #endif
-
-// #ifdef PARALLAX_ENABLED
-//     #ifdef PARALLAX_SMOOTH
-//         #undef PARALLAX_SLOPE_NORMALS
-//     #else
-//         #undef PARALLAX_SMOOTH_NORMALS
-//     #endif
-// #else
-//     #undef PARALLAX_SMOOTH
-//     #undef PARALLAX_SMOOTH_NORMALS
-//     #undef PARALLAX_SLOPE_NORMALS
-//     #undef PARALLAX_SHADOWS_ENABLED
-// #endif
-
-// #if !defined SHADOW_ENABLED || SHADOW_TYPE == 0
-//     #undef RSM_ENABLED
-//     //#undef SSS_ENABLED
-//     #undef VL_ENABLED
-// #endif
-
-// #if SHADOW_TYPE == 3
-//     // VL is not currently supported with CSM
-//     #undef VL_ENABLED
-// #endif
-
-// #if !defined RSM_ENABLED || RSM_SCALE == 0
-//     #undef RSM_UPSCALE
-// #endif
 
 #ifdef REFLECTION_MODE
 #endif
@@ -379,10 +348,6 @@ const float shadowPixelSize = 1.0 / shadowMapSize;
 #ifdef SHADOW_EXCLUDE_ENTITIES
 #endif
 #ifdef SHADOW_EXCLUDE_FOLIAGE
-#endif
-#ifdef SHADOW_CSM_FITRANGE
-#endif
-#ifdef SHADOW_CSM_TIGHTEN
 #endif
 #ifdef SHADOW_PARTICLES
 #endif

@@ -170,6 +170,7 @@ uniform float waterFogDistSmooth;
 #endif
 
 #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+    #include "/lib/sampling/ign.glsl"
     #include "/lib/sampling/bayer.glsl"
     #include "/lib/shadows/common.glsl"
 

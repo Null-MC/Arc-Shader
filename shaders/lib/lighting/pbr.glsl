@@ -247,9 +247,10 @@
             // #ifdef RENDER_WATER
             //     }
             // #endif
+            
+            vec3 skyLightColorShadow = skyLightColorFinal * shadowColor;
         #endif
 
-        vec3 skyLightColorShadow = skyLightColorFinal * shadowColor;
         float shadowFinal = shadow;
 
         #ifdef LIGHTLEAK_FIX

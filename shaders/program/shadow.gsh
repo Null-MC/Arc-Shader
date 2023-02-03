@@ -107,7 +107,7 @@ void main() {
     #endif
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        int shadowTile = GetShadowCascade(cascadeProjection, vOriginPos[0]);
+        int shadowTile = GetShadowCascade(vOriginPos[0], 1.0);
         if (shadowTile < 0) return;
 
         #ifndef SHADOW_EXCLUDE_ENTITIES
@@ -120,7 +120,7 @@ void main() {
         for (int c = cascadeMin; c <= cascadeMax; c++) {
             if (c != shadowTile) {
                 // duplicate geometry if intersecting overlapping cascades
-                if (!CascadeIntersectsPosition(vOriginPos[0], cascadeProjection[c])) continue;
+                if (!CascadeIntersectsPosition(vOriginPos[0], c)) continue;
             }
 
             for (int v = 0; v < 3; v++) {
@@ -130,9 +130,11 @@ void main() {
 
                 gl_Position = cascadeProjection[c] * gl_in[v].gl_Position;
 
-                gl_Position.xy = gl_Position.xy * 0.5 + 0.5;
-                gl_Position.xy = gl_Position.xy * 0.5 + shadowProjectionPos[c];
-                gl_Position.xy = gl_Position.xy * 2.0 - 1.0;
+                // gl_Position.xy = gl_Position.xy * 0.5 + 0.5;
+                // gl_Position.xy = gl_Position.xy * 0.5 + shadowProjectionPos[c];
+                // gl_Position.xy = gl_Position.xy * 2.0 - 1.0;
+
+                gl_Position.xy = gl_Position.xy * 0.5 + shadowProjectionPos[c] * 2.0 - 0.5;
 
                 EmitVertex();
             }

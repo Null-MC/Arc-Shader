@@ -42,43 +42,65 @@
 
     #if SHADOW_FILTER != 0
         // PCF
-        float GetShadowing_PCF(const in LightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
-            float startAngle = hash12(gl_FragCoord.xy) * (2.0 * PI);
-            vec2 rotation = vec2(cos(startAngle), sin(startAngle));
+        float GetShadowing_PCF(const in LightData lightData, const in vec2 pixelRadius, float bias) {
+            #ifdef IRIS_FEATURE_SSBO
+                float dither = InterleavedGradientNoise(gl_FragCoord.xy);
+                float angle = fract(dither) * TAU;
+                float s = sin(angle), c = cos(angle);
+                mat2 rotation = mat2(c, -s, s, c);
+            #else
+                float startAngle = hash12(gl_FragCoord.xy) * TAU;
+                vec2 rotation = vec2(cos(startAngle), sin(startAngle));
 
-            float angleDiff = PI * -2.0 / sampleCount;
-            vec2 angleStep = vec2(cos(angleDiff), sin(angleDiff));
-            mat2 rotationStep = mat2(angleStep, -angleStep.y, angleStep.x);
+                const float angleDiff = -TAU / SHADOW_PCF_SAMPLES;
+                const vec2 angleStep = vec2(cos(angleDiff), sin(angleDiff));
+                const mat2 rotationStep = mat2(angleStep, -angleStep.y, angleStep.x);
+            #endif
 
             float shadow = 0.0;
-            for (int i = 0; i < sampleCount; i++) {
-                rotation *= rotationStep;
-                float noiseDist = hash13(vec3(gl_FragCoord.xy, i));
-                vec2 pixelOffset = rotation * noiseDist * pixelRadius;
+            for (int i = 0; i < SHADOW_PCF_SAMPLES; i++) {
+                #ifdef IRIS_FEATURE_SSBO
+                    vec2 pixelOffset = (rotation * pcfDiskOffset[i]) * pixelRadius;
+                #else
+                    rotation *= rotationStep;
+                    float noiseDist = hash13(vec3(gl_FragCoord.xy, i));
+                    vec2 pixelOffset = rotation * noiseDist * pixelRadius;
+                #endif
                 
-                shadow += 1.0 - CompareOpaqueDepth(lightData.shadowPos, pixelOffset, lightData.shadowBias);
+                shadow += 1.0 - CompareOpaqueDepth(lightData.shadowPos, pixelOffset, bias);
             }
 
-            return 1.0 - shadow / sampleCount;
+            return 1.0 - shadow * rcp(SHADOW_PCF_SAMPLES);
         }
     #endif
 
     #if SHADOW_FILTER == 2
         // PCF + PCSS
-        float FindBlockerDistance(const in LightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
-            float startAngle = hash12(gl_FragCoord.xy + 33.3) * TAU;
-            vec2 rotation = vec2(cos(startAngle), sin(startAngle));
+        float FindBlockerDistance(const in LightData lightData, const in vec2 pixelRadius) {
+            #ifdef IRIS_FEATURE_SSBO
+                float dither = InterleavedGradientNoise(gl_FragCoord.xy);
+                float angle = fract(dither) * TAU;
+                float s = sin(angle), c = cos(angle);
+                mat2 rotation = mat2(c, -s, s, c);
+            #else
+                float startAngle = hash12(gl_FragCoord.xy + 33.3) * TAU;
+                vec2 rotation = vec2(cos(startAngle), sin(startAngle));
 
-            float angleDiff = -TAU / sampleCount;
-            vec2 angleStep = vec2(cos(angleDiff), sin(angleDiff));
-            mat2 rotationStep = mat2(angleStep, -angleStep.y, angleStep.x);
+                const float angleDiff = -TAU / SHADOW_PCSS_SAMPLES;
+                const vec2 angleStep = vec2(cos(angleDiff), sin(angleDiff));
+                const mat2 rotationStep = mat2(angleStep, -angleStep.y, angleStep.x);
+            #endif
 
             float blockers = 0.0;
             float avgBlockerDistance = 0.0;
-            for (int i = 0; i < sampleCount; i++) {
-                rotation *= rotationStep;
-                float noiseDist = hash13(vec3(gl_FragCoord.xy, i + 33.3));
-                vec2 pixelOffset = rotation * noiseDist * pixelRadius;
+            for (int i = 0; i < SHADOW_PCSS_SAMPLES; i++) {
+                #ifdef IRIS_FEATURE_SSBO
+                    vec2 pixelOffset = (rotation * pcssDiskOffset[i]) * pixelRadius;
+                #else
+                    rotation *= rotationStep;
+                    float noiseDist = hash13(vec3(gl_FragCoord.xy, i + 33.3));
+                    vec2 pixelOffset = rotation * noiseDist * pixelRadius;
+                #endif
 
                 vec2 t = lightData.shadowPos.xy + pixelOffset;
                 if (saturate(t) != t) continue;
@@ -89,48 +111,29 @@
 
                 avgBlockerDistance += hitDist * (far * 2.0);
                 blockers += step(0.0, hitDist);
-
-                // if (texDepth < lightData.shadowPos.z + lightData.shadowBias) {
-                //     avgBlockerDistance += texDepth;
-                //     blockers++;
-                // }
             }
 
             return blockers > 0 ? avgBlockerDistance / blockers : -1.0;
         }
 
         float GetShadowing(const in LightData lightData) {
-            const float shadowPcfSize = SHADOW_PCF_SIZE * 0.01;
-            
-            int blockerSampleCount = SHADOW_PCSS_SAMPLES;
+            vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, shadowPcfSize);
+            float bias = lightData.shadowBias;
 
             // blocker search
-            vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, shadowPcfSize);
-            //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) blockerSampleCount = 1;
-            float blockerDistance = FindBlockerDistance(lightData, pixelRadius, blockerSampleCount);
+            float blockerDistance = FindBlockerDistance(lightData, pixelRadius);
             if (blockerDistance <= 0.0) return 1.0;
-            //if (blockerDistance == 1.0) return 0.0;
 
-            // penumbra estimation
-            //float penumbraWidth = (lightData.shadowPos.z - blockerDistance) / blockerDistance;
+            bias += blockerDistance;
 
-            // percentage-close filtering
-            pixelRadius *= min(blockerDistance * 0.3, 1.0); // * SHADOW_LIGHT_SIZE * PCSS_NEAR / shadowPos.z;
-            //pixelRadius = max(pixelRadius, 1.5 * shadowPixelSize);
-
-            int pcfSampleCount = SHADOW_PCF_SAMPLES;
-            //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) pcfSampleCount = 1;
-            return GetShadowing_PCF(lightData, pixelRadius, pcfSampleCount);
+            pixelRadius *= min(blockerDistance * SHADOW_PENUMBRA_SCALE, 1.0);
+            return GetShadowing_PCF(lightData, pixelRadius, bias);
         }
     #elif SHADOW_FILTER == 1
         // PCF
         float GetShadowing(const in LightData lightData) {
-            const float shadowPcfSize = SHADOW_PCF_SIZE * 0.01;
-
-            int sampleCount = SHADOW_PCF_SAMPLES;
             vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, shadowPcfSize);
-            //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
-            return GetShadowing_PCF(lightData, pixelRadius, sampleCount);
+            return GetShadowing_PCF(lightData, pixelRadius, lightData.shadowBias);
         }
     #elif SHADOW_FILTER == 0
         // Unfiltered
@@ -146,26 +149,30 @@
     #endif
 
     #if defined SSS_ENABLED
-        // #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-        //     const float ShadowMaxDepth = 512.0;
-        // #else
-        //     const float ShadowMaxDepth = 256.0;
-        // #endif
+        float GetShadowing_PCF_SSS(const in LightData lightData, const in vec2 pixelRadius) {
+            #ifdef IRIS_FEATURE_SSBO
+                float dither = InterleavedGradientNoise(gl_FragCoord.xy);
+                float angle = fract(dither) * TAU;
+                float s = sin(angle), c = cos(angle);
+                mat2 rotation = mat2(c, -s, s, c);
+            #else
+                float startAngle = hash12(gl_FragCoord.xy + 33.3) * TAU;
+                vec2 rotation = vec2(cos(startAngle), sin(startAngle));
 
-        float GetShadowing_PCF_SSS(const in LightData lightData, const in vec2 pixelRadius, const in int sampleCount) {
-            float startAngle = hash12(gl_FragCoord.xy + 33.3) * TAU;
-            vec2 rotation = vec2(cos(startAngle), sin(startAngle));
-
-            float angleDiff = -TAU / sampleCount;
-            vec2 angleStep = vec2(cos(angleDiff), sin(angleDiff));
-            mat2 rotationStep = mat2(angleStep, -angleStep.y, angleStep.x);
+                const float angleDiff = -TAU / SSS_PCF_SAMPLES;
+                const vec2 angleStep = vec2(cos(angleDiff), sin(angleDiff));
+                const mat2 rotationStep = mat2(angleStep, -angleStep.y, angleStep.x);
+            #endif
 
             float light = 0.0;
-            //float maxWeight = 0.0;
-            for (int i = 0; i < sampleCount; i++) {
-                rotation *= rotationStep;
-                float noiseDist = hash13(vec3(gl_FragCoord.xy, i + 33.3));
-                vec2 pixelOffset = rotation * noiseDist * pixelRadius;
+            for (int i = 0; i < SSS_PCF_SAMPLES; i++) {
+                #ifdef IRIS_FEATURE_SSBO
+                    vec2 pixelOffset = (rotation * sssDiskOffset[i]) * pixelRadius;
+                #else
+                    rotation *= rotationStep;
+                    float noiseDist = hash13(vec3(gl_FragCoord.xy, i + 33.3));
+                    vec2 pixelOffset = rotation * noiseDist * pixelRadius;
+                #endif
 
                 float texDepth = SampleOpaqueDepth(lightData.shadowPos.xy, pixelOffset);
 
@@ -173,20 +180,15 @@
                 light += max(1.0 - hitDepth, 0.0);
             }
 
-            //if (maxWeight < EPSILON) return 1.0;
-            return light / sampleCount;
+            return light * rcp(SSS_PCF_SAMPLES);
         }
 
         // PCF + PCSS
         float GetShadowSSS(const in LightData lightData, const in float materialSSS, out float lightDist) {
             lightDist = max(lightData.shadowPos.z - lightData.shadowBias - lightData.opaqueShadowDepth, 0.0) * (far * 2.0);
+            vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, SSS_PCF_SIZE * lightDist);
 
-            int sampleCount = SSS_PCF_SAMPLES;
-            float blockRadius = SSS_PCF_SIZE * lightDist;
-            vec2 pixelRadius = GetShadowPixelRadius(lightData.shadowPos.xy, blockRadius);
-            //if (pixelRadius.x <= shadowPixelSize && pixelRadius.y <= shadowPixelSize) sampleCount = 1;
-
-            float sss = GetShadowing_PCF_SSS(lightData, pixelRadius, sampleCount);
+            float sss = GetShadowing_PCF_SSS(lightData, pixelRadius);
             return max(sss * materialSSS - lightDist / SSS_MAXDIST, 0.0);
         }
     #endif

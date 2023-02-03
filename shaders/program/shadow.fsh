@@ -88,7 +88,10 @@ void main() {
 
     if (renderStage != MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
         if (sampleColor.a < alphaTestRef) discard;
-        sampleColor = vec4(1.0);
+
+        #ifdef SHADOW_COLOR
+            sampleColor = vec4(1.0);
+        #endif
     }
 
     outColor0 = sampleColor;

@@ -238,6 +238,7 @@ uniform float waterFogDistSmooth;
     #include "/lib/sky/stars.glsl"
     
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        #include "/lib/sampling/ign.glsl"
         #include "/lib/shadows/common.glsl"
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED

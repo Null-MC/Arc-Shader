@@ -141,7 +141,6 @@ void main() {
         //vOriginPos = floor(vaPosition + chunkOffset + at_midBlock / 64.0 + fract(cameraPosition));
         vOriginPos = floor(gl_Vertex.xyz + at_midBlock / 64.0 + fract(cameraPosition));
 
-        // TODO: use custom view matrix!
         vOriginPos = (gl_ModelViewMatrix * vec4(vOriginPos, 1.0)).xyz;
         vOriginPos = (shadowModelViewInverse * vec4(vOriginPos, 1.0)).xyz;
         vOriginPos = (shadowModelViewEx * vec4(vOriginPos, 1.0)).xyz;
