@@ -162,7 +162,8 @@
             //     if (materialId != MATERIAL_WATER) {
             // #endif
 
-                #if defined SHADOW_BLUR && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && !defined RENDER_WATER && !defined RENDER_HAND_WATER
+            #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+                #if defined SHADOW_BLUR && !defined RENDER_WATER && !defined RENDER_HAND_WATER
                     shadowColor = shadowOcclusion.rgb;
                 #else
                     shadow *= step(EPSILON, lightData.geoNoL);
@@ -170,6 +171,7 @@
 
                     // TODO: more stuff needs to go in here!
                 #endif
+            #endif
 
                 #if defined WORLD_CLOUDS_ENABLED && defined SHADOW_CLOUD
                     vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
@@ -249,6 +251,11 @@
             // #endif
             
             vec3 skyLightColorShadow = skyLightColorFinal * shadowColor;
+
+            #if !defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE
+                float skyLightX = saturate(lightData.skyLight * (16.0/15.0) - (0.5/16.0));
+                skyLightColorShadow *= pow(skyLightX, 5.0);
+            #endif
         #endif
 
         float shadowFinal = shadow;
