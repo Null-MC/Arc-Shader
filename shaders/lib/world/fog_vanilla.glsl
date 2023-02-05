@@ -68,9 +68,9 @@ float GetFogFactor(const in float dist, const in float start, const in float end
 
             #ifdef SKY_ENABLED
                 vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
-                float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0) + EPSILON;
+                float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0) * 0.9 + 0.1;
                 vec3 ext = 1.0 - RGBToLinear(waterAbsorbColor);
-                waterFogColor = lightColor * exp(-ext * (2.0 / eyeLight));
+                waterFogColor = lightColor * exp(-ext * (3.0 / eyeLight));
             #endif
 
             return waterFogColor;

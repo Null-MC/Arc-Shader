@@ -87,17 +87,14 @@ flat in mat2 atlasBounds;
             in vec3 shadowPos;
             in float shadowBias;
         #endif
-        
-        #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
-            #if SHADER_PLATFORM == PLATFORM_IRIS
-                uniform sampler3D texCloudNoise;
-            #else
-                uniform sampler3D colortex14;
-            #endif
-            
-            //uniform mat4 gbufferModelView;
-            //uniform mat4 gbufferProjection;
-        #endif
+    #endif
+#endif
+
+#if defined VL_SKY_ENABLED || defined WORLD_WATER_ENABLED
+    #if SHADER_PLATFORM == PLATFORM_IRIS
+        uniform sampler3D texCloudNoise;
+    #else
+        uniform sampler3D colortex14;
     #endif
 #endif
 
