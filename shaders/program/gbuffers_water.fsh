@@ -185,8 +185,12 @@ uniform float skyWetnessSmooth;
 uniform float skySnowSmooth;
 uniform float biomeWetnessSmooth;
 uniform float biomeSnowSmooth;
+
 uniform vec3 waterScatterColor;
 uniform vec3 waterAbsorbColor;
+uniform vec3 waterFoamColor;
+uniform float waterFoamMinSmooth;
+uniform float waterFoamMaxSmooth;
 uniform float waterFogDistSmooth;
 uniform float waterRoughSmooth;
 

@@ -696,23 +696,22 @@
 
                     ambient *= material.albedo.a;
                     diffuse = mix(refractColor, diffuse, material.albedo.a);
-                    final.a = saturate(10.0*waterViewDepthFinal - 0.2);
+                    final.a = 1.0; //saturate(10.0*waterViewDepthFinal - 0.2);
                 }
                 else {
                     //vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
                     diffuse = vec3(0.0);// waterFogColor;
-                    iblSpec = vec3(0.0);
+                    //iblSpec = vec3(0.0);
                     final.a = maxOf(iblF);
 
                     if (dot(refractDir, refractDir) < EPSILON) {
-                        //diffuse *= 1.0 - reflectF;
-
                         iblSpec = reflectColor;
                         reflectF = 1.0;
-                        final.a = 1.0;
+
+                        final.a = 1.0;//0.8 + 0.2 * final.a;
                     }
                     else {
-                        final.a = maxOf(iblF);
+                        //final.a = maxOf(iblF);
                     }
 
                     ambient = vec3(0.0);

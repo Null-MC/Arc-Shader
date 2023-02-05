@@ -288,7 +288,7 @@ void main() {
             #else
                 const vec3 waterMoonColorEye = vec3(0.0);
             #endif
-            
+
             vec2 waterScatteringF = GetWaterScattering(viewDir);
         #endif
     #endif
@@ -416,7 +416,7 @@ void main() {
             final = PbrLighting2(material, lightData, viewPos).rgb;
 
             if (lightData.transparentScreenDepth < lightData.opaqueScreenDepth) {
-                #ifdef SKY_ENABLED
+                #if defined SKY_ENABLED && !defined VL_SKY_ENABLED
                     vec3 viewLightDir = GetShadowLightViewDir();
                     float VoL = dot(viewLightDir, viewDir);
                     vec3 localSunDir = GetSunLocalDir();
@@ -458,7 +458,7 @@ void main() {
     #if defined SKY_ENABLED && defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         if (isEyeInWater == 1 && lightData.opaqueScreenDepth > lightData.transparentScreenDepth) {
             vec3 vlScatter, vlExt;
-            GetVolumetricLighting(vlScatter, vlExt, localViewDir, near, minViewDist);
+            GetVolumetricLighting(vlScatter, vlExt, localViewDir, lightData.transparentScreenDepthLinear, lightData.opaqueScreenDepthLinear);
             final = final * vlExt + vlScatter;
 
             // TODO: increase alpha with VL?
@@ -481,7 +481,7 @@ void main() {
             //vec3 waterExtinctionInv = WATER_ABSROPTION_RATE * (1.0 - waterAbsorbColor);
             //final *= exp(-viewDist * waterExtinctionInv);
 
-            #if !(defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined VL_WATER_ENABLED)
+            #if !(defined SKY_ENABLED && defined VL_WATER_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)
                 if (lightData.transparentScreenDepth >= lightData.opaqueScreenDepth) {
                     #ifdef SKY_ENABLED
                         vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);

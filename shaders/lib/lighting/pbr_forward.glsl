@@ -62,11 +62,11 @@
 
         #if defined WORLD_WATER_ENABLED && defined RENDER_WATER
             if (materialId == MATERIAL_WATER) {
-                material.albedo = vec4(0.650, 0.697, 0.679, 1.0);
+                material.albedo = vec4(waterFoamColor, waterFoamMaxSmooth);
                 //material.albedo = vec4(RGBToLinear(waterScatterColor), 1.0);
                 material.normal = vec3(0.0, 0.0, 1.0);
                 material.occlusion = 1.0;
-                material.scattering = 0.8;
+                material.scattering = 0.4;
                 material.f0 = 0.02;
                 material.hcm = -1;
 
@@ -135,12 +135,12 @@
 
                 waterSurfaceNoise += 0.24 * max(1.0 - 1.5 * max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepthLinear, 0.0), 0.0);
 
-                waterSurfaceNoise = smoothstep(0.06, 0.28, waterSurfaceNoise);
+                waterSurfaceNoise = smoothstep(waterFoamMinSmooth, 0.28, waterSurfaceNoise);
 
                 //waterSurfaceNoise = pow(waterSurfaceNoise, 0.68);
 
-                material.smoothness = 0.98 - waterSurfaceNoise * foamDirt * waterRoughSmooth;
-                material.albedo.a = waterSurfaceNoise * foamDirt;// * waterRoughSmooth;
+                material.albedo.a = saturate(material.albedo.a * waterSurfaceNoise * foamDirt);// * waterRoughSmooth;
+                material.smoothness = 0.98 - 0.98 * waterRoughSmooth * material.albedo.a;
             }
             else {
         #endif
