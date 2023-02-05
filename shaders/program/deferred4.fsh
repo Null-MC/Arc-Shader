@@ -120,8 +120,10 @@ void main() {
             vec3 dY = dFdy(localPos);
             vec3 geoNormal = normalize(cross(dX, dY));
 
-            uint gbufferData = texelFetch(BUFFER_DEFERRED, itexFull, 0).a;
-            lightData.geoNoL = unpackUnorm4x8(gbufferData).z * 2.0 - 1.0;
+            uint gbufferLightData = texelFetch(BUFFER_DEFERRED, itexFull, 0).a;
+            vec4 gbufferLightMap = unpackUnorm4x8(gbufferLightData);
+            lightData.geoNoL = gbufferLightMap.z * 2.0 - 1.0;
+            lightColor = vec3(gbufferLightMap.a);
 
             float viewDist = length(localPos);
             localPos += geoNormal * viewDist * SHADOW_NORMAL_BIAS * max(1.0 - lightData.geoNoL, 0.0);
@@ -189,6 +191,7 @@ void main() {
             #endif
 
             lightColor *= step(EPSILON, lightData.geoNoL);
+            lightColor *= lightData.geoNoL;
 
             // #if defined WORLD_CLOUDS_ENABLED && defined SHADOW_CLOUD
             //     vec3 worldPos = localPos + cameraPosition;

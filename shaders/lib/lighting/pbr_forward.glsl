@@ -66,7 +66,7 @@
                 //material.albedo = vec4(RGBToLinear(waterScatterColor), 1.0);
                 material.normal = vec3(0.0, 0.0, 1.0);
                 material.occlusion = 1.0;
-                material.scattering = 0.4;
+                material.scattering = 0.9;
                 material.f0 = 0.02;
                 material.hcm = -1;
 
@@ -85,7 +85,8 @@
                         vec3 waveNormal = physics_waveNormal(physics_localPosition.xz, physics_localWaviness, physics_gameTime, physics_iterationsNormal);
 
                         waterUV = waves.xz;
-                        waveAmplitude = pow(saturate(waves.y * waveNormal.y), 3.2);
+                        waveAmplitude = waves.y * pow(max(waveNormal.y, 0.0), 4.0);
+
                         material.normal = mat3(gl_ModelViewMatrix) * waveNormal;
                     #else
                         const float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
@@ -127,17 +128,21 @@
                     #endif
                 #endif
 
-                float waterSurfaceNoise = textureLod(texCloudNoise, vec3(waterUV * 0.2500, 0.3), 0).r;
-                waterSurfaceNoise *= textureLod(texCloudNoise, vec3(waterUV * 0.1250, 0.6), 0).r;
-                waterSurfaceNoise *= textureLod(texCloudNoise, vec3(waterUV * 0.0625, 0.9), 0).r;
+                float time = frameTimeCounter / 360.0;
+                float s1 = textureLod(texCloudNoise, vec3(waterUV * 0.100, fract(time + 0.3)), 0).r;
+                float s2 = textureLod(texCloudNoise, vec3(waterUV * 0.250, fract(time + 0.6)), 0).r;
+                float s3 = textureLod(texCloudNoise, vec3(waterUV * 1.000, fract(time + 0.9)), 0).r;
 
-                waterSurfaceNoise += 0.1 * waveAmplitude;
+                float waterSurfaceNoise = s1 * (0.3 + 0.7*s2) * (1.0 - 0.6*pow(1.0 - s3, 3.0)) * 1.6;
 
-                waterSurfaceNoise += 0.24 * max(1.0 - 1.5 * max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepthLinear, 0.0), 0.0);
+                float waterEdge = max(0.8 - 2.0 * max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepthLinear, 0.0), 0.0);
+                waterSurfaceNoise += pow2(waterEdge);
 
-                waterSurfaceNoise = smoothstep(waterFoamMinSmooth, 0.28, waterSurfaceNoise);
+                waveAmplitude = saturate(waveAmplitude) * 0.76;
+                //waveAmplitude = smoothstep(0.0, 0.8, waveAmplitude);
+                waterSurfaceNoise = (1.0 - waveAmplitude) * waterSurfaceNoise + waveAmplitude;
 
-                //waterSurfaceNoise = pow(waterSurfaceNoise, 0.68);
+                waterSurfaceNoise = smoothstep(waterFoamMinSmooth, 1.0, waterSurfaceNoise);
 
                 material.albedo.a = saturate(material.albedo.a * waterSurfaceNoise * foamDirt);// * waterRoughSmooth;
                 material.smoothness = 0.98 - 0.98 * waterRoughSmooth * material.albedo.a;

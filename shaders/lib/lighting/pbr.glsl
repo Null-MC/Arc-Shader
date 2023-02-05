@@ -700,9 +700,9 @@
                 }
                 else {
                     //vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
-                    diffuse = vec3(0.0);// waterFogColor;
-                    //iblSpec = vec3(0.0);
-                    final.a = maxOf(iblF);
+                    ambient *= material.albedo.a;
+                    diffuse *= material.albedo.a;
+                    final.a = mix(maxOf(iblF), 1.0, material.albedo.a);
 
                     if (dot(refractDir, refractDir) < EPSILON) {
                         iblSpec = reflectColor;
@@ -713,8 +713,6 @@
                     else {
                         //final.a = maxOf(iblF);
                     }
-
-                    ambient = vec3(0.0);
                 }
             }
         #endif

@@ -68,7 +68,6 @@
             colorMap = textureGrad(gtexture, atlasCoord, dFdXY[0], dFdXY[1]);
         #endif
 
-        //#ifndef RENDER_WATER
         #ifdef RENDER_ENTITIES
             if (colorMap.a < 10.0/255.0 && entityId != MATERIAL_BOAT) {
                 discard;
@@ -80,7 +79,6 @@
                 return;
             }
         #endif
-        //#endif
 
         #ifndef RENDER_TEXTURED
             colorMap.rgb *= glcolor.rgb;
