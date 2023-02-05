@@ -1,4 +1,4 @@
-#define RENDER_COMPOSITE_BLOOM_BLUR_V
+#define RENDER_COMPOSITE_WATER_BLUR_V
 #define RENDER_COMPOSITE
 #define RENDER_FRAG
 
@@ -31,7 +31,7 @@ void main() {
     #if WATER_CAMERA_BLUR == 2
         vec3 color = GaussianBlur23(BUFFER_HDR_OPAQUE, texcoord, direction * pixelSize);
     #else
-        vec3 color = GaussianBlur13(BUFFER_HDR_OPAQUE, texcoord, direction * pixelSize * 2.0);
+        vec3 color = GaussianBlur13(BUFFER_HDR_OPAQUE, texcoord, direction * pixelSize);
     #endif
 
     outColor0 = color;

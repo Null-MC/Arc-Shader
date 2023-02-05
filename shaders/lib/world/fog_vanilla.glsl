@@ -67,24 +67,20 @@ float GetFogFactor(const in float dist, const in float start, const in float end
             vec3 waterFogColor = vec3(0.0);
 
             #ifdef SKY_ENABLED
-                #ifdef VL_WATER_ENABLED
-                    vec3 lightColor = sunColorFinal + moonColorFinal;
-                    waterFogColor += 0.004 * waterScatterColor * lightColor;
-                #else
-                    vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
-                    waterFogColor += 0.4 * waterScatterColor * lightColor;
-                #endif
+                vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
+                float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0) + EPSILON;
+                vec3 ext = 1.0 - RGBToLinear(waterAbsorbColor);
+                waterFogColor = lightColor * exp(-ext * (2.0 / eyeLight));
             #endif
 
-            float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
-            return waterFogColor * pow2(eyeLight);
+            return waterFogColor;
         #else
             return vec3(0.0);
         #endif
     }
 
     float GetWaterFogFactor(const in float waterNear, const in float viewDist) {
-        return GetFogFactor(viewDist, waterNear, waterNear + waterFogDistSmooth, 0.25);
+        return GetFogFactor(viewDist, waterNear, waterNear + waterFogDistSmooth, 1.0);
     }
 
     float ApplyWaterFog(inout vec3 color, const in vec3 fogColor, const in float viewDist) {

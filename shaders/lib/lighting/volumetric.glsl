@@ -1,4 +1,5 @@
 const float AirSpeed = 20.0;
+const float isotropicPhase = 0.25 / PI;
 
 
 #ifdef VL_SKY_ENABLED
@@ -20,7 +21,7 @@ const float AirSpeed = 20.0;
         return 0.04 + 0.2 * pow(texDensity1 * texDensity2, 2.0) + 0.6 * pow(texDensity3 * texDensity2, 3.0);
     }
 
-    vec3 GetVolumetricLighting(inout vec3 transmittance, const in vec3 localViewDir, const in float nearDist, const in float farDist) {
+    void GetVolumetricLighting(out vec3 scattering, out vec3 transmittance, const in vec3 localViewDir, const in float nearDist, const in float farDist) {
         const float inverseStepCountF = rcp(VL_SAMPLES_SKY + 1);
         
         #ifdef VL_DITHER
@@ -91,7 +92,8 @@ const float AirSpeed = 20.0;
 
         const float atmosScale = (atmosphereRadiusMM - groundRadiusMM) / (ATMOSPHERE_LEVEL - SEA_LEVEL);
 
-        vec3 scattering = vec3(0.0);
+        scattering = vec3(0.0);
+        transmittance = vec3(1.0);
         for (int i = 1; i < VL_SAMPLES_SKY; i++) {
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 const float sampleBias = 0.0;
@@ -224,19 +226,41 @@ const float AirSpeed = 20.0;
             transmittance *= sampleTransmittance;
         }
 
-        return scattering;
+        //return vec4(scattering, transmittance);
     }
 #endif
 
 #ifdef VL_WATER_ENABLED
-    vec3 GetScatteredLighting(const in float elevation, const in vec2 scatteringF) {
+    // vec3 GetScatteredLighting(const in float elevation, const in vec2 scatteringF) {
+    //     #if SHADER_PLATFORM == PLATFORM_IRIS
+    //         vec3 sunTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.x);
+    //     #else
+    //         vec3 sunTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.x);
+    //     #endif
+
+    //     vec3 result = scatteringF.x * sunTransmittance * skySunColor * SunLux * max(skyLightLevels.x, 0.0);
+
+    //     #ifdef WORLD_MOON_ENABLED
+    //         #if SHADER_PLATFORM == PLATFORM_IRIS
+    //             vec3 moonTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.y);
+    //         #else
+    //             vec3 moonTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.y);
+    //         #endif
+
+    //         result += scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * skyMoonColor * MoonLux * max(skyLightLevels.y, 0.0);
+    //     #endif
+
+    //     return result;
+    // }
+
+    vec3 GetScatteredLighting(const in float elevation) {
         #if SHADER_PLATFORM == PLATFORM_IRIS
             vec3 sunTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.x);
         #else
             vec3 sunTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.x);
         #endif
 
-        vec3 result = scatteringF.x * sunTransmittance * skySunColor * SunLux * max(skyLightLevels.x, 0.0);
+        vec3 result = sunTransmittance * skySunColor * SunLux * max(skyLightLevels.x, 0.0);
 
         #ifdef WORLD_MOON_ENABLED
             #if SHADER_PLATFORM == PLATFORM_IRIS
@@ -245,7 +269,7 @@ const float AirSpeed = 20.0;
                 vec3 moonTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.y);
             #endif
 
-            result += scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * skyMoonColor * MoonLux * max(skyLightLevels.y, 0.0);
+            result += moonTransmittance * skyMoonColor * MoonLux * max(skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
         #endif
 
         return result;
@@ -257,12 +281,14 @@ const float AirSpeed = 20.0;
         return 1.0 - 0.6 * sampleDensity1 - 0.3 * sampleDensity2;
     }
 
-    vec3 GetWaterVolumetricLighting(const in vec2 scatteringF, const in vec3 localViewDir, const in float nearDist, const in float farDist) {
+    void GetWaterVolumetricLighting(out vec3 scattering, out vec3 transmittance, const in vec2 scatteringF, const in vec3 localViewDir, const in float nearDist, const in float farDist) {
         const float inverseStepCountF = rcp(VL_SAMPLES_WATER + 1);
 
         #ifdef SHADOW_CLOUD
             vec3 localLightDir = GetShadowLightLocalDir();
-            if (localLightDir.y <= 0.0) return vec3(0.0);
+            // if (localLightDir.y <= 0.0) {
+            //     return vec4(0.0, 0.0, 0.0, 1.0);
+            // }
         #endif
 
         #ifdef VL_DITHER
@@ -317,9 +343,24 @@ const float AirSpeed = 20.0;
             float MaxShadowDist = far * 2.0;
         #endif
 
-        vec3 extinctionInv = (1.0 - waterAbsorbColor) * WATER_ABSROPTION_RATE;
+        //vec3 extinctionInv = (1.0 - waterAbsorbColor) * WATER_ABSROPTION_RATE;
+        //vec3 fogColorLinear = vec3(1.0); //RGBToLinear(fogColor);
 
-        for (int i = 1; i <= VL_SAMPLES_WATER; i++) {
+        float skyLight = saturate(eyeBrightnessSmooth.y / 240.0);
+        vec3 skyAmbient = GetFancySkyAmbientLight(vec3(0.0, 1.0, 0.0), 1.0);
+        vec3 ambient = 1.0 * skyAmbient;// * skyLight;
+
+        vec3 WaterAbsorptionCoefficient = 0.020 * (1.0 - RGBToLinear(waterAbsorbColor));
+        vec3 WaterScatteringCoefficient = 0.001 * (RGBToLinear(waterScatterColor));
+        vec3 WaterExtinctionCoefficient = WaterScatteringCoefficient + WaterAbsorptionCoefficient;
+
+        #ifndef VL_WATER_NOISE
+            float texDensity = 1.0;
+        #endif
+
+        scattering = vec3(0.0);
+        transmittance = vec3(1.0);
+        for (int i = VL_SAMPLES_WATER-1; i > 0; i--) {
             transparentDepth = 1.0;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -347,12 +388,6 @@ const float AirSpeed = 20.0;
 
                 traceShadowClipPos = traceShadowClipPos * 0.5 + 0.5;
 
-                // if (saturate(shadowPos.xy) != shadowPos.xy) {
-                //     vec3 lightColor2 = GetScatteredLighting(worldTraceHeight, skyLightLevels, scatteringF);
-                //     accumF += lightColor2 * 10000.0;// * exp(-(i * viewStepLength) * extinctionInv);
-                //     return vec3(10000.0, 0.0, 0.0);
-                // }
-
                 lightSample = CompareOpaqueDepth(traceShadowClipPos, vec2(0.0), 0.0);
 
                 if (lightSample > EPSILON)
@@ -362,47 +397,42 @@ const float AirSpeed = 20.0;
             vec3 traceWorldPos = worldStart + localStep * (i + dither);
 
             #if defined WORLD_CLOUDS_ENABLED && defined SHADOW_CLOUD
-                // when light is shining upwards
-                // if (localLightDir.y <= 0.0) {
-                //     lightSample = 0.0;
-                // }
-                // when light is shining downwards
-                //else {
-                    // when trace pos is below clouds, darken by cloud shadow
-                    if (traceWorldPos.y < CLOUD_LEVEL) {
-                        lightSample *= 1.0 - GetCloudFactor(traceWorldPos, localLightDir, 0);
-                    }
-                //}
+                if (HasClouds(traceWorldPos, localLightDir)) {
+                    vec3 cloudPos = GetCloudPosition(traceWorldPos, localLightDir);
+                    float cloudF = GetCloudFactor(cloudPos, localLightDir, 0);
+                    lightSample *= pow(1.0 - cloudF, 4.0);
+                }
             #endif
 
-            float waterLightDist = max((traceShadowClipPos.z - transparentDepth) * MaxShadowDist, 0.0);
-            waterLightDist += i * localStepLength;
-
-            vec3 lightColor = GetScatteredLighting(traceWorldPos.y, scatteringF);
-            lightColor *= exp(-waterLightDist * extinctionInv);
-
-            // sample normal, get fresnel, darken
-            // uint data = textureLod(shadowcolor1, traceShadowClipPos.xy, 0).g;
-            // vec3 normal = unpackUnorm4x8(data).xyz;
-            // normal = normalize(normal * 2.0 - 1.0);
-            // float NoL = max(normal.z, 0.0);
-            // float waterF = F_schlick(NoL, 0.02, 1.0);
-
             #ifdef VL_WATER_NOISE
-                // float sampleDensity1 = texture(colortex14, traceWorldPos / 96.0).r;
-                // float sampleDensity2 = texture(colortex14, traceWorldPos / 16.0).r;
-                // lightSample *= 1.0 - 0.6 * sampleDensity1 - 0.3 * sampleDensity2;
-
                 #if SHADER_PLATFORM == PLATFORM_IRIS
-                    lightSample *= GetWaterFogDensity(texCloudNoise, traceWorldPos);
+                    float texDensity = GetWaterFogDensity(texCloudNoise, traceWorldPos);
                 #else
-                    lightSample *= GetWaterFogDensity(colortex14, traceWorldPos);
+                    float texDensity = GetWaterFogDensity(colortex14, traceWorldPos);
                 #endif
             #endif
 
-            accumF += lightSample * lightColor;// * max(1.0 - waterF, 0.0);
-        }
 
-        return (accumF / VL_SAMPLES_WATER) * localRayLength * VL_WATER_DENSITY;
+            // float viewDist = localStepLength * (i + dither);
+            // float waterFogF = GetWaterFogFactor(0.0, viewDist);
+            // texDensity *= max(1.0 - waterFogF, EPSILON);
+
+
+            vec3 atmosPos = GetAtmospherePosition(traceWorldPos);
+            float sampleElevation = length(atmosPos) - groundRadiusMM;
+
+            float waterLightDist = max((traceShadowClipPos.z - transparentDepth) * MaxShadowDist, 0.0);
+
+            //vec3 stepSunTransmittance = exp(-WaterExtinctionCoefficient * waterLightDist); // TODO: 1.0 = density
+            vec3 lightColor = scatteringF.x * lightSample * GetScatteredLighting(sampleElevation) + ambient;
+
+            vec3 stepTransmittance = exp(-WaterExtinctionCoefficient * (localStepLength * texDensity + waterLightDist));
+            vec3 scatteringIntegral = (1.0 - stepTransmittance) / WaterExtinctionCoefficient * texDensity;
+
+            // TODO: fix scattering for separate sun/moon light!
+            scattering += lightColor * (WaterScatteringCoefficient * scatteringIntegral) * transmittance;
+
+            transmittance *= stepTransmittance;
+        }
     }
 #endif

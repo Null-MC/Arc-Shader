@@ -678,17 +678,24 @@
 
                     refractColor *= max(1.0 - sunF, 0.0);
 
+                    #if defined VL_WATER_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+                        vec3 vlScatter, vlExt;
+                        GetWaterVolumetricLighting(vlScatter, vlExt, waterScatteringF, localViewDir, viewDist, waterOpaqueViewDist);
+                        refractColor *= vlExt;
+                    #endif
+
                     vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
                     ApplyWaterFog(refractColor, waterFogColor, waterViewDepthFinal);
 
                     #if defined VL_WATER_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                        refractColor += GetWaterVolumetricLighting(waterScatteringF, localViewDir, viewDist, viewDist + waterFogDistSmooth);
+                        refractColor += vlScatter;
                     #endif
                     
                     // TODO: refract out shadowing
                     refractColor *= max(1.0 - iblF, 0.0);
 
-                    diffuse = refractColor;
+                    ambient *= material.albedo.a;
+                    diffuse = mix(refractColor, diffuse, material.albedo.a);
                     final.a = saturate(10.0*waterViewDepthFinal - 0.2);
                 }
                 else {
@@ -707,9 +714,9 @@
                     else {
                         final.a = maxOf(iblF);
                     }
-                }
 
-                ambient = vec3(0.0);
+                    ambient = vec3(0.0);
+                }
             }
         #endif
 
@@ -797,7 +804,7 @@
                     #endif
                 #endif
             }
-            #ifdef WORLD_WATER_ENABLED
+            #if defined WORLD_WATER_ENABLED && !defined VL_WATER_ENABLED
                 else if (isEyeInWater == 1) {
                     #ifdef SKY_ENABLED
                         vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);

@@ -191,6 +191,7 @@ uniform float biomeSnowSmooth;
 uniform vec3 waterScatterColor;
 uniform vec3 waterAbsorbColor;
 uniform float waterFogDistSmooth;
+uniform float waterRoughSmooth;
 
 #include "/lib/atlas.glsl"
 #include "/lib/depth.glsl"

@@ -124,7 +124,7 @@
             float blockerDistance = FindBlockerDistance(lightData, pixelRadius);
             if (blockerDistance <= 0.0) return 1.0;
 
-            bias += blockerDistance;
+            //bias += blockerDistance;
 
             pixelRadius *= min(blockerDistance * SHADOW_PENUMBRA_SCALE, 1.0);
             return GetShadowing_PCF(lightData, pixelRadius, bias);

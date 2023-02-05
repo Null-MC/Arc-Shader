@@ -198,6 +198,7 @@ uniform float eyeHumidity;
     #endif
 #endif
 
+#include "/lib/lighting/basic.glsl"
 #include "/lib/world/fog_vanilla.glsl"
 
 #ifdef SKY_ENABLED
@@ -235,8 +236,6 @@ uniform float eyeHumidity;
     #include "/lib/ssr.glsl"
 #endif
 
-#include "/lib/lighting/basic.glsl"
-
 #ifdef HANDLIGHT_ENABLED
     #include "/lib/lighting/handlight_common.glsl"
     #include "/lib/lighting/pbr_handlight.glsl"
@@ -273,12 +272,24 @@ void main() {
         //lightData.skyLightLevels = skyLightLevels;
         //lightData.sunTransmittanceEye = sunTransmittanceEye;
 
-        vec3 sunColorFinalEye = sunTransmittanceEye * skySunColor * max(skyLightLevels.x, 0.0);
+        vec3 sunColorFinalEye = sunTransmittanceEye * skySunColor * SunLux * max(skyLightLevels.x, 0.0);
 
         #ifdef WORLD_MOON_ENABLED
             //lightData.moonTransmittanceEye = moonTransmittanceEye;
 
-            vec3 moonColorFinalEye = moonTransmittanceEye * skyMoonColor * max(skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
+            vec3 moonColorFinalEye = moonTransmittanceEye * skyMoonColor * MoonLux * max(skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
+        #endif
+
+        #ifdef WORLD_WATER_ENABLED
+            vec3 waterSunColorEye = sunColorFinalEye * max(skyLightLevels.x, 0.0);
+
+            #ifdef WORLD_MOON_ENABLED
+                vec3 waterMoonColorEye = moonColorFinalEye * max(skyLightLevels.y, 0.0);
+            #else
+                const vec3 waterMoonColorEye = vec3(0.0);
+            #endif
+            
+            vec2 waterScatteringF = GetWaterScattering(viewDir);
         #endif
     #endif
 
@@ -417,8 +428,8 @@ void main() {
             }
         }
         else if (lightData.transparentScreenDepth >= 1.0) {
-            //final = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
-            final = vec3(0.0);
+            final = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
+            //final = vec3(0.0);
         }
     }
 
@@ -446,9 +457,9 @@ void main() {
 
     #if defined SKY_ENABLED && defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         if (isEyeInWater == 1 && lightData.opaqueScreenDepth > lightData.transparentScreenDepth) {
-            vec3 vlExt = vec3(1.0);
-            vec3 vlColor = GetVolumetricLighting(vlExt, localViewDir, near, minViewDist);
-            final = final * vlExt + vlColor;
+            vec3 vlScatter, vlExt;
+            GetVolumetricLighting(vlScatter, vlExt, localViewDir, near, minViewDist);
+            final = final * vlExt + vlScatter;
 
             // TODO: increase alpha with VL?
         }
@@ -470,31 +481,31 @@ void main() {
             //vec3 waterExtinctionInv = WATER_ABSROPTION_RATE * (1.0 - waterAbsorbColor);
             //final *= exp(-viewDist * waterExtinctionInv);
 
-            #ifdef SKY_ENABLED
-                vec2 waterScatteringF = GetWaterScattering(viewDir);
-            #endif
-
-            if (lightData.transparentScreenDepth >= lightData.opaqueScreenDepth) {
-                #ifdef SKY_ENABLED
-                    vec3 waterSunColorEye = sunColorFinalEye * max(skyLightLevels.x, 0.0);
-
-                    #ifdef WORLD_MOON_ENABLED
-                        vec3 waterMoonColorEye = moonColorFinalEye * max(skyLightLevels.y, 0.0);
+            #if !(defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined VL_WATER_ENABLED)
+                if (lightData.transparentScreenDepth >= lightData.opaqueScreenDepth) {
+                    #ifdef SKY_ENABLED
+                        vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
                     #else
-                        const vec3 waterMoonColorEye = vec3(0.0);
+                        const vec3 waterFogColor = vec3(0.0);
                     #endif
 
-                    vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
-                #else
-                    const vec3 waterFogColor = vec3(0.0);
-                #endif
-
-                //float waterFogF = GetWaterFogFactor();
-                ApplyWaterFog(final, waterFogColor, minViewDist);
-            }
+                    //float waterFogF = GetWaterFogFactor();
+                    ApplyWaterFog(final, waterFogColor, minViewDist);
+                }
+            #endif
 
             #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined VL_WATER_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                final.rgb += GetWaterVolumetricLighting(waterScatteringF, localViewDir, near, min(minViewDist, waterFogDistSmooth));
+                vec3 vlScatter, vlExt;
+                GetWaterVolumetricLighting(vlScatter, vlExt, waterScatteringF, localViewDir, near, minViewDist);
+                final *= vlExt;
+
+                vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
+
+                float waterFogF = GetWaterFogFactor(0.0, minViewDist);
+                //waterFogF *= 1.0 - reflectF;
+                final = mix(final, waterFogColor, waterFogF);
+
+                final += vlScatter;
             #endif
         }
     #endif

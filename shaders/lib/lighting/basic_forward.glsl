@@ -164,7 +164,9 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
             ApplyWaterFog(final.rgb, waterFogColor, viewDist);
 
             #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined VL_WATER_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                final.rgb += GetWaterVolumetricLighting(waterScatteringF, localViewDir, near, min(viewDist, waterFogDistSmooth));
+                vec3 vlScatter, vlExt;
+                GetWaterVolumetricLighting(vlScatter, vlExt, waterScatteringF, localViewDir, near, viewDist);
+                final.rgb = final.rgb * vlExt + vlScatter;
             #endif
         }
         else {
@@ -205,9 +207,9 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
             }
 
             #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                vec3 vlExt = vec3(1.0);
-                vec3 vlColor = GetVolumetricLighting(vlExt, localViewDir, near, viewDist);
-                final.rgb = final.rgb * vlExt + vlColor;
+                vec3 vlScatter, vlExt;
+                GetVolumetricLighting(vlScatter, vlExt, localViewDir, near, viewDist);
+                final.rgb = final.rgb * vlExt + vlScatter;
 
                 // TODO: vl alter alpha?
             #endif

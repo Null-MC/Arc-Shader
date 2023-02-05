@@ -63,7 +63,7 @@
                             float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
                             vec3 waterWorldPos = waterWorldScale * worldPos;
 
-                            float depth = 1.0 - GetWaves(waterWorldPos.xz, waveDepth, WATER_OCTAVES_VERTEX);
+                            float depth = 1.0 - GetWaves(waterWorldPos.xz, waveDepth, WATER_OCTAVES_VERTEX).y;
                             depth = -depth * waveDepth * WaterWaveDepthF * posY;
                         #endif
 

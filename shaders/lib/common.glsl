@@ -118,6 +118,7 @@ const bool colortex11Clear = false;
 #define SHADOW_CSM_FITSCALE 0.1
 #define SHADOW_NORMAL_BIAS 0.012
 #define CSM_PLAYER_ID 0
+#define SHADOW_CLOUD
 #define SHADOW_BLUR
 
 
@@ -219,7 +220,6 @@ const bool colortex11Clear = false;
 #define CLOUD_HORIZON_POWER 8.0
 #define CLOUD_POW_CLEAR 1.6
 #define CLOUD_POW_RAIN 0.3
-#define SHADOW_CLOUD
 #define SMOKE_ENABLED
 #define VL_SMOKE_DENSITY 40 // [0 10 20 30 40 50 60 70 80 90 100]
 #define IRIS_FEATURE_BIOMECAT

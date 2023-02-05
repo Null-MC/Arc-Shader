@@ -124,8 +124,8 @@ void main() {
                     
                     float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
                     vec2 waterWorldPos = waterWorldScale * worldPos.xz;
-                    float depth = GetWaves(waterWorldPos, waveDepth, WATER_OCTAVES_VERTEX);
-                    vLocalPos.y -= (1.0 - depth) * waveDepth;
+                    vec3 waves = GetWaves(waterWorldPos, waveDepth, WATER_OCTAVES_VERTEX);
+                    vLocalPos.y -= (1.0 - waves.y) * waveDepth;
                 #endif
             }
         #endif

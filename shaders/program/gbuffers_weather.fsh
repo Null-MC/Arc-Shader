@@ -163,6 +163,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/lighting/fresnel.glsl"
 #include "/lib/sky/hillaire_common.glsl"
 #include "/lib/celestial/position.glsl"
+#include "/lib/lighting/basic.glsl"
 
 #ifdef HANDLIGHT_ENABLED
     #include "/lib/lighting/handlight_common.glsl"
@@ -196,7 +197,6 @@ uniform float waterFogDistSmooth;
     #include "/lib/lighting/volumetric.glsl"
 #endif
 
-#include "/lib/lighting/basic.glsl"
 #include "/lib/lighting/basic_forward.glsl"
 
 

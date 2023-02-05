@@ -62,45 +62,56 @@
 
         #if defined WORLD_WATER_ENABLED && defined RENDER_WATER
             if (materialId == MATERIAL_WATER) {
-                material.albedo = WATER_COLOR;
+                material.albedo = vec4(0.650, 0.697, 0.679, 1.0);
+                //material.albedo = vec4(RGBToLinear(waterScatterColor), 1.0);
                 material.normal = vec3(0.0, 0.0, 1.0);
                 material.occlusion = 1.0;
-                material.smoothness = WATER_SMOOTH;
-                material.scattering = 0.0;
+                material.scattering = 0.8;
                 material.f0 = 0.02;
                 material.hcm = -1;
 
-                #if WATER_WAVE_TYPE != WATER_WAVE_NONE && !defined PHYSICS_OCEAN
-                    const float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
-                    vec3 waterWorldPos = waterScale * worldPos;
+                material.albedo.rgb = RGBToLinear(material.albedo.rgb);
+                vec2 waterUV = worldPos.xz;
 
-                    float waveDepth = GetWaveDepth(lightData.skyLight);
-
-                    int octaves = WATER_OCTAVES_FAR;
-                    //float viewDist = length(viewPos) - near;
-                    float octaveDistF = saturate(viewDist / WATER_OCTAVES_DIST);
-                    octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, octaveDistF));
-
-                    float depth = GetWaves(waterWorldPos.xz, waveDepth, octaves);
-                    depth *= waveDepth * WaterWaveDepthF;
-
-                    vec3 waterPos = waterWorldPos.xzy;
-                    waterPos.z = depth * WATER_NORMAL_STRENGTH;
-
-                    //#ifdef MC_GL_VENDOR_AMD
-                    //    vec3 waterDX = vec3(dFdx(waterPos.x), dFdx(waterPos.y), dFdx(waterPos.z));
-                    //    vec3 waterDY = vec3(dFdy(waterPos.x), dFdy(waterPos.y), dFdy(waterPos.z));
-                    //#else
-                        vec3 waterDX = dFdx(waterPos);
-                        vec3 waterDY = dFdy(waterPos);
-                    //#endif
-                #endif
+                float foamDirt = 1.0;
+                float waveAmplitude = 0.0;
 
                 #if WATER_WAVE_TYPE != WATER_WAVE_NONE || defined PHYSICS_OCEAN
                     #ifdef PHYSICS_OCEAN
-                        material.normal = physics_waveNormal(physics_localPosition.xz, physics_localWaviness, physics_gameTime, physics_iterationsNormal);
-                        material.normal = mat3(gl_ModelViewMatrix) * material.normal;
+                        foamDirt = min(physics_localWaviness * 10.0, 1.0);
+
+                        vec3 waves = physics_waveUV(physics_localPosition, PHYSICS_ITERATIONS_OFFSET, physics_localWaviness, physics_gameTime);
+
+                        vec3 waveNormal = physics_waveNormal(physics_localPosition.xz, physics_localWaviness, physics_gameTime, physics_iterationsNormal);
+
+                        waterUV = waves.xz;
+                        waveAmplitude = pow(saturate(waves.y * waveNormal.y), 3.2);
+                        material.normal = mat3(gl_ModelViewMatrix) * waveNormal;
                     #else
+                        const float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
+                        vec3 waterWorldPos = waterScale * worldPos;
+
+                        float waveDepth = GetWaveDepth(lightData.skyLight);
+
+                        int octaves = WATER_OCTAVES_FAR;
+                        //float viewDist = length(viewPos) - near;
+                        float octaveDistF = saturate(viewDist / WATER_OCTAVES_DIST);
+                        octaves = int(mix(WATER_OCTAVES_NEAR, WATER_OCTAVES_FAR, octaveDistF));
+
+                        vec3 waves = GetWaves(waterWorldPos.xz, waveDepth, octaves);
+                        //float depth = GetWaves(waterWorldPos.xz, waveDepth, octaves);
+
+                        vec3 waterPos = waterWorldPos.xzy;
+                        waterPos.z = (waves.y * waveDepth * WaterWaveDepthF) * WATER_NORMAL_STRENGTH;
+
+                        //#ifdef MC_GL_VENDOR_AMD
+                        //    vec3 waterDX = vec3(dFdx(waterPos.x), dFdx(waterPos.y), dFdx(waterPos.z));
+                        //    vec3 waterDY = vec3(dFdy(waterPos.x), dFdy(waterPos.y), dFdy(waterPos.z));
+                        //#else
+                            vec3 waterDX = dFdx(waterPos);
+                            vec3 waterDY = dFdy(waterPos);
+                        //#endif
+
                         vec3 viewUp = normalize(upPosition);
                         if (isEyeInWater == 1) viewUp = -viewUp;
 
@@ -110,8 +121,26 @@
                             if (isEyeInWater != 1)
                                 material.normal = -material.normal;
                         }
+
+                        waterUV = waves.xz / waterScale;
+                        //waveAmplitude = saturate(100.0 * waves.y * material.normal.y);
                     #endif
                 #endif
+
+                float waterSurfaceNoise = textureLod(texCloudNoise, vec3(waterUV * 0.2500, 0.3), 0).r;
+                waterSurfaceNoise *= textureLod(texCloudNoise, vec3(waterUV * 0.1250, 0.6), 0).r;
+                waterSurfaceNoise *= textureLod(texCloudNoise, vec3(waterUV * 0.0625, 0.9), 0).r;
+
+                waterSurfaceNoise += 0.1 * waveAmplitude;
+
+                waterSurfaceNoise += 0.24 * max(1.0 - 1.5 * max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepthLinear, 0.0), 0.0);
+
+                waterSurfaceNoise = smoothstep(0.06, 0.28, waterSurfaceNoise);
+
+                //waterSurfaceNoise = pow(waterSurfaceNoise, 0.68);
+
+                material.smoothness = 0.98 - waterSurfaceNoise * foamDirt * waterRoughSmooth;
+                material.albedo.a = waterSurfaceNoise * foamDirt;// * waterRoughSmooth;
             }
             else {
         #endif
@@ -326,9 +355,9 @@
                 }
 
                 #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                    vec3 vlExt = vec3(1.0);
-                    vec3 vlColor = GetVolumetricLighting(vlExt, localViewDir, near, min(viewDist, far));
-                    finalColor.rgb = finalColor.rgb * vlExt + vlColor;
+                    vec3 vlScatter, vlExt;
+                    GetVolumetricLighting(vlScatter, vlExt, localViewDir, near, min(viewDist, far));
+                    finalColor.rgb = finalColor.rgb * vlExt + vlScatter;
 
                     // TODO: increase alpha with VL?
                 #endif

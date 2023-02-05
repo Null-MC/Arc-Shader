@@ -92,6 +92,37 @@
 #endif
 
 #ifdef RENDER_FRAG
+    vec3 physics_waveUV(const in vec3 position, const in float iterations, const in float factor, const in float time) {
+        vec2 wavePos = (position.xz - physics_waveOffset) * PHYSICS_XZ_SCALE * physics_oceanWaveHorizontalScale;
+        float iter = 0.0;
+        float frequency = PHYSICS_FREQUENCY;
+        float speed = PHYSICS_SPEED;
+        float weight = 1.0;
+        float height = 0.0;
+        float waveSum = 0.0;
+        float modifiedTime = time * PHYSICS_TIME_MULTIPLICATOR;
+        
+        for (int i = 0; i < iterations; i++) {
+            vec2 direction = vec2(sin(iter), cos(iter));
+            float x = dot(direction, wavePos) * frequency + modifiedTime * speed;
+            float wave = exp(sin(x) - 1.0);
+            float result = wave * cos(x);
+            vec2 force = result * weight * direction;
+            
+            wavePos -= force * PHYSICS_DRAG_MULT;
+            height += wave * weight;
+            iter += PHYSICS_ITER_INC;
+            waveSum += weight;
+            weight *= PHYSICS_WEIGHT;
+            frequency *= PHYSICS_FREQUENCY_MULT;
+            speed *= PHYSICS_SPEED_MULT;
+        }
+        
+        vec2 worldPos = physics_waveOffset + (wavePos / physics_oceanWaveHorizontalScale / PHYSICS_XZ_SCALE);
+        float waveHeight = height / waveSum * physics_oceanHeight * factor - physics_oceanHeight * factor * 0.5;
+        return vec3(worldPos.x, waveHeight, worldPos.y);
+    }
+
     vec2 physics_waveDirection(const in vec2 position, const in float iterations, const in float time) {
         vec2 wavePos = (position - physics_waveOffset) * PHYSICS_XZ_SCALE * physics_oceanWaveHorizontalScale;
     	float iter = 0.0;

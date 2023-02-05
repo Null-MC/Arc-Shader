@@ -23,7 +23,7 @@ float hash11(in float p) {
     return fract(p);
 }
 
-float GetWaves(const in vec2 position, const in float strength, const in int iterations) {
+vec3 GetWaves(const in vec2 position, const in float strength, const in int iterations) {
     float weight = 1.0;//max(waveSpeed, 0.3) + 0.1;
     float maxWeight = 0.0;//max(1.0 - 0.2*waveSpeed, 0.0);
 
@@ -56,6 +56,7 @@ float GetWaves(const in vec2 position, const in float strength, const in int ite
         dragF *= 0.85;
     }
 
-    float height = 0.84 - accumWeight / max(maxWeight, EPSILON);
-    return 1.0 - saturate(height * 1.32);
+    //float height = 0.84 - accumWeight / max(maxWeight, EPSILON);
+    //return 1.0 - saturate(height * 1.32);
+    return vec3(pos.x, accumWeight / max(maxWeight, EPSILON), pos.y);
 }
