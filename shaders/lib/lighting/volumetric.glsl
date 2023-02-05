@@ -94,7 +94,7 @@ const float isotropicPhase = 0.25 / PI;
 
         scattering = vec3(0.0);
         transmittance = vec3(1.0);
-        for (int i = 1; i < VL_SAMPLES_SKY; i++) {
+        for (int i = VL_SAMPLES_SKY-1; i > 0; i--) {
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 const float sampleBias = 0.0;
 
