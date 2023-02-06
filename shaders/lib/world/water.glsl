@@ -38,7 +38,7 @@ vec3 GetWaves(const in vec2 position, const in float strength, const in int iter
     vec2 pos = position;
 
     for (int i = 0; i < iterations; i++) {
-        float iter = 0.65 * hash11(i) * PI*2.0;
+        float iter = 0.65 * hash11(i) * TAU;
 
         vec2 direction = vec2(sin(iter), cos(iter));
         vec2 waveDX = GetWaveDX(pos, direction, speed, phase, time);

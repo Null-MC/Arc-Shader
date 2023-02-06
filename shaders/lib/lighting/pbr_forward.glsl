@@ -62,32 +62,27 @@
 
         #if defined WORLD_WATER_ENABLED && defined RENDER_WATER
             if (materialId == MATERIAL_WATER) {
-                material.albedo = vec4(waterFoamColor, waterFoamMaxSmooth);
-                //material.albedo = vec4(RGBToLinear(waterScatterColor), 1.0);
+                material.albedo = vec4(waterFoamColor, 0.0);
                 material.normal = vec3(0.0, 0.0, 1.0);
                 material.occlusion = 1.0;
                 material.scattering = 0.9;
+                material.smoothness = WATER_SMOOTH;
                 material.f0 = 0.02;
                 material.hcm = -1;
 
-                material.albedo.rgb = RGBToLinear(material.albedo.rgb);
                 vec2 waterUV = worldPos.xz;
-
-                float foamDirt = 1.0;
                 float waveAmplitude = 0.0;
 
                 #if WATER_WAVE_TYPE != WATER_WAVE_NONE || defined PHYSICS_OCEAN
                     #ifdef PHYSICS_OCEAN
-                        foamDirt = min(physics_localWaviness * 10.0, 1.0);
-
-                        vec3 waves = physics_waveUV(physics_localPosition, PHYSICS_ITERATIONS_OFFSET, physics_localWaviness, physics_gameTime);
-
                         vec3 waveNormal = physics_waveNormal(physics_localPosition.xz, physics_localWaviness, physics_gameTime, physics_iterationsNormal);
-
-                        waterUV = waves.xz;
-                        waveAmplitude = waves.y * pow(max(waveNormal.y, 0.0), 4.0);
-
                         material.normal = mat3(gl_ModelViewMatrix) * waveNormal;
+
+                        #ifdef WATER_FOAM
+                            vec3 waves = physics_waveUV(physics_localPosition, PHYSICS_ITERATIONS_OFFSET, physics_localWaviness, physics_gameTime);
+                            waveAmplitude = waves.y * pow(max(waveNormal.y, 0.0), 4.0);
+                            waterUV = waves.xz;
+                        #endif
                     #else
                         const float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
                         vec3 waterWorldPos = waterScale * worldPos;
@@ -124,28 +119,32 @@
                         }
 
                         waterUV = waves.xz / waterScale;
-                        //waveAmplitude = saturate(100.0 * waves.y * material.normal.y);
+                        waveAmplitude = 4.0 * (waves.y - 0.2) * pow(max(material.normal.y, 0.0), 1.0);
                     #endif
                 #endif
 
-                float time = frameTimeCounter / 360.0;
-                float s1 = textureLod(texCloudNoise, vec3(waterUV * 0.100, fract(time + 0.3)), 0).r;
-                float s2 = textureLod(texCloudNoise, vec3(waterUV * 0.250, fract(time + 0.6)), 0).r;
-                float s3 = textureLod(texCloudNoise, vec3(waterUV * 1.000, fract(time + 0.9)), 0).r;
+                #ifdef WATER_FOAM
+                    material.albedo.rgb = RGBToLinear(material.albedo.rgb);
 
-                float waterSurfaceNoise = s1 * (0.3 + 0.7*s2) * (1.0 - 0.6*pow(1.0 - s3, 3.0)) * 1.6;
+                    float time = frameTimeCounter / 360.0;
+                    vec2 s1 = textureLod(texCloudNoise, vec3(waterUV * 0.30, time      ), 0).rg;
+                    vec2 s2 = textureLod(texCloudNoise, vec3(waterUV * 0.02, time + 0.5), 0).rg;
 
-                float waterEdge = max(0.8 - 2.0 * max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepthLinear, 0.0), 0.0);
-                waterSurfaceNoise += pow2(waterEdge);
+                    float waterSurfaceNoise = s1.r * s2.r * 1.5;
 
-                waveAmplitude = saturate(waveAmplitude) * 0.76;
-                //waveAmplitude = smoothstep(0.0, 0.8, waveAmplitude);
-                waterSurfaceNoise = (1.0 - waveAmplitude) * waterSurfaceNoise + waveAmplitude;
+                    float waterEdge = max(0.8 - 2.0 * max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepthLinear, 0.0), 0.0);
+                    waterSurfaceNoise += pow2(waterEdge);
 
-                waterSurfaceNoise = smoothstep(waterFoamMinSmooth, 1.0, waterSurfaceNoise);
+                    waveAmplitude = saturate(waveAmplitude * 1.2);
+                    //waveAmplitude = smoothstep(0.0, 0.8, waveAmplitude);
+                    waterSurfaceNoise = (1.0 - waveAmplitude) * waterSurfaceNoise + waveAmplitude;
 
-                material.albedo.a = saturate(material.albedo.a * waterSurfaceNoise * foamDirt);// * waterRoughSmooth;
-                material.smoothness = 0.98 - 0.98 * waterRoughSmooth * material.albedo.a;
+                    float worleyNoise = 0.2 + 0.8 * s1.g * (1.0 - s2.g);
+                    waterSurfaceNoise = smoothstep(waterFoamMinSmooth, 1.0, waterSurfaceNoise) * worleyNoise;
+
+                    material.albedo.a = saturate(waterFoamMaxSmooth * waterSurfaceNoise);
+                    material.smoothness = mix(WATER_SMOOTH, 1.0 - waterRoughSmooth, waterSurfaceNoise);
+                #endif
             }
             else {
         #endif

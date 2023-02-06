@@ -118,7 +118,7 @@
             speed *= PHYSICS_SPEED_MULT;
         }
         
-        vec2 worldPos = physics_waveOffset + (wavePos / physics_oceanWaveHorizontalScale / PHYSICS_XZ_SCALE);
+        vec2 worldPos = wavePos / physics_oceanWaveHorizontalScale / PHYSICS_XZ_SCALE;// + physics_waveOffset;
         float waveHeight = height / waveSum * physics_oceanHeight * factor - physics_oceanHeight * factor * 0.5;
         return vec3(worldPos.x, waveHeight, worldPos.y);
     }

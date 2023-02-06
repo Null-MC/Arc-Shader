@@ -355,7 +355,7 @@ const float isotropicPhase = 0.25 / PI;
         vec3 WaterExtinctionCoefficient = WaterScatteringCoefficient + WaterAbsorptionCoefficient;
 
         #ifndef VL_WATER_NOISE
-            float texDensity = 1.0;
+            float texDensity = 0.5;
         #endif
 
         scattering = vec3(0.0);
