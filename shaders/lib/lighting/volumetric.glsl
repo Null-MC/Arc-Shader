@@ -137,7 +137,7 @@ const float isotropicPhase = 0.25 / PI;
             #endif
 
             #ifdef VL_FOG_NOISE
-                #if SHADER_PLATFORM == PLATFORM_IRIS
+                #ifdef IS_IRIS
                     float texDensity = GetSkyFogDensity(texCloudNoise, traceWorldPos, time);
                 #else
                     float texDensity = GetSkyFogDensity(colortex14, traceWorldPos, time);
@@ -186,7 +186,7 @@ const float isotropicPhase = 0.25 / PI;
             float dt = localStepLength * atmosScale * texDensity;
             vec3 sampleTransmittance = exp(-dt*extinction);
 
-            #if SHADER_PLATFORM == PLATFORM_IRIS
+            #ifdef IS_IRIS
                 vec3 sunTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.x);
             #else
                 vec3 sunTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.x);
@@ -195,7 +195,7 @@ const float isotropicPhase = 0.25 / PI;
             vec3 lightTransmittance = sunTransmittance * skySunColor * SunLux;
 
             #ifdef WORLD_MOON_ENABLED
-                #if SHADER_PLATFORM == PLATFORM_IRIS
+                #ifdef IS_IRIS
                     vec3 moonTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.y);
                 #else
                     vec3 moonTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.y);
@@ -206,7 +206,7 @@ const float isotropicPhase = 0.25 / PI;
 
             lightTransmittance *= sampleColor * sampleF;
 
-            #if SHADER_PLATFORM == PLATFORM_IRIS
+            #ifdef IS_IRIS
                 vec3 psiMS = getValFromMultiScattLUT(texMultipleScattering, atmosPos, localSunDir) * SKY_FANCY_LUM;
             #else
                 vec3 psiMS = getValFromMultiScattLUT(colortex13, atmosPos, localSunDir) * SKY_FANCY_LUM;
@@ -225,36 +225,12 @@ const float isotropicPhase = 0.25 / PI;
             scattering += scatteringIntegral * transmittance;
             transmittance *= sampleTransmittance;
         }
-
-        //return vec4(scattering, transmittance);
     }
 #endif
 
 #ifdef VL_WATER_ENABLED
-    // vec3 GetScatteredLighting(const in float elevation, const in vec2 scatteringF) {
-    //     #if SHADER_PLATFORM == PLATFORM_IRIS
-    //         vec3 sunTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.x);
-    //     #else
-    //         vec3 sunTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.x);
-    //     #endif
-
-    //     vec3 result = scatteringF.x * sunTransmittance * skySunColor * SunLux * max(skyLightLevels.x, 0.0);
-
-    //     #ifdef WORLD_MOON_ENABLED
-    //         #if SHADER_PLATFORM == PLATFORM_IRIS
-    //             vec3 moonTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.y);
-    //         #else
-    //             vec3 moonTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.y);
-    //         #endif
-
-    //         result += scatteringF.y * moonTransmittance * GetMoonPhaseLevel() * skyMoonColor * MoonLux * max(skyLightLevels.y, 0.0);
-    //     #endif
-
-    //     return result;
-    // }
-
     vec3 GetScatteredLighting(const in float elevation) {
-        #if SHADER_PLATFORM == PLATFORM_IRIS
+        #ifdef IS_IRIS
             vec3 sunTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.x);
         #else
             vec3 sunTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.x);
@@ -263,7 +239,7 @@ const float isotropicPhase = 0.25 / PI;
         vec3 result = sunTransmittance * skySunColor * SunLux * max(skyLightLevels.x, 0.0);
 
         #ifdef WORLD_MOON_ENABLED
-            #if SHADER_PLATFORM == PLATFORM_IRIS
+            #ifdef IS_IRIS
                 vec3 moonTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.y);
             #else
                 vec3 moonTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.y);
@@ -405,7 +381,7 @@ const float isotropicPhase = 0.25 / PI;
             #endif
 
             #ifdef VL_WATER_NOISE
-                #if SHADER_PLATFORM == PLATFORM_IRIS
+                #ifdef IS_IRIS
                     float texDensity = GetWaterFogDensity(texCloudNoise, traceWorldPos);
                 #else
                     float texDensity = GetWaterFogDensity(colortex14, traceWorldPos);

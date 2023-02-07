@@ -60,7 +60,7 @@ float GetWavingRange(const in float skyLight) {
 }
 
 vec3 GetWavingOffset(const in float range) {
-    #if MC_VERSION >= 11700 && (SHADER_PLATFORM != PLATFORM_IRIS || defined IRIS_FEATURE_CHUNK_OFFSET)
+    #if MC_VERSION >= 11700 && !defined IS_IRIS
         vec3 worldPos = floor(vaPosition.xyz + chunkOffset + cameraPosition + 0.5);
     #else
         vec3 localPos = gl_Vertex.xyz + at_midBlock / 64.0;

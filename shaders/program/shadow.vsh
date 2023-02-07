@@ -39,7 +39,7 @@ uniform int renderStage;
 uniform int worldTime;
 uniform float far;
 
-#if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
+#if MC_VERSION >= 11700 && !defined IS_IRIS
     uniform vec3 chunkOffset;
 #else
     uniform mat4 gbufferModelViewInverse;
@@ -48,7 +48,7 @@ uniform float far;
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     uniform float near;
 
-    #if SHADER_PLATFORM == PLATFORM_OPTIFINE
+    #ifndef IS_IRIS
         // NOTE: We are using the previous gbuffer matrices cause the current ones don't work in shadow pass
         uniform mat4 gbufferPreviousModelView;
         uniform mat4 gbufferPreviousProjection;

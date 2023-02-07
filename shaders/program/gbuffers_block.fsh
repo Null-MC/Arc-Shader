@@ -52,7 +52,7 @@ uniform float skySnowSmooth;
 uniform float biomeWetnessSmooth;
 uniform float biomeSnowSmooth;
 
-#if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
+#if MC_VERSION >= 11700
     uniform float alphaTestRef;
 #endif
 

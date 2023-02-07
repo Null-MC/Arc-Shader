@@ -348,10 +348,8 @@ option.DOF_STEP_SIZE=Step Size
 option.DOF_MAX_SIZE=Max Size
 
 
-option.SHADER_PLATFORM=Platform
-option.SHADER_PLATFORM.comment=Turn this on if you are using Optifine; turn off for Iris.
-value.SHADER_PLATFORM.0=Optifine
-value.SHADER_PLATFORM.1=Iris
+option.IS_IRIS=Using Iris?
+option.IS_IRIS.comment=Turn this on if you are using Iris or Oculus; turn off for Optifine.
 
 
 option.DEBUG_VIEW=Display

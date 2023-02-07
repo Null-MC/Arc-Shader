@@ -35,7 +35,7 @@
             float eyeElevation = GetScaledSkyHeight(cameraPosition.y);
             float fragElevation = GetAtmosphereElevation(worldPos);
 
-            #if SHADER_PLATFORM == PLATFORM_IRIS
+            #ifdef IS_IRIS
                 lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
                 lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
                 //lightData.sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);

@@ -42,7 +42,7 @@ out vec3 viewNormal;
 #endif
 
 #ifdef SKY_ENABLED
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         uniform sampler3D texSunTransmittance;
     #else
         uniform sampler3D colortex12;
@@ -71,7 +71,7 @@ out vec3 viewNormal;
             out vec3 shadowPos[4];
             out float shadowBias[4];
 
-            #if SHADER_PLATFORM == PLATFORM_OPTIFINE
+            #ifndef IS_IRIS
                 uniform mat4 gbufferPreviousProjection;
                 uniform mat4 gbufferPreviousModelView;
             #endif
@@ -190,7 +190,7 @@ void main() {
 
             skySunColor = GetSunColor();
             
-            #if SHADER_PLATFORM == PLATFORM_IRIS
+            #ifdef IS_IRIS
                 sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
             #else
                 sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
@@ -199,7 +199,7 @@ void main() {
             #ifdef WORLD_MOON_ENABLED
                 skyMoonColor = GetMoonColor();
             
-                #if SHADER_PLATFORM == PLATFORM_IRIS
+                #ifdef IS_IRIS
                     moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
                 #else
                     moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);

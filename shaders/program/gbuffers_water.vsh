@@ -73,7 +73,7 @@ flat out mat2 atlasBounds;
             out vec3 shadowPos[4];
             out float shadowBias[4];
 
-            #if SHADER_PLATFORM == PLATFORM_OPTIFINE
+            #ifndef IS_IRIS
                 uniform mat4 gbufferPreviousProjection;
                 uniform mat4 gbufferPreviousModelView;
             #endif
@@ -114,7 +114,7 @@ uniform float blindness;
     uniform float frameTimeCounter;
 #endif
 
-#if MC_VERSION >= 11700 && (SHADER_PLATFORM != PLATFORM_IRIS || defined IRIS_FEATURE_CHUNK_OFFSET)
+#if MC_VERSION >= 11700 && !defined IS_IRIS
     uniform vec3 chunkOffset;
 #endif
 

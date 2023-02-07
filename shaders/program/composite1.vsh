@@ -37,7 +37,7 @@ out vec2 texcoord;
 #endif
 
 #ifdef SKY_ENABLED
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         uniform sampler3D texSunTransmittance;
     #else
         uniform sampler3D colortex12;
@@ -57,13 +57,11 @@ out vec2 texcoord;
             uniform float near;
             uniform float far;
 
-            #if MC_VERSION >= 11700 && (SHADER_PLATFORM != PLATFORM_IRIS || defined IRIS_FEATURE_CHUNK_OFFSET)
+            #if MC_VERSION >= 11700 && !defined IS_IRIS
                 uniform vec3 chunkOffset;
-            //#else
-            //    uniform mat4 gbufferModelViewInverse;
             #endif
 
-            #if SHADER_PLATFORM == PLATFORM_OPTIFINE
+            #ifndef IS_IRIS
                 // NOTE: We are using the previous gbuffer matrices cause the current ones don't work in shadow pass
                 uniform mat4 gbufferPreviousModelView;
                 uniform mat4 gbufferPreviousProjection;
@@ -125,7 +123,7 @@ void main() {
 
             skySunColor = GetSunColor();
 
-            #if SHADER_PLATFORM == PLATFORM_IRIS
+            #ifdef IS_IRIS
                 sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
             #else
                 sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
@@ -134,7 +132,7 @@ void main() {
             #ifdef WORLD_MOON_ENABLED
                 skyMoonColor = GetMoonColor();
 
-                #if SHADER_PLATFORM == PLATFORM_IRIS
+                #ifdef IS_IRIS
                     moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
                 #else
                     moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);

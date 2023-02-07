@@ -45,10 +45,6 @@ uniform int entityId;
     uniform vec3 upPosition;
     uniform float wetness;
 #endif
-
-// #if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
-//     uniform float alphaTestRef;
-// #endif
     
 #include "/lib/atlas.glsl"
 #include "/lib/sampling/linear.glsl"
@@ -56,10 +52,6 @@ uniform int entityId;
 #ifdef PARALLAX_ENABLED
     #include "/lib/parallax.glsl"
 #endif
-
-// #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
-//     #include "/lib/lighting/directional.glsl"
-// #endif
 
 #include "/lib/material/material_reader.glsl"
 #include "/lib/lighting/basic_gbuffers.glsl"

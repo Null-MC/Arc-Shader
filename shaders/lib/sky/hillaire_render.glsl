@@ -22,13 +22,6 @@ vec3 getValFromMultiScattLUT(const in sampler3D tex, const in vec3 pos, const in
     vec3 getValFromSkyLUT(const in float worldY, const in vec3 localViewDir, const in float lod) {
         float height = GetScaledSkyHeight(worldY);
 
-        //vec3 sunDir = GetSunDir();
-
-        // #if SHADER_PLATFORM == PLATFORM_OPTIFINE
-        //     vec3 up = vec3(0.0, 1.0, 0.0);//gbufferModelView[1].xyz;
-        // #else
-        //     vec3 up = normalize(upPosition);
-        // #endif
         const vec3 up = vec3(0.0, 1.0, 0.0);
 
         float horizonAngle = safeacos(sqrt(height * height - groundRadiusMM * groundRadiusMM) / height);

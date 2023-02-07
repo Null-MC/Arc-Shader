@@ -359,7 +359,7 @@
             iblF = GetFresnel(material.albedo.rgb, material.f0, material.hcm, NoVm, roughL);
 
             if (any(greaterThan(reflectColor, vec3(EPSILON)))) {
-                #if SHADER_PLATFORM == PLATFORM_IRIS
+                #ifdef IS_IRIS
                     vec2 envBRDF = textureLod(texBRDF, vec2(NoVm, rough), 0).rg;
                 #else
                     vec2 envBRDF = textureLod(colortex15, vec2(NoVm, rough), 0).rg;
@@ -496,7 +496,7 @@
             if (heldBlockLightValue + heldBlockLightValue2 > EPSILON) {
                 vec3 handViewPos = viewPos.xyz;
 
-                #if SHADER_PLATFORM == PLATFORM_IRIS
+                #ifdef IS_IRIS
                     if (!firstPersonCamera) {
                         vec3 playerCameraOffset = cameraPosition - eyePosition;
                         playerCameraOffset = (gbufferModelView * vec4(playerCameraOffset, 1.0)).xyz;

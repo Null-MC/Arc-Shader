@@ -11,7 +11,7 @@ flat out vec3 localSunDir;
 uniform mat4 gbufferModelView;
 uniform int worldTime;
 
-#if SHADER_PLATFORM != PLATFORM_OPTIFINE
+#ifdef IS_IRIS
     uniform mat4 gbufferModelViewInverse;
 
     uniform vec3 sunPosition;

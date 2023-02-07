@@ -29,7 +29,7 @@ in vec2 texcoord;
     uniform sampler2D BUFFER_SKY_LUT;
     uniform sampler2D BUFFER_IRRADIANCE;
 
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         uniform sampler3D texSunTransmittance;
         uniform sampler3D texMultipleScattering;
     #else
@@ -62,7 +62,7 @@ uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
 
-#if SHADER_PLATFORM == PLATFORM_IRIS
+#ifdef IS_IRIS
     uniform sampler2D texBRDF;
 #else
     uniform sampler2D colortex15;
@@ -110,7 +110,7 @@ uniform float fogEnd;
     uniform int heldBlockLightValue;
     uniform int heldBlockLightValue2;
 
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         uniform bool firstPersonCamera;
         uniform vec3 eyePosition;
     #endif
@@ -126,7 +126,7 @@ uniform float fogEnd;
 
     uniform vec3 shadowLightPosition;
 
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         uniform vec4 lightningBoltPosition;
     #endif
 
@@ -146,7 +146,7 @@ uniform float fogEnd;
 #endif
 
 #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED || defined SMOKE_ENABLED
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         uniform sampler3D texCloudNoise;
     #else
         uniform sampler3D colortex14;
@@ -190,7 +190,7 @@ uniform float waterFogDistSmooth;
     #include "/lib/world/sky.glsl"
     #include "/lib/world/scattering.glsl"
 
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         #include "/lib/sky/lightning.glsl"
     #endif
 #endif
@@ -316,7 +316,7 @@ void main() {
         //lightData.skyLightLevels = skyLightLevels;
         //lightData.sunTransmittanceEye = sunTransmittanceEye;
 
-        #if SHADER_PLATFORM == PLATFORM_IRIS
+        #ifdef IS_IRIS
             lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
         #else
             lightData.sunTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.x);
@@ -325,7 +325,7 @@ void main() {
         #ifdef WORLD_MOON_ENABLED
             //lightData.moonTransmittanceEye = moonTransmittanceEye;
 
-            #if SHADER_PLATFORM == PLATFORM_IRIS
+            #ifdef IS_IRIS
                 lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
             #else
                 lightData.moonTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.y);

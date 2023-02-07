@@ -38,7 +38,7 @@ in float geoNoL;
     uniform int heldBlockLightValue;
     uniform int heldBlockLightValue2;
 
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         uniform bool firstPersonCamera;
         uniform vec3 eyePosition;
     #endif
@@ -48,7 +48,7 @@ in float geoNoL;
     uniform sampler2D noisetex;
     uniform usampler2D shadowcolor1;
 
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         uniform sampler3D texSunTransmittance;
         uniform sampler3D texMultipleScattering;
     #else
@@ -108,7 +108,7 @@ in float geoNoL;
             #endif
             
             #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
-                #if SHADER_PLATFORM == PLATFORM_IRIS
+                #ifdef IS_IRIS
                     uniform sampler3D texCloudNoise;
                 #else
                     uniform sampler3D colortex14;
@@ -236,7 +236,7 @@ void main() {
 
         float fragElevation = GetAtmosphereElevation(worldPos);
 
-        #if SHADER_PLATFORM == PLATFORM_IRIS
+        #ifdef IS_IRIS
             lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
             lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
         #else

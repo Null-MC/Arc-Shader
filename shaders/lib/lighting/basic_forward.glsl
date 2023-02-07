@@ -95,7 +95,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
         if (heldBlockLightValue + heldBlockLightValue2 > EPSILON) {
             vec3 handViewPos = viewPos.xyz;
 
-            #if SHADER_PLATFORM == PLATFORM_IRIS
+            #ifdef IS_IRIS
                 if (!firstPersonCamera) {
                     vec3 playerCameraOffset = cameraPosition - eyePosition;
                     playerCameraOffset = (gbufferModelView * vec4(playerCameraOffset, 1.0)).xyz;

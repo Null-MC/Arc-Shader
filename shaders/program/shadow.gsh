@@ -43,7 +43,7 @@ uniform float far;
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     uniform float near;
 
-    #if SHADER_PLATFORM == PLATFORM_OPTIFINE
+    #ifndef IS_IRIS
         uniform mat4 gbufferPreviousModelView;
         uniform mat4 gbufferPreviousProjection;
     #else
@@ -99,7 +99,7 @@ void main() {
         }
     #endif
 
-    #if SHADER_PLATFORM == PLATFORM_IRIS && !defined PHYSICS_OCEAN
+    #if defined IS_IRIS && !defined PHYSICS_OCEAN
         // Iris does not cull water backfaces
         if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && vBlockId[0] == MATERIAL_WATER) {
             if (vNoV[0] <= 0.0 && vNoV[1] <= 0.0 && vNoV[2] <= 0.0) return;

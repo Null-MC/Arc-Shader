@@ -17,7 +17,7 @@ flat in mat2 atlasBounds;
 
 uniform sampler2D gtexture;
 
-#if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
+#if MC_VERSION >= 11700
     uniform float alphaTestRef;
 #endif
 

@@ -45,7 +45,7 @@
                         //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
                         vec3 localPos;
 
-                        #if MC_VERSION >= 11700 && (SHADER_PLATFORM != PLATFORM_IRIS || defined IRIS_FEATURE_CHUNK_OFFSET)
+                        #if MC_VERSION >= 11700 && !defined IS_IRIS
                             localPos = vaPosition.xyz + chunkOffset;
                         #else
                             localPos = (gbufferModelViewInverse * (gl_ModelViewMatrix * vec4(pos, 1.0))).xyz;

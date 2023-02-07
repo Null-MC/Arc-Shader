@@ -49,7 +49,7 @@ uniform vec3 cameraPosition;
 uniform int isEyeInWater;
 uniform ivec2 atlasSize;
 
-#if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
+#if MC_VERSION >= 11700
     uniform float alphaTestRef;
 #endif
 

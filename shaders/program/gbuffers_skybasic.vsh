@@ -23,12 +23,7 @@
     flat out vec3 skySunColor;
     flat out vec3 sunTransmittanceEye;
 
-    // #ifdef WORLD_MOON_ENABLED
-    //     flat out vec3 skyMoonColor;
-    //     flat out vec3 moonTransmittanceEye;
-    // #endif
-
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         uniform sampler3D texSunTransmittance;
     #else
         uniform sampler3D colortex12;
@@ -85,20 +80,10 @@ void main() {
         
         skySunColor = GetSunColor();
 
-        #if SHADER_PLATFORM == PLATFORM_IRIS
+        #ifdef IS_IRIS
             sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
         #else
             sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
         #endif
-
-        // #ifdef WORLD_MOON_ENABLED
-        //     skyMoonColor = GetMoonColor();
-
-        //     #if SHADER_PLATFORM == PLATFORM_IRIS
-        //         moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
-        //     #else
-        //         moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);
-        //     #endif
-        // #endif
     #endif
 }

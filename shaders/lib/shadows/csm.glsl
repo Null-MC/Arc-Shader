@@ -80,7 +80,7 @@ int GetCascadeForScreenPos(const in vec2 pos) {
 
         mat4 matShadowProjection = BuildOrthoProjectionMatrix(cascadePaddedSize, cascadePaddedSize, zNear, zFar);
 
-        #if SHADER_PLATFORM == PLATFORM_OPTIFINE
+        #ifndef IS_IRIS
             mat4 matSceneProjectionRanged = gbufferPreviousProjection;
             mat4 matSceneModelView = gbufferPreviousModelView;
         #else

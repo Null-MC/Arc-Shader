@@ -27,7 +27,7 @@ uniform sampler2D lightmap;
 uniform mat4 gbufferModelView;
 uniform int worldTime;
 
-#if MC_VERSION >= 11700 && SHADER_PLATFORM != PLATFORM_IRIS
+#if MC_VERSION >= 11700
     uniform float alphaTestRef;
 #endif
 

@@ -90,7 +90,7 @@ vec3 GetCloudColor(const in vec3 cloudPos, const in vec3 viewDir, const in vec2 
         ComputeVolumetricScattering(sun_VoL, 0.86),
         0.3);
 
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         vec3 sunTransmittance = getValFromTLUT(texSunTransmittance, atmosPos, localSunDir);
     #else
         vec3 sunTransmittance = getValFromTLUT(colortex12, atmosPos, localSunDir);
@@ -105,7 +105,7 @@ vec3 GetCloudColor(const in vec3 cloudPos, const in vec3 viewDir, const in vec2 
             ComputeVolumetricScattering(moon_VoL, 0.86),
             0.3);
 
-        #if SHADER_PLATFORM == PLATFORM_IRIS
+        #ifdef IS_IRIS
             vec3 moonTransmittance = getValFromTLUT(texSunTransmittance, atmosPos, localMoonDir);
         #else
             vec3 moonTransmittance = getValFromTLUT(colortex12, atmosPos, localMoonDir);

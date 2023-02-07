@@ -116,7 +116,7 @@ void main() {
 
             skySunColor = GetSunColor();
 
-            #if SHADER_PLATFORM == PLATFORM_IRIS
+            #ifdef IS_IRIS
                 sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
             #else
                 sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
@@ -125,7 +125,7 @@ void main() {
             #ifdef WORLD_MOON_ENABLED
                 skyMoonColor = GetMoonColor();
 
-                #if SHADER_PLATFORM == PLATFORM_IRIS
+                #ifdef IS_IRIS
                     moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
                 #else
                     moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);

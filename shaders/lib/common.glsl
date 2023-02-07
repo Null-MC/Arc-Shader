@@ -51,8 +51,7 @@ const bool colortex11MipmapEnabled = false;
 const bool colortex11Clear = false;
 
 
-#define SHADER_PLATFORM 0 // [0 1]
-
+//#define IS_IRIS
 #define PHYSICS_OCEAN_SUPPORT
 
 
@@ -276,7 +275,7 @@ const float invPI = 1.0 / PI;
 const float wetnessHalflife = 300.0;
 const float drynessHalflife = 10.0;
 
-#if MC_VERSION < 11700 || SHADER_PLATFORM == PLATFORM_IRIS
+#if MC_VERSION < 11700
     const float alphaTestRef = 0.1;
 #endif
 
@@ -329,6 +328,8 @@ const float shadowPixelSize = 1.0 / shadowMapSize;
 #endif
 
 
+#ifdef IS_IRIS
+#endif
 #ifdef REFLECTION_MODE
 #endif
 #ifdef WATER_WAVE_TYPE

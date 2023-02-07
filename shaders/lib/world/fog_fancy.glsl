@@ -19,7 +19,7 @@ vec4 GetFancyFog(const in vec3 localPos, const in vec3 localSunDir, const in flo
 
     vec3 sunColorSky = SunLux * GetSunColor();
 
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         vec3 sunTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.x) * sunColorSky;
     #else
         vec3 sunTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.x) * sunColorSky;
@@ -30,7 +30,7 @@ vec4 GetFancyFog(const in vec3 localPos, const in vec3 localSunDir, const in flo
     #ifdef WORLD_MOON_ENABLED
         vec3 moonColorSky = MoonLux * GetMoonColor();
 
-        #if SHADER_PLATFORM == PLATFORM_IRIS
+        #ifdef IS_IRIS
             vec3 moonTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.y) * moonColorSky;
         #else
             vec3 moonTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.y) * moonColorSky;
@@ -39,7 +39,7 @@ vec4 GetFancyFog(const in vec3 localPos, const in vec3 localSunDir, const in flo
         lightTransmittance += moonTransmittance;
     #endif
 
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         vec3 psiMS = getValFromMultiScattLUT(texMultipleScattering, atmosPos, localSunDir) * SKY_FANCY_LUM;
     #else
         vec3 psiMS = getValFromMultiScattLUT(colortex13, atmosPos, localSunDir) * SKY_FANCY_LUM;

@@ -98,7 +98,7 @@ uniform float far;
     uniform sampler2D BUFFER_DEPTH_PREV;
 #elif DEBUG_VIEW == DEBUG_VIEW_LUT_BRDF
     // BRDF LUT
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         uniform sampler2D texBRDF;
     #else
         uniform sampler2D colortex15;
@@ -106,7 +106,7 @@ uniform float far;
 #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
     // Sun Transmission LUT
     uniform float rainStrength;
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         uniform sampler3D texSunTransmittance;
     #else
         uniform sampler3D colortex12;
@@ -324,7 +324,7 @@ void main() {
         color = textureLod(BUFFER_DEPTH_PREV, texcoord, 0).rrr;
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_BRDF
         // BRDF LUT
-        #if SHADER_PLATFORM == PLATFORM_IRIS
+        #ifdef IS_IRIS
             color.rg = textureLod(texBRDF, texcoord, 0).rg;
         #else
             color.rg = textureLod(colortex15, texcoord, 0).rg;
@@ -333,7 +333,7 @@ void main() {
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
         // Sun Transmission LUT
         vec3 t3 = vec3(texcoord, rainStrength);
-        #if SHADER_PLATFORM == PLATFORM_IRIS
+        #ifdef IS_IRIS
             color = textureLod(texSunTransmittance, t3, 0).rgb;
         #else
             color = textureLod(colortex12, t3, 0).rgb;

@@ -8,7 +8,7 @@
 in vec2 texcoord;
 flat in vec3 localSunDir;
 
-#if SHADER_PLATFORM == PLATFORM_IRIS
+#ifdef IS_IRIS
     uniform sampler3D texSunTransmittance;
     uniform sampler3D texMultipleScattering;
 #else
@@ -54,7 +54,7 @@ vec3 raymarchScattering(const in vec3 pos, const in vec3 rayDir, const in vec3 s
         
         vec3 sampleTransmittance = exp(-dt*extinction);
 
-        #if SHADER_PLATFORM == PLATFORM_IRIS
+        #ifdef IS_IRIS
             vec3 sunTransmittance = getValFromTLUT(texSunTransmittance, newPos, sunDir);
             vec3 psiMS = getValFromMultiScattLUT(texMultipleScattering, newPos, sunDir);
         #else

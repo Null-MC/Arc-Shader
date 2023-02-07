@@ -45,7 +45,7 @@ flat in mat2 atlasBounds;
 #endif
 
 #ifdef SKY_ENABLED
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         uniform sampler3D texSunTransmittance;
         uniform sampler3D texMultipleScattering;
     #else
@@ -91,7 +91,7 @@ flat in mat2 atlasBounds;
 #endif
 
 #if defined VL_SKY_ENABLED || defined WORLD_WATER_ENABLED
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         uniform sampler3D texCloudNoise;
     #else
         uniform sampler3D colortex14;
@@ -106,7 +106,7 @@ flat in mat2 atlasBounds;
     uniform int heldBlockLightValue;
     uniform int heldBlockLightValue2;
     
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         uniform bool firstPersonCamera;
         uniform vec3 eyePosition;
     #endif
@@ -124,7 +124,7 @@ uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
 uniform usampler2D BUFFER_DEFERRED;
 
-#if SHADER_PLATFORM == PLATFORM_IRIS
+#ifdef IS_IRIS
     uniform sampler2D texBRDF;
 #else
     uniform sampler2D colortex15;
@@ -294,14 +294,14 @@ void main() {
     #if !defined IRIS_FEATURE_SSBO && defined SKY_ENABLED
         float eyeElevation = GetScaledSkyHeight(eyeAltitude);
 
-        #if SHADER_PLATFORM == PLATFORM_IRIS
+        #ifdef IS_IRIS
             sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
         #else
             sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
         #endif
 
         #ifdef WORLD_MOON_ENABLED
-            #if SHADER_PLATFORM == PLATFORM_IRIS
+            #ifdef IS_IRIS
                 moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
             #else
                 moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);

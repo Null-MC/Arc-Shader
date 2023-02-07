@@ -10,7 +10,7 @@ out vec2 texcoord;
 #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
     flat out float eyeLum;
 
-    #if SHADER_PLATFORM == PLATFORM_IRIS
+    #ifdef IS_IRIS
         uniform sampler3D texSunTransmittance;
     #else
         uniform sampler3D colortex0;
@@ -32,7 +32,7 @@ out vec2 texcoord;
     uniform vec3 skyColor;
     uniform vec3 fogColor;
 
-    #if SHADER_PLATFORM == PLATFORM_OPTIFINE
+    #ifndef IS_IRIS
         uniform int worldTime;
     #endif
 
@@ -48,7 +48,7 @@ out vec2 texcoord;
             vec2 skyLightLevels = GetSkyLightLevels();
             float eyeElevation = GetScaledSkyHeight(eyeAltitude);
 
-            #if SHADER_PLATFORM == PLATFORM_IRIS
+            #ifdef IS_IRIS
                 vec3 sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
                 vec3 moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
             #else
