@@ -492,6 +492,28 @@
             #endif
         #endif
 
+        #if defined HANDLIGHT_ENABLED
+            if (heldBlockLightValue + heldBlockLightValue2 > EPSILON) {
+                vec3 handViewPos = viewPos.xyz;
+
+                #if SHADER_PLATFORM == PLATFORM_IRIS
+                    if (!firstPersonCamera) {
+                        vec3 playerCameraOffset = cameraPosition - eyePosition;
+                        playerCameraOffset = (gbufferModelView * vec4(playerCameraOffset, 1.0)).xyz;
+                        handViewPos += playerCameraOffset;
+                    }
+                #endif
+
+                vec3 handDiffuse, handSpecular;
+                ApplyHandLighting(handDiffuse, handSpecular, material.albedo.rgb, material.f0, material.hcm, material.scattering, viewNormal, handViewPos, -viewDir, NoVm, roughL);
+
+                diffuse += handDiffuse;
+                specular += handSpecular;
+
+                final.a = min(final.a + luminance(handSpecular) * sceneExposure, 1.0);
+            }
+        #endif
+
         #if defined RENDER_WATER && defined WORLD_WATER_ENABLED
             if (materialId == MATERIAL_WATER) {
                 float waterRefractEta = isEyeInWater == 1
@@ -715,47 +737,6 @@
                     }
                 }
             }
-        #endif
-
-        #if defined HANDLIGHT_ENABLED
-            if (heldBlockLightValue + heldBlockLightValue2 > EPSILON) {
-                vec3 handViewPos = viewPos.xyz;
-
-                #if SHADER_PLATFORM == PLATFORM_IRIS
-                    if (!firstPersonCamera) {
-                        vec3 playerCameraOffset = cameraPosition - eyePosition;
-                        playerCameraOffset = (gbufferModelView * vec4(playerCameraOffset, 1.0)).xyz;
-                        handViewPos += playerCameraOffset;
-                    }
-                #endif
-
-                vec3 handDiffuse, handSpecular;
-                ApplyHandLighting(handDiffuse, handSpecular, material.albedo.rgb, material.f0, material.hcm, material.scattering, viewNormal, handViewPos, -viewDir, NoVm, roughL);
-
-                #ifdef RENDER_WATER
-                    if (materialId != MATERIAL_WATER) {
-                #endif
-
-                    diffuse += handDiffuse;
-                    final.a = min(final.a + luminance(handSpecular) * sceneExposure, 1.0);
-
-                #ifdef RENDER_WATER
-                    }
-                #endif
-
-                specular += handSpecular;
-            }
-        #endif
-
-        #ifdef SKY_ENABLED
-            #if SHADER_PLATFORM == PLATFORM_IRIS
-                //if (lightningBoltPosition.w > EPSILON)
-                //    ApplyLightning(diffuse, specular, material.albedo.rgb, material.f0, material.hcm, material.scattering, viewNormal, viewPos.xyz, -viewDir, NoVm, roughL);
-            #endif
-
-            // #if defined RSM_ENABLED && defined RENDER_DEFERRED
-            //     ambient += rsmColor * skyLightColorFinal;
-            // #endif
         #endif
 
         //diffuse *= metalDarkF;

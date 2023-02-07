@@ -75,14 +75,16 @@
 
                 #if WATER_WAVE_TYPE != WATER_WAVE_NONE || defined PHYSICS_OCEAN
                     #ifdef PHYSICS_OCEAN
-                        vec3 waveNormal = physics_waveNormal(physics_localPosition.xz, physics_localWaviness, physics_gameTime, physics_iterationsNormal);
-                        material.normal = mat3(gl_ModelViewMatrix) * waveNormal;
+                        WavePixelData waveData = physics_wavePixel(physics_localPosition, physics_localWaviness, physics_iterationsNormal, physics_gameTime);
+
+                        vec3 waveNormal = physics_waveNormal(waveData, physics_localWaviness);
 
                         #ifdef WATER_FOAM
-                            vec3 waves = physics_waveUV(physics_localPosition, PHYSICS_ITERATIONS_OFFSET, physics_localWaviness, physics_gameTime);
-                            waveAmplitude = waves.y * pow(max(waveNormal.y, 0.0), 4.0);
-                            waterUV = waves.xz;
+                            waveAmplitude = waveData.height * pow(max(waveNormal.y, 0.0), 4.0);
+                            waterUV = waveData.worldPos;
                         #endif
+
+                        material.normal = mat3(gl_ModelViewMatrix) * waveNormal;
                     #else
                         const float waterScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
                         vec3 waterWorldPos = waterScale * worldPos;
