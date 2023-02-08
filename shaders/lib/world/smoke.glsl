@@ -56,11 +56,7 @@ vec3 GetVolumetricSmoke(const in LightData lightData, inout vec3 transmittance, 
         vec3 traceLocalPos = localStart + localStep * (i + dither);
         vec3 traceWorldPos = cameraPosition + traceLocalPos;
 
-        #ifdef IS_IRIS
-            float texDensity = GetSmokeDensity(texCloudNoise, traceWorldPos, time);
-        #else
-            float texDensity = GetSmokeDensity(colortex14, traceWorldPos, time);
-        #endif
+        float texDensity = GetSmokeDensity(TEX_CLOUD_NOISE, traceWorldPos, time);
 
         texDensity = pow(texDensity, 3.0) * VL_SMOKE_DENSITY;
 

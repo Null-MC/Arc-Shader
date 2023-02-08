@@ -97,7 +97,7 @@ const bool colortex11Clear = false;
 
 #define SKY_VL_ENABLED
 #define SKY_VL_SAMPLES 12 // [8 12 16 20 24 32]
-//#define SKY_CLOUDS_ENABLED
+#define SKY_CLOUDS_ENABLED
 
 
 // Shadow Options

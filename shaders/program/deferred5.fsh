@@ -202,6 +202,7 @@ uniform float waterFogDistSmooth;
 #endif
 
 #include "/lib/world/fog_vanilla.glsl"
+#include "/lib/lighting/basic.glsl"
 
 #ifdef SKY_ENABLED
     #include "/lib/sky/hillaire.glsl"
@@ -240,8 +241,6 @@ uniform float waterFogDistSmooth;
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     #include "/lib/ssr.glsl"
 #endif
-
-#include "/lib/lighting/basic.glsl"
 
 #ifdef HANDLIGHT_ENABLED
     #include "/lib/lighting/handlight_common.glsl"

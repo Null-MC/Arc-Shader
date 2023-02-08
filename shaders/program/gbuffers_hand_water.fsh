@@ -232,6 +232,7 @@ uniform float waterFogDistSmooth;
 
 #include "/lib/world/fog_vanilla.glsl"
 #include "/lib/world/weather.glsl"
+#include "/lib/lighting/basic.glsl"
 
 #ifdef SKY_ENABLED
     #include "/lib/sky/clouds.glsl"
@@ -268,7 +269,6 @@ uniform float waterFogDistSmooth;
     #include "/lib/lighting/pbr_handlight.glsl"
 #endif
 
-#include "/lib/lighting/basic.glsl"
 #include "/lib/lighting/pbr.glsl"
 #include "/lib/lighting/pbr_forward.glsl"
 

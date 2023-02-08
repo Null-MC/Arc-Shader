@@ -86,3 +86,9 @@
 #define MATERIAL_ITEM_FRAME 101
 #define MATERIAL_PHYSICS_SNOW 829925
 #define MATERIAL_BOAT 103
+
+#ifdef IS_IRIS
+	#define TEX_CLOUD_NOISE texCloudNoise
+#else
+	#define TEX_CLOUD_NOISE colortex14
+#endif

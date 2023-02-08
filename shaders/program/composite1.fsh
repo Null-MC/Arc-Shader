@@ -360,21 +360,6 @@ void main() {
                     vec3 shadowViewPos = (shadowModelViewEx * vec4(shadowLocalPos, 1.0)).xyz;
 
                     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                        // lightData.shadowPos[0] = (cascadeProjection[0] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                        // lightData.shadowPos[1] = (cascadeProjection[1] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                        // lightData.shadowPos[2] = (cascadeProjection[2] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                        // lightData.shadowPos[3] = (cascadeProjection[3] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                                            
-                        // lightData.shadowPos[0].xy = lightData.shadowPos[0].xy * 0.5 + shadowProjectionPos[0];
-                        // lightData.shadowPos[1].xy = lightData.shadowPos[1].xy * 0.5 + shadowProjectionPos[1];
-                        // lightData.shadowPos[2].xy = lightData.shadowPos[2].xy * 0.5 + shadowProjectionPos[2];
-                        // lightData.shadowPos[3].xy = lightData.shadowPos[3].xy * 0.5 + shadowProjectionPos[3];
-                        
-                        // lightData.shadowBias[0] = GetCascadeBias(geoNoL, shadowProjectionSize[0]);
-                        // lightData.shadowBias[1] = GetCascadeBias(geoNoL, shadowProjectionSize[1]);
-                        // lightData.shadowBias[2] = GetCascadeBias(geoNoL, shadowProjectionSize[2]);
-                        // lightData.shadowBias[3] = GetCascadeBias(geoNoL, shadowProjectionSize[3]);
-
                         vec3 shadowPos = GetCascadeShadowPosition(shadowViewPos, lightData.shadowCascade);
 
                         lightData.shadowPos[lightData.shadowCascade] = shadowPos;

@@ -128,8 +128,8 @@
                     material.albedo.rgb = RGBToLinear(material.albedo.rgb);
 
                     float time = frameTimeCounter / 360.0;
-                    vec2 s1 = textureLod(texCloudNoise, vec3(waterUV * 0.30, time      ), 0).rg;
-                    vec2 s2 = textureLod(texCloudNoise, vec3(waterUV * 0.02, time + 0.5), 0).rg;
+                    vec2 s1 = textureLod(TEX_CLOUD_NOISE, vec3(waterUV * 0.30, time      ), 0).rg;
+                    vec2 s2 = textureLod(TEX_CLOUD_NOISE, vec3(waterUV * 0.02, time + 0.5), 0).rg;
 
                     float waterSurfaceNoise = s1.r * s2.r * 1.5;
 

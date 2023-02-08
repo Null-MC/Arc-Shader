@@ -131,11 +131,7 @@ const float AirSpeed = 20.0;
             #endif
 
             #ifdef VL_FOG_NOISE
-                #ifdef IS_IRIS
-                    float texDensity = GetSkyFogDensity(texCloudNoise, traceWorldPos, time);
-                #else
-                    float texDensity = GetSkyFogDensity(colortex14, traceWorldPos, time);
-                #endif
+                float texDensity = GetSkyFogDensity(TEX_CLOUD_NOISE, traceWorldPos, time);
 
                 #ifdef WORLD_END
                     texDensity = 1.0 + 60.0 * texDensity;
@@ -195,7 +191,7 @@ const float AirSpeed = 20.0;
                     vec3 moonTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.y);
                 #endif
 
-                lightTransmittance += moonTransmittance * skyMoonColor * MoonLux;
+                lightTransmittance += moonTransmittance * skyMoonColor * MoonLux * GetMoonPhaseLevel();
             #endif
 
             lightTransmittance *= sampleColor * sampleF;
@@ -245,8 +241,8 @@ const float AirSpeed = 20.0;
     }
 
     float GetWaterFogDensity(const in sampler3D tex, const in vec3 worldPos) {
-        float sampleDensity1 = texture(tex, worldPos / 96.0).r;
-        float sampleDensity2 = texture(tex, worldPos / 16.0).r;
+        float sampleDensity1 = textureLod(tex, worldPos / 96.0, 0).r;
+        float sampleDensity2 = textureLod(tex, worldPos / 16.0, 0).r;
         return 1.0 - 0.6 * sampleDensity1 - 0.3 * sampleDensity2;
     }
 
@@ -369,16 +365,12 @@ const float AirSpeed = 20.0;
                 if (HasClouds(traceWorldPos, localLightDir)) {
                     vec3 cloudPos = GetCloudPosition(traceWorldPos, localLightDir);
                     float cloudF = GetCloudFactor(cloudPos, localLightDir, 0);
-                    lightSample *= pow(1.0 - cloudF, 4.0);
+                    lightSample *= pow(1.0 - cloudF, 16.0);
                 }
             #endif
 
             #ifdef VL_WATER_NOISE
-                #ifdef IS_IRIS
-                    float texDensity = GetWaterFogDensity(texCloudNoise, traceWorldPos);
-                #else
-                    float texDensity = GetWaterFogDensity(colortex14, traceWorldPos);
-                #endif
+                float texDensity = GetWaterFogDensity(TEX_CLOUD_NOISE, traceWorldPos);
             #endif
 
             vec3 atmosPos = GetAtmospherePosition(traceWorldPos);
