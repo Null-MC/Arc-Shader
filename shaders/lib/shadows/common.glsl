@@ -39,5 +39,6 @@ mat4 BuildShadowViewMatrix() {
 }
 
 mat4 BuildShadowProjectionMatrix() {
-    return BuildOrthoProjectionMatrix(shadowDistance, shadowDistance, -far, far);
+    float maxDist = min(shadowDistance, far);
+    return BuildOrthoProjectionMatrix(maxDist, maxDist, -far, far);
 }

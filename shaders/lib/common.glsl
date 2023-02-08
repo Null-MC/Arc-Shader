@@ -205,7 +205,7 @@ const bool colortex11Clear = false;
 
 
 // Debug Options
-#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 17 18 19 20 22 24 25 26 27 28]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
 //#define DEBUG_EXPOSURE_METERS
 //#define IRIS_FEATURE_CHUNK_OFFSET
 #define DITHER_FINAL

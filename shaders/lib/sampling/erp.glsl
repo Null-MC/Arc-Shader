@@ -1,18 +1,20 @@
 // Equirectangular Projection
 
 vec3 DirectionFromUV(const in vec2 uv) {
-	vec2 sphereCoord = (uv - 0.5) * vec2(TAU, PI);
+    vec2 sphereCoord = (uv - vec2(0.5, 0.0)) * vec2(TAU, PI);
+    float sinY = sin(sphereCoord.y);
 
     return vec3(
-    	cos(sphereCoord.y) * cos(sphereCoord.x),
-        sin(sphereCoord.y),
-        cos(sphereCoord.y) * sin(sphereCoord.x));
+        cos(sphereCoord.x) * sinY,
+        cos(sphereCoord.y),
+        sin(sphereCoord.x) * sinY);
 }
 
 vec2 DirectionToUV(const in vec3 dir) {
-    vec2 sphereCoord = vec2(
-        atan(dir.z, dir.x),
-        acos(dir.y));
+    if (dir.y >  0.9999) return vec2(0.5, 0.0);
+    if (dir.y < -0.9999) return vec2(0.5, 1.0);
 
-    return sphereCoord / vec2(TAU, PI) + 0.5;
+    return vec2(
+        atan(dir.z, dir.x) * rcp(TAU) + 0.5,
+        acos(dir.y) * rcp(PI));
 }

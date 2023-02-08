@@ -362,8 +362,15 @@
         //return vec4(iblSpec, 1.0);
 
         #ifdef SKY_ENABLED
-            vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
+            vec3 localNormal = mat3(gbufferModelViewInverse) * normalize(viewNormal);
+            //return vec4(localNormal * 500.0 + 500.0, 1.0);
+
+            vec2 sphereCoord = DirectionToUV(localNormal);
+            sphereCoord.y = clamp(sphereCoord.y, 0.5/16.0, 15.5/16.0);
+            //return vec4(sphereCoord * 1000.0, 0.0, 1.0);
+
             vec3 skyAmbient = GetFancySkyAmbientLight(localNormal, skyLight);
+            //return vec4(skyAmbient, 1.0);
 
             #ifdef WORLD_END
                 skyAmbient *= 0.1;
@@ -389,25 +396,6 @@
                 skyLightColorFinal *= sunAbsorption;
                 skyLightColorShadow *= sunAbsorption;
                 iblSpec *= sunAbsorption;
-
-                // #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                //     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                //         uint shadowData = textureLod(shadowcolor1, lightData.shadowPos[lightData.shadowCascade].xy, 0).g;
-                //     #else
-                //         uint shadowData = textureLod(shadowcolor1, lightData.shadowPos.xy, 0).g;
-                //     #endif
-
-                //     // sample normal, get fresnel, darken
-                //     vec3 waterNormal = unpackUnorm4x8(shadowData).xyz;
-                //     waterNormal = normalize(waterNormal * 2.0 - 1.0);
-                //     float water_NoL = max(waterNormal.z, 0.0);
-                //     float water_F = F_schlick(water_NoL, 0.02, 1.0);
-
-                //     water_F = 1.0 - water_F;
-                //     //water_F = smoothstep(0.5, 1.0, 1.0 - water_F);
-
-                //     skyLightColorFinal *= max(water_F, 0.0);
-                // #endif
             }
 
             ambient += skyAmbient;
