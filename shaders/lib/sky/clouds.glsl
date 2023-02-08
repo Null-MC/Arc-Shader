@@ -68,22 +68,18 @@ float GetCloudFactor(const in vec3 cloudPos, const in vec3 localViewDir, const i
     float time = frameTimeCounter / 3.6;
 
     float d = GetCloudDensity(cloudPos.xz * 0.003, time * 0.01);
+    
     d = saturate(d);
-
     d = pow(d, 1.0 - 0.6 * wetness);
 
-    d *= smoothstep(0.1, 0.8, localViewDir.y);
-
-    return d;
+    return d * smoothstep(0.1, 0.8, localViewDir.y);
 }
 
-vec3 GetCloudColor(const in vec3 cloudPos, const in vec3 viewDir, const in vec2 skyLightLevels) {
+vec3 GetCloudColor(const in vec3 cloudPos, const in vec3 localViewDir, const in vec2 skyLightLevels) {
     vec3 atmosPos = GetAtmospherePosition(cloudPos);
 
-    vec3 localViewDir = mat3(gbufferModelViewInverse) * viewDir;
-
     vec3 localSunDir = GetSunLocalDir();
-    float sun_VoL = dot(viewDir, localSunDir);
+    float sun_VoL = dot(localViewDir, localSunDir);
 
     float sunScatterF = mix(
         ComputeVolumetricScattering(sun_VoL, -0.24),
@@ -98,7 +94,7 @@ vec3 GetCloudColor(const in vec3 cloudPos, const in vec3 viewDir, const in vec2 
 
     #ifdef WORLD_MOON_ENABLED
         vec3 localMoonDir = GetMoonLocalDir();
-        float moon_VoL = dot(viewDir, localMoonDir);
+        float moon_VoL = dot(localViewDir, localMoonDir);
 
         float moonScatterF = mix(
             ComputeVolumetricScattering(moon_VoL, -0.24),
@@ -112,14 +108,14 @@ vec3 GetCloudColor(const in vec3 cloudPos, const in vec3 viewDir, const in vec2 
         #endif
     #endif
 
-    vec3 sunColor = sunTransmittance * GetSunLuxColor();// * smoothstep(-0.06, 0.6, skyLightLevels.x);
-    vec3 vl = sunColor * sunScatterF;
-    vec3 ambient = sunColor;
+    vec3 sunColorFinal = sunTransmittance * skySunColor * SunLux;// * smoothstep(-0.06, 0.6, skyLightLevels.x);
+    vec3 vl = sunColorFinal * sunScatterF;
+    vec3 ambient = sunColorFinal;
 
     #ifdef WORLD_MOON_ENABLED
-        vec3 moonColor = moonTransmittance * GetMoonLuxColor() * GetMoonPhaseLevel();// * smoothstep(-0.06, 0.6, skyLightLevels.y);
-        vl += moonColor * moonScatterF;
-        ambient += moonColor;
+        vec3 moonColorFinal = moonTransmittance * skyMoonColor * MoonLux * GetMoonPhaseLevel();// * smoothstep(-0.06, 0.6, skyLightLevels.y);
+        vl += moonColorFinal * moonScatterF;
+        ambient += moonColorFinal;
     #endif
 
     return (ambient * 0.2 + vl) * CLOUD_COLOR * pow(1.0 - 0.9 * rainStrength, 2.0);

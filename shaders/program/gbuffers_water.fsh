@@ -90,7 +90,7 @@ flat in mat2 atlasBounds;
     #endif
 #endif
 
-#if defined VL_SKY_ENABLED || defined WORLD_WATER_ENABLED
+#if defined SKY_VL_ENABLED || defined WORLD_WATER_ENABLED
     #ifdef IS_IRIS
         uniform sampler3D texCloudNoise;
     #else
@@ -263,7 +263,7 @@ uniform float waterRoughSmooth;
             #include "/lib/shadows/basic_render.glsl"
         #endif
 
-        #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
+        #if defined SKY_VL_ENABLED || defined VL_WATER_ENABLED
             #include "/lib/lighting/volumetric.glsl"
         #endif
     #endif

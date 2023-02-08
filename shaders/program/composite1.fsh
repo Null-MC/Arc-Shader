@@ -205,6 +205,10 @@ uniform float eyeHumidity;
     #include "/lib/sky/hillaire.glsl"
     #include "/lib/world/fog_fancy.glsl"
 
+    #ifdef WORLD_WATER_ENABLED
+        #include "/lib/world/weather.glsl"
+    #endif
+
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #include "/lib/sampling/ign.glsl"
         #include "/lib/shadows/common.glsl"
@@ -217,7 +221,7 @@ uniform float eyeHumidity;
             #include "/lib/shadows/basic_render.glsl"
         #endif
 
-        #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
+        #if defined SKY_VL_ENABLED || defined VL_WATER_ENABLED
             #include "/lib/lighting/volumetric.glsl"
         #endif
     #endif
@@ -416,7 +420,7 @@ void main() {
             final = PbrLighting2(material, lightData, viewPos).rgb;
 
             if (lightData.transparentScreenDepth < lightData.opaqueScreenDepth) {
-                #if defined SKY_ENABLED && !defined VL_SKY_ENABLED
+                #if defined SKY_ENABLED && !defined SKY_VL_ENABLED
                     vec3 viewLightDir = GetShadowLightViewDir();
                     float VoL = dot(viewLightDir, viewDir);
                     vec3 localSunDir = GetSunLocalDir();
@@ -437,7 +441,7 @@ void main() {
         //float lum = texelFetch(BUFFER_LUM_OPAQUE, iTex, 0).r;
         final = texelFetch(BUFFER_HDR_OPAQUE, iTex, 0).rgb / sceneExposure;
 
-        #ifdef WORLD_CLOUDS_ENABLED
+        #if defined WORLD_CLOUDS_ENABLED && defined SKY_CLOUDS_ENABLED
             if (isEyeInWater == 1) {
                 if (HasClouds(cameraPosition, localViewDir)) {
                     vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
@@ -446,7 +450,7 @@ void main() {
                     //cloudF *= max(localViewDir.y, 0.0);
                     cloudF *= 1.0 - blindness;
 
-                    vec3 cloudColor = GetCloudColor(cloudPos, viewDir, skyLightLevels);
+                    vec3 cloudColor = GetCloudColor(cloudPos, localViewDir, skyLightLevels);
                     final = mix(final, cloudColor, cloudF);
                 }
             }
@@ -455,7 +459,7 @@ void main() {
 
     float minViewDist = min(lightData.opaqueScreenDepthLinear, lightData.transparentScreenDepthLinear);
 
-    #if defined SKY_ENABLED && defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+    #if defined SKY_ENABLED && defined SKY_VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         if (isEyeInWater == 1 && lightData.opaqueScreenDepth > lightData.transparentScreenDepth) {
             vec3 vlScatter, vlExt;
             GetVolumetricLighting(vlScatter, vlExt, localViewDir, lightData.transparentScreenDepthLinear, lightData.opaqueScreenDepthLinear);

@@ -167,10 +167,10 @@ option.WEATHER_OPACITY=Weather Opacity
 option.WEATHER_OPACITY.comment=Controls the opacity of weather particles (rain, snow). Lower values will be less visible.
 suffix.WEATHER_OPACITY=%
 
-option.VL_SKY_ENABLED=Volumetric
+option.SKY_VL_ENABLED=Volumetric
 
-option.VL_SAMPLES_SKY=VL Samples
-option.VL_SAMPLES_SKY.comment=More samples provides higher quality; less samples will be faster.
+option.SKY_VL_SAMPLES=VL Samples
+option.SKY_VL_SAMPLES.comment=More samples provides higher quality; less samples will be faster.
 
 option.VL_STRENGTH=VL Strength
 option.VL_STRENGTH.comment=Makes light rays more visible by simulating atmospheric scattering in lit volumes.

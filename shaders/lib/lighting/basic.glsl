@@ -148,6 +148,11 @@
     vec3 GetFancySkyAmbientLight(const in vec3 localNormal, const in float skyLight) {
         vec2 sphereCoord = DirectionToUV(localNormal);
         vec3 irradiance = textureLod(BUFFER_IRRADIANCE, sphereCoord, 0).rgb;
+
+        #if !defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE
+            irradiance *= 2.2;
+        #endif
+
         return irradiance * SKY_FANCY_LUM * smoothstep(0.0, 1.0, skyLight);
     }
 #endif

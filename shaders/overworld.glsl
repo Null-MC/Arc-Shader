@@ -11,7 +11,7 @@
 
 const float SunLux = 64000.0;
 const float SunOvercastLux = 48000.0;
-const float MoonLux = 32.0;
+const float MoonLux = 64.0;
 const float MoonOvercastLux = 4.0;
 const float MinWorldLux = 8.0;
 

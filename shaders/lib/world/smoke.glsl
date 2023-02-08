@@ -21,7 +21,7 @@ float GetSmokeDensity(const in sampler3D tex, const in vec3 worldPos, const in f
 }
 
 vec3 GetVolumetricSmoke(const in LightData lightData, inout vec3 transmittance, const in vec3 nearViewPos, const in vec3 farViewPos) {
-    const float inverseStepCountF = rcp(VL_SAMPLES_SKY + 1);
+    const float inverseStepCountF = rcp(SKY_VL_SAMPLES + 1);
 
     #ifdef VL_DITHER
         float dither = GetScreenBayerValue();
@@ -52,7 +52,7 @@ vec3 GetVolumetricSmoke(const in LightData lightData, inout vec3 transmittance, 
     float time = frameTimeCounter / 3600.0;
 
     vec3 scattering = vec3(0.0);
-    for (int i = 0; i < VL_SAMPLES_SKY; i++) {
+    for (int i = 0; i < SKY_VL_SAMPLES; i++) {
         vec3 traceLocalPos = localStart + localStep * (i + dither);
         vec3 traceWorldPos = cameraPosition + traceLocalPos;
 

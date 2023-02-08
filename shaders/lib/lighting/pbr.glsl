@@ -39,16 +39,7 @@
             #ifdef RENDER_WATER
                 if (materialId == MATERIAL_WATER && isEyeInWater == 1) {
                     vec2 waterScatteringF = GetWaterScattering(reflectDir);
-                    //vec3 waterLightColor = GetWaterScatterColor(reflectDir, sunColorFinalEye, moonColorFinalEye);
-                    vec3 waterFogColor = GetWaterFogColor(sunColorFinalEye, moonColorFinalEye, waterScatteringF);
-
-                    //#if defined SKY_ENABLED && !defined VL_WATER_ENABLED
-                    // float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
-                    // vec3 vlColor = waterScatteringF.x * sunColorFinalEye + waterScatteringF.y * moonColorFinalEye;
-                    // waterFogColor += 0.2 * waterScatterColor * vlColor * pow3(eyeLight);
-                    //#endif
-
-                    return waterFogColor;
+                    return GetWaterFogColor(sunColorFinalEye, moonColorFinalEye, waterScatteringF);
                 }
             #endif
 
@@ -62,13 +53,13 @@
             starF *= 1.0 - horizonFogF;
             reflectSkyColor += starF * StarLumen;
 
-            #ifdef WORLD_CLOUDS_ENABLED
+            #if defined WORLD_CLOUDS_ENABLED && defined SKY_CLOUDS_ENABLED
                 if (HasClouds(worldPos, localReflectDir)) {
                     vec3 cloudPos = GetCloudPosition(worldPos, localReflectDir);
                     float cloudF = GetCloudFactor(cloudPos, localReflectDir, 0.0);
                     cloudF *= 1.0 - blindness;
                     
-                    vec3 cloudColor = GetCloudColor(cloudPos, reflectDir, skyLightLevels);
+                    vec3 cloudColor = GetCloudColor(cloudPos, localReflectDir, skyLightLevels);
                     reflectSkyColor = mix(reflectSkyColor, cloudColor, cloudF);
                 }
             #endif
@@ -173,7 +164,7 @@
                 #endif
             #endif
 
-                #if defined WORLD_CLOUDS_ENABLED && defined SHADOW_CLOUD
+                #if defined WORLD_CLOUDS_ENABLED && defined SKY_CLOUDS_ENABLED && defined SHADOW_CLOUD
                     vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
 
                     float cloudF = GetCloudFactor(worldPos, localLightDir, 4.0);
@@ -330,6 +321,10 @@
             vec3 specularTint = GetHCM_Tint(material.albedo.rgb, material.hcm);
         #else
             vec3 specularTint = mix(vec3(1.0), material.albedo.rgb, material.f0);
+        #endif
+
+        #ifdef RENDER_COMPOSITE
+            albedo = WetnessDarkenSurface(albedo, material.porosity, 1.0);
         #endif
 
         vec4 final = vec4(albedo, material.albedo.a);
@@ -758,7 +753,7 @@
 
         //#ifdef RENDER_WATER
             if (isEyeInWater == 0) {
-                #ifndef VL_SKY_ENABLED
+                #ifndef SKY_VL_ENABLED
                     float fogF = 1.0;
                     #ifdef RENDER_WATER
                         if (materialId == MATERIAL_WATER)

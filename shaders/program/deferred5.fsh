@@ -145,7 +145,7 @@ uniform float fogEnd;
     #endif
 #endif
 
-#if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED || defined SMOKE_ENABLED
+#if defined SKY_VL_ENABLED || defined VL_WATER_ENABLED || defined SMOKE_ENABLED
     #ifdef IS_IRIS
         uniform sampler3D texCloudNoise;
     #else
@@ -222,7 +222,7 @@ uniform float waterFogDistSmooth;
             #include "/lib/shadows/csm_render.glsl"
         #endif
 
-        #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
+        #if defined SKY_VL_ENABLED || defined VL_WATER_ENABLED
             #include "/lib/lighting/volumetric.glsl"
         #endif
     #endif
@@ -349,21 +349,6 @@ void main() {
             vec3 shadowViewPos = (shadowModelViewEx * vec4(shadowLocalPos, 1.0)).xyz;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                // lightData.shadowPos[0] = (cascadeProjection[0] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                // lightData.shadowPos[1] = (cascadeProjection[1] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                // lightData.shadowPos[2] = (cascadeProjection[2] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                // lightData.shadowPos[3] = (cascadeProjection[3] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                                
-                // lightData.shadowPos[0].xy = lightData.shadowPos[0].xy * 0.5 + shadowProjectionPos[0];
-                // lightData.shadowPos[1].xy = lightData.shadowPos[1].xy * 0.5 + shadowProjectionPos[1];
-                // lightData.shadowPos[2].xy = lightData.shadowPos[2].xy * 0.5 + shadowProjectionPos[2];
-                // lightData.shadowPos[3].xy = lightData.shadowPos[3].xy * 0.5 + shadowProjectionPos[3];
-                
-                // lightData.shadowBias[0] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[0]);
-                // lightData.shadowBias[1] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[1]);
-                // lightData.shadowBias[2] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[2]);
-                // lightData.shadowBias[3] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[3]);
-
                 vec3 shadowPos = GetCascadeShadowPosition(shadowViewPos, lightData.shadowCascade);
                 
                 lightData.shadowPos[lightData.shadowCascade] = shadowPos;
@@ -403,15 +388,6 @@ void main() {
         vec3 localSunDir = GetSunLocalDir();
     #endif
 
-    // SKY
-    // #ifdef SKY_ENABLED
-    //     vec3 sunColorFinalEye = lightData.sunTransmittanceEye * sunColor * max(lightData.skyLightLevels.x, 0.0);
-
-    //     #ifdef WORLD_MOON_ENABLED
-    //         vec3 moonColorFinalEye = lightData.moonTransmittanceEye * moonColor * max(lightData.skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
-    //     #endif
-    // #endif
-
     if (lightData.opaqueScreenDepth >= 1.0) {
         if (blindness > EPSILON) {
             color = vec3(0.0);
@@ -442,7 +418,7 @@ void main() {
     }
 
     if (lightData.opaqueScreenDepth >= 1.0) {
-        #if defined SKY_ENABLED && !defined VL_SKY_ENABLED
+        #if defined SKY_ENABLED && !defined SKY_VL_ENABLED
             vec3 localLightDir = GetShadowLightLocalDir();
             float VoL = dot(localLightDir, localViewDir);
             vec4 scatteringTransmittance = GetFancyFog(localPos, localSunDir, VoL);
@@ -456,7 +432,7 @@ void main() {
     }
 
     #ifdef SKY_ENABLED
-        #ifdef WORLD_CLOUDS_ENABLED
+        #if defined WORLD_CLOUDS_ENABLED && defined SKY_CLOUDS_ENABLED
             float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
 
             float cloudDepthTest = CLOUD_LEVEL - (cameraPosition.y + localPos.y);
@@ -469,12 +445,12 @@ void main() {
                 //cloudF *= smoothstep(0.1, 0.8, localViewDir.y);
                 cloudF *= 1.0 - blindness;
 
-                vec3 cloudColor = GetCloudColor(cloudPos, viewDir, skyLightLevels);
+                vec3 cloudColor = GetCloudColor(cloudPos, localViewDir, skyLightLevels);
                 color = mix(color, cloudColor, cloudF);
             }
         #endif
 
-        #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        #if defined SKY_VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             vec3 vlScatter, vlExt;
             GetVolumetricLighting(vlScatter, vlExt, localViewDir, near, min(length(viewPos), far));
             color = color * vlExt + vlScatter;

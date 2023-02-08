@@ -66,12 +66,16 @@ float GetFogFactor(const in float dist, const in float start, const in float end
         #ifdef SKY_ENABLED
             vec3 waterFogColor = vec3(0.0);
 
-            #ifdef SKY_ENABLED
+            #if defined VL_WATER_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+                const float isotropicPhase = 0.25 / PI;
+                vec3 lightColor = isotropicPhase * (sunColorFinal + moonColorFinal);
+            #else
                 vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
-                float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0) * 0.9 + 0.1;
-                vec3 ext = 1.0 - RGBToLinear(waterAbsorbColor);
-                waterFogColor = lightColor * exp(-ext * (3.0 / eyeLight));
             #endif
+
+            float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0) * 0.9 + 0.1;
+            vec3 ext = 1.0 - RGBToLinear(waterAbsorbColor);
+            waterFogColor = lightColor * exp(-ext * (6.0 / eyeLight));
 
             return waterFogColor;
         #else

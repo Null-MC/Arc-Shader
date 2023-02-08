@@ -30,21 +30,21 @@
         #endif
 
         #ifdef SKY_ENABLED
-            //lightData.skyLightLevels = skyLightLevels;
-
             float eyeElevation = GetScaledSkyHeight(cameraPosition.y);
             float fragElevation = GetAtmosphereElevation(worldPos);
 
             #ifdef IS_IRIS
                 lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
-                lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
-                //lightData.sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
-                //lightData.moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
             #else
                 lightData.sunTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.x);
-                lightData.moonTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.y);
-                //lightData.sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
-                //lightData.moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);
+            #endif
+
+            #ifdef WORLD_MOON_ENABLED
+                #ifdef IS_IRIS
+                    lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
+                #else
+                    lightData.moonTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.y);
+                #endif
             #endif
         #endif
 
@@ -76,7 +76,6 @@
                 #if WATER_WAVE_TYPE != WATER_WAVE_NONE || defined PHYSICS_OCEAN
                     #ifdef PHYSICS_OCEAN
                         WavePixelData waveData = physics_wavePixel(physics_localPosition, physics_localWaviness, physics_iterationsNormal, physics_gameTime);
-
                         vec3 waveNormal = physics_waveNormal(waveData, physics_localWaviness);
 
                         #ifdef WATER_FOAM
@@ -276,9 +275,9 @@
                 ApplyDirectionalLightmap(lightData.blockLight, material.normal);
             #endif
 
-            if (isEyeInWater == 1) {
-                material.albedo.rgb = WetnessDarkenSurface(material.albedo.rgb, material.porosity, 1.0);
-            }
+            // if (isEyeInWater == 1) {
+            //     material.albedo.rgb = WetnessDarkenSurface(material.albedo.rgb, material.porosity, 1.0);
+            // }
 
             #if defined SKY_ENABLED && !defined RENDER_HAND_WATER && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE)
                 if (isEyeInWater != 1) {
@@ -353,14 +352,14 @@
                     // vec3 moonDir = GetMoonDir();
                     // float moon_VoL = dot(viewDir, moonDir);
 
-                    vec3 cloudColor = GetCloudColor(cloudPos, viewDir, skyLightLevels);
+                    vec3 cloudColor = GetCloudColor(cloudPos, localViewDir, skyLightLevels);
 
                     //cloudF = smoothstep(0.0, 1.0, cloudF);
                     finalColor.rgb = mix(finalColor.rgb, cloudColor, cloudF);
                     // TODO: mix opacity?
                 }
 
-                #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+                #if defined SKY_VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                     vec3 vlScatter, vlExt;
                     GetVolumetricLighting(vlScatter, vlExt, localViewDir, near, min(viewDist, far));
                     finalColor.rgb = finalColor.rgb * vlExt + vlScatter;

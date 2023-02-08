@@ -12,14 +12,14 @@ vec2 GetWaterScattering(const in vec3 viewDir) {
         float sun_VoL = dot(viewDir, sunViewDir);
         scatteringF.x = mix(
             ComputeVolumetricScattering(sun_VoL, -0.2),
-            ComputeVolumetricScattering(sun_VoL, 0.6),
+            ComputeVolumetricScattering(sun_VoL, 0.8),
             0.7);
 
         vec3 moonViewDir = GetMoonViewDir();
         float moon_VoL = dot(viewDir, moonViewDir);
         scatteringF.y = mix(
             ComputeVolumetricScattering(moon_VoL, -0.2),
-            ComputeVolumetricScattering(moon_VoL, 0.6),
+            ComputeVolumetricScattering(moon_VoL, 0.8),
             0.7);
 
         return max(scatteringF, vec2(0.0));

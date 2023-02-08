@@ -94,7 +94,10 @@ const bool colortex11Clear = false;
 #define MOON_TEMP 4000.0
 #define WETNESS_MODE 2 // [0 1 2]
 #define SNOW_MODE 2 // [0 1 2]
-#define VL_SKY_ENABLED
+
+#define SKY_VL_ENABLED
+#define SKY_VL_SAMPLES 12 // [8 12 16 20 24 32]
+//#define SKY_CLOUDS_ENABLED
 
 
 // Shadow Options
@@ -181,7 +184,6 @@ const bool colortex11Clear = false;
 #define BLOOM_LOD_MAX 0 // [0 1 2 3 4 5 6 7 8 9]
 #define VL_DITHER
 #define VL_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 175 200 225 250 275 300 350 400 450 500 600 700 800 900]
-#define VL_SAMPLES_SKY 12 // [8 12 16 20 24 32]
 #define VL_SAMPLES_WATER 6 // [4 6 8 12 16 24]
 #define VL_FOG_MIN 6 // [0 2 4 6 8 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
 //#define VL_FOG_NOISE
@@ -360,10 +362,6 @@ const float shadowPixelSize = 1.0 / shadowMapSize;
 #endif
 #ifdef RSM_UPSCALE
 #endif
-// #ifdef VL_SKY_ENABLED
-// #endif
-// #ifdef VL_WATER_ENABLED
-// #endif
 #ifdef VL_PARTICLES
 #endif
 #ifdef VL_DITHER

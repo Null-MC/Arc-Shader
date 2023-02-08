@@ -199,14 +199,14 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
                 // vec3 moonDir = GetMoonDir();
                 // float moon_VoL = dot(viewDir, moonDir);
 
-                vec3 cloudColor = GetCloudColor(cloudPos, viewDir, skyLightLevels);
+                vec3 cloudColor = GetCloudColor(cloudPos, localViewDir, skyLightLevels);
 
                 //cloudF = smoothstep(0.0, 1.0, cloudF);
                 //final.rgb = mix(final.rgb, cloudColor, cloudF);
                 // TODO: mix opacity?
             }
 
-            #if defined VL_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+            #if defined SKY_VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 vec3 vlScatter, vlExt;
                 GetVolumetricLighting(vlScatter, vlExt, localViewDir, near, viewDist);
                 final.rgb = final.rgb * vlExt + vlScatter;

@@ -96,7 +96,7 @@ in float geoNoL;
                 uniform mat4 shadowProjection;
             #endif
             
-            #ifdef VL_SKY_ENABLED //&& defined VL_PARTICLES
+            #ifdef SKY_VL_ENABLED //&& defined VL_PARTICLES
                 //uniform sampler2D noisetex;
 
                 //uniform mat4 shadowModelView;
@@ -107,7 +107,7 @@ in float geoNoL;
                 uniform float viewHeight;
             #endif
             
-            #if defined VL_SKY_ENABLED || defined VL_WATER_ENABLED
+            #if defined SKY_VL_ENABLED || defined VL_WATER_ENABLED
                 #ifdef IS_IRIS
                     uniform sampler3D texCloudNoise;
                 #else
@@ -193,7 +193,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/world/fog_fancy.glsl"
 #include "/lib/sky/clouds.glsl"
 
-#if (defined VL_SKY_ENABLED || defined VL_WATER_ENABLED) && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE //&& defined VL_PARTICLES
+#if (defined SKY_VL_ENABLED || defined VL_WATER_ENABLED) && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE //&& defined VL_PARTICLES
     #include "/lib/lighting/volumetric.glsl"
 #endif
 
