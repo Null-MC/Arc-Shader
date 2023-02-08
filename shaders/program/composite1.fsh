@@ -297,145 +297,147 @@ void main() {
         #endif
     #endif
 
-    if (isEyeInWater == 1) {
-        vec2 viewSize = vec2(viewWidth, viewHeight);
-        vec3 worldPos = cameraPosition + localPos;
+    #ifdef WORLD_WATER_ENABLED
+        if (isEyeInWater == 1) {
+            vec2 viewSize = vec2(viewWidth, viewHeight);
+            vec3 worldPos = cameraPosition + localPos;
 
-        PbrMaterial material;
+            PbrMaterial material;
 
-        // SKY
-        if (lightData.opaqueScreenDepth > 1.0 - EPSILON) {
-            lightData.parallaxShadow = 1.0;
-            lightData.skyLight = 1.0;
-            lightData.blockLight = 1.0;
-            lightData.occlusion = 1.0;
-            lightData.geoNoL = 1.0;
-        }
-        else {
-            uvec4 deferredData = texelFetch(BUFFER_DEFERRED, iTex, 0);
-            vec4 colorMap = unpackUnorm4x8(deferredData.r);
-            vec4 normalMap = unpackUnorm4x8(deferredData.g);
-            vec4 specularMap = unpackUnorm4x8(deferredData.b);
-            vec4 lightingMap = unpackUnorm4x8(deferredData.a);
-            
-            lightData.occlusion = normalMap.a;
-            lightData.blockLight = lightingMap.x;
-            lightData.skyLight = lightingMap.y;
-            lightData.geoNoL = lightingMap.z * 2.0 - 1.0;
-            lightData.parallaxShadow = lightingMap.w;
-            
-            PopulateMaterial(material, colorMap.rgb, normalMap, specularMap);
-        }
-
-        #ifdef SKY_ENABLED
-            vec3 upDir = normalize(upPosition);
-            float fragElevation = GetAtmosphereElevation(worldPos);
-
-            #ifdef IS_IRIS
-                lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
-                lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
-            #else
-                lightData.sunTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.x);
-                lightData.moonTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.y);
-            #endif
-
-            #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                vec3 dX = dFdx(localPos);
-                vec3 dY = dFdy(localPos);
-
-                vec3 shadowLocalPos = localPos;
-
-                vec3 geoNormal = normalize(cross(dX, dY));
-                vec3 localLightDir = GetShadowLightLocalDir();
-                float geoNoL = max(dot(geoNormal, localLightDir), 0.0);
-
-                float viewDist = length(viewPos);
-                shadowLocalPos += geoNormal * viewDist * SHADOW_NORMAL_BIAS * max(1.0 - geoNoL, 0.0);
-
-                #ifndef IRIS_FEATURE_SSBO
-                    mat4 shadowModelViewEx = BuildShadowViewMatrix();
-                #endif
-
-                vec3 shadowViewPos = (shadowModelViewEx * vec4(shadowLocalPos, 1.0)).xyz;
-
-                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    // lightData.shadowPos[0] = (cascadeProjection[0] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                    // lightData.shadowPos[1] = (cascadeProjection[1] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                    // lightData.shadowPos[2] = (cascadeProjection[2] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                    // lightData.shadowPos[3] = (cascadeProjection[3] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                                        
-                    // lightData.shadowPos[0].xy = lightData.shadowPos[0].xy * 0.5 + shadowProjectionPos[0];
-                    // lightData.shadowPos[1].xy = lightData.shadowPos[1].xy * 0.5 + shadowProjectionPos[1];
-                    // lightData.shadowPos[2].xy = lightData.shadowPos[2].xy * 0.5 + shadowProjectionPos[2];
-                    // lightData.shadowPos[3].xy = lightData.shadowPos[3].xy * 0.5 + shadowProjectionPos[3];
-                    
-                    // lightData.shadowBias[0] = GetCascadeBias(geoNoL, shadowProjectionSize[0]);
-                    // lightData.shadowBias[1] = GetCascadeBias(geoNoL, shadowProjectionSize[1]);
-                    // lightData.shadowBias[2] = GetCascadeBias(geoNoL, shadowProjectionSize[2]);
-                    // lightData.shadowBias[3] = GetCascadeBias(geoNoL, shadowProjectionSize[3]);
-
-                    vec3 shadowPos = GetCascadeShadowPosition(shadowViewPos, lightData.shadowCascade);
-
-                    lightData.shadowPos[lightData.shadowCascade] = shadowPos;
-                    lightData.shadowBias[lightData.shadowCascade] = GetCascadeBias(geoNoL, shadowProjectionSize[lightData.shadowCascade]);
-
-                    SetNearestDepths(lightData);
-
-                    if (lightData.shadowCascade >= 0) {
-                        float minOpaqueDepth = min(lightData.shadowPos[lightData.shadowCascade].z, lightData.opaqueShadowDepth);
-                        lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 3.0 * far;
-                    }
-                #else
-                    #ifndef IRIS_FEATURE_SSBO
-                        mat4 shadowProjectionEx = BuildShadowProjectionMatrix();
-                    #endif
+            // SKY
+            if (lightData.opaqueScreenDepth > 1.0 - EPSILON) {
+                lightData.parallaxShadow = 1.0;
+                lightData.skyLight = 1.0;
+                lightData.blockLight = 1.0;
+                lightData.occlusion = 1.0;
+                lightData.geoNoL = 1.0;
+            }
+            else {
+                uvec4 deferredData = texelFetch(BUFFER_DEFERRED, iTex, 0);
+                vec4 colorMap = unpackUnorm4x8(deferredData.r);
+                vec4 normalMap = unpackUnorm4x8(deferredData.g);
+                vec4 specularMap = unpackUnorm4x8(deferredData.b);
+                vec4 lightingMap = unpackUnorm4x8(deferredData.a);
                 
-                    lightData.shadowPos = (shadowProjectionEx * vec4(shadowViewPos, 1.0)).xyz;
+                lightData.occlusion = normalMap.a;
+                lightData.blockLight = lightingMap.x;
+                lightData.skyLight = lightingMap.y;
+                lightData.geoNoL = lightingMap.z * 2.0 - 1.0;
+                lightData.parallaxShadow = lightingMap.w;
+                
+                PopulateMaterial(material, colorMap.rgb, normalMap, specularMap);
+            }
 
-                    #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                        float distortFactor = getDistortFactor(lightData.shadowPos.xy);
-                        lightData.shadowPos = distort(lightData.shadowPos, distortFactor);
-                        lightData.shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
-                    #else
-                        lightData.shadowBias = GetShadowBias(lightData.geoNoL);
+            #ifdef SKY_ENABLED
+                vec3 upDir = normalize(upPosition);
+                float fragElevation = GetAtmosphereElevation(worldPos);
+
+                #ifdef IS_IRIS
+                    lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
+                    lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
+                #else
+                    lightData.sunTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.x);
+                    lightData.moonTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.y);
+                #endif
+
+                #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+                    vec3 dX = dFdx(localPos);
+                    vec3 dY = dFdy(localPos);
+
+                    vec3 shadowLocalPos = localPos;
+
+                    vec3 geoNormal = normalize(cross(dX, dY));
+                    vec3 localLightDir = GetShadowLightLocalDir();
+                    float geoNoL = max(dot(geoNormal, localLightDir), 0.0);
+
+                    float viewDist = length(viewPos);
+                    shadowLocalPos += geoNormal * viewDist * SHADOW_NORMAL_BIAS * max(1.0 - geoNoL, 0.0);
+
+                    #ifndef IRIS_FEATURE_SSBO
+                        mat4 shadowModelViewEx = BuildShadowViewMatrix();
                     #endif
 
-                    lightData.shadowPos = lightData.shadowPos * 0.5 + 0.5;
+                    vec3 shadowViewPos = (shadowModelViewEx * vec4(shadowLocalPos, 1.0)).xyz;
 
-                    lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
-                    lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
+                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                        // lightData.shadowPos[0] = (cascadeProjection[0] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                        // lightData.shadowPos[1] = (cascadeProjection[1] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                        // lightData.shadowPos[2] = (cascadeProjection[2] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                        // lightData.shadowPos[3] = (cascadeProjection[3] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                                            
+                        // lightData.shadowPos[0].xy = lightData.shadowPos[0].xy * 0.5 + shadowProjectionPos[0];
+                        // lightData.shadowPos[1].xy = lightData.shadowPos[1].xy * 0.5 + shadowProjectionPos[1];
+                        // lightData.shadowPos[2].xy = lightData.shadowPos[2].xy * 0.5 + shadowProjectionPos[2];
+                        // lightData.shadowPos[3].xy = lightData.shadowPos[3].xy * 0.5 + shadowProjectionPos[3];
+                        
+                        // lightData.shadowBias[0] = GetCascadeBias(geoNoL, shadowProjectionSize[0]);
+                        // lightData.shadowBias[1] = GetCascadeBias(geoNoL, shadowProjectionSize[1]);
+                        // lightData.shadowBias[2] = GetCascadeBias(geoNoL, shadowProjectionSize[2]);
+                        // lightData.shadowBias[3] = GetCascadeBias(geoNoL, shadowProjectionSize[3]);
 
-                    #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                        const float ShadowMaxDepth = 512.0;
+                        vec3 shadowPos = GetCascadeShadowPosition(shadowViewPos, lightData.shadowCascade);
+
+                        lightData.shadowPos[lightData.shadowCascade] = shadowPos;
+                        lightData.shadowBias[lightData.shadowCascade] = GetCascadeBias(geoNoL, shadowProjectionSize[lightData.shadowCascade]);
+
+                        SetNearestDepths(lightData);
+
+                        if (lightData.shadowCascade >= 0) {
+                            float minOpaqueDepth = min(lightData.shadowPos[lightData.shadowCascade].z, lightData.opaqueShadowDepth);
+                            lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 3.0 * far;
+                        }
                     #else
-                        const float ShadowMaxDepth = 256.0;
-                    #endif
+                        #ifndef IRIS_FEATURE_SSBO
+                            mat4 shadowProjectionEx = BuildShadowProjectionMatrix();
+                        #endif
+                    
+                        lightData.shadowPos = (shadowProjectionEx * vec4(shadowViewPos, 1.0)).xyz;
 
-                    lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.transparentShadowDepth, 0.0) * ShadowMaxDepth;
+                        #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                            float distortFactor = getDistortFactor(lightData.shadowPos.xy);
+                            lightData.shadowPos = distort(lightData.shadowPos, distortFactor);
+                            lightData.shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
+                        #else
+                            lightData.shadowBias = GetShadowBias(lightData.geoNoL);
+                        #endif
+
+                        lightData.shadowPos = lightData.shadowPos * 0.5 + 0.5;
+
+                        lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
+                        lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
+
+                        #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
+                            const float ShadowMaxDepth = 512.0;
+                        #else
+                            const float ShadowMaxDepth = 256.0;
+                        #endif
+
+                        lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.transparentShadowDepth, 0.0) * ShadowMaxDepth;
+                    #endif
                 #endif
             #endif
-        #endif
 
-        if (lightData.opaqueScreenDepth < 1.0) {
-            final = PbrLighting2(material, lightData, viewPos).rgb;
+            if (lightData.opaqueScreenDepth < 1.0) {
+                final = PbrLighting2(material, lightData, viewPos).rgb;
 
-            if (lightData.transparentScreenDepth < lightData.opaqueScreenDepth) {
-                #if defined SKY_ENABLED && !defined SKY_VL_ENABLED
-                    vec3 viewLightDir = GetShadowLightViewDir();
-                    float VoL = dot(viewLightDir, viewDir);
-                    vec3 localSunDir = GetSunLocalDir();
-                    vec4 scatteringTransmittance = GetFancyFog(localPos, localSunDir, VoL);
-                    final = final * scatteringTransmittance.a + scatteringTransmittance.rgb;
-                #else
-                    // TODO: ?
-                #endif
+                if (lightData.transparentScreenDepth < lightData.opaqueScreenDepth) {
+                    #if defined SKY_ENABLED && !defined SKY_VL_ENABLED
+                        vec3 viewLightDir = GetShadowLightViewDir();
+                        float VoL = dot(viewLightDir, viewDir);
+                        vec3 localSunDir = GetSunLocalDir();
+                        vec4 scatteringTransmittance = GetFancyFog(localPos, localSunDir, VoL);
+                        final = final * scatteringTransmittance.a + scatteringTransmittance.rgb;
+                    #else
+                        // TODO: ?
+                    #endif
+                }
+            }
+            else if (lightData.transparentScreenDepth >= 1.0) {
+                final = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
+                //final = vec3(0.0);
             }
         }
-        else if (lightData.transparentScreenDepth >= 1.0) {
-            final = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
-            //final = vec3(0.0);
-        }
-    }
+    #endif
 
     if (isEyeInWater == 0 || (lightData.opaqueScreenDepth >= 1.0 && lightData.transparentScreenDepth < 1.0)) {
         //float lum = texelFetch(BUFFER_LUM_OPAQUE, iTex, 0).r;

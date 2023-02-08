@@ -323,7 +323,7 @@
             vec3 specularTint = mix(vec3(1.0), material.albedo.rgb, material.f0);
         #endif
 
-        #ifdef RENDER_COMPOSITE
+        #if defined RENDER_COMPOSITE && defined WORLD_WATER_ENABLED && defined SKY_ENABLED
             albedo = WetnessDarkenSurface(albedo, material.porosity, 1.0);
         #endif
 
