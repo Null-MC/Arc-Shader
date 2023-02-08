@@ -98,11 +98,7 @@ uniform float far;
     uniform sampler2D BUFFER_DEPTH_PREV;
 #elif DEBUG_VIEW == DEBUG_VIEW_LUT_BRDF
     // BRDF LUT
-    #ifdef IS_IRIS
-        uniform sampler2D texBRDF;
-    #else
-        uniform sampler2D colortex15;
-    #endif
+    uniform sampler2D TEX_BRDF;
 #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
     // Sun Transmission LUT
     uniform float rainStrength;
@@ -324,11 +320,7 @@ void main() {
         color = textureLod(BUFFER_DEPTH_PREV, texcoord, 0).rrr;
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_BRDF
         // BRDF LUT
-        #ifdef IS_IRIS
-            color.rg = textureLod(texBRDF, texcoord, 0).rg;
-        #else
-            color.rg = textureLod(colortex15, texcoord, 0).rg;
-        #endif
+        color.rg = textureLod(TEX_BRDF, texcoord, 0).rg;
         color.b = 0.0;
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
         // Sun Transmission LUT

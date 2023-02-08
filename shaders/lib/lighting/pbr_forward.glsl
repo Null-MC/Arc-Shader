@@ -306,18 +306,16 @@
                 lightData.shadowPos[2] = shadowPos[2];
                 lightData.shadowPos[3] = shadowPos[3];
 
-                lightData.shadowBias[0] = 0.0; // TODO!
-                lightData.shadowBias[1] = 0.0;
-                lightData.shadowBias[2] = 0.0;
-                lightData.shadowBias[3] = 0.0;
+                lightData.shadowBias[0] = shadowBias[0];
+                lightData.shadowBias[1] = shadowBias[1];
+                lightData.shadowBias[2] = shadowBias[2];
+                lightData.shadowBias[3] = shadowBias[3];
 
                 lightData.shadowCascade = GetShadowSampleCascade(shadowPos, shadowPcfSize);
                 SetNearestDepths(lightData);
-                //lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData.shadowPos, vec2(0.0), lightData.shadowCascade);
-                //lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData.shadowPos, vec2(0.0), lightData.shadowCascade);
 
                 float minTransparentDepth = min(lightData.shadowPos[lightData.shadowCascade].z, lightData.transparentShadowDepth);
-                lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - minTransparentDepth, 0.0) * 3.0 * far;
+                lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - minTransparentDepth, 0.0) * (3.0 * far);
             #else
                 lightData.shadowPos = shadowPos;
                 lightData.shadowBias = shadowBias;
@@ -325,8 +323,7 @@
                 lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
                 lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
 
-                const float maxShadowDepth = far * 2.0;
-                lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.shadowPos.z, 0.0) * maxShadowDepth;
+                lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.shadowPos.z, 0.0) * (far * 2.0);
             #endif
         #endif
 
@@ -343,20 +340,8 @@
                     vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
                     float cloudF = GetCloudFactor(cloudPos, localViewDir, 0);
 
-                    //float cloudHorizonFogF = 1.0 - abs(localViewDir.y);
-                    //cloudF *= 1.0 - pow(cloudHorizonFogF, 8.0);
-
-                    // vec3 sunDir = GetSunDir();
-                    // float sun_VoL = dot(viewDir, sunDir);
-
-                    // vec3 moonDir = GetMoonDir();
-                    // float moon_VoL = dot(viewDir, moonDir);
-
                     vec3 cloudColor = GetCloudColor(cloudPos, localViewDir, skyLightLevels);
-
-                    //cloudF = smoothstep(0.0, 1.0, cloudF);
                     finalColor.rgb = mix(finalColor.rgb, cloudColor, cloudF);
-                    // TODO: mix opacity?
                 }
 
                 #if defined SKY_VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE

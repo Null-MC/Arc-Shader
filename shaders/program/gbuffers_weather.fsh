@@ -34,15 +34,23 @@ in float geoNoL;
     #endif
 #endif
 
-#ifdef HANDLIGHT_ENABLED
-    uniform int heldBlockLightValue;
-    uniform int heldBlockLightValue2;
-
-    #ifdef IS_IRIS
-        uniform bool firstPersonCamera;
-        uniform vec3 eyePosition;
+#if defined SKY_ENABLED && defined SHADOW_ENABLED
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        in vec3 shadowPos[4];
+        in float shadowBias[4];
+    #else
+        in vec3 shadowPos;
+        in float shadowBias;
     #endif
 #endif
+
+uniform sampler2D gtexture;
+uniform sampler2D lightmap;
+uniform sampler2D depthtex1;
+
+uniform sampler2D BUFFER_SKY_LUT;
+uniform sampler2D BUFFER_IRRADIANCE;
+uniform sampler3D TEX_CLOUD_NOISE;
 
 #ifdef SKY_ENABLED
     uniform sampler2D noisetex;
@@ -72,6 +80,10 @@ in float geoNoL;
             uniform sampler2D shadowtex0;
             uniform sampler2D shadowtex1;
 
+            #if SHADOW_TYPE != SHADOW_TYPE_CASCADED
+                uniform mat4 shadowProjection;
+            #endif
+
             #ifdef IRIS_FEATURE_SEPARATE_HARDWARE_SAMPLERS
                 uniform sampler2DShadow shadowtex1HW;
             #endif
@@ -80,53 +92,20 @@ in float geoNoL;
                 uniform sampler2D shadowcolor0;
             #endif
 
-            // #if defined SSS_ENABLED && defined SHADOW_COLOR
-            //     uniform usampler2D shadowcolor1;
-            // #endif
-
             uniform mat4 shadowModelView;
-
-            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                in vec3 shadowPos[4];
-                in float shadowBias[4];
-            #else
-                in vec3 shadowPos;
-                in float shadowBias;
-
-                uniform mat4 shadowProjection;
-            #endif
             
             #ifdef SKY_VL_ENABLED //&& defined VL_PARTICLES
-                //uniform sampler2D noisetex;
-
-                //uniform mat4 shadowModelView;
-                //uniform mat4 gbufferModelViewInverse;
                 uniform mat4 shadowModelViewInverse;
-                //uniform float frameTimeCounter;
                 uniform float viewWidth;
                 uniform float viewHeight;
             #endif
             
             #if defined SKY_VL_ENABLED || defined VL_WATER_ENABLED
-                #ifdef IS_IRIS
-                    uniform sampler3D texCloudNoise;
-                #else
-                    uniform sampler3D colortex14;
-                #endif
-                
-                //uniform mat4 gbufferModelView;
                 uniform mat4 gbufferProjection;
             #endif
         #endif
     #endif
 #endif
-
-uniform sampler2D gtexture;
-uniform sampler2D lightmap;
-uniform sampler2D depthtex1;
-
-uniform sampler2D BUFFER_SKY_LUT;
-uniform sampler2D BUFFER_IRRADIANCE;
 
 uniform ivec2 eyeBrightnessSmooth;
 uniform ivec2 eyeBrightness;
@@ -144,6 +123,16 @@ uniform float fogStart;
 uniform float fogEnd;
 uniform int fogShape;
 uniform int fogMode;
+
+#ifdef HANDLIGHT_ENABLED
+    uniform int heldBlockLightValue;
+    uniform int heldBlockLightValue2;
+
+    #ifdef IS_IRIS
+        uniform bool firstPersonCamera;
+        uniform vec3 eyePosition;
+    #endif
+#endif
 
 #if MC_VERSION >= 11900
     uniform float darknessFactor;

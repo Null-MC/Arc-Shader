@@ -89,6 +89,8 @@
 
 #ifdef IS_IRIS
 	#define TEX_CLOUD_NOISE texCloudNoise
+	#define TEX_BRDF texBRDF
 #else
 	#define TEX_CLOUD_NOISE colortex14
+	#define TEX_BRDF colortex15
 #endif

@@ -44,6 +44,24 @@ flat in mat2 atlasBounds;
     #endif
 #endif
 
+#if defined SKY_ENABLED && defined SHADOW_ENABLED
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        in vec3 shadowPos[4];
+        in float shadowBias[4];
+    #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+        in vec3 shadowPos;
+        in float shadowBias;
+    #endif
+#endif
+
+#ifdef AF_ENABLED
+    in vec4 spriteBounds;
+#endif
+
+#if defined SKY_VL_ENABLED || defined WORLD_WATER_ENABLED
+    uniform sampler3D TEX_CLOUD_NOISE;
+#endif
+
 #ifdef SKY_ENABLED
     #ifdef IS_IRIS
         uniform sampler3D texSunTransmittance;
@@ -79,27 +97,7 @@ flat in mat2 atlasBounds;
                 uniform sampler2D shadowcolor0;
             #endif
         #endif
-
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            in vec3 shadowPos[4];
-            in float shadowBias[4];
-        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            in vec3 shadowPos;
-            in float shadowBias;
-        #endif
     #endif
-#endif
-
-#if defined SKY_VL_ENABLED || defined WORLD_WATER_ENABLED
-    #ifdef IS_IRIS
-        uniform sampler3D texCloudNoise;
-    #else
-        uniform sampler3D colortex14;
-    #endif
-#endif
-
-#ifdef AF_ENABLED
-    in vec4 spriteBounds;
 #endif
 
 #ifdef HANDLIGHT_ENABLED
@@ -122,16 +120,11 @@ uniform sampler2D specular;
 uniform sampler2D lightmap;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
-uniform usampler2D BUFFER_DEFERRED;
-
-#ifdef IS_IRIS
-    uniform sampler2D texBRDF;
-#else
-    uniform sampler2D colortex15;
-#endif
 
 uniform sampler2D BUFFER_SKY_LUT;
 uniform sampler2D BUFFER_IRRADIANCE;
+uniform usampler2D BUFFER_DEFERRED;
+uniform sampler2D TEX_BRDF;
 
 uniform int worldTime;
 uniform float frameTimeCounter;

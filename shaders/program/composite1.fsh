@@ -55,15 +55,11 @@ uniform sampler2D BUFFER_LUM_OPAQUE;
 uniform sampler2D BUFFER_HDR_OPAQUE;
 uniform sampler2D BUFFER_LUM_TRANS;
 uniform sampler2D BUFFER_HDR_TRANS;
+uniform sampler3D TEX_CLOUD_NOISE;
+uniform sampler2D TEX_BRDF;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
-
-#ifdef IS_IRIS
-    uniform sampler2D texBRDF;
-#else
-    uniform sampler2D colortex15;
-#endif
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     uniform mat4 gbufferPreviousModelView;
@@ -136,12 +132,6 @@ uniform float fogEnd;
             uniform sampler2DShadow shadowtex1HW;
         #endif
     #endif
-#endif
-
-#ifdef IS_IRIS
-    uniform sampler3D texCloudNoise;
-#else
-    uniform sampler3D colortex14;
 #endif
 
 uniform float blindness;

@@ -58,15 +58,11 @@ in vec2 texcoord;
 uniform usampler2D BUFFER_DEFERRED;
 uniform sampler2D BUFFER_HDR_OPAQUE;
 uniform sampler2D BUFFER_LUM_OPAQUE;
+uniform sampler3D TEX_CLOUD_NOISE;
+uniform sampler2D TEX_BRDF;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
-
-#ifdef IS_IRIS
-    uniform sampler2D texBRDF;
-#else
-    uniform sampler2D colortex15;
-#endif
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     uniform mat4 gbufferPreviousModelView;
@@ -142,14 +138,6 @@ uniform float fogEnd;
         #ifdef IRIS_FEATURE_SEPARATE_HARDWARE_SAMPLERS
             uniform sampler2DShadow shadowtex1HW;
         #endif
-    #endif
-#endif
-
-#if defined SKY_VL_ENABLED || defined VL_WATER_ENABLED || defined SMOKE_ENABLED
-    #ifdef IS_IRIS
-        uniform sampler3D texCloudNoise;
-    #else
-        uniform sampler3D colortex14;
     #endif
 #endif
 

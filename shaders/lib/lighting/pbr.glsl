@@ -96,8 +96,8 @@
             vec3 skyLightColorFinal = sunColorFinal;
 
             #ifdef WORLD_MOON_ENABLED
-                vec3 moonColorFinalEye = moonTransmittanceEye * skyMoonColor;// * max(lightData.skyLightLevels.y, 0.0);
-                vec3 moonColorFinal = lightData.moonTransmittance * skyMoonColor;// * max(lightData.skyLightLevels.y, 0.0);
+                vec3 moonColorFinalEye = moonTransmittanceEye * skyMoonColor * MoonLux;// * max(lightData.skyLightLevels.y, 0.0);
+                vec3 moonColorFinal = lightData.moonTransmittance * skyMoonColor * MoonLux * GetMoonPhaseLevel();// * max(lightData.skyLightLevels.y, 0.0);
 
                 skyLightColorFinal += moonColorFinal;
             #endif
@@ -117,15 +117,17 @@
         float NoVm = max(NoV, 0.0);
         vec3 viewUpDir = normalize(upPosition);
 
-        // float blockLight = saturate((lightData.blockLight - (1.0/16.0 + EPSILON)) / (15.0/16.0));
-        // float skyLight = saturate((lightData.skyLight - (1.0/16.0 + EPSILON)) / (15.0/16.0));
-
-        vec3 albedo = material.albedo.rgb;
-        float smoothness = material.smoothness;
-
         #if DEBUG_VIEW == DEBUG_VIEW_WHITEWORLD
-            albedo = vec3(1.0);
+            vec3 albedo = vec3(1.0);
+        #else
+            vec3 albedo = material.albedo.rgb;
+
+            #if defined RENDER_COMPOSITE && defined WORLD_WATER_ENABLED && defined SKY_ENABLED
+                albedo = WetnessDarkenSurface(albedo, material.porosity, 1.0);
+            #endif
         #endif
+
+        float smoothness = material.smoothness;
 
         float rough = 1.0 - smoothness;
         float roughL = max(rough * rough, 0.005);
@@ -188,13 +190,8 @@
                 #endif
 
                 #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (!defined SHADOW_BLUR || defined RENDER_WATER)
-                    if (shadow > EPSILON) {
-                        float shadowF = 1.0 - GetShadowing(lightData);
-
-                        //shadowF *= smoothstep(0.0, 0.06, maxOf(lightData.skyLightLevels));
-
-                        shadow *= 1.0 - shadowF;
-                    }
+                    if (shadow > EPSILON)
+                        shadow *= GetShadowing(lightData);
 
                     #ifdef SHADOW_COLOR
                         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -204,8 +201,6 @@
                             if (lightData.shadowPos.z - lightData.transparentShadowDepth > lightData.shadowBias)
                                 shadowColor = GetShadowColor(lightData.shadowPos.xy);
                         #endif
-
-                        //skyLightColorFinal *= shadowColor;
                     #endif
 
                     shadowColor *= shadow;
@@ -323,10 +318,6 @@
             vec3 specularTint = mix(vec3(1.0), material.albedo.rgb, material.f0);
         #endif
 
-        #if defined RENDER_COMPOSITE && defined WORLD_WATER_ENABLED && defined SKY_ENABLED
-            albedo = WetnessDarkenSurface(albedo, material.porosity, 1.0);
-        #endif
-
         vec4 final = vec4(albedo, material.albedo.a);
         vec3 ambient = vec3(MinWorldLux);
         vec3 diffuse = albedo * blockLightDiffuse * metalDarkF;
@@ -354,11 +345,7 @@
             iblF = GetFresnel(material.albedo.rgb, material.f0, material.hcm, NoVm, roughL);
 
             if (any(greaterThan(reflectColor, vec3(EPSILON)))) {
-                #ifdef IS_IRIS
-                    vec2 envBRDF = textureLod(texBRDF, vec2(NoVm, rough), 0).rg;
-                #else
-                    vec2 envBRDF = textureLod(colortex15, vec2(NoVm, rough), 0).rg;
-                #endif
+                vec2 envBRDF = textureLod(TEX_BRDF, vec2(NoVm, rough), 0).rg;
 
                 iblSpec = min(iblF * envBRDF.r + envBRDF.g, 1.0);
                 iblSpec *= (1.0 - roughL) * reflectColor * occlusion;
