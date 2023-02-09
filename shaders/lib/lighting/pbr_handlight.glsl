@@ -7,7 +7,7 @@ void _ApplyHandLighting(out vec3 diffuse, out vec3 specular, const in vec3 albed
     float lightDist = length(lightPos);
     float attenuation = GetHandLightAttenuation(lightLevel, lightDist);
     
-    if (attenuation < EPSILON) {
+    if (lightDist < EPSILON || attenuation < EPSILON) {
         diffuse = vec3(0.0);
         specular = vec3(0.0);
         return;
@@ -32,16 +32,16 @@ void _ApplyHandLighting(out vec3 diffuse, out vec3 specular, const in vec3 albed
 
     #ifdef WORLD_WATER_ENABLED
         if (isEyeInWater == 1) {
-            float viewDist = length(viewPos);
+            //float viewDist = length(viewPos);
             vec3 extinctionInv = 1.0 - waterAbsorbColor;
-            vec3 absorption = exp(-WATER_ABSROPTION_RATE * (lightDist + viewDist) * extinctionInv);
+            vec3 absorption = exp(-WATER_ABSROPTION_RATE * lightDist * extinctionInv);
             handLightColor *= absorption;
         }
     #endif
     
     vec3 F = GetFresnel(albedo, f0, hcm, LoHm, roughL);
     vec3 handDiffuse = GetDiffuse_Burley(albedo, NoVm, NoLm, LoHm, roughL) * max(1.0 - F, 0.0);
-    diffuse = GetDiffuseBSDF(handDiffuse, albedo, scattering, NoVm, abs(NoL), LoHm, roughL) * handLightColor;
+    diffuse = handDiffuse * handLightColor;//GetDiffuseBSDF(handDiffuse, albedo, scattering, NoVm, abs(NoL), LoHm, roughL) * handLightColor;
 
     if (NoLm < EPSILON) {
         specular = vec3(0.0);

@@ -122,7 +122,7 @@
         #else
             vec3 albedo = material.albedo.rgb;
 
-            #if defined RENDER_COMPOSITE && defined WORLD_WATER_ENABLED && defined SKY_ENABLED
+            #if defined WATER_POROSITY_DARKEN && defined WORLD_WATER_ENABLED && defined SKY_ENABLED && defined RENDER_COMPOSITE
                 albedo = WetnessDarkenSurface(albedo, material.porosity, 1.0);
             #endif
         #endif
@@ -359,18 +359,13 @@
             }
         #endif
 
-        //return vec4(iblSpec, 1.0);
-
         #ifdef SKY_ENABLED
             vec3 localNormal = mat3(gbufferModelViewInverse) * normalize(viewNormal);
-            //return vec4(localNormal * 500.0 + 500.0, 1.0);
 
             vec2 sphereCoord = DirectionToUV(localNormal);
             sphereCoord.y = clamp(sphereCoord.y, 0.5/16.0, 15.5/16.0);
-            //return vec4(sphereCoord * 1000.0, 0.0, 1.0);
 
             vec3 skyAmbient = GetFancySkyAmbientLight(localNormal, skyLight);
-            //return vec4(skyAmbient, 1.0);
 
             #ifdef WORLD_END
                 skyAmbient *= 0.1;
@@ -452,7 +447,13 @@
         #endif
 
         #if defined SKY_ENABLED && defined WORLD_WATER_ENABLED
-            vec2 waterScatteringF = GetWaterScattering(viewDir);
+            vec3 localSunDir = GetSunLocalDir();
+            float sun_VoL = dot(localSunDir, localViewDir);
+
+            vec3 localMoonDir = GetMoonLocalDir();
+            float moon_VoL = dot(localMoonDir, localViewDir);
+
+            vec2 waterScatteringF = GetWaterScattering(sun_VoL, moon_VoL);
             vec3 waterSunColorEye = sunColorFinalEye * max(skyLightLevels.x, 0.0);
 
             #ifdef WORLD_MOON_ENABLED
@@ -597,7 +598,6 @@
 
                             if (waterCascade >= 0) {
                                 waterOpaqueShadowPos = waterShadowPos[waterCascade] * 0.5 + 0.5;
-
                                 waterOpaqueShadowPos.xy = waterOpaqueShadowPos.xy * 0.5 + shadowProjectionPos[waterCascade];
 
                                 // float waterOpaqueShadowDepth = GetNearestOpaqueDepth(waterOpaqueShadowPos, vec2(0.0));
@@ -630,11 +630,7 @@
                             waterOpaqueShadowDepth = SampleOpaqueDepth(waterOpaqueShadowPos.xy, vec2(0.0));
                             waterTransparentShadowDepth = SampleTransparentDepth(waterOpaqueShadowPos.xy, vec2(0.0));
 
-                            #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                                const float ShadowMaxDepth = 512.0;
-                            #else
-                                const float ShadowMaxDepth = 256.0;
-                            #endif
+                            float ShadowMaxDepth = far * 2.0;
                         #endif
 
                         #ifdef PHYSICS_OCEAN
@@ -658,8 +654,14 @@
                         float waterShadowBias = lightData.shadowBias;
                     #endif
 
-                    vec3 sunAbsorption = exp(-waterShadowDepth * waterExtinctionInv);// * shadowFinal;
                     vec3 viewAbsorption = exp(-waterViewDepthFinal * waterExtinctionInv);
+
+                    //vec3 sunAbsorption = exp(-waterShadowDepth * waterExtinctionInv);// * shadowFinal;
+                    float sunVerticalDepth = waterViewDepthFinal * max(-localViewDir.y, 0.0);
+                    float fakeSunDist = sunVerticalDepth / max(localLightDir.y, EPSILON);
+
+                    //vec3 sunAbsorption = exp(-waterShadowDepth * waterExtinctionInv);// * shadowFinal;
+                    vec3 sunAbsorption = exp(-fakeSunDist * waterExtinctionInv);// * shadowFinal;
 
                     // #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                     //     if (waterOpaqueShadowDepth < waterOpaqueShadowPos.z - waterShadowBias)
@@ -667,6 +669,7 @@
                     // #endif
 
                     refractColor *= sunAbsorption * viewAbsorption;
+                    //refractColor *= viewAbsorption;
 
                     refractColor *= max(1.0 - sunF, 0.0);
 
@@ -739,7 +742,6 @@
                         vec3 localLightDir = GetShadowLightLocalDir();
                         float VoL = dot(localLightDir, localViewDir);
 
-                        vec3 localSunDir = GetSunLocalDir();
                         vec4 scatteringTransmittance = GetFancyFog(localPos, localSunDir, VoL);
                         final.rgb = final.rgb * scatteringTransmittance.a + scatteringTransmittance.rgb;
                         //final = mix(final, vec4(final.rgb, 1.0), fogF);
@@ -752,19 +754,25 @@
                     #endif
                 #endif
             }
-            #if defined WORLD_WATER_ENABLED && !defined VL_WATER_ENABLED
-                else if (isEyeInWater == 1) {
-                    #ifdef SKY_ENABLED
-                        vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
-                    #else
-                        vec3 waterFogColor = vec3(0.0);
-                    #endif
+            // #if defined WORLD_WATER_ENABLED //&& !defined VL_WATER_ENABLED
+            //     else if (isEyeInWater == 1) {
+            //         #ifndef VL_WATER_ENABLED
+            //             vec3 waterExtinctionInv = WATER_ABSROPTION_RATE * (1.0 - waterAbsorbColor);
+            //             final.rgb *= exp(-viewDist * waterExtinctionInv);
+            //         #endif
 
-                    float waterFogF = GetWaterFogFactor(0.0, viewDist);
-                    //waterFogF *= 1.0 - reflectF;
-                    final = mix(final, vec4(waterFogColor, 1.0), waterFogF);
-                }
-            #endif
+            //         #ifdef SKY_ENABLED
+            //             vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
+            //         #else
+            //             vec3 waterFogColor = vec3(0.0);
+            //         #endif
+
+            //         float waterFogF = GetWaterFogFactor(0.0, viewDist);
+            //         //waterFogF *= 1.0 - reflectF;
+            //         //final = mix(final, vec4(waterFogColor, 1.0), waterFogF);
+            //         //final.rgb = mix(final.rgb, waterFogColor, waterFogF);
+            //     }
+            // #endif
         //#endif
 
         return final;

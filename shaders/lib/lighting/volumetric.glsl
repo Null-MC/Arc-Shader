@@ -96,7 +96,7 @@ const float AirSpeed = 20.0;
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 const float sampleBias = 0.0;
 
-                vec3 shadowViewPos = (i + dither) * shadowViewStep + shadowViewStart;
+                vec3 shadowViewPos = shadowViewStep * (i + dither) + shadowViewStart;
                 vec3 traceShadowClipPos = vec3(0.0);
 
                 int cascade = GetShadowCascade(shadowViewPos, -1.0);
@@ -151,7 +151,7 @@ const float AirSpeed = 20.0;
 
             #ifdef SHADOW_COLOR
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    float transparentShadowDepth = SampleTransparentDepth(shadowPos[cascade].xy, vec2(0.0));
+                    float transparentShadowDepth = SampleTransparentDepth(traceShadowClipPos.xy, vec2(0.0));
                 #else
                     float transparentShadowDepth = SampleTransparentDepth(traceShadowClipPos.xy, vec2(0.0));
                 #endif
@@ -273,6 +273,7 @@ const float AirSpeed = 20.0;
 
         vec3 shadowViewStart = (shadowModelViewEx * vec4(localStart, 1.0)).xyz;
         vec3 shadowViewEnd = (shadowModelViewEx * vec4(localEnd, 1.0)).xyz;
+        vec3 shadowViewStep = (shadowViewEnd - shadowViewStart) * inverseStepCountF;
 
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             vec3 shadowClipStart[4];
@@ -329,22 +330,24 @@ const float AirSpeed = 20.0;
             transparentDepth = 1.0;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                vec3 shadowPos[4];
-                shadowPos[0] = shadowClipStart[0] + (i + dither) * shadowClipStep[0];
-                shadowPos[1] = shadowClipStart[1] + (i + dither) * shadowClipStep[1];
-                shadowPos[2] = shadowClipStart[2] + (i + dither) * shadowClipStep[2];
-                shadowPos[3] = shadowClipStart[3] + (i + dither) * shadowClipStep[3];
-
-                int cascade = GetShadowSampleCascade(shadowPos, 0.0);
-
                 const float bias = 0.0; // TODO
-                lightSample = CompareOpaqueDepth(shadowPos[cascade], vec2(0.0), bias);
 
-                if (lightSample > EPSILON)
-                    transparentDepth = SampleTransparentDepth(shadowPos[cascade].xy, vec2(0.0));
+                vec3 shadowViewPos = shadowViewStep * (i + dither) + shadowViewStart;
+                vec3 traceShadowClipPos = vec3(0.0);
 
-                vec3 traceShadowClipPos = shadowPos[cascade];
+                int cascade = GetShadowCascade(shadowViewPos, -1.0);
+
+                lightSample = 0.0;
+                if (cascade >= 0) {
+                    traceShadowClipPos = shadowClipStart[cascade] + (i + dither) * shadowClipStep[cascade];
+                    lightSample = CompareOpaqueDepth(traceShadowClipPos, vec2(0.0), bias);
+
+                    if (lightSample > EPSILON)
+                        transparentDepth = SampleTransparentDepth(traceShadowClipPos.xy, vec2(0.0));
+                }
             #else
+                const float bias = 0.0; // TODO
+            
                 vec3 traceShadowClipPos = shadowClipStart + shadowClipStep * (i + dither);
 
                 #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
@@ -353,7 +356,7 @@ const float AirSpeed = 20.0;
 
                 traceShadowClipPos = traceShadowClipPos * 0.5 + 0.5;
 
-                lightSample = CompareOpaqueDepth(traceShadowClipPos, vec2(0.0), 0.0);
+                lightSample = CompareOpaqueDepth(traceShadowClipPos, vec2(0.0), bias);
 
                 if (lightSample > EPSILON)
                     transparentDepth = SampleTransparentDepth(traceShadowClipPos.xy, vec2(0.0));

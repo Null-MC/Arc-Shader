@@ -341,11 +341,17 @@ void main() {
                 lightData.shadowPos[lightData.shadowCascade] = shadowPos;
                 lightData.shadowBias[lightData.shadowCascade] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[lightData.shadowCascade]);
 
-                SetNearestDepths(lightData);
-
                 if (lightData.shadowCascade >= 0) {
+                    lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos[lightData.shadowCascade].xy, vec2(0.0));
+                    lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos[lightData.shadowCascade].xy, vec2(0.0));
+                    
                     float minOpaqueDepth = min(lightData.shadowPos[lightData.shadowCascade].z, lightData.opaqueShadowDepth);
-                    lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 3.0 * far;
+                    lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * (3.0 * far);
+                }
+                else {
+                    lightData.opaqueShadowDepth = 1.0;
+                    lightData.transparentShadowDepth = 1.0;
+                    lightData.waterShadowDepth = 0.0;
                 }
             #else
                 #ifndef IRIS_FEATURE_SSBO
@@ -367,8 +373,7 @@ void main() {
                 lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
                 lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
 
-                const float ShadowMaxDepth = 2.0 * far;
-                lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.transparentShadowDepth, 0.0) * ShadowMaxDepth;
+                lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.transparentShadowDepth, 0.0) * (2.0 * far);
             #endif
         #endif
 

@@ -2,12 +2,11 @@
 
 vec3 DirectionFromUV(const in vec2 uv) {
     vec2 sphereCoord = (uv - vec2(0.5, 0.0)) * vec2(TAU, PI);
-    float sinY = sin(sphereCoord.y);
 
-    return vec3(
-        cos(sphereCoord.x) * sinY,
-        cos(sphereCoord.y),
-        sin(sphereCoord.x) * sinY);
+    vec2 _sin = sin(sphereCoord);
+    vec2 _cos = cos(sphereCoord);
+    
+    return vec3(_cos.x * _sin.y, _cos.y, _sin.x * _sin.y);
 }
 
 vec2 DirectionToUV(const in vec3 dir) {

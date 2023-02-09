@@ -190,7 +190,6 @@ screen.SHADOW_OPTIONS=Shadows
 option.SHADOW_TYPE=Type
 option.SHADOW_TYPE.comment=The type of shadow mapping to use. Cascaded requires Iris 1.6+!
 value.SHADOW_TYPE.0=None
-value.SHADOW_TYPE.1=Basic
 value.SHADOW_TYPE.2=Distorted
 value.SHADOW_TYPE.3=Cascaded
 

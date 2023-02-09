@@ -81,6 +81,7 @@ const bool colortex11Clear = false;
 #define WATER_ABSROPTION_RATE 1.0
 #define VL_WATER_ENABLED
 #define VL_WATER_DENSITY 0.12
+//#define WATER_POROSITY_DARKEN
 //#define VL_WATER_NOISE
 #define WATER_FOAM
 
@@ -101,7 +102,7 @@ const bool colortex11Clear = false;
 
 
 // Shadow Options
-#define SHADOW_TYPE 2 // [0 1 2 3]
+#define SHADOW_TYPE 2 // [0 2 3]
 #define SHADOW_FILTER 1 // [0 1 2]
 #define SHADOW_PCF_SIZE 8 // [1 2 3 4 5 6 7 8 9 10 12 14 16 18 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
 #define SHADOW_PCF_SAMPLES 4 // [2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32]
