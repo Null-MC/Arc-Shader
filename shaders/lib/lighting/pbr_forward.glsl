@@ -271,13 +271,9 @@
         mat3 matTBN = mat3(_viewTangent, _viewBinormal, _viewNormal);
         
         if (materialId != MATERIAL_WATER) {
-            #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
+            #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && !(defined RENDER_ENTITIES || defined RENDER_TEXTURED)
                 ApplyDirectionalLightmap(lightData.blockLight, material.normal);
             #endif
-
-            // if (isEyeInWater == 1) {
-            //     material.albedo.rgb = WetnessDarkenSurface(material.albedo.rgb, material.porosity, 1.0);
-            // }
 
             #if defined SKY_ENABLED && !defined RENDER_HAND_WATER && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE)
                 if (isEyeInWater != 1) {

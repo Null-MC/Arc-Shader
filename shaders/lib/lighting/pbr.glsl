@@ -166,9 +166,9 @@
                 #endif
             #endif
 
-                #if defined WORLD_CLOUDS_ENABLED && defined SKY_CLOUDS_ENABLED && defined SHADOW_CLOUD
-                    vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
+                vec3 localLightDir = mat3(gbufferModelViewInverse) * viewLightDir;
 
+                #if defined WORLD_CLOUDS_ENABLED && defined SKY_CLOUDS_ENABLED && defined SHADOW_CLOUD
                     float cloudF = GetCloudFactor(worldPos, localLightDir, 4.0);
                     float cloudShadow = 1.0 - cloudF;
                     skyLightColorFinal *= (0.2 + 0.8 * cloudShadow);
@@ -384,13 +384,12 @@
 
             if (applyWaterAbsorption) {
                 vec3 sunAbsorption = exp(-max(lightData.waterShadowDepth, 0.0) * waterExtinctionInv) * shadowFinal;
-
-                vec3 viewAbsorption = exp(-max(lightData.opaqueScreenDepthLinear, 0.0) * waterExtinctionInv);
-
-                skyAmbient *= viewAbsorption;
                 skyLightColorFinal *= sunAbsorption;
                 skyLightColorShadow *= sunAbsorption;
                 iblSpec *= sunAbsorption;
+
+                //vec3 viewAbsorption = exp(-max(lightData.opaqueScreenDepthLinear, 0.0) * waterExtinctionInv);
+                //skyAmbient *= viewAbsorption;
             }
 
             ambient += skyAmbient;
@@ -654,37 +653,28 @@
                         float waterShadowBias = lightData.shadowBias;
                     #endif
 
-                    vec3 viewAbsorption = exp(-waterViewDepthFinal * waterExtinctionInv);
-
-                    //vec3 sunAbsorption = exp(-waterShadowDepth * waterExtinctionInv);// * shadowFinal;
-                    float sunVerticalDepth = waterViewDepthFinal * max(-localViewDir.y, 0.0);
-                    float fakeSunDist = sunVerticalDepth / max(localLightDir.y, EPSILON);
-
-                    //vec3 sunAbsorption = exp(-waterShadowDepth * waterExtinctionInv);// * shadowFinal;
-                    vec3 sunAbsorption = exp(-fakeSunDist * waterExtinctionInv);// * shadowFinal;
-
-                    // #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                    //     if (waterOpaqueShadowDepth < waterOpaqueShadowPos.z - waterShadowBias)
-                    //         sunAbsorption = 1.0 - (1.0 - sunAbsorption) * (1.0 - ShadowBrightnessF);
-                    // #endif
-
-                    refractColor *= sunAbsorption * viewAbsorption;
-                    //refractColor *= viewAbsorption;
-
                     refractColor *= max(1.0 - sunF, 0.0);
 
+                    // sun absorption
+                    float sunVerticalDepth = waterViewDepthFinal * max(-localViewDir.y, 0.0);
+                    float fakeSunDist = sunVerticalDepth / max(localLightDir.y, EPSILON);
+                    refractColor *= exp(-fakeSunDist * waterExtinctionInv);
+                    
                     #if defined VL_WATER_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                         vec3 vlScatter, vlExt;
                         GetWaterVolumetricLighting(vlScatter, vlExt, waterScatteringF, localViewDir, viewDist, waterOpaqueViewDist);
-                        refractColor *= vlExt;
+                        refractColor = refractColor * vlExt + vlScatter;
+                    #else
+                        // view absorption
+                        refractColor *= exp(-waterViewDepthFinal * waterExtinctionInv);
+
+                        vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
+                        ApplyWaterFog(refractColor, waterFogColor, waterViewDepthFinal);
                     #endif
 
-                    vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
-                    ApplyWaterFog(refractColor, waterFogColor, waterViewDepthFinal);
-
-                    #if defined VL_WATER_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                        refractColor += vlScatter;
-                    #endif
+                    // #if defined VL_WATER_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+                    //     refractColor += vlScatter;
+                    // #endif
                     
                     // TODO: refract out shadowing
                     refractColor *= max(1.0 - iblF, 0.0);
@@ -754,25 +744,6 @@
                     #endif
                 #endif
             }
-            // #if defined WORLD_WATER_ENABLED //&& !defined VL_WATER_ENABLED
-            //     else if (isEyeInWater == 1) {
-            //         #ifndef VL_WATER_ENABLED
-            //             vec3 waterExtinctionInv = WATER_ABSROPTION_RATE * (1.0 - waterAbsorbColor);
-            //             final.rgb *= exp(-viewDist * waterExtinctionInv);
-            //         #endif
-
-            //         #ifdef SKY_ENABLED
-            //             vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
-            //         #else
-            //             vec3 waterFogColor = vec3(0.0);
-            //         #endif
-
-            //         float waterFogF = GetWaterFogFactor(0.0, viewDist);
-            //         //waterFogF *= 1.0 - reflectF;
-            //         //final = mix(final, vec4(waterFogColor, 1.0), waterFogF);
-            //         //final.rgb = mix(final.rgb, waterFogColor, waterFogF);
-            //     }
-            // #endif
         //#endif
 
         return final;

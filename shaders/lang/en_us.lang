@@ -36,7 +36,7 @@ option.ENABLE_WAVING=Waving Plants
 option.ENABLE_WAVING.comment=Foliage (and other similar blocks) will wave using artificial wind.
 
 option.DIRECTIONAL_LIGHTMAP_STRENGTH=DLM Strength
-option.DIRECTIONAL_LIGHTMAP_STRENGTH.comment=Controls the strength of Directional Light Mapping.
+option.DIRECTIONAL_LIGHTMAP_STRENGTH.comment=Controls the strength of Directional Light Mapping. Currently broken!
 suffix.DIRECTIONAL_LIGHTMAP_STRENGTH=%
 
 option.HANDLIGHT_ENABLED=Hand Light

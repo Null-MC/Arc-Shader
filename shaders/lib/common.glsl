@@ -78,11 +78,12 @@ const bool colortex11Clear = false;
 #define WATER_OCTAVES_DIST 120.0
 #define WATER_WAVE_DEPTH 100 // [25 50 100 150 200 250 300]
 #define WATER_NORMAL_STRENGTH 0.1
-#define WATER_ABSROPTION_RATE 1.0
+#define WATER_ABSROPTION_RATE 0.8
+#define WATER_SCATTER_RATE 2.2
 #define VL_WATER_ENABLED
 #define VL_WATER_DENSITY 0.12
 //#define WATER_POROSITY_DARKEN
-//#define VL_WATER_NOISE
+#define VL_WATER_NOISE
 #define WATER_FOAM
 
 
@@ -122,7 +123,7 @@ const bool colortex11Clear = false;
 #define SHADOW_CSM_FITSCALE 0.1
 #define SHADOW_NORMAL_BIAS 0.012
 #define CSM_PLAYER_ID 0
-#define SHADOW_CLOUD
+//#define SHADOW_CLOUD
 #define SHADOW_BLUR
 
 

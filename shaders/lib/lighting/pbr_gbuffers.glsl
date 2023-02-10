@@ -172,7 +172,7 @@
                     #endif
                 #endif
 
-                #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && !defined RENDER_ENTITIES
+                #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && !(defined RENDER_ENTITIES || defined RENDER_TEXTURED)
                     ApplyDirectionalLightmap(lm.x, material.normal);
                 #endif
             }

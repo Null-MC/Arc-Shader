@@ -73,9 +73,10 @@ float GetFogFactor(const in float dist, const in float start, const in float end
                 vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
             #endif
 
-            float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0) * 0.9 + 0.1;
             vec3 ext = 1.0 - RGBToLinear(waterAbsorbColor);
-            waterFogColor = lightColor * exp(-ext * (6.0 / eyeLight));
+            float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
+            float lightDist = mix(4.0, 22.0, 1.0 - eyeLight);
+            waterFogColor = lightColor * exp(-ext * lightDist);
 
             return waterFogColor;
         #else

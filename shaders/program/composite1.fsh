@@ -53,7 +53,7 @@ in vec2 texcoord;
 uniform usampler2D BUFFER_DEFERRED;
 uniform sampler2D BUFFER_LUM_OPAQUE;
 uniform sampler2D BUFFER_HDR_OPAQUE;
-uniform sampler2D BUFFER_LUM_TRANS;
+//uniform sampler2D BUFFER_LUM_TRANS;
 uniform sampler2D BUFFER_HDR_TRANS;
 uniform sampler3D TEX_CLOUD_NOISE;
 uniform sampler2D TEX_BRDF;
@@ -377,6 +377,7 @@ void main() {
                         #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                             float distortFactor = getDistortFactor(lightData.shadowPos.xy);
                             lightData.shadowPos = distort(lightData.shadowPos, distortFactor);
+
                             lightData.shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
                         #else
                             lightData.shadowBias = GetShadowBias(lightData.geoNoL);
@@ -384,16 +385,16 @@ void main() {
 
                         lightData.shadowPos = lightData.shadowPos * 0.5 + 0.5;
 
-                        lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
-                        lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
+                        if (saturate(lightData.shadowPos.xy) == lightData.shadowPos.xy) {
+                            lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
+                            lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
 
-                        #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                            const float ShadowMaxDepth = 512.0;
-                        #else
-                            const float ShadowMaxDepth = 256.0;
-                        #endif
-
-                        lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.transparentShadowDepth, 0.0) * ShadowMaxDepth;
+                            lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.transparentShadowDepth, 0.0) * (far * 2.0);
+                            if (lightData.transparentScreenDepth >= 1.0) lightData.waterShadowDepth = (far * 2.0);
+                        }
+                        else {
+                            lightData.waterShadowDepth = (far * 2.0);
+                        }
                     #endif
 
                     //lightData.waterShadowDepth = max(lightData.waterShadowDepth - GetScreenBayerValue(), 0.0);
@@ -416,8 +417,11 @@ void main() {
                 }
             }
             else if (lightData.transparentScreenDepth >= 1.0) {
-                final = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
-                //final = vec3(0.0);
+                #if defined VL_WATER_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+                    final = vec3(0.0);
+                #else
+                    final = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
+                #endif
             }
         }
     #endif
@@ -454,11 +458,7 @@ void main() {
         }
     #endif
 
-    //float lumTrans = texelFetch(BUFFER_LUM_TRANS, iTex, 0).r;
     vec4 colorTrans = texelFetch(BUFFER_HDR_TRANS, iTex, 0);
-
-    //outColor0 = vec4(mix(vec3(0.0), colorTrans.rgb, colorTrans.a), 1.0);
-    //return;
 
     final = mix(final, colorTrans.rgb / sceneExposure, colorTrans.a);
 
@@ -466,27 +466,21 @@ void main() {
         if (isEyeInWater == 1) {
             #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined VL_WATER_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 vec3 vlScatter, vlExt;
-                GetWaterVolumetricLighting(vlScatter, vlExt, waterScatteringF, localViewDir, near, minViewDist);
-                final *= vlExt;
+                float maxWaterVLDist = min(minViewDist, min(shadowDistance, 64.0));
+                GetWaterVolumetricLighting(vlScatter, vlExt, waterScatteringF, localViewDir, near, maxWaterVLDist);
+                final = final * vlExt + vlScatter;
             #else
-                if (lightData.transparentScreenDepth >= lightData.opaqueScreenDepth) {
+                if (lightData.transparentScreenDepth >= lightData.opaqueScreenDepth) { // || (lightData.transparentScreenDepth >= 1.0 && lightData.opaqueScreenDepth >= 1.0)) {
                     // TODO: get actual linear distance
-                    //float viewDist = min(lightData.opaqueScreenDepthLinear, lightData.transparentScreenDepthLinear);
                     vec3 waterExtinctionInv = WATER_ABSROPTION_RATE * (1.0 - waterAbsorbColor);
                     final *= exp(-minViewDist * waterExtinctionInv);
                 }
-            #endif
 
-            //if (lightData.transparentScreenDepth >= lightData.opaqueScreenDepth) {
                 vec3 waterFogColor = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
 
                 float waterFogF = GetWaterFogFactor(0.0, minViewDist);
                 //waterFogF *= 1.0 - reflectF;
                 final = mix(final, waterFogColor, waterFogF);
-            //}
-
-            #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined VL_WATER_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                final += vlScatter;
             #endif
         }
     #endif

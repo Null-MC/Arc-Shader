@@ -21,7 +21,7 @@ const float AirSpeed = 20.0;
     }
 
     void GetVolumetricLighting(out vec3 scattering, out vec3 transmittance, const in vec3 localViewDir, const in float nearDist, const in float farDist) {
-        const float inverseStepCountF = rcp(SKY_VL_SAMPLES + 1);
+        const float inverseStepCountF = rcp(SKY_VL_SAMPLES - 1);
         
         #ifdef VL_DITHER
             float dither = Bayer16(gl_FragCoord.xy);
@@ -92,7 +92,7 @@ const float AirSpeed = 20.0;
 
         scattering = vec3(0.0);
         transmittance = vec3(1.0);
-        for (int i = SKY_VL_SAMPLES-1; i > 0; i--) {
+        for (int i = 1; i < SKY_VL_SAMPLES; i++) {
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 const float sampleBias = 0.0;
 
@@ -241,13 +241,16 @@ const float AirSpeed = 20.0;
     }
 
     float GetWaterFogDensity(const in sampler3D tex, const in vec3 worldPos) {
-        float sampleDensity1 = textureLod(tex, worldPos / 96.0, 0).r;
-        float sampleDensity2 = textureLod(tex, worldPos / 16.0, 0).r;
-        return 1.0 - 0.6 * sampleDensity1 - 0.3 * sampleDensity2;
+        vec3 texPos = worldPos.xzy;
+        texPos.z *= 4.0;
+
+        float sampleDensity1 = textureLod(tex, texPos / 96.0, 0).r;
+        float sampleDensity2 = textureLod(tex, texPos / 16.0, 0).r;
+        return 0.65 * sampleDensity1 - 0.35 * sampleDensity2;
     }
 
     void GetWaterVolumetricLighting(out vec3 scattering, out vec3 transmittance, const in vec2 scatteringF, const in vec3 localViewDir, const in float nearDist, const in float farDist) {
-        const float inverseStepCountF = rcp(VL_SAMPLES_WATER + 1);
+        const float inverseStepCountF = rcp(VL_SAMPLES_WATER - 1);
 
         #ifdef SHADOW_CLOUD
             vec3 localLightDir = GetShadowLightLocalDir();
@@ -312,22 +315,22 @@ const float AirSpeed = 20.0;
         //vec3 extinctionInv = (1.0 - waterAbsorbColor) * WATER_ABSROPTION_RATE;
         //vec3 fogColorLinear = vec3(1.0); //RGBToLinear(fogColor);
 
-        //float skyLight = saturate(eyeBrightnessSmooth.y / 240.0);
-        vec3 skyAmbient = GetFancySkyAmbientLight(vec3(0.0, 1.0, 0.0), 1.0);
-        vec3 ambient = 0.26 * skyAmbient;// * skyLight;
+        vec3 absorptionCoefficientBase = WATER_ABSROPTION_RATE * (1.0 - RGBToLinear(waterAbsorbColor));
+        vec3 scatteringCoefficientBase = WATER_SCATTER_RATE * (RGBToLinear(waterScatterColor));
 
-        vec3 WaterAbsorptionCoefficient = 0.080 * (1.0 - RGBToLinear(waterAbsorbColor));
-        vec3 WaterScatteringCoefficient = 0.010 * (RGBToLinear(waterScatterColor));
-        vec3 WaterExtinctionCoefficient = WaterScatteringCoefficient + WaterAbsorptionCoefficient;
+        //float skyLight = saturate(eyeBrightnessSmooth.y / 240.0);
+        //vec3 ambientBase = GetFancySkyAmbientLight(vec3(0.0, 1.0, 0.0), 1.0);
+        //ambient *= exp(-absorptionCoefficientBase * mix(18.0, 1.0, skyLight));
 
         #ifndef VL_WATER_NOISE
-            float texDensity = 0.5;
+            const float texDensity = 0.4;
         #endif
 
         scattering = vec3(0.0);
         transmittance = vec3(1.0);
-        for (int i = VL_SAMPLES_WATER-1; i > 0; i--) {
+        for (int i = 1; i < VL_SAMPLES_WATER; i++) {
             transparentDepth = 1.0;
+            float traceLightDist = far;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 const float bias = 0.0; // TODO
@@ -340,10 +343,15 @@ const float AirSpeed = 20.0;
                 lightSample = 0.0;
                 if (cascade >= 0) {
                     traceShadowClipPos = shadowClipStart[cascade] + (i + dither) * shadowClipStep[cascade];
-                    lightSample = CompareOpaqueDepth(traceShadowClipPos, vec2(0.0), bias);
+                    //lightSample = CompareOpaqueDepth(traceShadowClipPos, vec2(0.0), bias);
+                    float opaqueDepth = SampleOpaqueDepth(traceShadowClipPos.xy, vec2(0.0));
+                    lightSample = step(traceShadowClipPos.z - bias, opaqueDepth);
 
-                    if (lightSample > EPSILON)
+                    if (lightSample > EPSILON) {
                         transparentDepth = SampleTransparentDepth(traceShadowClipPos.xy, vec2(0.0));
+
+                        traceLightDist = max(traceShadowClipPos.z - transparentDepth, 0.0) * (far * 3.0);
+                    }
                 }
             #else
                 const float bias = 0.0; // TODO
@@ -356,10 +364,15 @@ const float AirSpeed = 20.0;
 
                 traceShadowClipPos = traceShadowClipPos * 0.5 + 0.5;
 
-                lightSample = CompareOpaqueDepth(traceShadowClipPos, vec2(0.0), bias);
+                //lightSample = CompareOpaqueDepth(traceShadowClipPos, vec2(0.0), bias);
+                float opaqueDepth = SampleOpaqueDepth(traceShadowClipPos.xy, vec2(0.0));
+                lightSample = step(traceShadowClipPos.z - bias, opaqueDepth);
 
-                if (lightSample > EPSILON)
+                if (lightSample > EPSILON) {
                     transparentDepth = SampleTransparentDepth(traceShadowClipPos.xy, vec2(0.0));
+
+                    traceLightDist = max(traceShadowClipPos.z - transparentDepth, 0.0) * (far * 2.0);
+                }
             #endif
 
             vec3 traceWorldPos = worldStart + localStep * (i + dither);
@@ -368,25 +381,42 @@ const float AirSpeed = 20.0;
                 if (HasClouds(traceWorldPos, localLightDir)) {
                     vec3 cloudPos = GetCloudPosition(traceWorldPos, localLightDir);
                     float cloudF = GetCloudFactor(cloudPos, localLightDir, 0);
-                    lightSample *= pow(1.0 - cloudF, 16.0);
+                    lightSample *= pow(1.0 - cloudF, 4.0);
                 }
             #endif
 
             #ifdef VL_WATER_NOISE
-                float texDensity = GetWaterFogDensity(TEX_CLOUD_NOISE, traceWorldPos);
+                float texDensity = 0.2 + 0.4 * GetWaterFogDensity(TEX_CLOUD_NOISE, traceWorldPos);
             #endif
+
+            vec3 absorptionCoefficient = texDensity * absorptionCoefficientBase;
+            vec3 scatteringCoefficient = texDensity * scatteringCoefficientBase;
+            vec3 extinctionCoefficient = scatteringCoefficient + absorptionCoefficient;
+
+            vec3 scatteringAlbedo = scatteringCoefficient / extinctionCoefficient;
+            vec3 multipleScatteringFactor = scatteringAlbedo;// * 0.87;
+
+            vec3 multipleScatteringIntegral = multipleScatteringFactor / (1.0 - multipleScatteringFactor);
+
+            //vec3 ambient = ambientBase * exp(-extinctionCoefficient * mix(24.0, 12.0, skyLight));
 
             vec3 atmosPos = GetAtmospherePosition(traceWorldPos);
             float sampleElevation = length(atmosPos) - groundRadiusMM;
 
-            float waterLightDist = max((traceShadowClipPos.z - transparentDepth) * MaxShadowDist, 0.0);
+            vec3 lightSampleColor = lightSample * exp(-extinctionCoefficient * traceLightDist);
 
-            vec3 lightColor = lightSample * GetScatteredLighting(scatteringF, sampleElevation) + ambient;
+            vec3 stepTransmittance = exp(-extinctionCoefficient * localStepLength);
+            vec3 scatteringIntegral = (1.0 - stepTransmittance) / extinctionCoefficient;
 
-            vec3 stepTransmittance = exp(-WaterExtinctionCoefficient * (localStepLength * texDensity + waterLightDist));
-            vec3 scatteringIntegral = (1.0 - stepTransmittance) / WaterExtinctionCoefficient * texDensity;
+            vec3 directLightColor = lightSampleColor * GetScatteredLighting(scatteringF, sampleElevation);
+            vec3 singleScattering = directLightColor * (scatteringCoefficient * scatteringIntegral);
 
-            scattering += lightColor * (WaterScatteringCoefficient * scatteringIntegral) * transmittance;
+            vec3 indirectLightColor = (lightSample * 0.6 + 0.4) * GetScatteredLighting(vec2(0.25 / PI), sampleElevation);
+            indirectLightColor *= exp(-extinctionCoefficient * traceLightDist);
+            vec3 multiScattering = indirectLightColor * (multipleScatteringIntegral * scatteringIntegral);
+
+            scattering += (singleScattering + multiScattering) * transmittance;
+            //scattering += singleScattering * transmittance;
 
             transmittance *= stepTransmittance;
         }
