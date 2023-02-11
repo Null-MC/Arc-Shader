@@ -161,10 +161,8 @@
             vec3 shadowPos = lightData.shadowPos;
             shadowPos.xy = distort(shadowPos.xy * 2.0 - 1.0) * 0.5 + 0.5;
 
-            //lightDist = max((lightData.shadowPos.z - lightData.shadowBias) - lightData.opaqueShadowDepth, 0.0) * (far * 2.0);
-            vec2 pixelRadius = GetShadowPixelRadius(shadowPos.xy, SSS_PCF_SIZE * SSS_MAXDIST) * materialSSS;// * lightDist);
+            vec2 pixelRadius = GetShadowPixelRadius(shadowPos.xy, SSS_PCF_SIZE * SSS_MAXDIST) * materialSSS;
 
-            //float sss = GetShadowing_PCF_SSS(lightData, pixelRadius);
             #ifdef IRIS_FEATURE_SSBO
                 float dither = InterleavedGradientNoise(gl_FragCoord.xy);
                 float angle = fract(dither) * TAU;
@@ -183,10 +181,6 @@
             float maxWeight = 0.0;
             float light = 0.0;
 
-            // float surfaceDepth = shadowPos.z - 0.2 / (far * 2.0);// - lightData.shadowBias;//);
-            // float texDepth = lightData.opaqueShadowDepth;
-            // float light = 3.0 * step(surfaceDepth, texDepth);
-
             for (int i = 0; i < SSS_PCF_SAMPLES; i++) {
                 #ifdef IRIS_FEATURE_SSBO
                     vec2 pixelOffset = (rotation * sssDiskOffset[i].xy) * pixelRadius;
@@ -195,11 +189,6 @@
                     float noiseDist = hash13(vec3(gl_FragCoord.xy, i + 33.3));
                     vec2 pixelOffset = rotation * noiseDist * pixelRadius;
                 #endif
-
-                // float texDepth = SampleOpaqueDepth(lightData.shadowPos.xy, pixelOffset);
-
-                // float hitDepth = max(texDepth - (lightData.shadowPos.z - lightData.shadowBias), 0.0);
-                // light += max(1.0 - hitDepth, 0.0);
 
                 float bias = 0.0;//lightData.shadowBias;
                 float weight = 1.0 - i * rcp(SSS_PCF_SAMPLES);
@@ -210,9 +199,7 @@
                 maxWeight += weight;
             }
 
-            return light / maxWeight; // * rcp(SSS_PCF_SAMPLES);
-
-            //return materialSSS * max(sss - lightDist / SSS_MAXDIST, 0.0);
+            return light / maxWeight;
         }
     #endif
 #endif
