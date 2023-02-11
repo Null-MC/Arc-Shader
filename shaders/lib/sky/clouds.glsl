@@ -24,11 +24,11 @@ float GetCloudDensity(const in vec2 pos, const in float time) {
 }
 
 bool HasClouds(const in vec3 worldPos, const in vec3 localViewDir) {
-    return step(worldPos.y, CLOUD_LEVEL) == step(0.0, localViewDir.y);
+    return step(worldPos.y, SKY_CLOUD_LEVEL) == step(0.0, localViewDir.y);
 }
 
 vec3 GetCloudPosition(const in vec3 worldPos, const in vec3 localViewDir) {
-    return worldPos + (localViewDir / localViewDir.y) * (CLOUD_LEVEL - worldPos.y);
+    return worldPos + (localViewDir / localViewDir.y) * (SKY_CLOUD_LEVEL - worldPos.y);
 }
 
 float GetCloudFactor(const in vec3 cloudPos, const in vec3 localViewDir, const in float lod) {
@@ -40,7 +40,7 @@ float GetCloudFactor(const in vec3 cloudPos, const in vec3 localViewDir, const i
 
     float viewDirY = localViewDir.y;
 
-    if (cameraPosition.y > CLOUD_LEVEL)
+    if (cameraPosition.y > SKY_CLOUD_LEVEL)
         viewDirY = -viewDirY;
 
     return d * smoothstep(0.06, 0.8, viewDirY);

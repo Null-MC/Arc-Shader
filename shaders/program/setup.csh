@@ -13,7 +13,7 @@ const ivec3 workGroups = ivec3(1, 1, 1);
     layout(std430, binding = 1) buffer shadowDiskData {
         vec2 pcfDiskOffset[32];     // 256
         vec2 pcssDiskOffset[32];    // 256
-        vec2 sssDiskOffset[32];     // 256
+        vec3 sssDiskOffset[32];     // 512
     };
 #endif
 
@@ -25,6 +25,12 @@ vec2 GetVogelDiskSamplePos(const in int index, const in float sampleCountF) {
     float theta = index * goldenAngle + PHI;
     float r = sqrt((index + 0.5) * sampleCountF);
     return vec2(cos(theta), sin(theta)) * r;
+}
+
+vec3 GetVogelDiskSamplePos_SSS(const in int index, const in float sampleCountF) {
+    float theta = index * goldenAngle + PHI;
+    float r = sqrt((index + 0.5) * sampleCountF);
+    return vec3(cos(theta), sin(theta), 1.0) * r;
 }
 
 void main() {
@@ -39,7 +45,7 @@ void main() {
 
         const float sssSampleCountF = rcp(SSS_PCF_SAMPLES);
         for (int i = 0; i < SSS_PCF_SAMPLES; i++)
-            sssDiskOffset[i] = GetVogelDiskSamplePos(i, sssSampleCountF);
+            sssDiskOffset[i] = GetVogelDiskSamplePos_SSS(i, sssSampleCountF);
     #endif
 
     barrier();

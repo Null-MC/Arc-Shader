@@ -40,10 +40,6 @@ float GetFogFactor(const in float dist, const in float start, const in float end
         float viewDist = length(viewPos);// - near;
         fogFactor = 0.0;
 
-        #if defined SKY_ENABLED && defined ATMOSFOG_ENABLED
-            float customFogFactor = GetCustomFogFactor(viewDist, lightData.skyLightLevels.x);
-        #endif
-
         float vanillaFogFactor = GetVanillaFogFactor(viewPos);
 
         fogFactor = max(fogFactor, vanillaFogFactor);
@@ -64,19 +60,12 @@ float GetFogFactor(const in float dist, const in float start, const in float end
 #ifdef WORLD_WATER_ENABLED
     vec3 GetWaterFogColor(const in vec3 sunColorFinal, const in vec3 moonColorFinal, const in vec2 scatteringF) {
         #ifdef SKY_ENABLED
-            vec3 waterFogColor = vec3(0.0);
+            vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
 
-            #if defined VL_WATER_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                const float isotropicPhase = 0.25 / PI;
-                vec3 lightColor = isotropicPhase * (sunColorFinal + moonColorFinal);
-            #else
-                vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
-            #endif
-
-            vec3 ext = 1.0 - RGBToLinear(waterAbsorbColor);
+            vec3 ext = 1.0 - waterAbsorbColor;
             float eyeLight = saturate(eyeBrightnessSmooth.y / 240.0);
-            float lightDist = mix(4.0, 22.0, 1.0 - eyeLight);
-            waterFogColor = lightColor * exp(-ext * lightDist);
+            float lightDist = mix(20.0, 4.0, eyeLight);
+            vec3 waterFogColor = lightColor * exp(-ext * lightDist);
 
             return waterFogColor;
         #else

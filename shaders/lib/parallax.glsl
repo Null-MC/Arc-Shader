@@ -2,7 +2,7 @@ vec2 GetParallaxCoord(const in mat2 dFdXY, const in vec3 tanViewDir, const in fl
     vec2 stepCoord = tanViewDir.xy * PARALLAX_DEPTH / (1.0 + tanViewDir.z * PARALLAX_SAMPLES);
     float stepDepth = 1.0 / PARALLAX_SAMPLES;
 
-    #ifdef PARALLAX_SMOOTH
+    #if PARALLAX_SHAPE == PARALLAX_SHAPE_SMOOTH
         vec2 atlasPixelSize = 1.0 / atlasSize;
         float prevTexDepth;
     #endif
@@ -14,13 +14,13 @@ vec2 GetParallaxCoord(const in mat2 dFdXY, const in vec3 tanViewDir, const in fl
     texDepth = 1.0;
     float depthDist = 1.0;
     for (i = 0; i <= maxSampleCount && depthDist >= (1.0/255.0); i++) {
-        #ifdef PARALLAX_SMOOTH
+        #if PARALLAX_SHAPE == PARALLAX_SHAPE_SMOOTH
             prevTexDepth = texDepth;
         #endif
 
         vec2 localTraceCoord = localCoord - i * stepCoord;
 
-        #ifdef PARALLAX_SMOOTH
+        #if PARALLAX_SHAPE == PARALLAX_SHAPE_SMOOTH
             //vec2 traceAtlasCoord = GetAtlasCoord(localCoord - i * stepCoord);
             //texDepth = TextureGradLinear(normals, traceAtlasCoord, atlasSize, dFdXY, 3);
 
@@ -49,7 +49,7 @@ vec2 GetParallaxCoord(const in mat2 dFdXY, const in vec3 tanViewDir, const in fl
     //traceDepth.xy = localCoord - pI * stepCoord;
     //traceDepth.z = 1.0 - pI * stepDepth;
 
-    #ifdef PARALLAX_SMOOTH
+    #if PARALLAX_SHAPE == PARALLAX_SHAPE_SMOOTH
         vec2 currentTraceOffset = localCoord - i * stepCoord;
         float currentTraceDepth = 1.0 - i * stepDepth;
         vec2 prevTraceOffset = localCoord - pI * stepCoord;
@@ -68,7 +68,7 @@ vec2 GetParallaxCoord(const in mat2 dFdXY, const in vec3 tanViewDir, const in fl
     #endif
 
     //return GetAtlasCoord(localCoord - i * stepCoord);
-    #ifdef PARALLAX_SMOOTH
+    #if PARALLAX_SHAPE == PARALLAX_SHAPE_SMOOTH
         //return i == 1 ? texcoord : GetAtlasCoord(traceDepth.xy);
         return GetAtlasCoord(traceDepth.xy);
     #else
@@ -82,7 +82,7 @@ float GetParallaxShadow(const in vec3 traceTex, const in mat2 dFdXY, const in ve
 
     float skip = floor(traceTex.z * PARALLAX_SHADOW_SAMPLES + 0.5) / PARALLAX_SHADOW_SAMPLES;
 
-    #ifdef PARALLAX_SMOOTH
+    #if PARALLAX_SHAPE == PARALLAX_SHAPE_SMOOTH
         vec2 atlasPixelSize = 1.0 / atlasSize;
     #endif
 
@@ -95,7 +95,7 @@ float GetParallaxShadow(const in vec3 traceTex, const in mat2 dFdXY, const in ve
         float traceDepth = start.z + i * stepDepth;
         vec2 localCoord = start.xy + i * stepCoord;
 
-        #ifdef PARALLAX_SMOOTH
+        #if PARALLAX_SHAPE == PARALLAX_SHAPE_SMOOTH
             //float texDepth = TextureGradLinear(normals, atlasCoord, atlasPixelSize, dFdXY, 3);
 
             vec2 uv[4];
@@ -124,7 +124,7 @@ float GetParallaxShadow(const in vec3 traceTex, const in mat2 dFdXY, const in ve
     return max(shadow, 0.0);
 }
 
-#ifdef PARALLAX_SLOPE_NORMALS
+#if PARALLAX_SHAPE == PARALLAX_SHAPE_SHARP
     vec3 GetParallaxSlopeNormal(const in vec2 atlasCoord, const in mat2 dFdXY, const in float traceDepth, const in vec3 tanViewDir) {
         vec2 atlasPixelSize = 1.0 / atlasSize;
         float atlasAspect = atlasSize.x / atlasSize.y;

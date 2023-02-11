@@ -46,7 +46,7 @@ flat out mat2 atlasBounds;
     #endif
 #endif
 
-#if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
+#if defined PARALLAX_ENABLED
     out vec2 localCoord;
     out vec3 tanViewPos;
 
@@ -110,7 +110,7 @@ uniform int isEyeInWater;
 uniform float nightVision;
 uniform float blindness;
 
-#if defined WORLD_WATER_ENABLED && WATER_WAVE_TYPE == WATER_WAVE_VERTEX
+#if defined WORLD_WATER_ENABLED && defined WATER_WAVE_ENABLED
     uniform float frameTimeCounter;
 #endif
 
@@ -125,7 +125,7 @@ uniform float blindness;
 #include "/lib/matrix.glsl"
 #include "/lib/lighting/blackbody.glsl"
 
-#if defined WORLD_WATER_ENABLED && WATER_WAVE_TYPE == WATER_WAVE_VERTEX
+#if defined WORLD_WATER_ENABLED && defined WATER_WAVE_ENABLED
     #include "/lib/world/wind.glsl"
     #include "/lib/world/water.glsl"
 #endif
@@ -205,15 +205,10 @@ void main() {
 
             shadowPos = (shadowProjectionEx * vec4(shadowViewPos, 1.0)).xyz;
 
-            #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                float distortFactor = getDistortFactor(shadowPos.xy);
-                shadowPos = distort(shadowPos, distortFactor);
-                shadowBias = GetShadowBias(geoNoL, distortFactor);
-            #else
-                shadowBias = GetShadowBias(geoNoL);
-            #endif
-
+            float distortFactor = getDistortFactor(shadowPos.xy);
+            //shadowPos = distort(shadowPos, distortFactor) * 0.5 + 0.5;
             shadowPos = shadowPos * 0.5 + 0.5;
+            shadowBias = GetShadowBias(geoNoL, distortFactor);
         #endif
     #endif
 

@@ -61,14 +61,18 @@ const bool colortex11Clear = false;
 #define BLOCK_OUTLINE 3 // [0 1 2 3]
 #define BLOCKLIGHT_TEMP 2700 // [2500 2700 3000 3500 4000 5700 7000]
 #define DIRECTIONAL_LIGHTMAP_STRENGTH 0 // [0 10 20 30 40 50 60 70 80 90 100]
-#define FOG_DENSITY 100 // [0 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200 220 240 260 280 300 320 360 380 400]
 //#define ANIM_USE_WORLDTIME
+#define WETNESS_MODE 2 // [0 1 2]
+#define SNOW_MODE 2 // [0 1 2]
+#define EMISSIVE_POWER 2.2 // [1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0]
 
 
 // Water Options
-#define WATER_WAVE_TYPE 1 // [0 1 2]
+#define WATER_FOAM_ENABLED
+#define WATER_WAVE_ENABLED
 //#define WATER_REFRACTION_FANCY
 #define REFRACTION_STRENGTH 100 // [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 85 100 110 120 130 140 150 160 170 180 190 200]
+//#define WATER_POROSITY_DARKEN
 #define WATER_CAMERA_BLUR 1 // [0 1 2]
 #define WATER_SCALE 10.0
 #define WATER_RADIUS 50
@@ -78,28 +82,42 @@ const bool colortex11Clear = false;
 #define WATER_OCTAVES_DIST 120.0
 #define WATER_WAVE_DEPTH 100 // [25 50 100 150 200 250 300]
 #define WATER_NORMAL_STRENGTH 0.1
-#define WATER_ABSROPTION_RATE 0.8
-#define WATER_SCATTER_RATE 2.2
-#define VL_WATER_ENABLED
-#define VL_WATER_DENSITY 0.12
-//#define WATER_POROSITY_DARKEN
-#define VL_WATER_NOISE
-#define WATER_FOAM
+#define WATER_VL_ENABLED
+#define WATER_VL_SAMPLES 6 // [4 6 8 12 16 24]
+#define WATER_VL_NOISE
+
+
+// Material Options
+#define MATERIAL_FORMAT 0 // [0 1 2 3]
+#define REFLECTION_MODE 2 // [0 1 2]
+#define MATERIAL_WET_DARKEN 80 // [0 10 20 30 40 50 60 70 80 90 100 11 120 130 140 150 160 170 180 190 200]
+//#define MATERIAL_SMOOTH_NORMALS
+#define SSS_ENABLED
+#define SSS_STRENGTH 120 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
+#define SSS_MAXDIST 3 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
+#define SSS_PCF_SIZE 0.1 // [0.02 0.04 0.06 0.08 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.5 0.6 0.8 1.0 1.5 2.0 2.5 3.0]
+#define SSS_PCF_SAMPLES 6 // [2 4 6 8 10 12 14 16]
+//#define SSS_NORMALIZE_ALBEDO
+#define SSR_QUALITY 1 // [0 1 2]
+#define SSR_IGNORE_HAND
+#define SSR_HIZ
+
+
+// Sky Options
+#define SKY_CLOUD_LEVEL 180 // [-1 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200 210 220 230 240 250 260 270 280]
+#define WEATHER_OPACITY 50 // [10 20 30 40 50 60 70 80 90 100]
+#define SUN_TEMP 5000.0 // [3500 4000 4500 5000 5500 6000 6500 7000]
+#define MOON_TEMP 4000.0
+#define SKY_SUN_TYPE 1 // [0 1]
 
 
 // Atmosphere Options
 //#define LIGHTLEAK_FIX
-//#define ATMOSFOG_ENABLED
-//#define CAVEFOG_ENABLED
-#define WEATHER_OPACITY 50 // [10 20 30 40 50 60 70 80 90 100]
-#define SUN_TEMP 5000.0 // [3500 4000 4500 5000 5500 6000 6500 7000]
-#define MOON_TEMP 4000.0
-#define WETNESS_MODE 2 // [0 1 2]
-#define SNOW_MODE 2 // [0 1 2]
-
 #define SKY_VL_ENABLED
 #define SKY_VL_SAMPLES 12 // [8 12 16 20 24 32]
-#define SKY_CLOUDS_ENABLED
+//#define SKY_VL_NOISE
+#define SMOKE_ENABLED
+#define VL_SMOKE_DENSITY 40 // [0 10 20 30 40 50 60 70 80 90 100]
 
 
 // Shadow Options
@@ -118,7 +136,7 @@ const bool colortex11Clear = false;
 #define SHADOW_PENUMBRA_SCALE 0.1
 #define SHADOW_BASIC_BIAS 0.035
 //#define SHADOW_DISTORTED_BIAS 0.0016
-#define SHADOW_CONTACT 0 // [0 1 2]
+//#define SHADOW_CONTACT 0 // [0 1 2]
 #define SHADOW_CSM_FIT_FARSCALE 1.1
 #define SHADOW_CSM_FITSCALE 0.1
 #define SHADOW_NORMAL_BIAS 0.012
@@ -127,28 +145,11 @@ const bool colortex11Clear = false;
 #define SHADOW_BLUR
 
 
-// Material Options
-#define MATERIAL_FORMAT 0 // [0 1 2 3]
-#define REFLECTION_MODE 2 // [0 1 2]
-#define SSR_QUALITY 1 // [0 1 2]
-#define SSR_IGNORE_HAND
-#define SSR_HIZ
-#define SSS_ENABLED
-#define SSS_DITHER
-#define SSS_STRENGTH 120 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
-#define SSS_MAXDIST 3 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
-#define SSS_PCF_SIZE 0.1 // [0.02 0.04 0.06 0.08 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.5 0.6 0.8 1.0]
-#define SSS_PCF_SAMPLES 6 // [2 4 6 8 10 12 14 16]
-//#define SSS_NORMALIZE_ALBEDO
-
-
 // Material Parallax Options
 #define PARALLAX_ENABLED
+#define PARALLAX_SHAPE 0 // [0 1 2]
 #define PARALLAX_DISTANCE 24.0
 #define PARALLAX_SHADOWS_ENABLED
-//#define PARALLAX_SMOOTH
-//#define PARALLAX_SMOOTH_NORMALS
-//#define PARALLAX_SLOPE_NORMALS
 #define PARALLAX_DEPTH 0.25 // [0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define PARALLAX_SAMPLES 32 // [16 32 64 128 256]
 #define PARALLAX_SHADOW_SAMPLES 32 // [16 32 64 128 256]
@@ -185,10 +186,6 @@ const bool colortex11Clear = false;
 #define BLOOM_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define BLOOM_LOD_MAX 0 // [0 1 2 3 4 5 6 7 8 9]
 #define VL_DITHER
-#define VL_STRENGTH 100 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 175 200 225 250 275 300 350 400 450 500 600 700 800 900]
-#define VL_SAMPLES_WATER 6 // [4 6 8 12 16 24]
-#define VL_FOG_MIN 6 // [0 2 4 6 8 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
-//#define VL_FOG_NOISE
 #define VL_PARTICLES
 #define AO_TYPE 2 // [0 1 2]
 #define SSAO_SAMPLES 6 // [2 4 6 8 10 12 14 16 24 32]
@@ -209,25 +206,16 @@ const bool colortex11Clear = false;
 // Debug Options
 #define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
 //#define DEBUG_EXPOSURE_METERS
-//#define IRIS_FEATURE_CHUNK_OFFSET
 #define DITHER_FINAL
 #define PARTICLE_OPACITY 0.8
 #define PARTICLE_RESOLUTION 8 // [8 16 32 64 128]
 //#define PARTICLE_ROUNDING
 #define HCM_LAZANYI
 #define METAL_AMBIENT 0.4
-#define POROSITY_DARKENING 80 // [0 10 20 30 40 50 60 70 80 90 100]
 //#define SHADOW_CONTACT_DITHER
 //#define SKY_DITHER
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
-#define CLOUD_HORIZON_POWER 8.0
-#define CLOUD_POW_CLEAR 1.6
-#define CLOUD_POW_RAIN 0.3
-#define SMOKE_ENABLED
-#define VL_SMOKE_DENSITY 40 // [0 10 20 30 40 50 60 70 80 90 100]
-#define IRIS_FEATURE_BIOMECAT
-#define SUN_FANCY
 
 #if SSR_QUALITY == 2
     #define SSR_SCALE 1
@@ -244,7 +232,6 @@ const bool colortex11Clear = false;
 // INTERNAL
 #define TITLE
 #define SEA_LEVEL 62
-#define CLOUD_LEVEL 200 // [120 130 140 150 160 170 180 190 200 210 220 230 240 250 260]
 #define ATMOSPHERE_LEVEL 2400
 #define WATER_SMOOTH 1.0
 #define IOR_AIR 1.000293
@@ -257,20 +244,15 @@ const bool colortex11Clear = false;
 
 #define attribute in
 
-const float EmissionLumens = 30000;
+const float EmissionLumens = 20000;
 
 const float BlockLightLux = 2400.0;
 // const float MinWorldLux = 8.0;
 
-const vec3 ATMOS_EXT_COLOR = vec3(0.510, 0.500, 0.485);
-const vec3 FOG_RAIN_COLOR = vec3(0.839, 0.843, 0.824)*0.2;
-const vec4 WATER_COLOR = vec4(0.139, 0.271, 0.313, 0.1);
 const vec3 CLOUD_COLOR = vec3(0.248, 0.225, 0.273);
 const vec3 SNOW_COLOR = vec3(0.590, 0.665, 0.682);
 const vec3 POWDER_SNOW_COLOR = vec3(0.820, 0.868, 0.879);
 
-const vec3 minLight = vec3(0.01);
-const float tile_dist_bias_factor = 0.012288;
 const vec3 handOffsetMain = vec3(0.6, -0.3, -0.2);
 const vec3 handOffsetAlt = vec3(-0.6, -0.3, -0.2);
 const vec3 luma_factor = vec3(0.2126, 0.7152, 0.0722);
@@ -283,15 +265,11 @@ const float drynessHalflife = 10.0;
     const float alphaTestRef = 0.1;
 #endif
 
-const float FogDensityF = FOG_DENSITY * 0.01;
-const float PorosityDarkeningF = POROSITY_DARKENING * 0.01;
 const float RefractionStrengthF = REFRACTION_STRENGTH * 0.01;
-const vec3 AtmosExtInv = 1.0 - ATMOS_EXT_COLOR;
-const vec3 WaterExtInv = 1.0 - WATER_COLOR.rgb;
 const float WaterWaveDepthF = WATER_WAVE_DEPTH * 0.01;
-const float VLFogMinF = VL_FOG_MIN * 0.01;
 const float shadowPcfSize = SHADOW_PCF_SIZE * 0.01;
 //const float SmokeDensityF = VL_SMOKE_DENSITY * 0.01;
+const float MaterialWetDarkenF = MATERIAL_WET_DARKEN * 0.01;
 
 const float shadowDistanceRenderMul = 1.0;
 const float shadowIntervalSize = 2.0f;
@@ -314,12 +292,12 @@ const float shadowPixelSize = 1.0 / shadowMapSize;
         mat4 shadowProjectionEx;        // 64
 
         vec2 skyLightLevels;            // 8
-        vec3 skySunColor;               // 12
-        vec3 sunTransmittanceEye;       // 12
-        vec3 skyMoonColor;              // 12
-        vec3 moonTransmittanceEye;      // 12
+        vec3 skySunColor;               // 16
+        vec3 sunTransmittanceEye;       // 16
+        vec3 skyMoonColor;              // 16
+        vec3 moonTransmittanceEye;      // 16
         //float skyMoonPhaseLevel,
-        vec3 blockLightColor;           // 12
+        vec3 blockLightColor;           // 16
 
         // CSM
         float cascadeSize[4];           // 16
@@ -336,11 +314,7 @@ const float shadowPixelSize = 1.0 / shadowMapSize;
 #endif
 #ifdef REFLECTION_MODE
 #endif
-#ifdef WATER_WAVE_TYPE
-#endif
-#ifdef CAVEFOG_ENABLED
-#endif
-#ifdef ATMOSFOG_ENABLED
+#ifdef WATER_WAVE_ENABLED
 #endif
 #ifdef SMOKE_ENABLED
 #endif
@@ -372,7 +346,7 @@ const float shadowPixelSize = 1.0 / shadowMapSize;
 #endif
 #ifdef DOF_ENABLED
 #endif
-#ifdef VL_FOG_NOISE
+#ifdef SKY_VL_NOISE
 #endif
 #ifdef SHADOW_BLUR
 #endif

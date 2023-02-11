@@ -17,11 +17,11 @@ int GetLabPbr_HCM(const in float specularG) {
 }
 
 float GetLabPbr_SSS(const in float specularB) {
-    return max(specularB - 0.25, 0.0) * (1.0 / 0.75);
+    return max(specularB - (65.0/255.0), 0.0) * (255.0/190.0);
 }
 
 float GetLabPbr_Porosity(const in float specularB) {
-    return specularB * 4.0 * step(specularB, 0.25);
+    return specularB * 4.0 * step(specularB, (65.0/255.0));
 }
 
 float GetOldPbr_Porosity(const in float smoothness, const in float metalness) {
@@ -128,7 +128,7 @@ float GetOldPbr_Emission(const in float specularB) {
     }
 
     float WriteLabPbr_SSS(const in float scattering) {
-        return 0.255 + 0.745 * scattering;
+        return (65.0/255.0) + (190.0/255.0) * scattering;
     }
 
     float WriteLabPbr_F0(const in float f0) {

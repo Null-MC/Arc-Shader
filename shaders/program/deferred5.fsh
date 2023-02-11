@@ -200,18 +200,15 @@ uniform float waterFogDistSmooth;
         #include "/lib/sampling/ign.glsl"
         #include "/lib/shadows/common.glsl"
 
-        #if SHADOW_TYPE == SHADOW_TYPE_BASIC
-            #include "/lib/shadows/basic.glsl"
-            #include "/lib/shadows/basic_render.glsl"
-        #elif SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-            #include "/lib/shadows/basic.glsl"
-            #include "/lib/shadows/basic_render.glsl"
-        #elif SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             #include "/lib/shadows/csm.glsl"
             #include "/lib/shadows/csm_render.glsl"
+        #else
+            #include "/lib/shadows/basic.glsl"
+            #include "/lib/shadows/basic_render.glsl"
         #endif
 
-        #if defined SKY_VL_ENABLED || defined VL_WATER_ENABLED
+        #if defined SKY_VL_ENABLED || defined WATER_VL_ENABLED
             #include "/lib/lighting/volumetric.glsl"
         #endif
     #endif
@@ -300,9 +297,6 @@ void main() {
         vec3 upDir = normalize(upPosition);
         float fragElevation = GetAtmosphereElevation(worldPos);
 
-        //lightData.skyLightLevels = skyLightLevels;
-        //lightData.sunTransmittanceEye = sunTransmittanceEye;
-
         #ifdef IS_IRIS
             lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
         #else
@@ -310,8 +304,6 @@ void main() {
         #endif
 
         #ifdef WORLD_MOON_ENABLED
-            //lightData.moonTransmittanceEye = moonTransmittanceEye;
-
             #ifdef IS_IRIS
                 lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
             #else
@@ -360,18 +352,16 @@ void main() {
 
                 lightData.shadowPos = (shadowProjectionEx * vec4(shadowViewPos, 1.0)).xyz;
 
-                #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                    float distortFactor = getDistortFactor(lightData.shadowPos.xy);
-                    lightData.shadowPos = distort(lightData.shadowPos, distortFactor);
-                    lightData.shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
-                #else
-                    lightData.shadowBias = GetShadowBias(lightData.geoNoL);
-                #endif
+                float distortFactor = getDistortFactor(lightData.shadowPos.xy);
+                //lightData.shadowPos = distort(lightData.shadowPos, distortFactor);
+                lightData.shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
+
+                vec2 shadowPosD = distort(lightData.shadowPos.xy) * 0.5 + 0.5;
 
                 lightData.shadowPos = lightData.shadowPos * 0.5 + 0.5;
 
-                lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
-                lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
+                lightData.opaqueShadowDepth = SampleOpaqueDepth(shadowPosD.xy, vec2(0.0));
+                lightData.transparentShadowDepth = SampleTransparentDepth(shadowPosD.xy, vec2(0.0));
 
                 lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.transparentShadowDepth, 0.0) * (2.0 * far);
             #endif
@@ -424,11 +414,11 @@ void main() {
     }
 
     #ifdef SKY_ENABLED
-        #if defined WORLD_CLOUDS_ENABLED && defined SKY_CLOUDS_ENABLED
+        #if defined WORLD_CLOUDS_ENABLED && SKY_CLOUD_LEVEL > 0
             float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
 
-            float cloudDepthTest = CLOUD_LEVEL - (cameraPosition.y + localPos.y);
-            cloudDepthTest *= sign(CLOUD_LEVEL - cameraPosition.y);
+            float cloudDepthTest = SKY_CLOUD_LEVEL - (cameraPosition.y + localPos.y);
+            cloudDepthTest *= sign(SKY_CLOUD_LEVEL - cameraPosition.y);
 
             if (HasClouds(cameraPosition, localViewDir) && (minDepth > 1.0 - EPSILON || cloudDepthTest < 0.0)) {
                 vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);

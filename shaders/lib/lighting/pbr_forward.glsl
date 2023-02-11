@@ -73,12 +73,12 @@
                 vec2 waterUV = worldPos.xz;
                 float waveAmplitude = 0.0;
 
-                #if WATER_WAVE_TYPE != WATER_WAVE_NONE || defined PHYSICS_OCEAN
+                #if defined WATER_WAVE_ENABLED || defined PHYSICS_OCEAN
                     #ifdef PHYSICS_OCEAN
                         WavePixelData waveData = physics_wavePixel(physics_localPosition, physics_localWaviness, physics_iterationsNormal, physics_gameTime);
                         vec3 waveNormal = physics_waveNormal(waveData, physics_localWaviness);
 
-                        #ifdef WATER_FOAM
+                        #ifdef WATER_FOAM_ENABLED
                             waveAmplitude = waveData.height * pow(max(waveNormal.y, 0.0), 4.0);
                             waterUV = waveData.worldPos;
                         #endif
@@ -124,7 +124,7 @@
                     #endif
                 #endif
 
-                #ifdef WATER_FOAM
+                #ifdef WATER_FOAM_ENABLED
                     material.albedo.rgb = RGBToLinear(material.albedo.rgb);
 
                     float time = frameTimeCounter / 360.0;
@@ -177,7 +177,7 @@
                 vec4 specularMap = textureGrad(specular, atlasCoord, dFdXY[0], dFdXY[1]);
                 vec3 normalMap;
 
-                #if defined PARALLAX_ENABLED && defined PARALLAX_SMOOTH_NORMALS
+                #if defined PARALLAX_ENABLED && defined MATERIAL_SMOOTH_NORMALS
                     ////normalMap.rgb = TexelFetchLinearRGB(normals, atlasCoord * atlasSize);
                     //normalMap.rgb = TextureGradLinearRGB(normals, atlasCoord, atlasSize, dFdXY);
 
@@ -227,7 +227,7 @@
                     }
                 //#endif
 
-                #if defined PARALLAX_ENABLED && defined PARALLAX_SLOPE_NORMALS
+                #if defined PARALLAX_ENABLED && PARALLAX_SHAPE == PARALLAX_SHAPE_SHARP
                     float dO = max(texDepth - traceCoordDepth.z, 0.0);
                     if (dO >= 0.95 / 255.0 && materialId != MATERIAL_WATER) {
                         //#ifdef PARALLAX_USE_TEXELFETCH
@@ -329,8 +329,8 @@
             if (isEyeInWater != 1) {
                 vec3 localViewDir = normalize(localPos);
 
-                float cloudDepthTest = CLOUD_LEVEL - (cameraPosition.y + localPos.y);
-                cloudDepthTest *= sign(CLOUD_LEVEL - cameraPosition.y);
+                float cloudDepthTest = SKY_CLOUD_LEVEL - (cameraPosition.y + localPos.y);
+                cloudDepthTest *= sign(SKY_CLOUD_LEVEL - cameraPosition.y);
 
                 if (HasClouds(cameraPosition, localViewDir) && cloudDepthTest < 0.0) {
                     vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);

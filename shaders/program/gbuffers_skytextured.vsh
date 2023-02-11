@@ -72,7 +72,7 @@ uniform float blindness;
 
 
 void main() {
-    #ifdef SUN_FANCY
+    #if SKY_SUN_TYPE == SUN_FANCY
         if (renderStage == MC_RENDER_STAGE_SUN) {
             gl_Position = vec4(10.0);
             return;

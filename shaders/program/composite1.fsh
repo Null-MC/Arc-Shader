@@ -211,7 +211,7 @@ uniform float eyeHumidity;
             #include "/lib/shadows/basic_render.glsl"
         #endif
 
-        #if defined SKY_VL_ENABLED || defined VL_WATER_ENABLED
+        #if defined SKY_VL_ENABLED || defined WATER_VL_ENABLED
             #include "/lib/lighting/volumetric.glsl"
         #endif
     #endif
@@ -374,20 +374,18 @@ void main() {
                     
                         lightData.shadowPos = (shadowProjectionEx * vec4(shadowViewPos, 1.0)).xyz;
 
-                        #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                            float distortFactor = getDistortFactor(lightData.shadowPos.xy);
-                            lightData.shadowPos = distort(lightData.shadowPos, distortFactor);
+                        float distortFactor = getDistortFactor(lightData.shadowPos.xy);
+                        //lightData.shadowPos = distort(lightData.shadowPos, distortFactor);
 
-                            lightData.shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
-                        #else
-                            lightData.shadowBias = GetShadowBias(lightData.geoNoL);
-                        #endif
+                        lightData.shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
+
+                        vec2 shadowPosD = distort(lightData.shadowPos.xy) * 0.5 + 0.5;
 
                         lightData.shadowPos = lightData.shadowPos * 0.5 + 0.5;
 
-                        if (saturate(lightData.shadowPos.xy) == lightData.shadowPos.xy) {
-                            lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
-                            lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
+                        if (saturate(shadowPosD) == shadowPosD) {
+                            lightData.opaqueShadowDepth = SampleOpaqueDepth(shadowPosD, vec2(0.0));
+                            lightData.transparentShadowDepth = SampleTransparentDepth(shadowPosD, vec2(0.0));
 
                             lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.transparentShadowDepth, 0.0) * (far * 2.0);
                             if (lightData.transparentScreenDepth >= 1.0) lightData.waterShadowDepth = (far * 2.0);
@@ -417,7 +415,7 @@ void main() {
                 }
             }
             else if (lightData.transparentScreenDepth >= 1.0) {
-                #if defined VL_WATER_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+                #if defined WATER_VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                     final = vec3(0.0);
                 #else
                     final = GetWaterFogColor(waterSunColorEye, waterMoonColorEye, waterScatteringF);
@@ -430,7 +428,7 @@ void main() {
         //float lum = texelFetch(BUFFER_LUM_OPAQUE, iTex, 0).r;
         final = texelFetch(BUFFER_HDR_OPAQUE, iTex, 0).rgb / sceneExposure;
 
-        #if defined WORLD_CLOUDS_ENABLED && defined SKY_CLOUDS_ENABLED
+        #if defined WORLD_CLOUDS_ENABLED && SKY_CLOUD_LEVEL > 0
             if (isEyeInWater == 1) {
                 if (HasClouds(cameraPosition, localViewDir)) {
                     vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
@@ -464,7 +462,7 @@ void main() {
 
     #ifdef WORLD_WATER_ENABLED
         if (isEyeInWater == 1) {
-            #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined VL_WATER_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+            #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined WATER_VL_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 vec3 vlScatter, vlExt;
                 float maxWaterVLDist = min(minViewDist, min(shadowDistance, 64.0));
                 GetWaterVolumetricLighting(vlScatter, vlExt, waterScatteringF, localViewDir, near, maxWaterVLDist);
@@ -472,7 +470,7 @@ void main() {
             #else
                 if (lightData.transparentScreenDepth >= lightData.opaqueScreenDepth) { // || (lightData.transparentScreenDepth >= 1.0 && lightData.opaqueScreenDepth >= 1.0)) {
                     // TODO: get actual linear distance
-                    vec3 waterExtinctionInv = WATER_ABSROPTION_RATE * (1.0 - waterAbsorbColor);
+                    vec3 waterExtinctionInv = 1.0 - waterAbsorbColor;
                     final *= exp(-minViewDist * waterExtinctionInv);
                 }
 

@@ -29,9 +29,6 @@ value.BLOCK_OUTLINE.1=Black
 value.BLOCK_OUTLINE.2=White
 value.BLOCK_OUTLINE.3=Fancy
 
-option.FOG_DENSITY=Fog Density
-suffix.FOG_DENSITY=%
-
 option.ENABLE_WAVING=Waving Plants
 option.ENABLE_WAVING.comment=Foliage (and other similar blocks) will wave using artificial wind.
 
@@ -60,22 +57,23 @@ value.SNOW_MODE.2=Full
 
 screen.WATER_OPTIONS=Water
 
-option.WATER_WAVE_TYPE=Waves
-value.WATER_WAVE_TYPE.0=None
-value.WATER_WAVE_TYPE.1=Vertex
-value.WATER_WAVE_TYPE.2=Parallax
+option.WATER_WAVE_ENABLED=Waves
 
 option.REFRACTION_STRENGTH=Refract Distance
 suffix.REFRACTION_STRENGTH=%
 
-option.VL_WATER_ENABLED=Volumetric
+option.WATER_VL_ENABLED=Volumetric
 
-option.VL_SAMPLES_WATER=VL Samples
+option.WATER_VL_SAMPLES=VL Samples
+
+option.WATER_VL_NOISE=VL Noise
+
+option.WATER_FOAM_ENABLED=Foam/Dirt
 
 option.WATER_WAVE_DEPTH=Wave Depth
 suffix.WATER_WAVE_DEPTH=%
 
-option.WATER_CAMERA_BLUR=Blur
+option.WATER_CAMERA_BLUR=Underwater Blur
 value.WATER_CAMERA_BLUR.0=Off
 value.WATER_CAMERA_BLUR.1=Low
 value.WATER_CAMERA_BLUR.2=High
@@ -123,23 +121,25 @@ option.SSS_PCF_SAMPLES.comment=The number of depth samples to use when applying 
 option.SSS_NORMALIZE_ALBEDO=Normalize
 option.SSS_NORMALIZE_ALBEDO.comment=Prevents the darkening of SSS by albedo. May look better or worse depending on resource pack used.
 
+option.EMISSIVE_POWER=Emission Curve
+option.EMISSIVE_POWER.comment=Adjusts an optional curve for emissive textures.
+
+option.MATERIAL_WET_DARKEN=Wetness Darkening
+suffix.MATERIAL_WET_DARKEN=%
+
 
 screen.MATERIAL_PARALLAX_OPTIONS=Parallax
 screen.MATERIAL_PARALLAX_OPTIONS.comment=Options for Parallax Occlusion Mapping (POM).
 
 option.PARALLAX_ENABLED=Enabled
 
-option.PARALLAX_SMOOTH=Smooth
-option.PARALLAX_SMOOTH.comment=When enabled, the displacement will be linearly filtered for a smooth surface.
-
-option.PARALLAX_SMOOTH_NORMALS=Smooth Normals
-option.PARALLAX_SMOOTH_NORMALS.comment=When enabled, the normals will be linearly filtered for a smooth angle.
+option.PARALLAX_SHAPE=Shape
+value.PARALLAX_SHAPE.0=Default
+value.PARALLAX_SHAPE.1=Smooth
+value.PARALLAX_SHAPE.2=Sharp
 
 option.PARALLAX_SHADOWS_ENABLED=Shadows
 option.PARALLAX_SHADOWS_ENABLED.comment=When enabled, displaced pixels will cast shadows.
-
-option.PARALLAX_SLOPE_NORMALS=Slope Normals
-option.PARALLAX_SLOPE_NORMALS.comment=When enabled, the vertical walls between pixels will be given proper normals.
 
 option.PARALLAX_DEPTH=Depth
 option.PARALLAX_DEPTH.comment=The maximum amount of displacement.
@@ -153,35 +153,37 @@ option.PARALLAX_SHADOW_SAMPLES.comment=The maximum number of depth samples to tr
 option.PARALLAX_DEPTH_WRITE=Depth-Write
 option.PARALLAX_DEPTH_WRITE.comment=When enabled, the surface depth will also be displaced by POM; allowing more accurate shadows and intersections.
 
+option.MATERIAL_SMOOTH_NORMALS=Smooth Normals
+option.MATERIAL_SMOOTH_NORMALS.comment=When enabled, the normals will be linearly filtered for a smooth angle.
 
-screen.ATMOSPHERE_OPTIONS=Atmosphere
+
+screen.SKY_OPTIONS=Sky
 
 option.sunPathRotation=Sun Angle
 suffix.sunPathRotation=°
 
-option.ATMOSFOG_ENABLED=Haze Fog
-
-option.CAVEFOG_ENABLED=Cave Fog
+option.SKY_CLOUD_LEVEL=Cloud Height
+value.SKY_CLOUD_LEVEL.-1=OFF
 
 option.WEATHER_OPACITY=Weather Opacity
 option.WEATHER_OPACITY.comment=Controls the opacity of weather particles (rain, snow). Lower values will be less visible.
 suffix.WEATHER_OPACITY=%
+
+option.SKY_SUN_TYPE=Sun Type
+value.SKY_SUN_TYPE.0=Default
+value.SKY_SUN_TYPE.1=Fancy
+
+
+screen.ATMOSPHERE_OPTIONS=Atmosphere
 
 option.SKY_VL_ENABLED=Volumetric
 
 option.SKY_VL_SAMPLES=VL Samples
 option.SKY_VL_SAMPLES.comment=More samples provides higher quality; less samples will be faster.
 
-option.VL_STRENGTH=VL Strength
-option.VL_STRENGTH.comment=Makes light rays more visible by simulating atmospheric scattering in lit volumes.
-suffix.VL_STRENGTH=%
+option.SKY_VL_NOISE=VL Noise
 
-option.CLOUD_LEVEL=Cloud Height
-
-option.VL_FOG_MIN=Min Fog
-suffix.VL_FOG_MIN=%
-
-option.SMOKE_ENABLED=Smoke
+option.SMOKE_ENABLED=Nether Smoke
 option.SMOKE_ENABLED.comment=Enables a volumetric fog/smoke effect in worlds without a sky (ie: nether, end, etc).
 
 

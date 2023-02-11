@@ -78,7 +78,7 @@ void main() {
         color += starF * StarLumen;
     }
 
-    #ifdef SUN_FANCY
+    #if SKY_SUN_TYPE == SUN_FANCY
         vec3 localSunDir = GetSunLocalDir();
         color += GetSunWithBloom(localViewDir, localSunDir) * sunTransmittanceEye * skySunColor * SunLux;
     #endif

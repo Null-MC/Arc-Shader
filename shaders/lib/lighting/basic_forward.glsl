@@ -53,7 +53,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
         diffuse += albedo.rgb * pow3(lightData.blockLight) * blockLightColor;
     #endif
 
-    vec3 waterExtinctionInv = WATER_ABSROPTION_RATE * (1.0 - waterAbsorbColor);
+    vec3 waterExtinctionInv = 1.0 - waterAbsorbColor;
 
     //vec3 skyAmbient = vec3(pow(skyLight, 5.0));
     #ifdef SKY_ENABLED
@@ -163,7 +163,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
 
             ApplyWaterFog(final.rgb, waterFogColor, viewDist);
 
-            #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined VL_WATER_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+            #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined WATER_VL_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 vec3 vlScatter, vlExt;
                 GetWaterVolumetricLighting(vlScatter, vlExt, waterScatteringF, localViewDir, near, viewDist);
                 final.rgb = final.rgb * vlExt + vlScatter;
@@ -186,25 +186,27 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
         #endif
 
         #ifdef SKY_ENABLED
-            float cloudDepthTest = CLOUD_LEVEL - worldPos.y;
-            cloudDepthTest *= sign(CLOUD_LEVEL - cameraPosition.y);
+            #if defined WORLD_CLOUDS_ENABLED && SKY_CLOUD_LEVEL > 0
+                float cloudDepthTest = SKY_CLOUD_LEVEL - worldPos.y;
+                cloudDepthTest *= sign(SKY_CLOUD_LEVEL - cameraPosition.y);
 
-            if (HasClouds(cameraPosition, localViewDir) && cloudDepthTest < 0.0) {
-                vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
-                float cloudF = GetCloudFactor(cloudPos, localViewDir, 0);
+                if (HasClouds(cameraPosition, localViewDir) && cloudDepthTest < 0.0) {
+                    vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
+                    float cloudF = GetCloudFactor(cloudPos, localViewDir, 0);
 
-                // vec3 sunDir = GetSunDir();
-                // float sun_VoL = dot(viewDir, sunDir);
+                    // vec3 sunDir = GetSunDir();
+                    // float sun_VoL = dot(viewDir, sunDir);
 
-                // vec3 moonDir = GetMoonDir();
-                // float moon_VoL = dot(viewDir, moonDir);
+                    // vec3 moonDir = GetMoonDir();
+                    // float moon_VoL = dot(viewDir, moonDir);
 
-                vec3 cloudColor = GetCloudColor(cloudPos, localViewDir, skyLightLevels);
+                    vec3 cloudColor = GetCloudColor(cloudPos, localViewDir, skyLightLevels);
 
-                //cloudF = smoothstep(0.0, 1.0, cloudF);
-                //final.rgb = mix(final.rgb, cloudColor, cloudF);
-                // TODO: mix opacity?
-            }
+                    //cloudF = smoothstep(0.0, 1.0, cloudF);
+                    //final.rgb = mix(final.rgb, cloudColor, cloudF);
+                    // TODO: mix opacity?
+                }
+            #endif
 
             #if defined SKY_VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 vec3 vlScatter, vlExt;

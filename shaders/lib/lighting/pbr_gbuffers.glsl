@@ -34,7 +34,7 @@
             if (!skipParallax && viewDist < PARALLAX_DISTANCE) {
                 atlasCoord = GetParallaxCoord(dFdXY, tanViewDir, viewDist, texDepth, traceCoordDepth);
 
-                #ifndef PARALLAX_SMOOTH_NORMALS
+                #ifndef MATERIAL_SMOOTH_NORMALS
                     normalMap.xyz = textureGrad(normals, atlasCoord, dFdXY[0], dFdXY[1]).xyz;
                 #endif
 
@@ -99,7 +99,7 @@
         float parallaxShadow = 1.0;
         vec2 lm = lmcoord;
 
-        #if defined PARALLAX_ENABLED && defined PARALLAX_SMOOTH_NORMALS && MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT && !defined RENDER_TEXTURED && !defined RENDER_ENTITIES
+        #if defined PARALLAX_ENABLED && defined MATERIAL_SMOOTH_NORMALS && MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT && !defined RENDER_TEXTURED && !defined RENDER_ENTITIES
             if (!isMissingNormal && !isMissingTangent) {
                 ////normalMap.rgb = TexelFetchLinearRGB(normals, atlasCoord * atlasSize);
                 //normalMap.rgb = TextureGradLinearRGB(normals, atlasCoord, atlasSize, dFdXY);
@@ -148,7 +148,7 @@
         #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
             if (!isMissingNormal && !isMissingTangent) {
                 #if defined PARALLAX_ENABLED && !defined RENDER_TEXTURED
-                    #ifdef PARALLAX_SLOPE_NORMALS
+                    #if PARALLAX_SHAPE == PARALLAX_SHAPE_SHARP
                         float dO = max(texDepth - traceCoordDepth.z, 0.0);
                         if (dO >= 2.0 / 255.0) {
                             #ifdef PARALLAX_USE_TEXELFETCH
@@ -172,7 +172,7 @@
                     #endif
                 #endif
 
-                #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && !(defined RENDER_ENTITIES || defined RENDER_TEXTURED)
+                #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && !defined RENDER_ENTITIES
                     ApplyDirectionalLightmap(lm.x, material.normal);
                 #endif
             }

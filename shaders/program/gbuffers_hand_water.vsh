@@ -46,7 +46,7 @@ flat out mat2 atlasBounds;
     #endif
 #endif
 
-#if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
+#if defined PARALLAX_ENABLED
     out vec2 localCoord;
     out vec3 tanViewPos;
 
@@ -99,7 +99,7 @@ attribute vec3 at_midBlock;
     attribute vec3 vaPosition;
 #endif
 
-#if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX || defined AF_ENABLED
+#if defined PARALLAX_ENABLED || defined AF_ENABLED
     attribute vec4 mc_midTexCoord;
 #endif
 
@@ -187,15 +187,10 @@ void main() {
         
             shadowPos = (shadowProjectionEx * vec4(shadowViewPos, 1.0)).xyz;
 
-            #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                float distortFactor = getDistortFactor(shadowPos.xy);
-                shadowPos = distort(shadowPos, distortFactor);
-                shadowBias = GetShadowBias(geoNoL, distortFactor);
-            #else
-                shadowBias = GetShadowBias(geoNoL);
-            #endif
-
+            float distortFactor = getDistortFactor(shadowPos.xy);
+            //shadowPos = distort(shadowPos, distortFactor) * 0.5 + 0.5;
             shadowPos = shadowPos * 0.5 + 0.5;
+            shadowBias = GetShadowBias(geoNoL, distortFactor);
         #endif
     #endif
 

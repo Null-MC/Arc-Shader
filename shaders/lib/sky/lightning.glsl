@@ -17,7 +17,7 @@ void ApplyLightning(out vec3 diffuse, out vec3 specular, const in vec3 albedo, c
     if (isEyeInWater == 1) {
         float viewDist = length(viewPos);
         vec3 extinctionInv = 1.0 - waterAbsorbColor;
-        vec3 absorption = exp(-WATER_ABSROPTION_RATE * (lightDist + viewDist) * extinctionInv);
+        vec3 absorption = exp(-extinctionInv * (lightDist + viewDist));
         lightColor *= absorption;
     }
 

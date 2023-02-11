@@ -100,7 +100,7 @@ uniform sampler3D TEX_CLOUD_NOISE;
                 uniform float viewHeight;
             #endif
             
-            #if defined SKY_VL_ENABLED || defined VL_WATER_ENABLED
+            #if defined SKY_VL_ENABLED || defined WATER_VL_ENABLED
                 uniform mat4 gbufferProjection;
             #endif
         #endif
@@ -182,7 +182,7 @@ uniform float waterFogDistSmooth;
 #include "/lib/world/fog_fancy.glsl"
 #include "/lib/sky/clouds.glsl"
 
-#if (defined SKY_VL_ENABLED || defined VL_WATER_ENABLED) && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE //&& defined VL_PARTICLES
+#if (defined SKY_VL_ENABLED || defined WATER_VL_ENABLED) && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE //&& defined VL_PARTICLES
     #include "/lib/lighting/volumetric.glsl"
 #endif
 
@@ -196,7 +196,7 @@ layout(location = 1) out vec4 outColor1;
 
 void main() {
     vec3 worldPos = cameraPosition + localPos;
-    if (worldPos.y >= CLOUD_LEVEL) {discard; return;}
+    if (worldPos.y >= SKY_CLOUD_LEVEL) {discard; return;}
 
     float opacityThreshold = mix(1.0, 0.2, rainStrength);
 

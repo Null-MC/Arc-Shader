@@ -35,7 +35,7 @@ flat in mat2 atlasBounds;
     #endif
 #endif
 
-#if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
+#if defined PARALLAX_ENABLED
     in vec2 localCoord;
     in vec3 tanViewPos;
 
@@ -48,7 +48,7 @@ flat in mat2 atlasBounds;
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         in vec3 shadowPos[4];
         in float shadowBias[4];
-    #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+    #elif SHADOW_TYPE == SHADOW_TYPE_DISTORTED
         in vec3 shadowPos;
         in float shadowBias;
     #endif
@@ -134,6 +134,7 @@ uniform mat4 shadowProjection;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
+uniform mat4 gbufferProjectionInverse;
 uniform vec3 cameraPosition;
 uniform vec3 upPosition;
 uniform float viewWidth;
@@ -150,10 +151,6 @@ uniform float fogStart;
 uniform float fogEnd;
 uniform int fogMode;
 uniform int fogShape;
-
-#if defined SHADOW_CONTACT || REFLECTION_MODE == REFLECTION_MODE_SCREEN
-    uniform mat4 gbufferProjectionInverse;
-#endif
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     uniform sampler2D BUFFER_HDR_PREVIOUS;
@@ -256,7 +253,7 @@ uniform float waterRoughSmooth;
             #include "/lib/shadows/basic_render.glsl"
         #endif
 
-        #if defined SKY_VL_ENABLED || defined VL_WATER_ENABLED
+        #if defined SKY_VL_ENABLED || defined WATER_VL_ENABLED
             #include "/lib/lighting/volumetric.glsl"
         #endif
     #endif

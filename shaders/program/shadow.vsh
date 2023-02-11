@@ -70,7 +70,7 @@ uniform float far;
     #include "/lib/shadows/basic.glsl"
 #endif
 
-#if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
+#ifdef WATER_WAVE_ENABLED
     #include "/lib/world/water.glsl"
 #endif
 
@@ -96,7 +96,7 @@ void main() {
     vec3 shadowViewNormal = normalize(mat3(shadowModelViewEx) * gl_Normal);
     vNoV = shadowViewNormal.z;
 
-    #if defined ENABLE_WAVING || WATER_WAVE_TYPE == WATER_WAVE_VERTEX
+    #if defined ENABLE_WAVING || defined WATER_WAVE_ENABLED
         float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
     #endif
 
@@ -115,7 +115,7 @@ void main() {
             physics_vLocalPosition = vLocalPos;
         #else
             if (gl_Normal.y > 0.5) {
-                #if WATER_WAVE_TYPE == WATER_WAVE_VERTEX
+                #ifdef WATER_WAVE_ENABLED
                     vec3 worldPos = vLocalPos + cameraPosition;
                 
                     //float windSpeed = GetWindSpeed();

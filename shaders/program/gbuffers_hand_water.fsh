@@ -35,7 +35,7 @@ flat in mat2 atlasBounds;
     #endif
 #endif
 
-#if defined PARALLAX_ENABLED || WATER_WAVE_TYPE == WATER_WAVE_PARALLAX
+#if defined PARALLAX_ENABLED
     in vec2 localCoord;
     in vec3 tanViewPos;
 
@@ -237,7 +237,7 @@ uniform float waterFogDistSmooth;
             #include "/lib/shadows/basic_render.glsl"
         #endif
 
-        #if defined SKY_VL_ENABLED || defined VL_WATER_ENABLED
+        #if defined SKY_VL_ENABLED || defined WATER_VL_ENABLED
             #include "/lib/lighting/volumetric.glsl"
         #endif
     #endif

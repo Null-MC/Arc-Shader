@@ -46,15 +46,12 @@ uniform float viewHeight;
     #include "/lib/sampling/ign.glsl"
     #include "/lib/shadows/common.glsl"
 
-    #if SHADOW_TYPE == SHADOW_TYPE_BASIC
-        #include "/lib/shadows/basic.glsl"
-        #include "/lib/shadows/basic_render.glsl"
-    #elif SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-        #include "/lib/shadows/basic.glsl"
-        #include "/lib/shadows/basic_render.glsl"
-    #elif SHADOW_TYPE == SHADOW_TYPE_CASCADED
+    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         #include "/lib/shadows/csm.glsl"
         #include "/lib/shadows/csm_render.glsl"
+    #else
+        #include "/lib/shadows/basic.glsl"
+        #include "/lib/shadows/basic_render.glsl"
     #endif
 #endif
 
@@ -135,21 +132,6 @@ void main() {
             vec3 shadowViewPos = (shadowModelViewEx * vec4(localPos, 1.0)).xyz;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                // lightData.shadowPos[0] = (cascadeProjection[0] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                // lightData.shadowPos[1] = (cascadeProjection[1] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                // lightData.shadowPos[2] = (cascadeProjection[2] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                // lightData.shadowPos[3] = (cascadeProjection[3] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
-                                
-                // lightData.shadowPos[0].xy = lightData.shadowPos[0].xy * 0.5 + shadowProjectionPos[0];
-                // lightData.shadowPos[1].xy = lightData.shadowPos[1].xy * 0.5 + shadowProjectionPos[1];
-                // lightData.shadowPos[2].xy = lightData.shadowPos[2].xy * 0.5 + shadowProjectionPos[2];
-                // lightData.shadowPos[3].xy = lightData.shadowPos[3].xy * 0.5 + shadowProjectionPos[3];
-                
-                // lightData.shadowBias[0] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[0]);
-                // lightData.shadowBias[1] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[1]);
-                // lightData.shadowBias[2] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[2]);
-                // lightData.shadowBias[3] = GetCascadeBias(lightData.geoNoL, shadowProjectionSize[3]);
-
                 vec3 shadowPos = GetCascadeShadowPosition(shadowViewPos, lightData.shadowCascade);
                 
                 lightData.shadowPos[lightData.shadowCascade] = shadowPos;
@@ -168,24 +150,16 @@ void main() {
 
                 lightData.shadowPos = (shadowProjectionEx * vec4(shadowViewPos, 1.0)).xyz;
 
-                #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                    float distortFactor = getDistortFactor(lightData.shadowPos.xy);
-                    lightData.shadowPos = distort(lightData.shadowPos, distortFactor);
-                    lightData.shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
-                #else
-                    lightData.shadowBias = GetShadowBias(lightData.geoNoL);
-                #endif
+                float distortFactor = getDistortFactor(lightData.shadowPos.xy);
+                //lightData.shadowPos = distort(lightData.shadowPos, distortFactor);
+                lightData.shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
+
+                vec2 shadowPosD = distort(lightData.shadowPos.xy) * 0.5 + 0.5;
 
                 lightData.shadowPos = lightData.shadowPos * 0.5 + 0.5;
 
-                lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
-                lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
-
-                #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                    const float ShadowMaxDepth = 512.0;
-                #else
-                    const float ShadowMaxDepth = 256.0;
-                #endif
+                lightData.opaqueShadowDepth = SampleOpaqueDepth(shadowPosD, vec2(0.0));
+                lightData.transparentShadowDepth = SampleTransparentDepth(shadowPosD, vec2(0.0));
 
                 //lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.transparentShadowDepth, 0.0) * ShadowMaxDepth;
             #endif

@@ -32,7 +32,7 @@
                     // }
                 #endif
 
-                #if defined WORLD_WATER_ENABLED && (WATER_WAVE_TYPE == WATER_WAVE_VERTEX || defined PHYSICS_OCEAN)
+                #if defined WORLD_WATER_ENABLED && (defined WATER_WAVE_ENABLED || defined PHYSICS_OCEAN)
                     //#if MC_VERSION >= 11700
                         float vY = -at_midBlock.y / 64.0;
                         float posY = saturate(vY + 0.5) * (1.0 - step(0.5, vY + EPSILON));
@@ -150,7 +150,7 @@
         vec3 irradiance = textureLod(BUFFER_IRRADIANCE, sphereCoord, 0).rgb;
 
         #if !defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE
-            irradiance *= 2.2;
+            irradiance *= 2.0;
         #endif
 
         return irradiance * SKY_FANCY_LUM * smoothstep(0.0, 1.0, skyLight);

@@ -165,15 +165,10 @@ void main() {
 
             shadowPos = (shadowProjectionEx * vec4(shadowViewPos, 1.0)).xyz;
 
-            #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
-                float distortFactor = getDistortFactor(shadowPos.xy);
-                shadowPos = distort(shadowPos, distortFactor);
-                shadowBias = GetShadowBias(geoNoL, distortFactor);
-            #else
-                shadowBias = GetShadowBias(geoNoL);
-            #endif
-
+            float distortFactor = getDistortFactor(shadowPos.xy);
+            //shadowPos = distort(shadowPos, distortFactor) * 0.5 + 0.5;
             shadowPos = shadowPos * 0.5 + 0.5;
+            shadowBias = GetShadowBias(geoNoL, distortFactor);
         #endif
     #endif
 

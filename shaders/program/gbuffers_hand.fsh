@@ -79,9 +79,10 @@ layout(location = 0) out uvec4 outColor0;
 void main() {
     vec4 colorMap, normalMap, specularMap, lightingMap;
     PbrLighting(colorMap, normalMap, specularMap, lightingMap);
-
-    outColor0.r = packUnorm4x8(colorMap);
-    outColor0.g = packUnorm4x8(normalMap);
-    outColor0.b = packUnorm4x8(specularMap);
-    outColor0.a = packUnorm4x8(lightingMap);
+    
+    outColor0 = uvec4(
+        packUnorm4x8(colorMap),
+        packUnorm4x8(normalMap),
+        packUnorm4x8(specularMap),
+        packUnorm4x8(lightingMap));
 }

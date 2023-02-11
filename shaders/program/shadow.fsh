@@ -79,7 +79,7 @@ void main() {
 
     vec4 sampleColor;
     if (gBlockId == MATERIAL_WATER) {
-        sampleColor = WATER_COLOR;
+        sampleColor = vec4(1.0, 1.0, 1.0, 0.1);
     }
     else {
         sampleColor = texture(gtexture, gTexcoord);
