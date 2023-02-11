@@ -162,9 +162,9 @@
             shadowPos.xy = distort(shadowPos.xy * 2.0 - 1.0) * 0.5 + 0.5;
 
             vec2 pixelRadius = GetShadowPixelRadius(shadowPos.xy, SSS_PCF_SIZE * SSS_MAXDIST) * materialSSS;
+            float dither = InterleavedGradientNoise(gl_FragCoord.xy);
 
             #ifdef IRIS_FEATURE_SSBO
-                float dither = InterleavedGradientNoise(gl_FragCoord.xy);
                 float angle = fract(dither) * TAU;
                 float s = sin(angle), c = cos(angle);
                 mat2 rotation = mat2(c, -s, s, c);
@@ -193,7 +193,13 @@
                 float bias = 0.0;//lightData.shadowBias;
                 float weight = 1.0 - i * rcp(SSS_PCF_SAMPLES);
 
-                bias += dither * materialSSS * (1.0 - sssDiskOffset[i].z) * SSS_MAXDIST / (2.0 * far);
+                #ifdef IRIS_FEATURE_SSBO
+                    float sampleDepth = 1.0 - sssDiskOffset[i].z;
+                #else
+                    float sampleDepth = 1.0 - noiseDist;
+                #endif
+
+                bias += dither * materialSSS * sampleDepth * SSS_MAXDIST / (2.0 * far);
 
                 light += weight * CompareOpaqueDepth(shadowPos, pixelOffset, bias);
                 maxWeight += weight;
