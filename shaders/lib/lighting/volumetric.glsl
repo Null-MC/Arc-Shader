@@ -405,7 +405,7 @@ const float AirSpeed = 20.0;
             #endif
 
             #ifdef WATER_VL_NOISE
-                float texDensity = 0.2 + 0.3 * GetWaterFogDensity(TEX_CLOUD_NOISE, traceWorldPos);
+                float texDensity = 0.8 + 1.2 * GetWaterFogDensity(TEX_CLOUD_NOISE, traceWorldPos);
             #endif
 
             vec3 absorptionCoefficient = texDensity * absorptionCoefficientBase;
