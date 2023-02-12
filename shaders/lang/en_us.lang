@@ -29,8 +29,11 @@ value.BLOCK_OUTLINE.1=Black
 value.BLOCK_OUTLINE.2=White
 value.BLOCK_OUTLINE.3=Fancy
 
-option.ENABLE_WAVING=Waving Plants
-option.ENABLE_WAVING.comment=Foliage (and other similar blocks) will wave using artificial wind.
+option.WAVING_MODE=Waving Plants
+option.WAVING_MODE.comment=Foliage (and other similar blocks) will wave using artificial wind.
+value.WAVING_MODE.0=Off
+value.WAVING_MODE.1=Vertex
+value.WAVING_MODE.2=Block
 
 option.DIRECTIONAL_LIGHTMAP_STRENGTH=DLM Strength
 option.DIRECTIONAL_LIGHTMAP_STRENGTH.comment=Controls the strength of Directional Light Mapping. Currently broken!

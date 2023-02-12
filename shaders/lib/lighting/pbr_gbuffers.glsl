@@ -22,7 +22,7 @@
             bool skipParallax = isMissingTangent || isMissingNormal;
 
             #ifdef RENDER_ENTITIES
-                if (entityId == MATERIAL_ITEM_FRAME || entityId == MATERIAL_PHYSICS_SNOW) skipParallax = true;
+                if (entityId == ENTITY_ITEM_FRAME || entityId == ENTITY_PHYSICSMOD_SNOW) skipParallax = true;
             #else
                 if (materialId == MATERIAL_LAVA) skipParallax = true;
             #endif
@@ -69,7 +69,7 @@
         #endif
 
         #ifdef RENDER_ENTITIES
-            if (colorMap.a < 10.0/255.0 && entityId != MATERIAL_BOAT) {
+            if (colorMap.a < 10.0/255.0 && entityId != ENTITY_BOAT) {
                 discard;
                 return;
             }
@@ -80,9 +80,9 @@
             }
         #endif
 
-        #ifndef RENDER_TEXTURED
+        //#ifndef RENDER_TEXTURED
             colorMap.rgb *= glcolor.rgb;
-        #endif
+        //#endif
 
         #ifdef RENDER_ENTITIES
             colorMap.rgb = mix(colorMap.rgb, entityColor.rgb, entityColor.a);
@@ -127,18 +127,11 @@
         PopulateMaterial(material, colorMap, normalMap.xyz, specularMap);
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-            #if defined RENDER_TERRAIN || defined RENDER_WATER
-                ApplyHardCodedMaterials(material, materialId);
+            #ifdef RENDER_ENTITIES
+                ApplyHardCodedMaterials(material, entityId);
+            #elif defined RENDER_TERRAIN || defined RENDER_WATER
+                ApplyHardCodedMaterials(material, materialId, cameraPosition + localPos);
             #endif
-
-            // #ifdef RENDER_TERRAIN
-            //     material.f0 = matF0;
-            //     material.smoothness = matSmooth;
-            //     material.scattering = matSSS;
-            // #else
-            //     material.f0 = 0.04;
-            //     material.smoothness = 0.08;
-            // #endif
         #endif
 
         #if AO_TYPE == AO_TYPE_VANILLA
@@ -207,7 +200,7 @@
         #endif
 
         #ifdef RENDER_ENTITIES
-            if (materialId == MATERIAL_PHYSICS_SNOW) {
+            if (materialId == ENTITY_PHYSICSMOD_SNOW) {
                 material.albedo.rgb = SNOW_COLOR;
 
                 material.scattering = GetPhysicsSnowScattering(localPos);

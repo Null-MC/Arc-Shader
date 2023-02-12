@@ -85,7 +85,7 @@ void main() {
             return;
         #endif
 
-        if (entityId == MATERIAL_LIGHTNING_BOLT) return;
+        if (entityId == ENTITY_LIGHTNING_BOLT) return;
     }
 
     #ifdef SHADOW_EXCLUDE_FOLIAGE

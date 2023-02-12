@@ -104,8 +104,8 @@ uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform float screenBrightness;
 uniform vec3 cameraPosition;
-uniform int worldTime;
 
+uniform int worldTime;
 uniform int isEyeInWater;
 uniform float nightVision;
 uniform float blindness;

@@ -6,7 +6,7 @@
             float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
         #endif
 
-        #if defined SKY_ENABLED && defined RENDER_TERRAIN && defined ENABLE_WAVING
+        #if defined SKY_ENABLED && defined RENDER_TERRAIN && WAVING_MODE != WAVING_NONE
             if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0) {
                 float wavingRange = GetWavingRange(skyLight);
                 pos += GetWavingOffset(wavingRange);

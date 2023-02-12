@@ -64,6 +64,7 @@ uniform int worldTime;
 #endif
 
 #ifdef SKY_ENABLED
+    #include "/lib/sampling/noise.glsl"
     #include "/lib/world/wind.glsl"
     #include "/lib/world/waving.glsl"
 #endif

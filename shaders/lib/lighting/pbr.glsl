@@ -142,7 +142,7 @@
             shadow *= lightLeakFix;
         #endif
 
-        #if (AO_TYPE == AO_TYPE_SS || (defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)) && !defined RENDER_WATER && !defined RENDER_HAND_WATER
+        #if (AO_TYPE == AO_TYPE_SS || (defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)) && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
             float shadowOcclusionSigma = 3.0 / (viewDist + 1.0);
             vec4 shadowOcclusion = BilateralGaussianDepthBlurRGBA_5x(BUFFER_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, shadowOcclusionSigma);
         #endif
@@ -156,7 +156,7 @@
             // #endif
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                #if defined SHADOW_BLUR && !defined RENDER_WATER && !defined RENDER_HAND_WATER
+                #if defined SHADOW_BLUR && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
                     shadowColor = shadowOcclusion.rgb;
                 #else
                     shadow *= step(EPSILON, lightData.geoNoL);
@@ -328,7 +328,7 @@
             vec3 waterExtinctionInv = 1.0 - waterAbsorbColor;
         #endif
 
-        #if AO_TYPE == AO_TYPE_SS && !defined RENDER_WATER && !defined RENDER_HAND_WATER
+        #if AO_TYPE == AO_TYPE_SS && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
             // #ifdef SSAO_UPSCALE
             //     occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, 0.9, 3);
             // #else

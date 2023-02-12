@@ -58,11 +58,21 @@ flat in mat2 atlasBounds;
     in vec4 spriteBounds;
 #endif
 
-#if defined SKY_VL_ENABLED || defined WORLD_WATER_ENABLED
-    uniform sampler3D TEX_CLOUD_NOISE;
-#endif
+uniform sampler2D gtexture;
+uniform sampler2D normals;
+uniform sampler2D specular;
+uniform sampler2D lightmap;
+uniform sampler2D depthtex1;
+uniform sampler2D noisetex;
+
+//uniform usampler2D BUFFER_DEFERRED;
+uniform sampler2D BUFFER_HDR_OPAQUE;
+uniform sampler2D TEX_BRDF;
 
 #ifdef SKY_ENABLED
+    uniform sampler2D BUFFER_SKY_LUT;
+    uniform sampler2D BUFFER_IRRADIANCE;
+
     #ifdef IS_IRIS
         uniform sampler3D texSunTransmittance;
         uniform sampler3D texMultipleScattering;
@@ -70,7 +80,13 @@ flat in mat2 atlasBounds;
         uniform sampler3D colortex12;
         uniform sampler3D colortex13;
     #endif
+#endif
 
+#if defined SKY_VL_ENABLED || defined WORLD_WATER_ENABLED
+    uniform sampler3D TEX_CLOUD_NOISE;
+#endif
+
+#ifdef SKY_ENABLED
     uniform float eyeAltitude;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
@@ -114,22 +130,6 @@ flat in mat2 atlasBounds;
     uniform sampler2D BUFFER_AO;
 #endif
 
-uniform sampler2D gtexture;
-uniform sampler2D normals;
-uniform sampler2D specular;
-uniform sampler2D lightmap;
-uniform sampler2D depthtex1;
-uniform sampler2D noisetex;
-
-uniform sampler2D BUFFER_SKY_LUT;
-uniform sampler2D BUFFER_IRRADIANCE;
-uniform usampler2D BUFFER_DEFERRED;
-uniform sampler2D TEX_BRDF;
-
-uniform int worldTime;
-uniform float frameTimeCounter;
-uniform ivec2 atlasSize;
-
 uniform mat4 shadowProjection;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
@@ -142,9 +142,12 @@ uniform float viewHeight;
 uniform float near;
 uniform float far;
 
+uniform ivec2 atlasSize;
 uniform ivec2 eyeBrightnessSmooth;
-uniform ivec2 eyeBrightness;
+uniform float frameTimeCounter;
+//uniform ivec2 eyeBrightness;
 uniform int isEyeInWater;
+uniform int worldTime;
 
 uniform vec3 fogColor;
 uniform float fogStart;
@@ -161,8 +164,6 @@ uniform int fogShape;
     //uniform mat4 gbufferProjection;
     uniform vec3 previousCameraPosition;
 #endif
-
-uniform sampler2D BUFFER_HDR_OPAQUE;
 
 uniform float blindness;
 
@@ -201,7 +202,11 @@ uniform float waterRoughSmooth;
 #include "/lib/lighting/brdf.glsl"
 
 #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-    #include "/lib/material/default.glsl"
+    #ifdef RENDER_ENTITIES
+        #include "/lib/material/entity_default.glsl"
+    #else
+        #include "/lib/material/default.glsl"
+    #endif
 #endif
 
 #ifdef PARALLAX_ENABLED
@@ -258,9 +263,9 @@ uniform float waterRoughSmooth;
         #endif
     #endif
 
-    #if SHADOW_CONTACT != SHADOW_CONTACT_NONE
-        #include "/lib/shadows/contact.glsl"
-    #endif
+    // #if SHADOW_CONTACT != SHADOW_CONTACT_NONE
+    //     #include "/lib/shadows/contact.glsl"
+    // #endif
 #endif
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN

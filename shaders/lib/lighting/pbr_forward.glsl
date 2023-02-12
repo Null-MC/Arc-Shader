@@ -73,6 +73,9 @@
                 vec2 waterUV = worldPos.xz;
                 float waveAmplitude = 0.0;
 
+                vec3 viewUp = normalize(upPosition);
+                if (isEyeInWater == 1) viewUp = -viewUp;
+
                 #if defined WATER_WAVE_ENABLED || defined PHYSICS_OCEAN
                     #ifdef PHYSICS_OCEAN
                         WavePixelData waveData = physics_wavePixel(physics_localPosition, physics_localWaviness, physics_iterationsNormal, physics_gameTime);
@@ -109,9 +112,6 @@
                             vec3 waterDY = dFdy(waterPos);
                         //#endif
 
-                        vec3 viewUp = normalize(upPosition);
-                        if (isEyeInWater == 1) viewUp = -viewUp;
-
                         if (dot(viewNormal, viewUp) > EPSILON) {
                             material.normal = normalize(cross(waterDX, waterDY));
 
@@ -125,26 +125,28 @@
                 #endif
 
                 #ifdef WATER_FOAM_ENABLED
-                    material.albedo.rgb = RGBToLinear(material.albedo.rgb);
+                    if (dot(viewNormal, viewUp) > EPSILON) {
+                        material.albedo.rgb = RGBToLinear(material.albedo.rgb);
 
-                    float time = frameTimeCounter / 360.0;
-                    vec2 s1 = textureLod(TEX_CLOUD_NOISE, vec3(waterUV * 0.30, time      ), 0).rg;
-                    vec2 s2 = textureLod(TEX_CLOUD_NOISE, vec3(waterUV * 0.02, time + 0.5), 0).rg;
+                        float time = frameTimeCounter / 360.0;
+                        vec2 s1 = textureLod(TEX_CLOUD_NOISE, vec3(waterUV * 0.30, time      ), 0).rg;
+                        vec2 s2 = textureLod(TEX_CLOUD_NOISE, vec3(waterUV * 0.02, time + 0.5), 0).rg;
 
-                    float waterSurfaceNoise = s1.r * s2.r * 1.5;
+                        float waterSurfaceNoise = s1.r * s2.r * 1.5;
 
-                    float waterEdge = max(0.8 - 2.0 * max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepthLinear, 0.0), 0.0);
-                    waterSurfaceNoise += pow2(waterEdge);
+                        float waterEdge = max(0.8 - 2.0 * max(lightData.opaqueScreenDepthLinear - lightData.transparentScreenDepthLinear, 0.0), 0.0);
+                        waterSurfaceNoise += pow2(waterEdge);
 
-                    waveAmplitude = saturate(waveAmplitude * 1.2);
-                    //waveAmplitude = smoothstep(0.0, 0.8, waveAmplitude);
-                    waterSurfaceNoise = (1.0 - waveAmplitude) * waterSurfaceNoise + waveAmplitude;
+                        waveAmplitude = saturate(waveAmplitude * 1.2);
+                        //waveAmplitude = smoothstep(0.0, 0.8, waveAmplitude);
+                        waterSurfaceNoise = (1.0 - waveAmplitude) * waterSurfaceNoise + waveAmplitude;
 
-                    float worleyNoise = 0.2 + 0.8 * s1.g * (1.0 - s2.g);
-                    waterSurfaceNoise = smoothstep(waterFoamMinSmooth, 1.0, waterSurfaceNoise) * worleyNoise;
+                        float worleyNoise = 0.2 + 0.8 * s1.g * (1.0 - s2.g);
+                        waterSurfaceNoise = smoothstep(waterFoamMinSmooth, 1.0, waterSurfaceNoise) * worleyNoise;
 
-                    material.albedo.a = saturate(waterFoamMaxSmooth * waterSurfaceNoise);
-                    material.smoothness = mix(WATER_SMOOTH, 1.0 - waterRoughSmooth, waterSurfaceNoise);
+                        material.albedo.a = saturate(waterFoamMaxSmooth * waterSurfaceNoise);
+                        material.smoothness = mix(WATER_SMOOTH, 1.0 - waterRoughSmooth, waterSurfaceNoise);
+                    }
                 #endif
             }
             else {
@@ -205,12 +207,12 @@
 
                 PopulateMaterial(material, colorMap, normalMap, specularMap);
 
-                #if !defined RENDER_WATER && !defined RENDER_HAND_WATER
-                    if (material.albedo.a < alphaTestRef) discard;
-                #else
+                //#if !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
+                //    if (material.albedo.a < 0.1) discard;
+                //#else
                     // TODO: Is this helping or hurting performance doing discard on transparent?
                     if (material.albedo.a < 1.5/255.0) discard;
-                #endif
+                //#endif
 
                 //#if MATERIAL_FORMAT != MATERIAL_FORMAT_LABPBR
                     if (materialId == MATERIAL_WATER) {
@@ -241,8 +243,13 @@
                 material.albedo.rgb = RGBToLinear(colorMap.rgb);
                 material.albedo.a = colorMap.a;
 
-                #ifndef RENDER_ENTITIES
-                    ApplyHardCodedMaterials(material, materialId);
+                // TODO: Is this helping or hurting performance doing discard on transparent?
+                if (material.albedo.a < 1.5/255.0) discard;
+
+                #ifdef RENDER_ENTITIES
+                    ApplyHardCodedMaterials(material, entityId);
+                #else
+                    ApplyHardCodedMaterials(material, materialId, worldPos);
                 #endif
             #endif
 
@@ -275,7 +282,7 @@
                 ApplyDirectionalLightmap(lightData.blockLight, material.normal);
             #endif
 
-            #if defined SKY_ENABLED && !defined RENDER_HAND_WATER && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE)
+            #if defined SKY_ENABLED && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE) && !(defined RENDER_HAND_WATER || defined RENDER_ENTITIES)
                 if (isEyeInWater != 1) {
                     vec3 tanUpDir = normalize(upPosition) * matTBN;
                     float NoU = dot(material.normal, tanUpDir);
@@ -335,8 +342,19 @@
                 if (HasClouds(cameraPosition, localViewDir) && cloudDepthTest < 0.0) {
                     vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
                     float cloudF = GetCloudFactor(cloudPos, localViewDir, 0);
+                    cloudF = smoothstep(0.0, 0.6, cloudF);
 
+                    cloudF *= 1.0 - blindness;
                     vec3 cloudColor = GetCloudColor(cloudPos, localViewDir, skyLightLevels);
+
+                    #if !(defined SKY_VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)
+                        vec3 localSunDir = GetSunLocalDir();
+                        vec3 localLightDir = GetShadowLightLocalDir();
+                        float VoL = dot(localLightDir, localViewDir);
+                        vec4 scatteringTransmittance = GetFancyFog(cloudPos - cameraPosition, localSunDir, VoL);
+                        cloudColor = cloudColor * scatteringTransmittance.a + scatteringTransmittance.rgb;
+                    #endif
+                    
                     finalColor.rgb = mix(finalColor.rgb, cloudColor, cloudF);
                 }
 

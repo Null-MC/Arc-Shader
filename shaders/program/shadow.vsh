@@ -59,10 +59,14 @@ uniform float far;
 #endif
 
 #include "/lib/matrix.glsl"
-#include "/lib/world/wind.glsl"
-#include "/lib/world/waving.glsl"
 #include "/lib/celestial/position.glsl"
 #include "/lib/shadows/common.glsl"
+
+#if WAVING_MODE != WAVING_NONE
+    #include "/lib/sampling/noise.glsl"
+    #include "/lib/world/wind.glsl"
+    #include "/lib/world/waving.glsl"
+#endif
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     #include "/lib/shadows/csm.glsl"
@@ -96,11 +100,11 @@ void main() {
     vec3 shadowViewNormal = normalize(mat3(shadowModelViewEx) * gl_Normal);
     vNoV = shadowViewNormal.z;
 
-    #if defined ENABLE_WAVING || defined WATER_WAVE_ENABLED
+    #if WAVING_MODE != WAVING_NONE || defined WATER_WAVE_ENABLED
         float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
     #endif
 
-    #ifdef ENABLE_WAVING
+    #if WAVING_MODE != WAVING_NONE
         if (vBlockId >= 10001 && vBlockId <= 10004) {
             float wavingRange = GetWavingRange(skyLight);
             vLocalPos += GetWavingOffset(wavingRange);

@@ -1,28 +1,53 @@
-#define RENDER_VERTEX
-#define RENDER_GBUFFER
 #define RENDER_ENTITIES_TRANSLUCENT
+#define RENDER_ENTITIES
+#define RENDER_GBUFFER
+#define RENDER_VERTEX
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
 
 attribute vec4 at_tangent;
-
-#if defined PARALLAX_ENABLED || defined AF_ENABLED
-    attribute vec4 mc_midTexCoord;
-#endif
+attribute vec4 mc_midTexCoord;
 
 out vec2 lmcoord;
 out vec2 texcoord;
 out vec4 glcolor;
 out float geoNoL;
+out vec3 localPos;
 out vec3 viewPos;
 out vec3 viewNormal;
 out vec3 viewTangent;
 flat out float tangentW;
 flat out mat2 atlasBounds;
+flat out int materialId;
 
-#ifdef AF_ENABLED
-    out vec4 spriteBounds;
+#ifndef IRIS_FEATURE_SSBO
+    flat out float sceneExposure;
+
+    flat out vec3 blockLightColor;
+
+    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+        uniform sampler2D BUFFER_HDR_PREVIOUS;
+        
+        uniform float viewWidth;
+        uniform float viewHeight;
+    #endif
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        uniform ivec2 eyeBrightness;
+        uniform int heldBlockLightValue;
+        uniform int heldBlockLightValue2;
+    #endif
+
+    #ifdef SKY_ENABLED
+        flat out vec2 skyLightLevels;
+
+        flat out vec3 skySunColor;
+
+        #ifdef WORLD_MOON_ENABLED
+            flat out vec3 skyMoonColor;
+        #endif
+    #endif
 #endif
 
 #ifdef PARALLAX_ENABLED
@@ -34,17 +59,89 @@ flat out mat2 atlasBounds;
     #endif
 #endif
 
-#if defined SKY_ENABLED && defined SHADOW_ENABLED
-    uniform vec3 shadowLightPosition;
+#ifdef SKY_ENABLED
+    uniform vec3 upPosition;
+    uniform vec3 sunPosition;
+    uniform vec3 moonPosition;
+    uniform float rainStrength;
+    uniform float wetness;
+    uniform int moonPhase;
+
+    #ifdef SHADOW_ENABLED
+        uniform mat4 shadowModelView;
+        uniform mat4 shadowProjection;
+        uniform vec3 shadowLightPosition;
+        uniform float far;
+
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+            out vec3 shadowPos[4];
+            out float shadowBias[4];
+
+            #ifndef IS_IRIS
+                uniform mat4 gbufferPreviousProjection;
+                uniform mat4 gbufferPreviousModelView;
+            #endif
+
+            uniform mat4 gbufferProjection;
+            uniform float near;
+        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+            out vec3 shadowPos;
+            out float shadowBias;
+        #endif
+    #endif
 #endif
+
+#ifdef AF_ENABLED
+    out vec4 spriteBounds;
+#endif
+
+//uniform sampler2D gtexture;
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
+//uniform float screenBrightness;
 uniform vec3 cameraPosition;
+uniform int worldTime;
 uniform int entityId;
+
+uniform int isEyeInWater;
+uniform float nightVision;
+uniform float blindness;
+
+// #if defined WORLD_WATER_ENABLED && defined WATER_WAVE_ENABLED
+//     uniform float frameTimeCounter;
+// #endif
+
+#if MC_VERSION >= 11900
+    uniform float darknessFactor;
+#endif
+
+#include "/lib/matrix.glsl"
+#include "/lib/lighting/blackbody.glsl"
+
+#ifdef SKY_ENABLED
+    #include "/lib/sky/hillaire_common.glsl"
+    #include "/lib/celestial/position.glsl"
+    #include "/lib/celestial/transmittance.glsl"
+    #include "/lib/world/sky.glsl"
+
+    #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        #include "/lib/shadows/common.glsl"
+
+        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+            #include "/lib/shadows/csm.glsl"
+        #else
+            #include "/lib/shadows/basic.glsl"
+        #endif
+    #endif
+#endif
 
 #include "/lib/lighting/basic.glsl"
 #include "/lib/lighting/pbr.glsl"
+
+#ifndef IRIS_FEATURE_SSBO
+    #include "/lib/camera/exposure.glsl"
+#endif
 
 
 void main() {
@@ -52,10 +149,13 @@ void main() {
     lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     glcolor = gl_Color;
 
-    vec3 localPos = gl_Vertex.xyz;
+    materialId = entityId;
+
+    localPos = gl_Vertex.xyz;
     BasicVertex(localPos);
     
-    // No PBR for lightning
-    if (entityId != 100.0)
-        PbrVertex(viewPos);
+    if (materialId == ENTITY_LIGHTNING_BOLT) {
+        // No PBR for lightning
+    }
+    else PbrVertex(viewPos);
 }

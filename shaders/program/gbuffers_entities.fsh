@@ -1,6 +1,7 @@
-#define RENDER_FRAG
-#define RENDER_GBUFFER
+#define RENDER_ENTITIES_OPAQUE
 #define RENDER_ENTITIES
+#define RENDER_GBUFFER
+#define RENDER_FRAG
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
@@ -61,6 +62,10 @@ uniform int entityId;
 #include "/lib/sampling/noise.glsl"
 #include "/lib/material/material.glsl"
 
+#if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+    #include "/lib/material/entity_default.glsl"
+#endif
+
 #ifdef PARALLAX_ENABLED
     #include "/lib/parallax.glsl"
 #endif
@@ -79,7 +84,7 @@ layout(location = 0) out uvec4 outColor0;
 void main() {
     vec4 colorMap, normalMap, specularMap, lightingMap;
 
-    if (entityId == MATERIAL_LIGHTNING_BOLT) {
+    if (entityId == ENTITY_LIGHTNING_BOLT) {
         colorMap = vec4(1.0);
         normalMap = vec4(0.0, 0.0, 1.0, 1.0);
         specularMap = vec4(0.0, 0.0, 0.0, 254.0/255.0);

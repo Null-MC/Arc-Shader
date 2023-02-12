@@ -3,7 +3,7 @@ float GetCloudDensity(const in vec2 pos, const in float time) {
 
     float f = 0.0;
     float weight = 0.7;
-    float maxWeight = 0.0;
+    float maxWeight = EPSILON;
     for (int i = 0; i < 6; i++) {
         vec2 noise = texture(TEX_CLOUD_NOISE, uv).rg;
 
@@ -12,6 +12,8 @@ float GetCloudDensity(const in vec2 pos, const in float time) {
         maxWeight += weight;
         weight *= 0.6;
     }
+
+    //if (maxWeight < EPSILON) return
 
     f /= maxWeight;
 
@@ -28,22 +30,27 @@ bool HasClouds(const in vec3 worldPos, const in vec3 localViewDir) {
 }
 
 vec3 GetCloudPosition(const in vec3 worldPos, const in vec3 localViewDir) {
+    if (abs(localViewDir.y) <= 0.01) return worldPos;
     return worldPos + (localViewDir / localViewDir.y) * (SKY_CLOUD_LEVEL - worldPos.y);
 }
 
-float GetCloudFactor(const in vec3 cloudPos, const in vec3 localViewDir, const in float lod) {
-    float time = frameTimeCounter / 36.0;
+float GetCloudFactor(const in vec3 cloudPos, const in vec3 viewWorldPos, const in vec3 localViewDir, const in float lod) {
+    float time = frameTimeCounter / 360.0;
     float d = GetCloudDensity(cloudPos.xz * 0.0008, time);
     
     d = saturate(d);
-    d = pow(d, 1.0 - 0.6 * wetness);
+    d = pow(d, 1.3 - 0.6 * wetness);
 
     float viewDirY = localViewDir.y;
 
-    if (cameraPosition.y > SKY_CLOUD_LEVEL)
+    if (viewWorldPos.y > SKY_CLOUD_LEVEL)
         viewDirY = -viewDirY;
 
-    return d * smoothstep(0.06, 0.8, viewDirY);
+    return d * smoothstep(0.1, 0.4, viewDirY);
+}
+
+float GetCloudFactor(const in vec3 cloudPos, const in vec3 localViewDir, const in float lod) {
+    return GetCloudFactor(cloudPos, cameraPosition, localViewDir, lod);
 }
 
 vec3 GetCloudColor(const in vec3 cloudPos, const in vec3 localViewDir, const in vec2 skyLightLevels) {

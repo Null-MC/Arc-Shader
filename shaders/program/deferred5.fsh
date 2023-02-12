@@ -399,17 +399,20 @@ void main() {
         color = PbrLighting2(material, lightData, viewPos).rgb;
     }
 
+    #ifdef SKY_ENABLED
+        vec3 localLightDir = GetShadowLightLocalDir();
+        float VoL = dot(localLightDir, localViewDir);
+    #endif
+
     if (lightData.opaqueScreenDepth >= 1.0) {
         #if defined SKY_ENABLED && !defined SKY_VL_ENABLED
-            vec3 localLightDir = GetShadowLightLocalDir();
-            float VoL = dot(localLightDir, localViewDir);
             vec4 scatteringTransmittance = GetFancyFog(localPos, localSunDir, VoL);
             color = color * scatteringTransmittance.a + scatteringTransmittance.rgb;
-        #elif !defined SKY_ENABLED
-            float fogFactor;
-            vec3 fogColorFinal;
-            GetVanillaFog(lightData, viewPos, fogColorFinal, fogFactor);
-            ApplyFog(color, fogColorFinal, fogFactor);
+        // #elif !defined SKY_ENABLED
+        //     float fogFactor;
+        //     vec3 fogColorFinal;
+        //     GetVanillaFog(lightData, viewPos, fogColorFinal, fogFactor);
+        //     ApplyFog(color, fogColorFinal, fogFactor);
         #endif
     }
 
@@ -422,12 +425,17 @@ void main() {
 
             if (HasClouds(cameraPosition, localViewDir) && (minDepth > 1.0 - EPSILON || cloudDepthTest < 0.0)) {
                 vec3 cloudPos = GetCloudPosition(cameraPosition, localViewDir);
-
                 float cloudF = GetCloudFactor(cloudPos, localViewDir, 0);
-                //cloudF *= smoothstep(0.1, 0.8, localViewDir.y);
-                cloudF *= 1.0 - blindness;
+                cloudF = smoothstep(0.0, 0.6, cloudF);
 
+                cloudF *= 1.0 - blindness;
                 vec3 cloudColor = GetCloudColor(cloudPos, localViewDir, skyLightLevels);
+
+                #if !(defined SKY_VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)
+                    vec4 scatteringTransmittance = GetFancyFog(cloudPos - cameraPosition, localSunDir, VoL);
+                    cloudColor = cloudColor * scatteringTransmittance.a + scatteringTransmittance.rgb;
+                #endif
+
                 color = mix(color, cloudColor, cloudF);
             }
         #endif
@@ -437,20 +445,27 @@ void main() {
             GetVolumetricLighting(vlScatter, vlExt, localViewDir, near, min(length(viewPos), far));
             color = color * vlExt + vlScatter;
         #endif
-    #elif defined SMOKE_ENABLED
-        vec3 viewNear = viewDir * near;
-        vec3 viewFar = viewDir * min(length(viewPos), fogEnd);
-        vec3 vlExt = vec3(1.0);
+    #else
+        #ifdef SMOKE_ENABLED
+            vec3 viewNear = viewDir * near;
+            vec3 viewFar = viewDir * min(length(viewPos), fogEnd);
+            vec3 vlExt = vec3(1.0);
 
-        // vec3 viewPosPrev = (gbufferPreviousModelView * vec4(localPos + (cameraPosition - previousCameraPosition), 1.0)).xyz;
-        // vec3 clipPosPrev = unproject(gbufferPreviousProjection * vec4(viewPosPrev, 1.0));
-        // vec2 lightTexcoord = clipPosPrev.xy * 0.5 + 0.5;
+            // vec3 viewPosPrev = (gbufferPreviousModelView * vec4(localPos + (cameraPosition - previousCameraPosition), 1.0)).xyz;
+            // vec3 clipPosPrev = unproject(gbufferPreviousProjection * vec4(viewPosPrev, 1.0));
+            // vec2 lightTexcoord = clipPosPrev.xy * 0.5 + 0.5;
 
-        // vec3 lightColor = textureLod(BUFFER_HDR_PREVIOUS, lightTexcoord, 8).rgb / sceneExposure;
+            // vec3 lightColor = textureLod(BUFFER_HDR_PREVIOUS, lightTexcoord, 8).rgb / sceneExposure;
 
-        vec3 vlColor = GetVolumetricSmoke(lightData, vlExt, viewNear, viewFar);
+            vec3 vlColor = GetVolumetricSmoke(lightData, vlExt, viewNear, viewFar);
 
-        color = color * vlExt + vlColor;
+            color = color * vlExt + vlColor;
+        #else
+            float fogFactor;
+            vec3 fogColorFinal;
+            GetVanillaFog(lightData, viewPos, fogColorFinal, fogFactor);
+            ApplyFog(color, fogColorFinal, fogFactor);
+        #endif
     #endif
 
     outColor1 = log2(luminance(color) + EPSILON);

@@ -56,7 +56,7 @@ const bool colortex11Clear = false;
 
 
 // World Options
-#define ENABLE_WAVING
+#define WAVING_MODE 2 // [0 1 2]
 #define HANDLIGHT_ENABLED
 #define BLOCK_OUTLINE 3 // [0 1 2 3]
 #define BLOCKLIGHT_TEMP 2700 // [2500 2700 3000 3500 4000 5700 7000]
@@ -96,7 +96,7 @@ const bool colortex11Clear = false;
 #define SSS_STRENGTH 120 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define SSS_MAXDIST 3 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
 #define SSS_PCF_SIZE 0.1 // [0.02 0.04 0.06 0.08 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.5 0.6 0.8 1.0 1.5 2.0 2.5 3.0]
-#define SSS_PCF_SAMPLES 6 // [2 4 6 8 10 12 14 16]
+#define SSS_PCF_SAMPLES 6 // [2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32]
 //#define SSS_NORMALIZE_ALBEDO
 #define SSR_QUALITY 1 // [0 1 2]
 #define SSR_IGNORE_HAND
@@ -141,7 +141,7 @@ const bool colortex11Clear = false;
 #define SHADOW_CSM_FITSCALE 0.1
 #define SHADOW_NORMAL_BIAS 0.012
 #define CSM_PLAYER_ID 0
-//#define SHADOW_CLOUD
+#define SHADOW_CLOUD
 #define SHADOW_BLUR
 
 

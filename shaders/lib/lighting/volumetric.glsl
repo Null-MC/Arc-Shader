@@ -67,10 +67,24 @@ const float AirSpeed = 20.0;
         float localStepLength = localRayLength * inverseStepCountF;
         vec3 worldStart = localStart + cameraPosition;
         
-        //#ifdef SHADOW_CLOUD
-            vec3 localLightDir = GetShadowLightLocalDir();
-            vec3 localSunDir = GetSunLocalDir();
-        //#endif
+        vec3 localLightDir = GetShadowLightLocalDir();
+        vec3 localSunDir = GetSunLocalDir();
+
+        #if SKY_CLOUD_LEVEL >= 0
+            // TODO: this data probably already exists before this method
+            float cloudVisibleDist = -1.0;
+            float cloudVisibleF = 1.0;
+
+            if (HasClouds(worldStart, localViewDir)) {
+                vec3 cloudVisiblePos = GetCloudPosition(worldStart, localViewDir);
+                cloudVisibleF = GetCloudFactor(cloudVisiblePos, localViewDir, 0);
+                cloudVisibleDist = length(cloudVisiblePos - worldStart);
+
+                //cloudVisibleF = 1.0 - smoothstep(0.0, 0.6, cloudVisibleF);
+                cloudVisibleF = pow(1.0 - cloudVisibleF, 4.0);
+            }
+        #endif
+
 
         float time = frameTimeCounter / 3600.0;
         //vec3 shadowMax = 1.0 - vec3(vec2(shadowPixelSize), EPSILON);
@@ -120,12 +134,27 @@ const float AirSpeed = 20.0;
 
             vec3 traceWorldPos = localStep * (i + dither) + worldStart;
 
-            #if defined WORLD_CLOUDS_ENABLED && SKY_CLOUD_LEVEL > 0 && defined SHADOW_CLOUD
-                if (HasClouds(traceWorldPos, localLightDir)) {
-                    vec3 cloudPos = GetCloudPosition(traceWorldPos, localLightDir);
-                    float cloudF = GetCloudFactor(cloudPos, localLightDir, 0);
-                    sampleF *= pow(1.0 - cloudF, 4.0);
+            #if defined WORLD_CLOUDS_ENABLED && SKY_CLOUD_LEVEL >= 0
+                float traceDist = localStepLength * (i + dither);
+                if (cloudVisibleDist > 0.0 && traceDist > cloudVisibleDist) {
+                    //transmittance *= cloudVisibleF;
+                    cloudVisibleDist = -1.0;
                 }
+
+                #ifdef SHADOW_CLOUD
+                    if (HasClouds(traceWorldPos, localLightDir)) {
+                        vec3 cloudShadowPos = GetCloudPosition(traceWorldPos, localLightDir);
+                        float cloudShadowF = GetCloudFactor(cloudShadowPos, traceWorldPos, localLightDir, 0);
+                        cloudShadowF = 1.0 - smoothstep(0.0, 0.3, cloudShadowF);
+                        //sampleF *= 1.0 - min(cloudShadowF * 6.0, 1.0);
+                        sampleF *= cloudShadowF;
+
+                        //cloudF = min((1.0 - cloudF) * 2.0, 1.0);
+                        //sampleF *= pow(1.0 - cloudF, 4.0);
+
+                        //transmittance *= 1.0 - cloudF;
+                    }
+                #endif
             #endif
 
             #ifdef SKY_VL_NOISE
@@ -171,7 +200,7 @@ const float AirSpeed = 20.0;
             vec3 rayleighScattering, extinction;
             getScatteringValues(atmosPos, rayleighScattering, mieScattering, extinction);
 
-            float dt = localStepLength * atmosScale * texDensity;
+            float dt = localStepLength * atmosScale;// * texDensity;
             vec3 sampleTransmittance = exp(-dt*extinction);
 
             #ifdef IS_IRIS
@@ -200,7 +229,7 @@ const float AirSpeed = 20.0;
                 vec3 psiMS = getValFromMultiScattLUT(colortex13, atmosPos, localSunDir);
             #endif
 
-            psiMS *= SKY_FANCY_LUM * (eyeBrightnessSmooth.y / 240.0);
+            psiMS *= (sampleF*0.6 + 0.4) * SKY_FANCY_LUM * (eyeBrightnessSmooth.y / 240.0);
 
             vec3 rayleighInScattering = rayleighScattering * (rayleighPhaseValue * lightTransmittance + psiMS);
             vec3 mieInScattering = mieScattering * (miePhaseValue * lightTransmittance + psiMS);
@@ -317,7 +346,7 @@ const float AirSpeed = 20.0;
         vec3 skyAmbientBase = (0.25 / PI) * GetFancySkyAmbientLight(vec3(0.0, 1.0, 0.0), 1.0);
 
         #ifndef WATER_VL_NOISE
-            const float texDensity = 0.16;
+            const float texDensity = 1.0;
         #endif
 
         scattering = vec3(0.0);
@@ -402,7 +431,7 @@ const float AirSpeed = 20.0;
             vec3 indirectLightColor = GetScatteredLighting(vec2(0.25 / PI), sampleElevation);
             indirectLightColor *= exp(-extinctionCoefficient * traceLightDist);
             indirectLightColor += skyAmbientBase * exp(-extinctionCoefficient * mix(80.0, 0.0, skyLight));
-            vec3 multiScattering = 0.06 * indirectLightColor * (multipleScatteringIntegral * scatteringIntegral);
+            vec3 multiScattering = 0.03 * indirectLightColor * (multipleScatteringIntegral * scatteringIntegral);
 
             scattering += (singleScattering + multiScattering) * transmittance;
 

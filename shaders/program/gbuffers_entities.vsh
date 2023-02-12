@@ -1,6 +1,7 @@
-#define RENDER_VERTEX
-#define RENDER_GBUFFER
+#define RENDER_ENTITIES_OPAQUE
 #define RENDER_ENTITIES
+#define RENDER_GBUFFER
+#define RENDER_VERTEX
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
@@ -60,13 +61,13 @@ void main() {
     localPos = gl_Vertex.xyz;
     BasicVertex(localPos);
     
-    if (materialId == MATERIAL_LIGHTNING_BOLT) {
+    if (materialId == ENTITY_LIGHTNING_BOLT) {
         // No PBR for lightning
     }
     else PbrVertex(viewPos);
 
     // PhysicsMod snow
-    if (entityId == 829925) {
-        materialId = MATERIAL_PHYSICS_SNOW;
+    if (entityId == ENTITY_PHYSICSMOD_SNOW) {
+        materialId = ENTITY_PHYSICSMOD_SNOW;
     }
 }
