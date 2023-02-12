@@ -1,4 +1,33 @@
-void ApplyDirectionalLightmap(inout float blockLight, const in vec3 texViewNormal) {
+void ApplyDirectionalLightmap(inout float blockLight, const in vec3 viewPos, const in vec3 geoViewNormal, const in vec3 texViewNormal) {
+    vec3 dFdViewposX = dFdx(viewPos);
+    vec3 dFdViewposY = dFdy(viewPos);
+
+    vec2 dFdTorch = vec2(dFdx(blockLight), dFdy(blockLight));
+
+    float blockLightNew = blockLight;
+    if (dot(dFdTorch, dFdTorch) > 1.0e-10) {
+        vec3 torchLightViewDir = normalize(dFdViewposX * dFdTorch.x + dFdViewposY * dFdTorch.y);
+        blockLightNew *= saturate(dot(torchLightViewDir, texViewNormal) + 0.6) * 0.8 + 0.2;
+    }
+    else {
+        //vec3 torchLightDir = matTBN * vec3(0.0, 0.0, 1.0);
+        //vec3 torchLightViewDir = geoViewNormal;
+        blockLightNew *= saturate(dot(geoViewNormal, texViewNormal));
+    }
+
+    blockLightNew = clamp(blockLightNew, 1.0/32.0, 31.0/32.0);
+    blockLight = mix(blockLight, blockLightNew, DirectionalLightmapStrengthF);
+
+    //vec2 dFdSky = vec2(dFdx(lmcoord.g), dFdy(lmcoord.g));
+    // vec3 skyLightDir = dFdViewposX * dFdSky.x + dFdViewposY * dFdSky.y;
+    // if(length(dFdSky) > 1e-6) {
+    //     lightmapOut.g *= clamp(dot(normalize(skyLightDir), geoViewNormal) + 0.8, 0.0, 1.0) * 0.8 + 0.2;
+    // }
+    // else {
+    //     lightmapOut.g *= clamp(dot(vec3(0.0, 1.0, 0.0), texViewNormal) + 0.8, 0.0, 1.0) * 0.4 + 0.6;
+    // }
+
+
     // vec3 lightPos = vec3(viewPos, blockLight);
     // //vec3 lmDXY = vec3(dFdx(blockLight), dFdy(blockLight), 0.0);
 

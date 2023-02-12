@@ -164,10 +164,6 @@
                         }
                     #endif
                 #endif
-
-                #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && !defined RENDER_ENTITIES
-                    ApplyDirectionalLightmap(lm.x, material.normal);
-                #endif
             }
         #endif
 
@@ -233,6 +229,14 @@
         // if (isEyeInWater == 1) {
         //     material.albedo.rgb = WetnessDarkenSurface(material.albedo.rgb, material.porosity, 1.0);
         // }
+
+        #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
+            if (!isMissingNormal && !isMissingTangent) {
+                #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && !(defined RENDER_ENTITIES || defined RENDER_TEXTURED)
+                    ApplyDirectionalLightmap(lm.x, viewPos, viewNormal, material.normal);
+                #endif
+            }
+        #endif
 
         WriteMaterial(material, colorMap, normalMap, specularMap);
 

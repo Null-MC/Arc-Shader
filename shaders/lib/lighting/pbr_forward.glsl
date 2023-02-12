@@ -279,7 +279,7 @@
         
         if (materialId != MATERIAL_WATER) {
             #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && !(defined RENDER_ENTITIES || defined RENDER_TEXTURED)
-                ApplyDirectionalLightmap(lightData.blockLight, material.normal);
+                ApplyDirectionalLightmap(lightData.blockLight, viewPos, viewNormal, material.normal);
             #endif
 
             #if defined SKY_ENABLED && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE) && !(defined RENDER_HAND_WATER || defined RENDER_ENTITIES)

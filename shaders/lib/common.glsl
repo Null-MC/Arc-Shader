@@ -60,7 +60,7 @@ const bool colortex11Clear = false;
 #define HANDLIGHT_ENABLED
 #define BLOCK_OUTLINE 3 // [0 1 2 3]
 #define BLOCKLIGHT_TEMP 2700 // [2500 2700 3000 3500 4000 5700 7000]
-#define DIRECTIONAL_LIGHTMAP_STRENGTH 0 // [0 10 20 30 40 50 60 70 80 90 100]
+#define DIRECTIONAL_LIGHTMAP_STRENGTH 70 // [0 10 20 30 40 50 60 70 80 90 100]
 //#define ANIM_USE_WORLDTIME
 #define WETNESS_MODE 2 // [0 1 2]
 #define SNOW_MODE 2 // [0 1 2]
@@ -265,6 +265,7 @@ const float drynessHalflife = 10.0;
     const float alphaTestRef = 0.1;
 #endif
 
+const float DirectionalLightmapStrengthF = DIRECTIONAL_LIGHTMAP_STRENGTH * 0.01;
 const float RefractionStrengthF = REFRACTION_STRENGTH * 0.01;
 const float WaterWaveDepthF = WATER_WAVE_DEPTH * 0.01;
 const float shadowPcfSize = SHADOW_PCF_SIZE * 0.01;

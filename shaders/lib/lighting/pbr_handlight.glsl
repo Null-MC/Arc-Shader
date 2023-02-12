@@ -1,6 +1,7 @@
 float GetHandLightAttenuation(const in float lightLevel, const in float lightDist) {
-    float diffuseAtt = saturate(0.0625*lightLevel - 0.08*lightDist);
-    return pow(diffuseAtt, 3);
+    return max(lightLevel - lightDist, 0.0) / 15.0;
+    //float diffuseAtt = saturate(0.0625*lightLevel - 0.08*lightDist);
+    //return pow(diffuseAtt, 3);
 }
 
 void _ApplyHandLighting(out vec3 diffuse, out vec3 specular, const in vec3 albedo, const in float f0, const in int hcm, const in float scattering, const in vec3 lightPos, const in int lightLevel, const in vec3 viewNormal, const in vec3 viewPos, const in vec3 viewDir, const in float NoVm, const in float roughL, const in int itemId) {
