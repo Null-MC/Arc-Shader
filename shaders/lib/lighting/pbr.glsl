@@ -142,9 +142,22 @@
             shadow *= lightLeakFix;
         #endif
 
-        #if (AO_TYPE == AO_TYPE_SS || (defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)) && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
-            float shadowOcclusionSigma = 3.0 / (viewDist + 1.0);
-            vec4 shadowOcclusion = BilateralGaussianDepthBlurRGBA_5x(BUFFER_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, shadowOcclusionSigma);
+        #if !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
+            #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined SHADOW_BLUR
+                float shadowDeferredSigma = 3.0 / (viewDist + 1.0);
+
+                #ifdef SHADOW_COLOR
+                    vec4 shadowDeferred = BilateralGaussianDepthBlurRGBA_5x(BUFFER_SHADOW, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, shadowDeferredSigma);
+                    shadowDeferred.rgb *= shadowDeferred.a;
+                #else
+                    vec4 shadowDeferred = vec4(BilateralGaussianDepthBlur_5x(BUFFER_SHADOW, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, shadowDeferredSigma, 3));
+                #endif
+            #endif
+
+            #if AO_TYPE == AO_TYPE_SS
+                float giaoDeferredSigma = 3.0 / (viewDist + 1.0);
+                vec4 giaoDeferred = BilateralGaussianDepthBlurRGBA_5x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, giaoDeferredSigma);
+            #endif
         #endif
 
         #ifdef SKY_ENABLED
@@ -157,7 +170,8 @@
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 #if defined SHADOW_BLUR && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
-                    shadowColor = shadowOcclusion.rgb;
+                    shadowColor *= shadowDeferred.rgb;
+                    shadow *= shadowDeferred.a;
                 #else
                     shadow *= step(EPSILON, lightData.geoNoL);
                     shadow *= step(EPSILON, NoL);
@@ -253,10 +267,22 @@
         #endif
 
         float skyLight = lightData.skyLight;
+        float occlusion = lightData.occlusion;
+
+        #if AO_TYPE == AO_TYPE_SS && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
+            occlusion = min(occlusion, giaoDeferred.a);
+        #endif
+
+        occlusion = saturate(occlusion * material.occlusion);
+
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             // Increase skylight when in direct sunlight
             if (isEyeInWater != 1)
                 skyLight = max(skyLight, shadowFinal);
+        #endif
+
+        #if !(defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)
+            skyLight *= occlusion;
         #endif
 
         float skyLight2 = pow2(skyLight);
@@ -318,26 +344,14 @@
             vec3 specularTint = mix(vec3(1.0), material.albedo.rgb, material.f0);
         #endif
 
-        vec4 final = vec4(albedo, material.albedo.a);
-        vec3 ambient = vec3(MinWorldLux);
-        vec3 diffuse = albedo * blockLightDiffuse * metalDarkF;
-        vec3 specular = vec3(0.0);
-        float occlusion = lightData.occlusion;
-
         #ifdef WORLD_WATER_ENABLED
             vec3 waterExtinctionInv = 1.0 - waterAbsorbColor;
         #endif
 
-        #if AO_TYPE == AO_TYPE_SS && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
-            // #ifdef SSAO_UPSCALE
-            //     occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, 0.9, 3);
-            // #else
-            //     occlusion = textureLod(BUFFER_AO, screenUV, 0).a;
-            // #endif
-            occlusion = min(occlusion, shadowOcclusion.a);
-        #endif
-
-        occlusion *= material.occlusion;
+        vec4 final = vec4(albedo, material.albedo.a);
+        vec3 ambient = vec3(MinWorldLux);
+        vec3 diffuse = albedo * blockLightDiffuse * metalDarkF;
+        vec3 specular = vec3(0.0);
 
         vec3 iblF = vec3(0.0);
         vec3 iblSpec = vec3(0.0);
@@ -365,7 +379,7 @@
             vec2 sphereCoord = DirectionToUV(localNormal);
             sphereCoord.y = clamp(sphereCoord.y, 0.5/16.0, 15.5/16.0);
 
-            vec3 skyAmbient = GetFancySkyAmbientLight(localNormal, skyLight);
+            vec3 skyAmbient = GetFancySkyAmbientLight(localNormal) * smoothstep(0.0, 1.0, skyLight);
 
             #ifdef WORLD_END
                 skyAmbient *= 0.1;
@@ -421,7 +435,7 @@
 
                     vec3 sssDiffuseLight = shadowSSS * skyLightColorFinal * max(scatter, 0.0);
 
-                    sssDiffuseLight += GetFancySkyAmbientLight(localViewDir, skyLight) * occlusion;
+                    sssDiffuseLight += GetFancySkyAmbientLight(localViewDir) * smoothstep(0.0, 1.0, skyLight) * occlusion;
 
                     sssDiffuseLight *= sssAlbedo * material.scattering;
 
@@ -707,9 +721,9 @@
         //return vec4(ambient, 1.0);
         //return vec4(final.rgb * (ambient * (1.0 - iblF) * occlusion), 1.0);
 
-        #if !(defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)
-            diffuse *= occlusion;
-        #endif
+        // #if !(defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)
+        //     diffuse *= occlusion;
+        // #endif
 
         final.rgb = final.rgb * (ambient * occlusion * (1.0 - iblF))
             + diffuse + emissive

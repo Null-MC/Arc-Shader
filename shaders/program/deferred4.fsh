@@ -19,6 +19,10 @@ uniform float viewHeight;
     uniform sampler2D shadowtex0;
     uniform sampler2D shadowtex1;
 
+    #ifdef IRIS_FEATURE_SEPARATE_HARDWARE_SAMPLERS
+        uniform sampler2DShadow shadowtex1HW;
+    #endif
+
     #ifdef SHADOW_COLOR
         uniform sampler2D shadowcolor0;
     #endif
@@ -33,7 +37,13 @@ uniform float viewHeight;
     uniform float far;
 #endif
 
+#ifdef IRIS_FEATURE_SSBO
+    #include "/lib/ssbo/vogel_disk.glsl"
+    #include "/lib/ssbo/scene.glsl"
+#endif
+
 #include "/lib/sampling/noise.glsl"
+#include "/lib/sampling/ign.glsl"
 
 #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined SHADOW_BLUR && SHADOW_TYPE != SHADOW_TYPE_NONE
     #include "/lib/matrix.glsl"
@@ -43,7 +53,6 @@ uniform float viewHeight;
     #include "/lib/celestial/position.glsl"
     #include "/lib/celestial/transmittance.glsl"
 
-    #include "/lib/sampling/ign.glsl"
     #include "/lib/shadows/common.glsl"
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -56,11 +65,15 @@ uniform float viewHeight;
 #endif
 
 
-/* RENDERTARGETS: 10 */
-layout(location = 0) out vec4 outColor0;
+/* RENDERTARGETS: 9,10 */
+#if AO_TYPE == 2
+    layout(location = 0) out vec4 outColor0;
+#endif
+#if defined SHADOW_ENABLED && defined SHADOW_BLUR && SHADOW_TYPE != SHADOW_TYPE_NONE
+    layout(location = 1) out vec4 outColor1;
+#endif
 
-float SampleOcclusion(const in vec2 tcoord, const in vec2 uv, const in vec3 viewPos, const in vec3 cnorm) {
-    vec2 sampleTex = tcoord + uv;
+float SampleOcclusion(const in vec2 sampleTex, const in vec3 viewPos, const in vec3 cnorm) {
     vec2 viewSize = vec2(viewWidth, viewHeight);
     float sampleClipDepth = texelFetch(depthtex0, ivec2(sampleTex * viewSize), 0).r;
     vec3 sampleClipPos = vec3(sampleTex, sampleClipDepth) * 2.0 - 1.0;
@@ -75,22 +88,37 @@ float SampleOcclusion(const in vec2 tcoord, const in vec2 uv, const in vec3 view
 }
 
 float GetSpiralOcclusion(const in vec2 uv, const in vec3 viewPos, const in vec3 viewNormal, const in float rad) {
-    const float goldenAngle = 2.4;
     const float inv = rcp(SSAO_SAMPLES);
 
-    float rotatePhase = hash12(uv*100.0) * 6.28;
+    #ifdef IRIS_FEATURE_SSBO
+        float dither = InterleavedGradientNoise(gl_FragCoord.xy);
+        float angle = fract(dither) * TAU;
+        float s = sin(angle), c = cos(angle);
+        mat2 rotation = mat2(c, -s, s, c);
+    #else
+        float rotatePhase = hash12(uv*100.0) * 6.28;
+    #endif
+
     float rStep = inv * rad;
+
     float radius = 0.0;
-    vec2 spiralUV;
+    vec2 offset;
 
     float ao = 0.0;
     for (int i = 0; i < SSAO_SAMPLES; i++) {
-        spiralUV.x = sin(rotatePhase);
-        spiralUV.y = cos(rotatePhase);
+        #ifdef IRIS_FEATURE_SSBO
+            offset = (rotation * ssaoDiskOffset[i]) * radius;
+        #else
+            offset.x = sin(rotatePhase);
+            offset.y = cos(rotatePhase);
+            offset *= radius;
+
+            rotatePhase += GOLDEN_ANGLE;
+        #endif
+
         radius += rStep;
 
-        ao += SampleOcclusion(uv, spiralUV * radius, viewPos, viewNormal);
-        rotatePhase += goldenAngle;
+        ao += SampleOcclusion(uv + offset, viewPos, viewNormal);
     }
 
     return ao * inv;
@@ -101,8 +129,6 @@ void main() {
     ivec2 itexFull = ivec2(texcoord * viewSize);
 
     float clipDepth = texelFetch(depthtex0, itexFull, 0).r;
-    vec3 lightColor = vec3(1.0);
-    float occlusion = 1.0;
 
     if (clipDepth < 1.0) {
         vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
@@ -111,16 +137,16 @@ void main() {
         #if defined SHADOW_ENABLED && defined SHADOW_BLUR && SHADOW_TYPE != SHADOW_TYPE_NONE
             LightData lightData;
 
+            uint gbufferLightData = texelFetch(BUFFER_DEFERRED, itexFull, 0).a;
+            vec4 gbufferLightMap = unpackUnorm4x8(gbufferLightData);
+            lightData.geoNoL = gbufferLightMap.z * 2.0 - 1.0;
+            float shadowF = gbufferLightMap.a;
+
             vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 
             vec3 dX = dFdx(localPos);
             vec3 dY = dFdy(localPos);
             vec3 geoNormal = normalize(cross(dX, dY));
-
-            uint gbufferLightData = texelFetch(BUFFER_DEFERRED, itexFull, 0).a;
-            vec4 gbufferLightMap = unpackUnorm4x8(gbufferLightData);
-            lightData.geoNoL = gbufferLightMap.z * 2.0 - 1.0;
-            lightColor = vec3(gbufferLightMap.a);
 
             float viewDist = length(localPos);
             localPos += geoNormal * viewDist * SHADOW_NORMAL_BIAS * max(1.0 - lightData.geoNoL, 0.0);
@@ -160,31 +186,27 @@ void main() {
 
                 lightData.opaqueShadowDepth = SampleOpaqueDepth(shadowPosD, vec2(0.0));
                 lightData.transparentShadowDepth = SampleTransparentDepth(shadowPosD, vec2(0.0));
-
-                //lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.transparentShadowDepth, 0.0) * ShadowMaxDepth;
             #endif
 
-            lightColor *= step(EPSILON, lightData.geoNoL);
-            lightColor *= lightData.geoNoL;
+            shadowF = step(EPSILON, lightData.geoNoL);
+            //shadowF *= lightData.geoNoL;
 
-            // #if defined WORLD_CLOUDS_ENABLED && defined SHADOW_CLOUD
-            //     vec3 worldPos = localPos + cameraPosition;
-            //     float cloudF = GetCloudFactor(worldPos, localLightDir, 4.0);
-            //     float cloudShadow = 1.0 - cloudF;
-            //     lightColor *= (0.2 + 0.8 * cloudShadow);
-            // #endif
+            if (shadowF > EPSILON)
+                shadowF *= GetShadowing(lightData);
+
+            vec3 shadowColor = vec3(1.0);
 
             #ifdef SHADOW_COLOR
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                     if (lightData.shadowPos[lightData.shadowCascade].z - lightData.transparentShadowDepth > lightData.shadowBias[lightData.shadowCascade])
-                        lightColor *= GetShadowColor(lightData.shadowPos[lightData.shadowCascade].xy);
+                        shadowColor = GetShadowColor(lightData.shadowPos[lightData.shadowCascade].xy);
                 #else
                     if (lightData.shadowPos.z - lightData.transparentShadowDepth > lightData.shadowBias)
-                        lightColor *= GetShadowColor(lightData.shadowPos.xy);
+                        shadowColor = GetShadowColor(lightData.shadowPos.xy);
                 #endif
             #endif
 
-            lightColor *= GetShadowing(lightData);
+            outColor1 = vec4(shadowColor, shadowF);
         #endif
 
         #if AO_TYPE == 2
@@ -195,10 +217,10 @@ void main() {
             //float rad = SSAO_RADIUS / max(-viewPos.z, 1.0);
             float rad = SSAO_RADIUS / (length(viewPos) + 1.0);
 
-            occlusion = GetSpiralOcclusion(texcoord, viewPos, viewNormal, rad);
-            occlusion = max(1.0 - occlusion * SSAO_INTENSITY, 0.0);
+            float occlusion = GetSpiralOcclusion(texcoord, viewPos, viewNormal, rad);
+            occlusion = 1.0 - saturate(occlusion * SSAO_INTENSITY);
+
+            outColor0 = vec4(vec3(0.0), occlusion);
         #endif
     }
-
-    outColor0 = vec4(lightColor, occlusion);
 }

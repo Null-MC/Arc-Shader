@@ -9,6 +9,7 @@ const int colortex4Format = RGB16F;
 const int colortex5Format = RGBA16F;
 const int colortex6Format = R32F;
 const int colortex7Format = RGB16F;
+const int colortex9Format = RGBA16F;
 const int colortex10Format = RGBA16F;
 const int colortex11Format = RGB16F;
 */
@@ -189,7 +190,7 @@ const bool colortex11Clear = false;
 #define VL_PARTICLES
 #define AO_TYPE 2 // [0 1 2]
 #define SSAO_SAMPLES 6 // [2 4 6 8 10 12 14 16 24 32]
-#define SSAO_INTENSITY 30 // [5 10 15 20 25 30 35 40 45 50]
+#define SSAO_INTENSITY 30 // [5 10 15 20 25 30 35 40 45 50 60 70 80 90 100]
 #define SSAO_SCALE 8.0
 #define SSAO_BIAS 0.02
 #define SSAO_RADIUS 0.3 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
@@ -284,31 +285,6 @@ const int shadowMapResolution = 2048; // [512 1024 2048 3072 4096 6144 8192]
 #endif
 
 const float shadowPixelSize = 1.0 / shadowMapSize;
-
-
-#if defined IRIS_FEATURE_SSBO && !defined RENDER_BEGIN
-    layout(std430, binding = 0) readonly buffer csmData {
-        float sceneExposure;            // 4
-        mat4 shadowModelViewEx;         // 64
-        mat4 shadowProjectionEx;        // 64
-
-        vec2 skyLightLevels;            // 8
-        vec3 skySunColor;               // 16
-        vec3 sunTransmittanceEye;       // 16
-        vec3 skyMoonColor;              // 16
-        vec3 moonTransmittanceEye;      // 16
-        //float skyMoonPhaseLevel,
-        vec3 blockLightColor;           // 16
-
-        // CSM
-        float cascadeSize[4];           // 16
-        vec2 shadowProjectionSize[4];   // 32
-        vec2 shadowProjectionPos[4];    // 32
-        mat4 cascadeProjection[4];      // 256
-        vec2 cascadeViewMin[4];         // 32
-        vec2 cascadeViewMax[4];         // 32
-    };
-#endif
 
 
 #ifdef IS_IRIS

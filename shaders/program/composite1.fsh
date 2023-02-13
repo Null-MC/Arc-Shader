@@ -46,8 +46,12 @@ in vec2 texcoord;
     #endif
 #endif
 
-#if AO_TYPE == AO_TYPE_SS || (defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)
-    uniform sampler2D BUFFER_AO;
+#if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined SHADOW_BLUR
+    uniform sampler2D BUFFER_SHADOW;
+#endif
+
+#if AO_TYPE == AO_TYPE_SS
+    uniform sampler2D BUFFER_GI_AO;
 #endif
 
 uniform usampler2D BUFFER_DEFERRED;
@@ -146,6 +150,11 @@ uniform float eyeHumidity;
     uniform vec3 waterScatterColor;
     uniform vec3 waterAbsorbColor;
     uniform float waterFogDistSmooth;
+#endif
+
+#ifdef IRIS_FEATURE_SSBO
+    #include "/lib/ssbo/scene.glsl"
+    #include "/lib/ssbo/vogel_disk.glsl"
 #endif
 
 #include "/lib/depth.glsl"

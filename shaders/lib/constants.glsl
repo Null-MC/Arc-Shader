@@ -83,7 +83,8 @@
 #define BUFFER_HDR_PREVIOUS colortex5
 #define BUFFER_DEPTH_PREV colortex6
 #define BUFFER_SKY_LUT colortex7
-#define BUFFER_AO colortex10
+#define BUFFER_GI_AO colortex9
+#define BUFFER_SHADOW colortex10
 #define BUFFER_IRRADIANCE colortex11
 
 #define BUFFER_BLOOM colortex2

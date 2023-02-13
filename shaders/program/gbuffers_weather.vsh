@@ -110,6 +110,10 @@ uniform float blindness;
     uniform float darknessFactor;
 #endif
 
+#ifdef IRIS_FEATURE_SSBO
+    #include "/lib/ssbo/scene.glsl"
+#endif
+
 #include "/lib/matrix.glsl"
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/sky/hillaire_common.glsl"

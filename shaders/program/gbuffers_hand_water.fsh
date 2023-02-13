@@ -112,9 +112,9 @@ flat in mat2 atlasBounds;
     in vec4 spriteBounds;
 #endif
 
-#if AO_TYPE == AO_TYPE_SS
-    uniform sampler2D BUFFER_AO;
-#endif
+// #if AO_TYPE == AO_TYPE_SS
+//     uniform sampler2D BUFFER_AO;
+// #endif
 
 uniform sampler2D gtexture;
 uniform sampler2D normals;
@@ -174,6 +174,11 @@ uniform float waterFogDistSmooth;
     uniform mat4 gbufferPreviousModelView;
     uniform mat4 gbufferPreviousProjection;
     uniform vec3 previousCameraPosition;
+#endif
+
+#ifdef IRIS_FEATURE_SSBO
+    #include "/lib/ssbo/scene.glsl"
+    #include "/lib/ssbo/vogel_disk.glsl"
 #endif
 
 #include "/lib/atlas.glsl"

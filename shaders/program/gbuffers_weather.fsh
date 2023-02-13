@@ -143,6 +143,11 @@ uniform vec3 waterScatterColor;
 uniform vec3 waterAbsorbColor;
 uniform float waterFogDistSmooth;
 
+#ifdef IRIS_FEATURE_SSBO
+    #include "/lib/ssbo/scene.glsl"
+    #include "/lib/ssbo/vogel_disk.glsl"
+#endif
+
 #include "/lib/depth.glsl"
 #include "/lib/matrix.glsl"
 #include "/lib/sampling/noise.glsl"

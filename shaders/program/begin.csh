@@ -9,30 +9,6 @@ layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 const ivec3 workGroups = ivec3(1, 1, 1);
 
 #ifdef IRIS_FEATURE_SSBO
-    layout(std430, binding = 0) buffer csmData {
-        // [132]
-        float sceneExposure;            // 4
-        mat4 shadowModelViewEx;         // 64
-        mat4 shadowProjectionEx;        // 64
-
-        // [68]
-        vec2 skyLightLevels;            // 8
-        vec3 skySunColor;               // 12
-        vec3 sunTransmittanceEye;       // 12
-        vec3 skyMoonColor;              // 12
-        vec3 moonTransmittanceEye;      // 12
-        //float skyMoonPhaseLevel,
-        vec3 blockLightColor;           // 12
-
-        // CSM [400]
-        float cascadeSize[4];           // 16
-        vec2 shadowProjectionSize[4];   // 32
-        vec2 shadowProjectionPos[4];    // 32
-        mat4 cascadeProjection[4];      // 256
-        vec2 cascadeViewMin[4];         // 32
-        vec2 cascadeViewMax[4];         // 32
-    };
-
     uniform float viewWidth;
     uniform float viewHeight;
 
@@ -81,6 +57,7 @@ const ivec3 workGroups = ivec3(1, 1, 1);
         #endif
     #endif
 
+    #include "/lib/ssbo/scene.glsl"
     #include "/lib/lighting/blackbody.glsl"
 
     #ifdef SKY_ENABLED

@@ -170,6 +170,11 @@ uniform float waterFogDistSmooth;
     uniform vec3 previousCameraPosition;
 #endif
 
+#ifdef IRIS_FEATURE_SSBO
+    #include "/lib/ssbo/scene.glsl"
+    #include "/lib/ssbo/vogel_disk.glsl"
+#endif
+
 #include "/lib/atlas.glsl"
 #include "/lib/depth.glsl"
 #include "/lib/matrix.glsl"

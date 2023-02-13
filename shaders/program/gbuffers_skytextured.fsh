@@ -25,6 +25,11 @@ uniform sampler2D gtexture;
 uniform int renderStage;
 uniform float rainStrength;
 
+#ifdef IRIS_FEATURE_SSBO
+    #include "/lib/ssbo/scene.glsl"
+#endif
+
+
 /* RENDERTARGETS: 4,3 */
 layout(location = 0) out vec4 outColor0;
 layout(location = 1) out vec4 outColor1;

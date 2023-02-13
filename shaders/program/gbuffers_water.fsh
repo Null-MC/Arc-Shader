@@ -126,9 +126,9 @@ uniform sampler2D TEX_BRDF;
     #endif
 #endif
 
-#if AO_TYPE == AO_TYPE_SS
-    uniform sampler2D BUFFER_AO;
-#endif
+// #if AO_TYPE == AO_TYPE_SS
+//     uniform sampler2D BUFFER_AO;
+// #endif
 
 uniform mat4 shadowProjection;
 uniform mat4 gbufferModelView;
@@ -184,6 +184,11 @@ uniform float waterFoamMinSmooth;
 uniform float waterFoamMaxSmooth;
 uniform float waterFogDistSmooth;
 uniform float waterRoughSmooth;
+
+#ifdef IRIS_FEATURE_SSBO
+    #include "/lib/ssbo/scene.glsl"
+    #include "/lib/ssbo/vogel_disk.glsl"
+#endif
 
 #include "/lib/atlas.glsl"
 #include "/lib/depth.glsl"

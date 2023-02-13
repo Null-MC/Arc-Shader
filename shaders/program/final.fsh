@@ -48,7 +48,7 @@ uniform float far;
     uniform sampler2D BUFFER_DEFERRED2;
 #elif DEBUG_VIEW == DEBUG_VIEW_DEFERRED_SHADOW
     // Deferred Shadow
-    uniform sampler2D BUFFER_AO;
+    uniform sampler2D BUFFER_SHADOW;
 
     //#ifdef SSAO_UPSCALE
         uniform sampler2D depthtex0;
@@ -58,7 +58,7 @@ uniform float far;
     //#endif
 #elif DEBUG_VIEW == DEBUG_VIEW_DEFERRED_A0
     // Deferred Ambient Occlusion
-    uniform sampler2D BUFFER_AO;
+    uniform sampler2D BUFFER_GI_AO;
 
     //#ifdef SSAO_UPSCALE
         uniform sampler2D depthtex0;
@@ -258,16 +258,15 @@ void main() {
         ivec2 iTex = ivec2(gl_FragCoord.xy);
         float opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
         float opaqueScreenDepthLinear = linearizeDepthFast(opaqueScreenDepth, near, far);
-        color = BilateralGaussianDepthBlurRGB_5x(BUFFER_AO, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, 0.3);
-        //color = textureLod(BUFFER_AO, texcoord, 0).rgb;
+        vec4 shadow = BilateralGaussianDepthBlurRGBA_5x(BUFFER_SHADOW, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, 0.3);
+        color = shadow.rgb * shadow.a;
     #elif DEBUG_VIEW == DEBUG_VIEW_DEFERRED_A0
         // Deferred Ambient Occlusion
         ivec2 iTex = ivec2(gl_FragCoord.xy);
         float opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
         float opaqueScreenDepthLinear = linearizeDepthFast(opaqueScreenDepth, near, far);
-        float occlusion = BilateralGaussianDepthBlur_9x(BUFFER_AO, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, 0.9, 3);
-        color = vec3(occlusion);
-        //color = textureLod(BUFFER_AO, texcoord, 0).aaa;
+        vec4 occlusion = BilateralGaussianDepthBlurRGBA_5x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, 0.9);
+        color = occlusion.aaa;
     #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_COLOR
         // Shadow Color
         color = textureLod(shadowcolor0, texcoord, 0).rgb;

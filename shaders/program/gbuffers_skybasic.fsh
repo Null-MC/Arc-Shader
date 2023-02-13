@@ -43,6 +43,10 @@ uniform vec3 skyColor;
 uniform int moonPhase;
 uniform int worldTime;
 
+#ifdef IRIS_FEATURE_SSBO
+    #include "/lib/ssbo/scene.glsl"
+#endif
+
 #include "/lib/sampling/noise.glsl"
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/sky/hillaire_common.glsl"

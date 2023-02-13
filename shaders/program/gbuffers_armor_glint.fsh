@@ -11,6 +11,11 @@ in vec4 glcolor;
 uniform sampler2D lightmap;
 uniform sampler2D gtexture;
 
+#ifdef IRIS_FEATURE_SSBO
+    #include "/lib/ssbo/scene.glsl"
+#endif
+
+
 #ifdef CANTFIX
     /* RENDERTARGETS: 0 */
     layout(location = 0) out uvec4 outColor0;

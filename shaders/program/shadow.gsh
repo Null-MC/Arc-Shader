@@ -52,6 +52,10 @@ uniform float far;
     #endif
 #endif
 
+#ifdef IRIS_FEATURE_SSBO
+    #include "/lib/ssbo/scene.glsl"
+#endif
+
 #include "/lib/matrix.glsl"
 #include "/lib/celestial/position.glsl"
 #include "/lib/shadows/common.glsl"

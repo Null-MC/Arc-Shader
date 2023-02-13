@@ -21,7 +21,7 @@ const float AirSpeed = 20.0;
     }
 
     void GetVolumetricLighting(out vec3 scattering, out vec3 transmittance, const in vec3 localViewDir, const in float nearDist, const in float farDist) {
-        const float inverseStepCountF = rcp(SKY_VL_SAMPLES - 1);
+        const float inverseStepCountF = rcp(SKY_VL_SAMPLES);
         
         #ifdef VL_DITHER
             float dither = Bayer16(gl_FragCoord.xy);
@@ -343,7 +343,7 @@ const float AirSpeed = 20.0;
         vec3 scatteringCoefficientBase = waterScatterColor;
 
         float skyLight = saturate(eyeBrightnessSmooth.y / 240.0);
-        vec3 skyAmbientBase = (0.25 / PI) * GetFancySkyAmbientLight(vec3(0.0, 1.0, 0.0), 1.0);
+        vec3 skyAmbientBase = (0.25 / PI) * GetFancySkyAmbientLight(vec3(0.0, 1.0, 0.0));
 
         #ifndef WATER_VL_NOISE
             const float texDensity = 1.0;
