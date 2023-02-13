@@ -440,7 +440,7 @@
                     sssDiffuseLight *= sssAlbedo * material.scattering;
 
                     //sunDiffuse = GetDiffuseBSDF(sunDiffuse, sssDiffuseLight, material.scattering, NoVm, NoLm, LoHm, roughL);
-                    sunDiffuse += sssDiffuseLight * NoVm * (0.01 * SSS_STRENGTH);
+                    sunDiffuse += sssDiffuseLight * (1.0 - NoLm) * (0.01 * SSS_STRENGTH);
                     //return vec4(sssAlbedo * shadowSSS * skyLightColorFinal, 1.0);
                 }
             #endif
@@ -457,6 +457,8 @@
                 final.a = min(final.a + luminance(sunSpec) * sceneExposure, 1.0);
             }
         #endif
+
+        //return vec4(diffuse, 1.0);
 
         #if defined SKY_ENABLED && defined WORLD_WATER_ENABLED
             vec3 localSunDir = GetSunLocalDir();

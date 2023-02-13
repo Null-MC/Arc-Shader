@@ -9,6 +9,7 @@ in vec2 texcoord;
 
 uniform usampler2D BUFFER_DEFERRED;
 uniform sampler2D depthtex0;
+uniform sampler2D depthtex2;
 
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjectionInverse;
@@ -130,17 +131,27 @@ void main() {
 
     float clipDepth = texelFetch(depthtex0, itexFull, 0).r;
 
+    float shadowF = 1.0;
+    vec3 shadowColor = vec3(1.0);
+    float occlusion = 1.0;
+
     if (clipDepth < 1.0) {
+        float handClipDepth = texelFetch(depthtex2, itexFull, 0).r;
+
         vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
+
+        if (handClipDepth > clipDepth)
+            clipPos.z /= MC_HAND_DEPTH;
+
         vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
 
-        #if defined SHADOW_ENABLED && defined SHADOW_BLUR && SHADOW_TYPE != SHADOW_TYPE_NONE
+        #if defined SHADOW_BLUR && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             LightData lightData;
 
             uint gbufferLightData = texelFetch(BUFFER_DEFERRED, itexFull, 0).a;
             vec4 gbufferLightMap = unpackUnorm4x8(gbufferLightData);
             lightData.geoNoL = gbufferLightMap.z * 2.0 - 1.0;
-            float shadowF = gbufferLightMap.a;
+            shadowF = gbufferLightMap.a;
 
             vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 
@@ -194,8 +205,6 @@ void main() {
             if (shadowF > EPSILON)
                 shadowF *= GetShadowing(lightData);
 
-            vec3 shadowColor = vec3(1.0);
-
             #ifdef SHADOW_COLOR
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                     if (lightData.shadowPos[lightData.shadowCascade].z - lightData.transparentShadowDepth > lightData.shadowBias[lightData.shadowCascade])
@@ -205,8 +214,6 @@ void main() {
                         shadowColor = GetShadowColor(lightData.shadowPos.xy);
                 #endif
             #endif
-
-            outColor1 = vec4(shadowColor, shadowF);
         #endif
 
         #if AO_TYPE == 2
@@ -217,10 +224,16 @@ void main() {
             //float rad = SSAO_RADIUS / max(-viewPos.z, 1.0);
             float rad = SSAO_RADIUS / (length(viewPos) + 1.0);
 
-            float occlusion = GetSpiralOcclusion(texcoord, viewPos, viewNormal, rad);
+            occlusion = GetSpiralOcclusion(texcoord, viewPos, viewNormal, rad);
             occlusion = 1.0 - saturate(occlusion * SSAO_INTENSITY);
-
-            outColor0 = vec4(vec3(0.0), occlusion);
         #endif
     }
+
+    #if AO_TYPE == 2
+        outColor0 = vec4(vec3(0.0), occlusion);
+    #endif
+
+    #if defined SHADOW_ENABLED && defined SHADOW_BLUR && SHADOW_TYPE != SHADOW_TYPE_NONE
+        outColor1 = vec4(shadowColor, shadowF);
+    #endif
 }

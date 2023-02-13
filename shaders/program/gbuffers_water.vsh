@@ -177,11 +177,10 @@ void main() {
     // // undefined
     // else materialId = 0;
 
-    vec3 vPos = gl_Vertex.xyz;
-    BasicVertex(vPos);
+    BasicVertex(localPos);
     PbrVertex(viewPos);
 
-    localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+    //localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 
     // #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
     //     vec3 viewDir = normalize(viewPos);

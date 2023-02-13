@@ -58,7 +58,6 @@ void main() {
 
     materialId = entityId;
 
-    localPos = gl_Vertex.xyz;
     BasicVertex(localPos);
     
     if (materialId == ENTITY_LIGHTNING_BOLT) {

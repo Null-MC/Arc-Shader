@@ -277,20 +277,22 @@
 
         mat3 matTBN = mat3(_viewTangent, _viewBinormal, _viewNormal);
         
-        if (materialId != MATERIAL_WATER) {
-            #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && !(defined RENDER_ENTITIES || defined RENDER_TEXTURED)
-                ApplyDirectionalLightmap(lightData.blockLight, viewPos, viewNormal, material.normal);
-            #endif
+        #if !(defined RENDER_HAND || defined RENDER_TEXTURED)
+            if (materialId != MATERIAL_WATER) {
+                #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && !(defined RENDER_ENTITIES || defined RENDER_TEXTURED)
+                    ApplyDirectionalLightmap(lightData.blockLight, viewPos, viewNormal, material.normal);
+                #endif
 
-            #if defined SKY_ENABLED && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE) && !(defined RENDER_HAND_WATER || defined RENDER_ENTITIES)
-                if (isEyeInWater != 1) {
-                    vec3 tanUpDir = normalize(upPosition) * matTBN;
-                    float NoU = dot(material.normal, tanUpDir);
+                #if defined SKY_ENABLED && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE) && !(defined RENDER_HAND_WATER || defined RENDER_ENTITIES)
+                    if (isEyeInWater != 1) {
+                        vec3 tanUpDir = normalize(upPosition) * matTBN;
+                        float NoU = dot(material.normal, tanUpDir);
 
-                    ApplyWeather(material, NoU, viewDist, lightData.blockLight, lightData.skyLight);
-                }
-            #endif
-        }
+                        ApplyWeather(material, NoU, viewDist, lightData.blockLight, lightData.skyLight);
+                    }
+                #endif
+            }
+        #endif
 
         if (!gl_FrontFacing)
             material.normal = -material.normal;
@@ -323,8 +325,10 @@
                 lightData.shadowPos = shadowPos;
                 lightData.shadowBias = shadowBias;
 
-                lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
-                lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
+                vec2 shadowPosD = distort(shadowPos.xy * 2.0 - 1.0) * 0.5 + 0.5;
+
+                lightData.opaqueShadowDepth = SampleOpaqueDepth(shadowPosD, vec2(0.0));
+                lightData.transparentShadowDepth = SampleTransparentDepth(shadowPosD, vec2(0.0));
 
                 lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.shadowPos.z, 0.0) * (far * 2.0);
             #endif

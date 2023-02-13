@@ -91,7 +91,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
         ambient += skyAmbient;
     #endif
 
-    #if defined HANDLIGHT_ENABLED && !defined RENDER_HAND && !defined RENDER_HAND_WATER
+    #if defined HANDLIGHT_ENABLED && !defined RENDER_HAND
         if (heldBlockLightValue + heldBlockLightValue2 > EPSILON) {
             vec3 handViewPos = viewPos.xyz;
 

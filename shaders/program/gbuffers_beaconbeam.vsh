@@ -26,6 +26,8 @@ attribute vec4 at_tangent;
     attribute vec4 mc_midTexCoord;
 #endif
 
+uniform mat4 gbufferModelViewInverse;
+
 #include "/lib/lighting/basic.glsl"
 
 
@@ -33,6 +35,6 @@ void main() {
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     glcolor = gl_Color;
 
-    vec3 localPos = gl_Vertex.xyz;
+    vec3 localPos;
     BasicVertex(localPos);
 }

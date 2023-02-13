@@ -1,6 +1,7 @@
-#define RENDER_VERTEX
-#define RENDER_GBUFFER
 #define RENDER_HAND_WATER
+#define RENDER_HAND
+#define RENDER_GBUFFER
+#define RENDER_VERTEX
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
@@ -161,9 +162,12 @@ void main() {
     //else materialId = 0;
     materialId = -1;
 
-    localPos = gl_Vertex.xyz;
+    //localPos = (gbufferModelViewInverse * gl_Vertex).xyz;
+
     BasicVertex(localPos);
     PbrVertex(viewPos);
+
+    //localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 
     // #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
     //     vec3 viewDir = normalize(viewPos);

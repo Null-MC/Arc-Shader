@@ -5,7 +5,7 @@ vec3 WetnessDarkenSurface(const in vec3 albedo, const in float porosity, const i
     return pow(albedo, vec3(1.0 + f)) * saturate(1.0 - f);
 }
 
-#if defined RENDER_GBUFFER && !(defined RENDER_ENTITIES || defined RENDER_HAND || defined RENDER_HAND_WATER)
+#if defined RENDER_GBUFFER && !(defined RENDER_ENTITIES || defined RENDER_HAND)
     void ApplyWetness(inout PbrMaterial material, const in float weatherNoise, const in float NoU, const in float skyLight) {
         if (skyWetnessSmooth < EPSILON && biomeWetnessSmooth < EPSILON) return;
 

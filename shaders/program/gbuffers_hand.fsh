@@ -1,6 +1,7 @@
-#define RENDER_FRAG
-#define RENDER_GBUFFER
+#define RENDER_HAND_OPAQUE
 #define RENDER_HAND
+#define RENDER_GBUFFER
+#define RENDER_FRAG
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"

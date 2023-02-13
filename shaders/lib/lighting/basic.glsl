@@ -1,5 +1,6 @@
 #ifdef RENDER_VERTEX
-    void BasicVertex(inout vec3 pos) {
+    void BasicVertex(out vec3 localPos) {
+        localPos = gl_Vertex.xyz;
         vec3 normal = gl_Normal;
 
         #if defined RENDER_TERRAIN || defined RENDER_WATER
@@ -9,7 +10,7 @@
         #if defined SKY_ENABLED && defined RENDER_TERRAIN && WAVING_MODE != WAVING_NONE
             if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0) {
                 float wavingRange = GetWavingRange(skyLight);
-                pos += GetWavingOffset(wavingRange);
+                localPos += GetWavingOffset(wavingRange);
             }
         #endif
 
@@ -39,20 +40,22 @@
                     if (posY > EPSILON) {// || (abs(gl_Normal.y) < EPSILON && true)) {
                         //float windSpeed = GetWindSpeed();
                         //float waveSpeed = GetWaveSpeed(windSpeed, skyLight);
-                        vec3 localPos;
+                        // vec3 localPos;
 
-                        #if MC_VERSION >= 11700 && !defined IS_IRIS
-                            localPos = vaPosition.xyz + chunkOffset;
-                        #else
-                            localPos = (gbufferModelViewInverse * (gl_ModelViewMatrix * vec4(pos, 1.0))).xyz;
-                        #endif
+                        // #if MC_VERSION >= 11700 && !defined IS_IRIS
+                        //     localPos = vaPosition.xyz + chunkOffset;
+                        // #else
+                        //     localPos = (gbufferModelViewInverse * (gl_ModelViewMatrix * vec4(pos, 1.0))).xyz;
+                        // #endif
 
-                        vec3 worldPos = localPos + cameraPosition;
+                        vec3 _viewPos = (gl_ModelViewMatrix * vec4(localPos, 1.0)).xyz;
+                        vec3 _localPos = (gbufferModelViewInverse * vec4(_viewPos, 1.0)).xyz;
+                        vec3 worldPos = _localPos + cameraPosition;
                         
                         #ifdef PHYSICS_OCEAN
-                            physics_localPosition = pos;
-                            physics_localWaviness = physics_GetWaviness(ivec2(pos.xz));
-                            float depth = physics_waveHeight(pos, PHYSICS_ITERATIONS_OFFSET, physics_localWaviness, physics_gameTime);
+                            physics_localPosition = gl_Vertex;
+                            physics_localWaviness = physics_GetWaviness(ivec2(gl_Vertex.xz + 0.5));
+                            float depth = physics_waveHeight(gl_Vertex.xyz, PHYSICS_ITERATIONS_OFFSET, physics_localWaviness, physics_gameTime);
                             physics_localPosition.y += depth;
                         #else
                             float waveDepth = GetWaveDepth(skyLight);
@@ -63,14 +66,17 @@
                             depth = -depth * waveDepth * WaterWaveDepthF * posY;
                         #endif
 
-                        pos.y += depth;
+                        localPos.y += depth;
                     }
                 #endif
             }
         #endif
 
-        viewPos = (gl_ModelViewMatrix * vec4(pos, 1.0)).xyz;
+        viewPos = (gl_ModelViewMatrix * vec4(localPos, 1.0)).xyz;
         viewNormal = normalize(gl_NormalMatrix * normal);
+
+        localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+
         gl_Position = gl_ProjectionMatrix * vec4(viewPos, 1.0);
 
         #if defined RENDER_TEXTURED || defined RENDER_WEATHER || defined RENDER_BEACONBEAM

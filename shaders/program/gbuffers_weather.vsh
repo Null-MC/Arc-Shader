@@ -144,7 +144,6 @@ void main() {
     lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     glcolor = gl_Color;
 
-    localPos = gl_Vertex.xyz;
     BasicVertex(localPos);
 
     #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE

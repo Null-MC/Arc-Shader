@@ -83,6 +83,6 @@ void main() {
     lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     glcolor = gl_Color;
 
-    vec3 localPos = gl_Vertex.xyz;
+    vec3 localPos;
     BasicVertex(localPos);
 }

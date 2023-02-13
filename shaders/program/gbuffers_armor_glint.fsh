@@ -11,6 +11,10 @@ in vec4 glcolor;
 uniform sampler2D lightmap;
 uniform sampler2D gtexture;
 
+#ifndef IRIS_FEATURE_SSBO
+    flat in float sceneExposure;
+#endif
+
 #ifdef IRIS_FEATURE_SSBO
     #include "/lib/ssbo/scene.glsl"
 #endif

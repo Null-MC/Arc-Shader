@@ -81,7 +81,6 @@ void main() {
     
     materialId = int(mc_Entity.x + 0.5);
 
-    localPos = gl_Vertex.xyz;
     BasicVertex(localPos);
     PbrVertex(viewPos);
 }

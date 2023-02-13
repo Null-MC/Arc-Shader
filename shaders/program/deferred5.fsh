@@ -66,6 +66,7 @@ uniform sampler3D TEX_CLOUD_NOISE;
 uniform sampler2D TEX_BRDF;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
+uniform sampler2D depthtex2;
 uniform sampler2D noisetex;
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
@@ -262,6 +263,14 @@ void main() {
     LightData lightData;
 
     lightData.opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
+
+    float handClipDepth = texelFetch(depthtex2, iTex, 0).r;
+    if (handClipDepth > lightData.opaqueScreenDepth) {
+        lightData.opaqueScreenDepth = lightData.opaqueScreenDepth * 2.0 - 1.0;
+        lightData.opaqueScreenDepth /= MC_HAND_DEPTH;
+        lightData.opaqueScreenDepth = lightData.opaqueScreenDepth * 0.5 + 0.5;
+    }
+
     lightData.opaqueScreenDepthLinear = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
 
     lightData.transparentScreenDepth = 1.0;

@@ -1,6 +1,7 @@
-#define RENDER_VERTEX
-#define RENDER_GBUFFER
+#define RENDER_HAND_OPAQUE
 #define RENDER_HAND
+#define RENDER_GBUFFER
+#define RENDER_VERTEX
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"
@@ -58,7 +59,6 @@ void main() {
 
     materialId = int(mc_Entity.x + 0.5);
 
-    localPos = gl_Vertex.xyz;
     BasicVertex(localPos);
     PbrVertex(viewPos);
 }
