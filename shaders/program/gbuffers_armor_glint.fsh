@@ -11,33 +11,39 @@ in vec4 glcolor;
 uniform sampler2D lightmap;
 uniform sampler2D gtexture;
 
-/* RENDERTARGETS: 2,1 */
-layout(location = 0) out vec4 outColor0;
-layout(location = 1) out vec4 outColor1;
-
+#ifdef CANTFIX
+    /* RENDERTARGETS: 0 */
+    layout(location = 0) out uvec4 outColor0;
+#else
+    /* RENDERTARGETS: 2,1 */
+    layout(location = 0) out vec4 outColor0;
+    layout(location = 1) out vec4 outColor1;
+#endif
 
 void main() {
-    outColor0 = vec4(2000.0, 0.0, 0.0, 1.0);
-    return;
+    vec4 color = texture(gtexture, texcoord);
+    color.rgb = RGBToLinear(color.rgb * glcolor.rgb * glcolor.a);
 
-    vec4 color = texture(gtexture, texcoord) * glcolor;
+    #ifdef CANTFIX
+        uvec4 data;
+        data.r = packUnorm4x8(color);
+        data.g = packUnorm4x8(vec4(0.5, 0.5, 1.0, 1.0));
+        data.b = packUnorm4x8(vec4(1.0));
+        data.a = packUnorm4x8(vec4(1.0));
+        outColor0 = data;
+    #else
+        color.rgb *= 3000.0;
+        
+        float lum = luminance(color.rgb);
+        color.a = 0.4 * smoothstep(0.0, 0.6, lum);
 
-    float lum = saturate(luminance(color.rgb));
-    color.a = smoothstep(0.2, 0.75, lum);//pow2(color.a);
+        vec4 outLum = vec4(0.0);
+        outLum.r = log2(luminance(color.rgb) + EPSILON);
+        outLum.a = color.a;
+        outColor1 = outLum;
 
-    color.rgb *= 2200.0;
-    //color *= texture(lightmap, lmcoord);
+        color.rgb = clamp(color.rgb * sceneExposure, vec3(0.0), vec3(65000));
 
-    // #if !defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE
-    //     color.rgb *= glcolor.a;
-    // #endif
-
-    vec4 outLum = vec4(0.0);
-    outLum.r = log2(luminance(color.rgb) + EPSILON);
-    outLum.a = color.a;
-    outColor1 = outLum;
-
-    color.rgb = clamp(color.rgb * sceneExposure, vec3(0.0), vec3(65000));
-
-    outColor0 = color;
+        outColor0 = color;
+    #endif
 }

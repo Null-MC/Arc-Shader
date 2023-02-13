@@ -167,25 +167,3 @@ float GetCascadeBias(const in float geoNoL, const in vec2 shadowProjectionSize) 
 
     return 0.00004;
 }
-
-#if defined RENDER_VERTEX && !defined RENDER_SHADOW
-    void ApplyShadows(const in vec3 localPos, const in vec3 viewDir) {
-        #ifndef SSS_ENABLED
-            if (geoNoL > 0.0) {
-        #endif
-            #if defined PARALLAX_ENABLED && defined PARALLAX_SHADOW_FIX
-                #ifndef IRIS_FEATURE_SSBO
-                    mat4 shadowModelViewEx = BuildShadowViewMatrix();
-                #endif
-
-                float geoNoV = dot(vNormal, viewDir);
-
-                vec3 localViewDir = normalize(cameraPosition);
-                vec3 parallaxLocalPos = localPos + (localViewDir / geoNoV) * PARALLAX_DEPTH;
-                vec3 parallaxShadowViewPos = (shadowModelViewEx * vec4(parallaxLocalPos, 1.0)).xyz;
-            #endif
-        #ifndef SSS_ENABLED
-            }
-        #endif
-    }
-#endif

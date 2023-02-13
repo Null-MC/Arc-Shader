@@ -71,7 +71,3 @@ float GetShadowBias(const in float geoNoL, const in float distortFactor) {
 //   vec2 tmp = abs(p * p * p);
 //   return c * p / (1.0 - pow(tmp.x + tmp.y, 1.0 / 3.0));
 // }
-
-#ifdef RENDER_VERTEX
-    void ApplyShadows(const in vec3 shadowViewPos, const in vec3 viewDir) {}
-#endif

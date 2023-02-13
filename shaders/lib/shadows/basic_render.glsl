@@ -146,7 +146,7 @@
             shadowPos.xy = distort(shadowPos.xy * 2.0 - 1.0) * 0.5 + 0.5;
 
             #ifdef IRIS_FEATURE_SEPARATE_HARDWARE_SAMPLERS
-                return textureLod(shadowtex1HW, shadowPos + vec3(offset, -lightData.shadowBias), 0);
+                return textureLod(shadowtex1HW, shadowPos + vec3(0.0, 0.0, -lightData.shadowBias), 0);
             #else
                 float surfaceDepth = shadowPos.z - lightData.shadowBias;
                 float texDepth = lightData.opaqueShadowDepth + EPSILON;

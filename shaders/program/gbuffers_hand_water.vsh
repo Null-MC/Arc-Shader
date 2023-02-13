@@ -161,10 +161,10 @@ void main() {
     BasicVertex(localPos);
     PbrVertex(viewPos);
 
-    #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-        vec3 viewDir = normalize(viewPos);
-        ApplyShadows(localPos, viewDir);
-    #endif
+    // #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+    //     vec3 viewDir = normalize(viewPos);
+    //     ApplyShadows(localPos, viewDir);
+    // #endif
     
     #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #ifndef IRIS_FEATURE_SSBO

@@ -180,9 +180,13 @@ vec2 GetPixelRadius(const in int cascade, const in float blockRadius) {
     float GetShadowing(const in LightData lightData) {
         if (lightData.shadowCascade < 0) return 1.0;
 
-        float surfaceDepth = lightData.shadowPos[lightData.shadowCascade].z - EPSILON;
-        float texDepth = lightData.opaqueShadowDepth + lightData.shadowBias[lightData.shadowCascade];
-        return step(surfaceDepth, texDepth);
+        #ifdef IRIS_FEATURE_SEPARATE_HARDWARE_SAMPLERS
+            return CompareOpaqueDepth(lightData.shadowPos[lightData.shadowCascade], vec2(0.0), 0.0);
+        #else
+            float surfaceDepth = lightData.shadowPos[lightData.shadowCascade].z - EPSILON;
+            float texDepth = lightData.opaqueShadowDepth + lightData.shadowBias[lightData.shadowCascade];
+            return step(surfaceDepth, texDepth);
+        #endif
     }
 #endif
 

@@ -33,12 +33,8 @@
                 #endif
 
                 #if defined WORLD_WATER_ENABLED && (defined WATER_WAVE_ENABLED || defined PHYSICS_OCEAN)
-                    //#if MC_VERSION >= 11700
-                        float vY = -at_midBlock.y / 64.0;
-                        float posY = saturate(vY + 0.5) * (1.0 - step(0.5, vY + EPSILON));
-                    //#else
-                    //    float posY = step(EPSILON, gl_Normal.y);
-                    //#endif
+                    float vY = -at_midBlock.y / 64.0;
+                    float posY = saturate(vY + 0.5) * (1.0 - step(0.5, vY + EPSILON));
 
                     if (posY > EPSILON) {// || (abs(gl_Normal.y) < EPSILON && true)) {
                         //float windSpeed = GetWindSpeed();
@@ -71,48 +67,13 @@
                     }
                 #endif
             }
-            // else if (abs(mc_Entity.x - 101.0) < 0.5) {
-            //     if (gl_Normal.y > 0.01) {
-            //         //the bottom face doesn't have a backface.
-            //     }
-            //     else if (gl_Normal.y < -0.01) {
-            //         //sneaky back face of top needs weird checks.
-            //         if (at_midBlock.y < 30.75) {
-            //            gl_Position = vec4(10.0);
-            //            return;
-            //         }
-            //     }
-            //     else {
-            //         if (dot(gl_Normal, at_midBlock) > 0.0) {
-            //             gl_Position = vec4(10.0);
-            //             return;
-            //         }
-            //     }
-            // }
         #endif
 
         viewPos = (gl_ModelViewMatrix * vec4(pos, 1.0)).xyz;
         viewNormal = normalize(gl_NormalMatrix * normal);
         gl_Position = gl_ProjectionMatrix * vec4(viewPos, 1.0);
 
-        // #ifdef RENDER_ENTITIES
-        //     if (entityId == 829925)
-        //         viewNormal = normal;
-        // #endif
-
-        // #ifdef RENDER_TEXTURED
-        //     vec2 coordMid = (gl_TextureMatrix[0] * mc_midTexCoord).xy;
-        //     vec2 coordNMid = texcoord - coordMid;
-
-        //     atlasBounds[0] = min(texcoord, coordMid - coordNMid);
-        //     atlasBounds[1] = abs(coordNMid) * 2.0;
-
-        //     //localCoord = sign(coordNMid) * 0.5 + 0.5;
-        // #endif
-
         #if defined RENDER_TEXTURED || defined RENDER_WEATHER || defined RENDER_BEACONBEAM
-            // TODO: extract billboard direction from view matrix?
-
             geoNoL = 1.0;
         #else
             #ifdef SHADOW_ENABLED

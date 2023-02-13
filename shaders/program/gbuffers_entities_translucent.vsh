@@ -157,5 +157,51 @@ void main() {
     if (materialId == ENTITY_LIGHTNING_BOLT) {
         // No PBR for lightning
     }
-    else PbrVertex(viewPos);
+    else {
+        PbrVertex(viewPos);
+
+        #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+            #ifndef IRIS_FEATURE_SSBO
+                mat4 shadowModelViewEx = BuildShadowViewMatrix();
+            #endif
+
+            vec3 shadowViewPos = (shadowModelViewEx * vec4(localPos, 1.0)).xyz;
+
+            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                for (int i = 0; i < 4; i++) {
+                    shadowPos[i] = (cascadeProjection[i] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
+                    shadowPos[i].xy = shadowPos[i].xy * 0.5 + shadowProjectionPos[i];
+
+                    shadowBias[i] = GetCascadeBias(geoNoL, shadowProjectionSize[i]);
+                }
+            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+                #ifndef IRIS_FEATURE_SSBO
+                    mat4 shadowProjectionEx = BuildShadowProjectionMatrix();
+                #endif
+
+                shadowPos = (shadowProjectionEx * vec4(shadowViewPos, 1.0)).xyz;
+
+                float distortFactor = getDistortFactor(shadowPos.xy);
+                //shadowPos = distort(shadowPos, distortFactor) * 0.5 + 0.5;
+                shadowPos = shadowPos * 0.5 + 0.5;
+                shadowBias = GetShadowBias(geoNoL, distortFactor);
+            #endif
+        #endif
+    }
+
+    #ifndef IRIS_FEATURE_SSBO
+        sceneExposure = GetExposure();
+
+        blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
+
+        #ifdef SKY_ENABLED
+            skyLightLevels = GetSkyLightLevels();
+
+            skySunColor = GetSunColor();
+
+            #ifdef WORLD_MOON_ENABLED
+                skyMoonColor = GetMoonColor();
+            #endif
+        #endif
+    #endif
 }
