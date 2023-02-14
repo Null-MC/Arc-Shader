@@ -99,6 +99,7 @@ const bool colortex11Clear = false;
 #define SSS_PCF_SIZE 0.1 // [0.02 0.04 0.06 0.08 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.5 0.6 0.8 1.0 1.5 2.0 2.5 3.0]
 #define SSS_PCF_SAMPLES 6 // [2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32]
 //#define SSS_NORMALIZE_ALBEDO
+#define SSS_BLUR
 #define SSR_QUALITY 1 // [0 1 2]
 #define SSR_IGNORE_HAND
 #define SSR_HIZ

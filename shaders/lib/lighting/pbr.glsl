@@ -143,20 +143,20 @@
         #endif
 
         #if !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
+            float deferredSigma = 3.0 / (viewDist + 1.0);
+
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined SHADOW_BLUR
-                float shadowDeferredSigma = 3.0 / (viewDist + 1.0);
 
                 #ifdef SHADOW_COLOR
-                    vec4 shadowDeferred = BilateralGaussianDepthBlurRGBA_5x(BUFFER_SHADOW, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, shadowDeferredSigma);
+                    vec4 shadowDeferred = BilateralGaussianDepthBlurRGBA_5x(BUFFER_SHADOW, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, deferredSigma);
                     shadowDeferred.rgb *= shadowDeferred.a;
                 #else
-                    vec4 shadowDeferred = vec4(BilateralGaussianDepthBlur_5x(BUFFER_SHADOW, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, shadowDeferredSigma, 3));
+                    vec4 shadowDeferred = vec4(BilateralGaussianDepthBlur_5x(BUFFER_SHADOW, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, deferredSigma, 3));
                 #endif
             #endif
 
             #if AO_TYPE == AO_TYPE_SS
-                float giaoDeferredSigma = 3.0 / (viewDist + 1.0);
-                vec4 giaoDeferred = BilateralGaussianDepthBlurRGBA_5x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, giaoDeferredSigma);
+                vec4 giaoDeferred = BilateralGaussianDepthBlurRGBA_5x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, deferredSigma);
             #endif
         #endif
 
@@ -223,8 +223,17 @@
                 #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                     #ifdef SSS_ENABLED
                         if (material.scattering > EPSILON) {
-                            shadowSSS = GetShadowSSS(lightData, material.scattering);
+                            #if defined SSS_BLUR && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
+                                //shadowSSS = textureLod(colortex1, texcoord, 0).r;
+                                float sssDeferredSigma = 0.2;// / (viewDist + 1.0);
+                                shadowSSS = BilateralGaussianDepthBlur_5x(colortex1, viewSize, depthtex1, viewSize, lightData.opaqueScreenDepthLinear, sssDeferredSigma, 0);
+                                //shadowSSS *= material.scattering;
+                            #else
+                                shadowSSS = GetShadowSSS(lightData, material.scattering);
+                            #endif
                         }
+
+                        //return vec4(vec3(shadowSSS * 1000.0), 1.0);
                     #endif
                 #else
                     shadow = pow4(lightData.skyLight);// * lightData.occlusion;
@@ -435,13 +444,13 @@
 
                     vec3 sssDiffuseLight = shadowSSS * skyLightColorFinal * max(scatter, 0.0);
 
-                    sssDiffuseLight += GetFancySkyAmbientLight(localViewDir) * smoothstep(0.0, 1.0, skyLight) * occlusion;
+                    //sssDiffuseLight += GetFancySkyAmbientLight(localViewDir) * smoothstep(0.0, 1.0, skyLight) * occlusion;
 
                     sssDiffuseLight *= sssAlbedo * material.scattering;
 
                     //sunDiffuse = GetDiffuseBSDF(sunDiffuse, sssDiffuseLight, material.scattering, NoVm, NoLm, LoHm, roughL);
                     sunDiffuse += sssDiffuseLight * (1.0 - NoLm) * (0.01 * SSS_STRENGTH);
-                    //return vec4(sssAlbedo * shadowSSS * skyLightColorFinal, 1.0);
+                    //return vec4(sssDiffuseLight, 1.0);
                 }
             #endif
 

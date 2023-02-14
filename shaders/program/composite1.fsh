@@ -46,8 +46,14 @@ in vec2 texcoord;
     #endif
 #endif
 
-#if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined SHADOW_BLUR
-    uniform sampler2D BUFFER_SHADOW;
+#if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+    #ifdef SHADOW_BLUR
+        uniform sampler2D BUFFER_SHADOW;
+    #endif
+
+    #if defined SSS_ENABLED && defined SSS_BLUR
+        uniform sampler2D colortex1;
+    #endif
 #endif
 
 #if AO_TYPE == AO_TYPE_SS

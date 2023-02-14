@@ -51,14 +51,6 @@ in vec2 texcoord;
     #endif
 #endif
 
-#if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined SHADOW_BLUR
-    uniform sampler2D BUFFER_SHADOW;
-#endif
-
-#if AO_TYPE == AO_TYPE_SS
-    uniform sampler2D BUFFER_GI_AO;
-#endif
-
 uniform usampler2D BUFFER_DEFERRED;
 uniform sampler2D BUFFER_HDR_OPAQUE;
 uniform sampler2D BUFFER_LUM_OPAQUE;
@@ -68,6 +60,20 @@ uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D depthtex2;
 uniform sampler2D noisetex;
+
+#if AO_TYPE == AO_TYPE_SS
+    uniform sampler2D BUFFER_GI_AO;
+#endif
+
+#if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+    #ifdef SHADOW_BLUR
+        uniform sampler2D BUFFER_SHADOW;
+    #endif
+
+    #if defined SSS_ENABLED && defined SSS_BLUR
+        uniform sampler2D colortex1;
+    #endif
+#endif
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
     uniform mat4 gbufferPreviousModelView;
@@ -251,6 +257,9 @@ layout(location = 1) out float outColor1;
 
 void main() {
     ivec2 iTex = ivec2(gl_FragCoord.xy);
+
+    //outColor0 = vec4(textureLod(colortex1, texcoord, 0).rrr, 1.0);
+    //return;
 
     #ifdef WORLD_WATER_ENABLED
         if (isEyeInWater != 0) {

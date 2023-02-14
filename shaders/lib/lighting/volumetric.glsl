@@ -3,17 +3,19 @@ const float AirSpeed = 20.0;
 
 #ifdef SKY_VL_ENABLED
     float GetSkyFogDensity(const in sampler3D tex, const in vec3 worldPos, const in float time) {
+        vec3 texPos = worldPos.xzy;
+        texPos.z *= 4.0;
         vec3 t;
 
-        t = worldPos / 192.0;
+        t = texPos / 192.0;
         t.xz -= time * 1.0 * AirSpeed;
         float texDensity1 = textureLod(tex, t, 0).r;
 
-        t = worldPos / 96.0;
+        t = texPos / 96.0;
         t.xz += time * 2.0 * AirSpeed;
         float texDensity2 = textureLod(tex, t, 0).r;
 
-        t = worldPos / 48.0;
+        t = texPos / 48.0;
         t.xyz += time * 4.0 * AirSpeed;
         float texDensity3 = textureLod(tex, t, 0).r;
 
@@ -165,12 +167,13 @@ const float AirSpeed = 20.0;
                 #else
                     // Change with altitude
                     float altD = 1.0 - saturate((traceWorldPos.y - SEA_LEVEL) / (SKY_CLOUD_LEVEL - SEA_LEVEL));
-                    texDensity *= smoothstep(0.1, 1.0, altD);
+                    altD = smoothstep(0.1, 1.0, altD);
 
                     // Change with weather
                     //texDensity *= minFogF + (1.0 - minFogF) * wetness;
 
-                    texDensity = 1.0 + (8.0 + rainStrength * 32.0) * texDensity;
+                    //texDensity = 1.0 + (32.0 + rainStrength * 32.0) * texDensity;
+                    texDensity = 1.0 + 256.0 * altD * pow(texDensity, 2.0);
                 #endif
             #endif
 
@@ -198,7 +201,7 @@ const float AirSpeed = 20.0;
 
             float mieScattering;
             vec3 rayleighScattering, extinction;
-            getScatteringValues(atmosPos, rayleighScattering, mieScattering, extinction);
+            getScatteringValues(atmosPos, texDensity, rayleighScattering, mieScattering, extinction);
 
             float dt = localStepLength * atmosScale;// * texDensity;
             vec3 sampleTransmittance = exp(-dt*extinction);

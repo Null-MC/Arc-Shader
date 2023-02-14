@@ -9,10 +9,14 @@ colortex4		RGB16F			1.0   	HDR Opaque
 colortex5		RGBA16F			0.25	HDR previous frame [RGB: pre-exposed HDR, A: Log Luminance]
 colortex6		R32F			0.25  	Depth Prev
 colortex7		RGB16F			256   	sky LUT
+--colortex8		RGBA16F			1.0	  	Deferred SSS
 colortex9		RGBA16F			1.0	  	Deferred GI / AO
 colortex10		RGBA16F			1.0	  	Deferred Shadow
 colortex11		RGB16F			32x16   irradiance LUT
 
+
+ALT USAGES:
+	colortex1		Deferred SSS
 
 
 CUSTOM TEX

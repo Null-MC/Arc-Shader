@@ -39,7 +39,7 @@ float BilateralGaussianDepthBlur_9x(const in sampler2D blendSampler, const in ve
         }
     }
     
-    if (total <= EPSILON) return 1.0;
+    //if (total <= EPSILON) return 1.0;
     return accum / total;
 }
 
@@ -48,11 +48,11 @@ float BilateralGaussianDepthBlur_9x(const in sampler2D blendSampler, const in ve
 }
 
 float BilateralGaussianDepthBlur_5x(const in sampler2D blendSampler, const in vec2 blendTexSize, const in sampler2D depthSampler, const in vec2 depthTexSize, const in float linearDepth, const in float g_sigmaV, const in int comp) {
-    float g_sigmaX = 3.0;
-    float g_sigmaY = 3.0;
+    float g_sigmaX = 6.0;
+    float g_sigmaY = 6.0;
 
-    const float c_halfSamplesX = 2.0;
-    const float c_halfSamplesY = 2.0;
+    const float c_halfSamplesX = 3.0;
+    const float c_halfSamplesY = 3.0;
 
     float total = 0.0;
     float accum = 0.0;
@@ -67,14 +67,14 @@ float BilateralGaussianDepthBlur_5x(const in sampler2D blendSampler, const in ve
             
             vec2 sampleTex = texcoord + vec2(ix, iy) * blendPixelSize;
 
-            ivec2 iTexBlend = ivec2(sampleTex * blendTexSize);
-            float sampleValue = texelFetch(blendSampler, iTexBlend, 0)[comp];
+            //ivec2 iTexBlend = ivec2(sampleTex * blendTexSize);
+            float sampleValue = textureLod(blendSampler, sampleTex, 0)[comp];
 
             ivec2 iTexDepth = ivec2(sampleTex * depthTexSize);
             float sampleDepth = texelFetch(depthSampler, iTexDepth, 0).r;
             float sampleLinearDepth = linearizeDepthFast(sampleDepth, near, far);
                         
-            float fv = Gaussian(g_sigmaV, abs(sampleLinearDepth - linearDepth));
+            float fv = Gaussian(g_sigmaV, abs(sampleLinearDepth - linearDepth) * 0.1);
             
             float weight = fx*fy*fv;
             accum += weight * sampleValue;
@@ -83,7 +83,7 @@ float BilateralGaussianDepthBlur_5x(const in sampler2D blendSampler, const in ve
     }
     
     //if (dot(accum, accum) <= EPSILON) return vec3(1.0);
-    if (total <= EPSILON) return 0.0;
+    //if (total < EPSILON) return 0.0;
     return accum / total;
 }
 

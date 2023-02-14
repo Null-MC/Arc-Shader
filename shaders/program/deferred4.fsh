@@ -16,7 +16,7 @@ uniform mat4 gbufferProjectionInverse;
 uniform float viewWidth;
 uniform float viewHeight;
 
-#if defined SKY_ENABLED && defined SHADOW_ENABLED && defined SHADOW_BLUR && SHADOW_TYPE != SHADOW_TYPE_NONE
+#if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || (defined SSS_ENABLED && defined SSS_BLUR))
     uniform sampler2D shadowtex0;
     uniform sampler2D shadowtex1;
 
@@ -32,8 +32,8 @@ uniform float viewHeight;
     uniform mat4 shadowModelView;
     uniform mat4 shadowProjection;
     uniform vec3 cameraPosition;
-    uniform float rainStrength;
-    uniform int moonPhase;
+    //uniform float rainStrength;
+    //uniform int moonPhase;
     uniform int worldTime;
     uniform float far;
 #endif
@@ -46,13 +46,17 @@ uniform float viewHeight;
 #include "/lib/sampling/noise.glsl"
 #include "/lib/sampling/ign.glsl"
 
-#if defined SKY_ENABLED && defined SHADOW_ENABLED && defined SHADOW_BLUR && SHADOW_TYPE != SHADOW_TYPE_NONE
+#if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || (defined SSS_ENABLED && defined SSS_BLUR))
     #include "/lib/matrix.glsl"
-    #include "/lib/lighting/blackbody.glsl"
+    //#include "/lib/lighting/blackbody.glsl"
     #include "/lib/lighting/light_data.glsl"
-    #include "/lib/sky/hillaire_common.glsl"
+    //#include "/lib/sky/hillaire_common.glsl"
     #include "/lib/celestial/position.glsl"
-    #include "/lib/celestial/transmittance.glsl"
+    //#include "/lib/celestial/transmittance.glsl"
+
+    #if defined SSS_ENABLED && defined SSS_BLUR
+        #include "/lib/material/material_reader.glsl"
+    #endif
 
     #include "/lib/shadows/common.glsl"
 
@@ -66,12 +70,17 @@ uniform float viewHeight;
 #endif
 
 
-/* RENDERTARGETS: 9,10 */
-#if AO_TYPE == 2
-    layout(location = 0) out vec4 outColor0;
+/* RENDERTARGETS: 9,10,1 */
+#if AO_TYPE == AO_TYPE_SS
+    layout(location = 0) out vec4 outGIAO;
 #endif
-#if defined SHADOW_ENABLED && defined SHADOW_BLUR && SHADOW_TYPE != SHADOW_TYPE_NONE
-    layout(location = 1) out vec4 outColor1;
+#if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+    #ifdef SHADOW_BLUR
+        layout(location = 1) out vec4 outShadow;
+    #endif
+    #if defined SSS_ENABLED && defined SSS_BLUR
+        layout(location = 2) out float outSSS;
+    #endif
 #endif
 
 float SampleOcclusion(const in vec2 sampleTex, const in vec3 viewPos, const in vec3 cnorm) {
@@ -131,9 +140,10 @@ void main() {
 
     float clipDepth = texelFetch(depthtex0, itexFull, 0).r;
 
-    float shadowF = 1.0;
     vec3 shadowColor = vec3(1.0);
-    float occlusion = 1.0;
+    float occlusion = 5.0;
+    float shadowF = 5.0;
+    float sssF = 0.0;
 
     if (clipDepth < 1.0) {
         float handClipDepth = texelFetch(depthtex2, itexFull, 0).r;
@@ -145,22 +155,28 @@ void main() {
 
         vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
 
-        #if defined SHADOW_BLUR && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        #if AO_TYPE == AO_TYPE_SS || (defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || defined SSS_BLUR))
+            uvec4 gbufferData = texelFetch(BUFFER_DEFERRED, itexFull, 0);
+        #endif
+
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || defined SSS_BLUR)
             LightData lightData;
 
-            uint gbufferLightData = texelFetch(BUFFER_DEFERRED, itexFull, 0).a;
-            vec4 gbufferLightMap = unpackUnorm4x8(gbufferLightData);
+            //uint gbufferLightData = texelFetch(BUFFER_DEFERRED, itexFull, 0).a;
+            vec4 gbufferLightMap = unpackUnorm4x8(gbufferData.a);
             lightData.geoNoL = gbufferLightMap.z * 2.0 - 1.0;
-            shadowF = gbufferLightMap.a;
 
             vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 
             vec3 dX = dFdx(localPos);
             vec3 dY = dFdy(localPos);
-            vec3 geoNormal = normalize(cross(dX, dY));
 
-            float viewDist = length(localPos);
-            localPos += geoNormal * viewDist * SHADOW_NORMAL_BIAS * max(1.0 - lightData.geoNoL, 0.0);
+            if (all(greaterThan(abs(dX) + abs(dY), vec3(EPSILON)))) {
+                vec3 geoNormal = normalize(cross(dX, dY));
+
+                float viewDist = length(localPos);
+                localPos += geoNormal * viewDist * SHADOW_NORMAL_BIAS * max(1.0 - lightData.geoNoL, 0.0);
+            }
 
             #ifndef IRIS_FEATURE_SSBO
                 mat4 shadowModelViewEx = BuildShadowViewMatrix();
@@ -199,26 +215,38 @@ void main() {
                 lightData.transparentShadowDepth = SampleTransparentDepth(shadowPosD, vec2(0.0));
             #endif
 
-            shadowF = step(EPSILON, lightData.geoNoL);
-            //shadowF *= lightData.geoNoL;
+            #ifdef SHADOW_BLUR
+                shadowF = gbufferLightMap.a;
+                shadowF *= step(EPSILON, lightData.geoNoL);
+                //shadowF *= lightData.geoNoL;
 
-            if (shadowF > EPSILON)
-                shadowF *= GetShadowing(lightData);
+                if (shadowF > EPSILON)
+                    shadowF *= GetShadowing(lightData);
 
-            #ifdef SHADOW_COLOR
-                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    if (lightData.shadowPos[lightData.shadowCascade].z - lightData.transparentShadowDepth > lightData.shadowBias[lightData.shadowCascade])
-                        shadowColor = GetShadowColor(lightData.shadowPos[lightData.shadowCascade].xy);
-                #else
-                    if (lightData.shadowPos.z - lightData.transparentShadowDepth > lightData.shadowBias)
-                        shadowColor = GetShadowColor(lightData.shadowPos.xy);
+                #ifdef SHADOW_COLOR
+                    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                        if (lightData.shadowPos[lightData.shadowCascade].z - lightData.transparentShadowDepth > lightData.shadowBias[lightData.shadowCascade])
+                            shadowColor = GetShadowColor(lightData.shadowPos[lightData.shadowCascade].xy);
+                    #else
+                        if (lightData.shadowPos.z - lightData.transparentShadowDepth > lightData.shadowBias)
+                            shadowColor = GetShadowColor(lightData.shadowPos.xy);
+                    #endif
                 #endif
+            #endif
+
+            #if defined SSS_ENABLED && defined SSS_BLUR
+                //uint deferredSpecular = texelFetch(BUFFER_DEFERRED, itexFull, 0).b;
+                float specularB = unpackUnorm4x8(gbufferData.b).b;
+                float materialSSS = GetLabPbr_SSS(specularB);
+
+                if (materialSSS > EPSILON)
+                    sssF = GetShadowSSS(lightData, materialSSS);
             #endif
         #endif
 
-        #if AO_TYPE == 2
-            uint deferredNormal = texelFetch(BUFFER_DEFERRED, itexFull, 0).g;
-            vec3 viewNormal = unpackUnorm4x8(deferredNormal).xyz;
+        #if AO_TYPE == AO_TYPE_SS
+            //uint deferredNormal = texelFetch(BUFFER_DEFERRED, itexFull, 0).g;
+            vec3 viewNormal = unpackUnorm4x8(gbufferData.g).xyz;
             viewNormal = normalize(viewNormal * 2.0 - 1.0);
             
             //float rad = SSAO_RADIUS / max(-viewPos.z, 1.0);
@@ -229,11 +257,17 @@ void main() {
         #endif
     }
 
-    #if AO_TYPE == 2
-        outColor0 = vec4(vec3(0.0), occlusion);
+    #if AO_TYPE == AO_TYPE_SS
+        outGIAO = vec4(vec3(0.0), occlusion);
     #endif
 
-    #if defined SHADOW_ENABLED && defined SHADOW_BLUR && SHADOW_TYPE != SHADOW_TYPE_NONE
-        outColor1 = vec4(shadowColor, shadowF);
+    #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        #ifdef SHADOW_BLUR
+            outShadow = vec4(shadowColor, shadowF);
+        #endif
+
+        #if defined SSS_ENABLED && defined SSS_BLUR
+            outSSS = sssF;
+        #endif
     #endif
 }
