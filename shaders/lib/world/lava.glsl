@@ -24,7 +24,7 @@ float LavaFBM(vec3 texPos) {
 void ApplyLavaMaterial(inout PbrMaterial material, const in vec3 worldPos) {
     material.albedo = vec4(1.0);
 
-    float time = frameTimeCounter / 900.0;
+    float time = frameTimeCounter / 360.0;
     vec3 texPos = worldPos.xzy * vec3(0.025, 0.025, 0.100) + vec3(0.0, 0.0, fract(-time));
 
     float pressure = LavaFBM(texPos);
@@ -51,8 +51,8 @@ void ApplyLavaMaterial(inout PbrMaterial material, const in vec3 worldPos) {
         // RandomizeNormal(material.normal, nTex, 0.8 * (1.0 - pressure2));
     }
 
-    material.albedo.rgb = blackbody(temp) * pow(pressure, 8.0);
+    material.albedo.rgb = 0.002 + blackbody(temp) * pow(pressure, 10.0) * 2.0;
     material.smoothness = 0.56 * pow(1.0 - pressure, 2.0);
-    material.emission = pressure4;
+    material.emission = saturate(3.0 * pressure4);
     material.f0 = 0.4;
 }
