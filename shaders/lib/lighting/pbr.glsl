@@ -156,7 +156,11 @@
             #endif
 
             #if AO_TYPE == AO_TYPE_SS
-                vec4 giaoDeferred = BilateralGaussianDepthBlurRGBA_7x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, deferredSigma);
+                #ifdef SSGI_ENABLED
+                    vec4 giaoDeferred = BilateralGaussianDepthBlurRGBA_7x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, deferredSigma);
+                #else
+                    vec4 giaoDeferred = vec4(vec3(0.0), BilateralGaussianDepthBlur_7x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, 3, deferredSigma));
+                #endif
             #endif
         #endif
 

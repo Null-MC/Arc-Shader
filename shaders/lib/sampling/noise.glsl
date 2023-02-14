@@ -5,11 +5,18 @@
 #define UIF (1.0 / float(0xffffffffU))
 
 
-// float hash12(const in uvec2 x) {
-//     uvec2 q = 1103515245U * ((x>>1U) ^ (x.yx   ));
-//     uint  n = 1103515245U * ((q.x  ) ^ (q.y>>3U));
-//     return float(n) * UIF;
-// }
+float hash11(in float p) {
+    p = fract(p * 0.1031);
+    p *= p + 33.33;
+    //p *= p + p;
+    return fract((p + p) * p);
+}
+
+float hashU12(const in uvec2 x) {
+    uvec2 q = 1103515245U * ((x>>1U) ^ (x.yx   ));
+    uint  n = 1103515245U * ((q.x  ) ^ (q.y>>3U));
+    return float(n) * UIF;
+}
 
 float hash12(const in vec2 seed) {
     vec3 p3  = fract(vec3(seed.xyx) * 0.1031);
@@ -21,6 +28,12 @@ float hash13(const in vec3 seed) {
     vec3 p3 = fract(seed * 0.1031);
     p3 += dot(p3, p3.zyx + 31.32);
     return fract((p3.x + p3.y) * p3.z);
+}
+
+float hash21(const in vec2 p) {
+    vec2 p2 = fract(p * vec2(123.34, 233.53));
+    p2 += dot(p2, p2 + 23.234);
+    return fract(p2.x * p2.y);
 }
 
 vec2 hash22(const in vec2 p) {

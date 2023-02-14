@@ -49,6 +49,12 @@ uniform sampler2D specular;
 uniform sampler2D lightmap;
 uniform sampler2D noisetex;
 
+#if LAVA_TYPE == LAVA_FANCY
+    uniform sampler3D TEX_CLOUD_NOISE;
+#endif
+
+uniform float frameTimeCounter;
+uniform mat4 gbufferModelView;
 uniform vec3 cameraPosition;
 uniform ivec2 atlasSize;
 uniform int isEyeInWater;
@@ -69,10 +75,15 @@ uniform float biomeSnowSmooth;
 #include "/lib/sampling/bayer.glsl"
 #include "/lib/sampling/linear.glsl"
 #include "/lib/sampling/noise.glsl"
+#include "/lib/lighting/blackbody.glsl"
 #include "/lib/material/material.glsl"
 
 #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
     #include "/lib/material/default.glsl"
+#endif
+
+#if LAVA_TYPE == LAVA_FANCY
+    #include "/lib/world/lava.glsl"
 #endif
 
 #ifdef PARALLAX_ENABLED

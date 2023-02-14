@@ -25,6 +25,7 @@ uniform sampler2D specular;
 uniform sampler2D lightmap;
 
 uniform mat4 gbufferModelView;
+uniform vec3 cameraPosition;
 uniform int worldTime;
 
 #if MC_VERSION >= 11700

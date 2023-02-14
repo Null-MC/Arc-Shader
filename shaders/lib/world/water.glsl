@@ -16,12 +16,12 @@ float GetWaveDepth(const in float skyLight) {
     return mix(0.5, 1.0, rainStrength) * skyLight;
 }
 
-float hash11(in float p) {
-    p = fract(p * 0.1031);
-    p *= p + 33.33;
-    p *= p + p;
-    return fract(p);
-}
+// float hash11(in float p) {
+//     p = fract(p * 0.1031);
+//     p *= p + 33.33;
+//     p *= p + p;
+//     return fract(p);
+// }
 
 vec3 GetWaves(const in vec2 position, const in float strength, const in int iterations) {
     float weight = 1.0;//max(waveSpeed, 0.3) + 0.1;

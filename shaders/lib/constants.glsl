@@ -13,6 +13,9 @@
 #define WAVING_VERTEX 1
 #define WAVING_BLOCK 2
 
+#define LAVA_DEFAULT 0
+#define LAVA_FANCY 1
+
 #define WATER_WAVE_NONE 0
 #define WATER_WAVE_VERTEX 1
 

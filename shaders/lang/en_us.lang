@@ -57,6 +57,11 @@ value.SNOW_MODE.0=None
 value.SNOW_MODE.1=Only Sky
 value.SNOW_MODE.2=Full
 
+option.LAVA_TYPE=Lava Type
+option.LAVA_TYPE.comment=Fancy lava uses the shader to render dynamic lava. Default uses the vanilla/resource pack texture.
+value.LAVA_TYPE.0=Default
+value.LAVA_TYPE.1=Fancy
+
 
 screen.WATER_OPTIONS=Water
 

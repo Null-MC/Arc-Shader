@@ -123,15 +123,27 @@
             }
         #endif
 
-        PbrMaterial material;
-        PopulateMaterial(material, colorMap, normalMap.xyz, specularMap);
+        vec3 worldPos = cameraPosition + localPos;
 
-        #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
-            #ifdef RENDER_ENTITIES
-                ApplyHardCodedMaterials(material, entityId);
-            #elif defined RENDER_TERRAIN || defined RENDER_WATER
-                ApplyHardCodedMaterials(material, materialId, cameraPosition + localPos);
+        PbrMaterial material;
+
+        #if LAVA_TYPE == LAVA_FANCY && defined RENDER_TERRAIN
+            if (materialId == MATERIAL_LAVA) {
+                ApplyLavaMaterial(material, worldPos);
+            }
+            else {
+        #endif
+            PopulateMaterial(material, colorMap, normalMap.xyz, specularMap);
+
+            #if MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
+                #ifdef RENDER_ENTITIES
+                    ApplyHardCodedMaterials(material, entityId);
+                #elif defined RENDER_TERRAIN || defined RENDER_WATER
+                    ApplyHardCodedMaterials(material, materialId, worldPos);
+                #endif
             #endif
+        #if LAVA_TYPE == LAVA_FANCY && defined RENDER_TERRAIN
+            }
         #endif
 
         #if AO_TYPE == AO_TYPE_VANILLA
