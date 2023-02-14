@@ -192,10 +192,10 @@ void main() {
 
                 SetNearestDepths(lightData);
 
-                if (lightData.shadowCascade >= 0) {
-                    float minOpaqueDepth = min(lightData.shadowPos[lightData.shadowCascade].z, lightData.opaqueShadowDepth);
-                    lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 3.0 * far;
-                }
+                // if (lightData.shadowCascade >= 0) {
+                //     float minOpaqueDepth = min(lightData.shadowPos[lightData.shadowCascade].z, lightData.opaqueShadowDepth);
+                //     lightData.waterShadowDepth = (minOpaqueDepth - lightData.transparentShadowDepth) * 3.0 * far;
+                // }
             #else
                 #ifndef IRIS_FEATURE_SSBO
                     mat4 shadowProjectionEx = BuildShadowProjectionMatrix();
@@ -207,7 +207,7 @@ void main() {
                 //lightData.shadowPos = distort(lightData.shadowPos, distortFactor);
                 lightData.shadowBias = GetShadowBias(lightData.geoNoL, distortFactor);
 
-                vec2 shadowPosD = distort(lightData.shadowPos.xy) * 0.5 + 0.5;
+                vec2 shadowPosD = distort(lightData.shadowPos.xy, distortFactor) * 0.5 + 0.5;
 
                 lightData.shadowPos = lightData.shadowPos * 0.5 + 0.5;
 

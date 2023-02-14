@@ -258,7 +258,7 @@ void main() {
         ivec2 iTex = ivec2(gl_FragCoord.xy);
         float opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
         float opaqueScreenDepthLinear = linearizeDepthFast(opaqueScreenDepth, near, far);
-        vec4 shadow = BilateralGaussianDepthBlurRGBA_5x(BUFFER_SHADOW, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, 0.3);
+        vec4 shadow = BilateralGaussianDepthBlurRGBA_7x(BUFFER_SHADOW, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, vec3(3.0, 3.0, 0.2));
         color = shadow.rgb * shadow.a;
     #elif DEBUG_VIEW == DEBUG_VIEW_DEFERRED_A0
         // Deferred Ambient Occlusion

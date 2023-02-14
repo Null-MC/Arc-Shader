@@ -124,6 +124,9 @@ option.SSS_PCF_SAMPLES.comment=The number of depth samples to use when applying 
 option.SSS_NORMALIZE_ALBEDO=Normalize
 option.SSS_NORMALIZE_ALBEDO.comment=Prevents the darkening of SSS by albedo. May look better or worse depending on resource pack used.
 
+option.SSS_BLUR=Blur
+option.SSS_BLUR.comment=Applies a post-process blur to smoothen SSS when enabled.
+
 option.EMISSIVE_POWER=Emission Curve
 option.EMISSIVE_POWER.comment=Adjusts an optional curve for emissive textures.
 

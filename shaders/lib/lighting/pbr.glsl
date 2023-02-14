@@ -143,20 +143,20 @@
         #endif
 
         #if !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
-            float deferredSigma = 3.0 / (viewDist + 1.0);
+            const vec3 deferredSigma = vec3(3.0, 3.0, 0.2);// 3.0 / (viewDist + 1.0));
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined SHADOW_BLUR
 
                 #ifdef SHADOW_COLOR
-                    vec4 shadowDeferred = BilateralGaussianDepthBlurRGBA_5x(BUFFER_SHADOW, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, deferredSigma);
+                    vec4 shadowDeferred = BilateralGaussianDepthBlurRGBA_7x(BUFFER_SHADOW, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, deferredSigma);
                     shadowDeferred.rgb *= shadowDeferred.a;
                 #else
-                    vec4 shadowDeferred = vec4(BilateralGaussianDepthBlur_5x(BUFFER_SHADOW, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, deferredSigma, 3));
+                    vec4 shadowDeferred = vec4(BilateralGaussianDepthBlur_7x(BUFFER_SHADOW, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, deferredSigma, 3));
                 #endif
             #endif
 
             #if AO_TYPE == AO_TYPE_SS
-                vec4 giaoDeferred = BilateralGaussianDepthBlurRGBA_5x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, deferredSigma);
+                vec4 giaoDeferred = BilateralGaussianDepthBlurRGBA_7x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, deferredSigma);
             #endif
         #endif
 
@@ -225,8 +225,8 @@
                         if (material.scattering > EPSILON) {
                             #if defined SSS_BLUR && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
                                 //shadowSSS = textureLod(colortex1, texcoord, 0).r;
-                                float sssDeferredSigma = 0.2;// / (viewDist + 1.0);
-                                shadowSSS = BilateralGaussianDepthBlur_5x(colortex1, viewSize, depthtex1, viewSize, lightData.opaqueScreenDepthLinear, sssDeferredSigma, 0);
+                                const vec3 sssDeferredSigma = vec3(3.0, 3.0, 0.2);// / (viewDist + 1.0);
+                                shadowSSS = BilateralGaussianDepthBlur_7x(colortex1, viewSize, depthtex1, viewSize, lightData.opaqueScreenDepthLinear, sssDeferredSigma, 0);
                                 //shadowSSS *= material.scattering;
                             #else
                                 shadowSSS = GetShadowSSS(lightData, material.scattering);

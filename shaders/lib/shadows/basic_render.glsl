@@ -19,9 +19,8 @@
 
     #ifdef SHADOW_COLOR
         vec3 GetShadowColor(const in vec2 shadowPos) {
-            vec3 color = textureLod(shadowcolor0, shadowPos, 0).rgb;
-            //color = RGBToLinear(color);
-            return color;
+            vec2 shadowPosD = distort(shadowPos * 2.0 - 1.0) * 0.5 + 0.5;
+            return textureLod(shadowcolor0, shadowPosD, 0).rgb;
         }
     #endif
 
