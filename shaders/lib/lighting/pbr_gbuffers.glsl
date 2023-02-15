@@ -46,6 +46,10 @@
                         //gl_FragDepth = delinearizePerspectiveDepth(depth + pomDist * (0.25 * PARALLAX_DEPTH), gbufferProjection);
                         float depth = -viewPos.z + pomDist * PARALLAX_DEPTH;
                         gl_FragDepth = 0.5 * (-gbufferProjection[2].z*depth + gbufferProjection[3].z) / depth + 0.5;
+
+                        #ifdef RENDER_HAND
+                            gl_FragDepth *= MC_HAND_DEPTH;
+                        #endif
                     }
                     else {
                         gl_FragDepth = gl_FragCoord.z;
