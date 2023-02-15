@@ -53,7 +53,7 @@
                         vec3 worldPos = _localPos + cameraPosition;
                         
                         #ifdef PHYSICS_OCEAN
-                            physics_localPosition = gl_Vertex;
+                            physics_localPosition = gl_Vertex.xyz;
                             physics_localWaviness = physics_GetWaviness(ivec2(gl_Vertex.xz + 0.5));
                             float depth = physics_waveHeight(gl_Vertex.xyz, PHYSICS_ITERATIONS_OFFSET, physics_localWaviness, physics_gameTime);
                             physics_localPosition.y += depth;

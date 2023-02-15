@@ -125,11 +125,30 @@
 
         vec3 worldPos = cameraPosition + localPos;
 
+        //if (isMissingNormal || isMissingTangent)
+        //    material.normal = vec3(0.0, 0.0, 1.0);
+
+        vec3 _viewNormal = normalize(viewNormal);
+        vec3 _viewTangent = normalize(viewTangent);
+
+        if (!gl_FrontFacing) {
+            _viewNormal = -_viewNormal;
+        }
+
+        vec3 _viewBinormal = normalize(cross(_viewTangent, _viewNormal) * tangentW);
+
+        if (!gl_FrontFacing) {
+            _viewTangent = -_viewTangent;
+            _viewBinormal = -_viewBinormal;
+        }
+        
+        mat3 matTBN = mat3(_viewTangent, _viewBinormal, _viewNormal);
+
         PbrMaterial material;
 
         #if LAVA_TYPE == LAVA_FANCY && defined RENDER_TERRAIN
             if (materialId == MATERIAL_LAVA) {
-                ApplyLavaMaterial(material, worldPos);
+                ApplyLavaMaterial(material, _viewNormal, worldPos);
             }
             else {
         #endif
@@ -177,25 +196,6 @@
             material.occlusion *= pow2(glcolor.a);
         #endif
 
-        //if (isMissingNormal || isMissingTangent)
-        //    material.normal = vec3(0.0, 0.0, 1.0);
-
-        vec3 _viewNormal = normalize(viewNormal);
-        vec3 _viewTangent = normalize(viewTangent);
-
-        if (!gl_FrontFacing) {
-            _viewNormal = -_viewNormal;
-        }
-
-        vec3 _viewBinormal = normalize(cross(_viewTangent, _viewNormal) * tangentW);
-
-        if (!gl_FrontFacing) {
-            _viewTangent = -_viewTangent;
-            _viewBinormal = -_viewBinormal;
-        }
-        
-        mat3 matTBN = mat3(_viewTangent, _viewBinormal, _viewNormal);
-
         #if defined SKY_ENABLED && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE) && (defined RENDER_TERRAIN || defined RENDER_WATER)
             if (isEyeInWater != 1 && materialId != MATERIAL_WATER && materialId != MATERIAL_LAVA) {
                 vec3 tanUpDir = normalize(upPosition) * matTBN;
@@ -232,7 +232,8 @@
         #ifdef RENDER_TEXTURED
             material.normal = GetShadowLightViewDir();
         #else
-            material.normal = normalize(matTBN * material.normal);
+            if (materialId != MATERIAL_LAVA)
+                material.normal = normalize(matTBN * material.normal);
         #endif
 
         // WARN: disabling until this can be properly integrated out of water!
