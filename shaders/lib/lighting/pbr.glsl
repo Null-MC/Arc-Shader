@@ -463,7 +463,7 @@
                 }
             #endif
 
-            diffuse += sunDiffuse * metalDarkF;
+            //diffuse += sunDiffuse * metalDarkF;
 
             if (NoLm > EPSILON) {
                 float NoHm = max(dot(viewNormal, halfDir), 0.0);
@@ -477,6 +477,7 @@
         #endif
 
         //return vec4(diffuse, 1.0);
+        //return vec4(specular, 1.0);
 
         #if defined SKY_ENABLED && defined WORLD_WATER_ENABLED
             vec3 localSunDir = GetSunLocalDir();

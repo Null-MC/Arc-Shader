@@ -33,7 +33,7 @@ flat in int materialId;
 #endif
 
 #ifdef SKY_ENABLED
-    uniform vec3 upPosition;
+    //uniform vec3 upPosition;
     uniform float wetness;
 #endif
 
@@ -56,6 +56,7 @@ uniform sampler2D noisetex;
 uniform float frameTimeCounter;
 uniform mat4 gbufferModelView;
 uniform vec3 cameraPosition;
+uniform vec3 upPosition;
 uniform ivec2 atlasSize;
 uniform int isEyeInWater;
 uniform float skyWetnessSmooth;

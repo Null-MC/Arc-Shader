@@ -21,22 +21,38 @@ float LavaFBM(vec3 texPos) {
     return accum / maxWeight;
 }
 
-void ApplyLavaMaterial(inout PbrMaterial material, const in vec3 geoNormal, const in vec3 worldPos) {
+#define LAVA_SPEED 24.0 // [12 24]
+
+void ApplyLavaMaterial(inout PbrMaterial material, const in vec3 geoViewNormal, const in vec3 worldPos, const in vec3 viewPos) {
     material.albedo = vec4(1.0);
+    material.normal = geoViewNormal;
 
     float time = frameTimeCounter / 3600.0;
-    vec3 texPos = worldPos.xzy * vec3(0.025, 0.025, 0.100);
-    texPos += vec3(0.05, 0.05, 1.00) * fract(time * 12.0);
+    vec3 texPos = worldPos.xzy * vec3(0.025, 0.025, 0.070);
+    texPos += vec3(0.05, 0.05, 1.00) * fract(time * LAVA_SPEED);
+
+    vec3 upViewDir = normalize(upPosition);
+    float NoU = abs(dot(geoViewNormal, upViewDir));
 
     float pressure = LavaFBM(texPos);
+    float coolF = 0.16 * NoU;
+    float heatF = 1.0 + 0.4 * NoU;
+    float heatP = 6.0 + 4.0 * NoU;
+    float t = min(pow(max(pressure - coolF, 0.0) * heatF, heatP), 1.0);
 
-    vec3 worldPosFinal = (gbufferModelView * vec4(worldPos, 1.0)).xyz;
-    worldPosFinal += geoNormal * 0.2 * smoothstep(0.34, 0.58, 1.0 - pressure) - 0.6*pow(pressure, 0.6);
-    //worldPosFinal = matTBN * worldPosFinal;
-    vec3 dX = dFdx(worldPosFinal);
-    vec3 dY = dFdy(worldPosFinal);
+    float temp = 1000.0 + 15000.0 * t;
+    material.albedo.rgb = 0.002 + blackbody(temp) * t * 2.0;
+    material.smoothness = 0.38 * pow(1.0 - t, 4);
+    material.emission = saturate(3.0 * t);
+    material.f0 = 0.05;
+    material.hcm = -1;
 
-    //material.normal = vec3(0.0, 0.0, 1.0);
+    float heightMax = 0.8 - 0.22 * NoU;
+    float height = smoothstep(0.34, heightMax, 1.0 - pressure) - pow(pressure, 0.7);
+    vec3 viewPosFinal = viewPos + geoViewNormal * 0.2 * height;
+    vec3 dX = dFdx(viewPosFinal);
+    vec3 dY = dFdy(viewPosFinal);
+
     if (dX != vec3(0.0) && dY != vec3(0.0)) {
         vec3 n = cross(dX, dY);
         if (n != vec3(0.0))
@@ -46,14 +62,4 @@ void ApplyLavaMaterial(inout PbrMaterial material, const in vec3 geoNormal, cons
         // nTex = floor(nTex + 0.5) / 128.0;
         // RandomizeNormal(material.normal, nTex, 0.8 * (1.0 - pressure2));
     }
-
-    float t = min(pow(max(pressure - 0.16, 0.0) * 1.4, 10.0), 1.0);
-
-    float temp = 1000.0 + 15000.0 * t;
-    material.albedo.rgb = 0.002 + blackbody(temp) * t * 2.0;
-
-    material.smoothness = 0.38 * pow(1.0 - t, 4);//pow(1.0 - pressure, 2.0);
-    material.emission = saturate(3.0 * t);
-    material.f0 = 0.05;
-    material.hcm = -1;
 }

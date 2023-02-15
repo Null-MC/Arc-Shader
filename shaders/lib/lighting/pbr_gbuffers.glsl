@@ -148,7 +148,7 @@
 
         #if LAVA_TYPE == LAVA_FANCY && defined RENDER_TERRAIN
             if (materialId == MATERIAL_LAVA) {
-                ApplyLavaMaterial(material, _viewNormal, worldPos);
+                ApplyLavaMaterial(material, _viewNormal, worldPos, viewPos);
             }
             else {
         #endif

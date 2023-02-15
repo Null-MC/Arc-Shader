@@ -85,7 +85,7 @@ float BilateralGaussianDepthBlur_7x(const in sampler2D blendSampler, const in ve
     }
     
     //if (dot(accum, accum) <= EPSILON) return vec3(1.0);
-    //if (total < EPSILON) return 0.0;
+    if (total < EPSILON) return 0.0;
     return accum / total;
 }
 
