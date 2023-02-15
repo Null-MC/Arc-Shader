@@ -22,6 +22,10 @@ uniform int isEyeInWater;
 
 uniform float nightVision;
 
+#ifdef IRIS_FEATURE_SSBO
+    #include "/lib/ssbo/scene.glsl"
+#endif
+
 #include "/lib/camera/bloom.glsl"
 
 /* RENDERTARGETS: 2 */

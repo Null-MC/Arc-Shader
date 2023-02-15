@@ -111,7 +111,7 @@ void main() {
     #endif
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        int shadowTile = GetShadowCascade(vOriginPos[0], 1.0);
+        int shadowTile = GetShadowCascade(vOriginPos[0], 2.0);
         if (shadowTile < 0) return;
 
         #ifndef SHADOW_EXCLUDE_ENTITIES

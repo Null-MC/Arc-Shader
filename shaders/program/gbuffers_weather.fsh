@@ -203,7 +203,7 @@ void main() {
     vec3 worldPos = cameraPosition + localPos;
     if (worldPos.y >= SKY_CLOUD_LEVEL) {discard; return;}
 
-    float opacityThreshold = mix(1.0, 0.2, rainStrength);
+    float opacityThreshold = 1.0 - (253.5/255.0) * rainStrength * WeatherOpacityF;// mix(1.0, 0.2, rainStrength);
 
     vec4 albedo = texture(gtexture, texcoord);
     if (albedo.a < opacityThreshold) {discard; return;}

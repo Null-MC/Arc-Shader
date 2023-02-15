@@ -159,7 +159,7 @@
                 #ifdef SSGI_ENABLED
                     vec4 giaoDeferred = BilateralGaussianDepthBlurRGBA_7x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, deferredSigma);
                 #else
-                    vec4 giaoDeferred = vec4(vec3(0.0), BilateralGaussianDepthBlur_7x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, 3, deferredSigma));
+                    vec4 giaoDeferred = vec4(vec3(0.0), BilateralGaussianDepthBlur_7x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, deferredSigma, 3));
                 #endif
             #endif
         #endif
@@ -174,7 +174,10 @@
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 #if defined SHADOW_BLUR && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
-                    shadowColor *= shadowDeferred.rgb;
+                    #ifdef SHADOW_COLOR
+                        shadowColor *= shadowDeferred.rgb;
+                    #endif
+
                     shadow *= shadowDeferred.a;
                 #else
                     shadow *= step(EPSILON, lightData.geoNoL);
@@ -686,8 +689,9 @@
                     
                     #if defined WATER_VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                         vec3 vlScatter, vlExt;
-                        float minWaterVLDist = min(viewDist, 60.0);
-                        float maxWaterVLDist = min(waterOpaqueViewDist, min(shadowDistance, viewDist + 64.0));
+                        float minWaterVLDist = min(viewDist, shadowDistance - 1.0);
+                        //float maxWaterVLDist = min(waterOpaqueViewDist, min(shadowDistance, viewDist + 64.0));
+                        float maxWaterVLDist = min(waterOpaqueViewDist, shadowDistance);
                         GetWaterVolumetricLighting(vlScatter, vlExt, waterScatteringF, localViewDir, minWaterVLDist, maxWaterVLDist);
                         refractColor = refractColor * vlExt + vlScatter;
                     #else

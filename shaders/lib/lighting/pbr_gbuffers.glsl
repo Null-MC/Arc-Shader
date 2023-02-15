@@ -141,6 +141,33 @@
                 #elif defined RENDER_TERRAIN || defined RENDER_WATER
                     ApplyHardCodedMaterials(material, materialId, worldPos);
                 #endif
+            #else
+                if (!isMissingNormal && !isMissingTangent) {
+                    #if defined PARALLAX_ENABLED && !defined RENDER_TEXTURED
+                        #if PARALLAX_SHAPE == PARALLAX_SHAPE_SHARP
+                            float dO = max(texDepth - traceCoordDepth.z, 0.0);
+                            if (dO >= 2.0 / 255.0) {
+                                #ifdef PARALLAX_USE_TEXELFETCH
+                                    material.normal = GetParallaxSlopeNormal(atlasCoord, traceCoordDepth.z, tanViewDir);
+                                #else
+                                    material.normal = GetParallaxSlopeNormal(atlasCoord, dFdXY, traceCoordDepth.z, tanViewDir);
+                                #endif
+                            }
+                        #endif
+
+                        #if defined SKY_ENABLED && defined PARALLAX_SHADOWS_ENABLED
+                            if (traceCoordDepth.z + EPSILON < 1.0) {
+                                vec3 tanLightDir = normalize(tanLightPos);
+                                
+                                #ifdef PARALLAX_USE_TEXELFETCH
+                                    parallaxShadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
+                                #else
+                                    parallaxShadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
+                                #endif
+                            }
+                        #endif
+                    #endif
+                }
             #endif
         #if LAVA_TYPE == LAVA_FANCY && defined RENDER_TERRAIN
             }
@@ -148,35 +175,6 @@
 
         #if AO_TYPE == AO_TYPE_VANILLA
             material.occlusion *= pow2(glcolor.a);
-        #endif
-
-        #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
-            if (!isMissingNormal && !isMissingTangent) {
-                #if defined PARALLAX_ENABLED && !defined RENDER_TEXTURED
-                    #if PARALLAX_SHAPE == PARALLAX_SHAPE_SHARP
-                        float dO = max(texDepth - traceCoordDepth.z, 0.0);
-                        if (dO >= 2.0 / 255.0) {
-                            #ifdef PARALLAX_USE_TEXELFETCH
-                                material.normal = GetParallaxSlopeNormal(atlasCoord, traceCoordDepth.z, tanViewDir);
-                            #else
-                                material.normal = GetParallaxSlopeNormal(atlasCoord, dFdXY, traceCoordDepth.z, tanViewDir);
-                            #endif
-                        }
-                    #endif
-
-                    #if defined SKY_ENABLED && defined PARALLAX_SHADOWS_ENABLED
-                        if (traceCoordDepth.z + EPSILON < 1.0) {
-                            vec3 tanLightDir = normalize(tanLightPos);
-                            
-                            #ifdef PARALLAX_USE_TEXELFETCH
-                                parallaxShadow *= GetParallaxShadow(traceCoordDepth, tanLightDir);
-                            #else
-                                parallaxShadow *= GetParallaxShadow(traceCoordDepth, dFdXY, tanLightDir);
-                            #endif
-                        }
-                    #endif
-                #endif
-            }
         #endif
 
         //if (isMissingNormal || isMissingTangent)
@@ -199,7 +197,7 @@
         mat3 matTBN = mat3(_viewTangent, _viewBinormal, _viewNormal);
 
         #if defined SKY_ENABLED && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE) && (defined RENDER_TERRAIN || defined RENDER_WATER)
-            if (isEyeInWater != 1 && materialId != MATERIAL_WATER) {
+            if (isEyeInWater != 1 && materialId != MATERIAL_WATER && materialId != MATERIAL_LAVA) {
                 vec3 tanUpDir = normalize(upPosition) * matTBN;
                 float NoU = dot(material.normal, tanUpDir);
 

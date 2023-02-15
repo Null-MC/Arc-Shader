@@ -108,7 +108,7 @@ const bool colortex11Clear = false;
 
 // Sky Options
 #define SKY_CLOUD_LEVEL 180 // [-1 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200 210 220 230 240 250 260 270 280]
-#define WEATHER_OPACITY 50 // [10 20 30 40 50 60 70 80 90 100]
+#define WEATHER_OPACITY 100 // [5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
 #define SUN_TEMP 5000.0 // [3500 4000 4500 5000 5500 6000 6500 7000]
 #define MOON_TEMP 4000.0
 #define SKY_SUN_TYPE 1 // [0 1]
@@ -268,6 +268,7 @@ const float drynessHalflife = 10.0;
     const float alphaTestRef = 0.1;
 #endif
 
+const float WeatherOpacityF = WEATHER_OPACITY * 0.01;
 const float DirectionalLightmapStrengthF = DIRECTIONAL_LIGHTMAP_STRENGTH * 0.01;
 const float RefractionStrengthF = REFRACTION_STRENGTH * 0.01;
 const float WaterWaveDepthF = WATER_WAVE_DEPTH * 0.01;

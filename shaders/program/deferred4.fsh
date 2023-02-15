@@ -55,6 +55,7 @@ uniform float viewHeight;
     //#include "/lib/celestial/transmittance.glsl"
 
     #if defined SSS_ENABLED && defined SSS_BLUR
+        #include "/lib/material/material.glsl"
         #include "/lib/material/material_reader.glsl"
     #endif
 
@@ -159,7 +160,7 @@ void main() {
             uvec4 gbufferData = texelFetch(BUFFER_DEFERRED, itexFull, 0);
         #endif
 
-        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || defined SSS_BLUR)
+        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || (defined SSS_ENABLED && defined SSS_BLUR))
             LightData lightData;
 
             //uint gbufferLightData = texelFetch(BUFFER_DEFERRED, itexFull, 0).a;

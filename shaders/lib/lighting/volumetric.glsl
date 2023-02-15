@@ -96,7 +96,7 @@ const float AirSpeed = 20.0;
             #ifdef WORLD_END
                 const float texDensity = 9.6;
             #else
-                const float texDensity = 1.0;//mix(1.0, 2.8, rainStrength);
+                const float texDensity = 1.0 + 0.7 * rainStrength;//mix(1.0, 2.8, rainStrength);
             #endif
         #endif
 
@@ -364,7 +364,7 @@ const float AirSpeed = 20.0;
                 vec3 shadowViewPos = shadowViewStep * (i + dither) + shadowViewStart;
                 vec3 traceShadowClipPos = vec3(0.0);
 
-                int cascade = GetShadowCascade(shadowViewPos, -1.0);
+                int cascade = GetShadowCascade(shadowViewPos, -0.05);
 
                 lightSample = 0.0;
                 if (cascade >= 0) {

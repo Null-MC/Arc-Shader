@@ -20,7 +20,7 @@ int GetShadowSampleCascade(const in vec3 shadowPos[4], const in float blockRadiu
 }
 
 vec3 GetCascadeShadowPosition(const in vec3 shadowViewPos, out int cascade) {
-    cascade = GetShadowCascade(shadowViewPos, -shadowPcfSize);
+    cascade = GetShadowCascade(shadowViewPos, 0.0);
     if (cascade < 0) return vec3(0.0);
 
     vec3 clipPos = (cascadeProjection[cascade] * vec4(shadowViewPos, 1.0)).xyz * 0.5 + 0.5;
