@@ -50,10 +50,10 @@ void ApplyLavaMaterial(inout PbrMaterial material, const in vec3 geoNormal, cons
     float t = min(pow(max(pressure - 0.16, 0.0) * 1.4, 10.0), 1.0);
 
     float temp = 1000.0 + 15000.0 * t;
-    material.albedo.rgb = 0.002 + blackbody(temp) * t;
+    material.albedo.rgb = 0.002 + blackbody(temp) * t * 2.0;
 
     material.smoothness = 0.38 * pow(1.0 - t, 4);//pow(1.0 - pressure, 2.0);
-    material.emission = t;//saturate(3.0 * pow4(pressure));
+    material.emission = saturate(3.0 * t);
     material.f0 = 0.05;
     material.hcm = -1;
 }

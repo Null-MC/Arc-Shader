@@ -176,6 +176,8 @@
                 #if defined SHADOW_BLUR && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
                     #ifdef SHADOW_COLOR
                         shadowColor *= shadowDeferred.rgb;
+                    #else
+                        shadowColor *= shadowDeferred.a;
                     #endif
 
                     shadow *= shadowDeferred.a;
