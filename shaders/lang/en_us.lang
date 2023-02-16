@@ -371,6 +371,7 @@ value.DEBUG_VIEW.1=GBuffer Color
 value.DEBUG_VIEW.2=GBuffer Normal
 value.DEBUG_VIEW.3=GBuffer Occlusion
 value.DEBUG_VIEW.4=GBuffer Specular
+value.DEBUG_VIEW.24=GBuffer Emission
 value.DEBUG_VIEW.5=GBuffer Lighting
 value.DEBUG_VIEW.6=GBuffer Shadow
 value.DEBUG_VIEW.7=Deferred Shadow

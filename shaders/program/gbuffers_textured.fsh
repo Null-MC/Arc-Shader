@@ -136,6 +136,7 @@ uniform float far;
     #endif
 #endif
 
+#include "/lib/sampling/ign.glsl"
 #include "/lib/sampling/bayer.glsl"
 #include "/lib/material/hcm.glsl"
 #include "/lib/material/material.glsl"

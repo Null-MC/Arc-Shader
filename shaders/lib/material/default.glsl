@@ -153,6 +153,16 @@ void ApplyHardCodedMaterials(inout PbrMaterial material, const in int materialId
             material.porosity = 0.05;
         }
     }
+    else if (materialId >= 11300) {
+        // Logs
+        if (materialId == 11300) {
+            // Vertical
+            material.f0 = 0.03;
+            material.smoothness = 0.06;
+            material.scattering = 0.0;
+            material.porosity = 0.8;
+        }
+    }
 
     if (noiseTheta > 0.0) {
         vec3 texPos = floor(worldPos * 16.0 + 0.01) / 16.0 + floor(worldPos + 0.5)/32.0;

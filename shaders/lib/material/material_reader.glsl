@@ -160,9 +160,10 @@ float GetOldPbr_Emission(const in float specularB) {
             specularMap.g = material.f0;
         #endif
 
-        specularMap.b = material.scattering > EPSILON
-            ? WriteLabPbr_SSS(material.scattering)
-            : WriteLabPbr_Porosity(material.porosity);
+        if (material.scattering > (1.0/255.0))
+            specularMap.b = WriteLabPbr_SSS(material.scattering);
+        else if (material.porosity > (1.0/255.0))
+            specularMap.b = WriteLabPbr_Porosity(material.porosity);
 
         specularMap.a = material.emission;
     }

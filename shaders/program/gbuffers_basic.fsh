@@ -32,7 +32,7 @@ void main() {
     
     vec4 colorMap, normalMap, specularMap, lightingMap;
     BasicLighting(dFdXY, colorMap);
-    //colorMap = vec4(0.0, 0.0, 0.0, 0.0);
+    colorMap = vec4(1.0, 0.0, 0.0, 0.0);
     normalMap = vec4(0.5, 0.5, 1.0, 0.0);
     specularMap = vec4(0.0, 0.0, 0.0, 0.0);
     lightingMap = vec4(0.0, 0.0, 1.0, 1.0);

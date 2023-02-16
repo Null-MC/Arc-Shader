@@ -152,6 +152,8 @@ uniform float waterFogDistSmooth;
 #include "/lib/matrix.glsl"
 #include "/lib/sampling/noise.glsl"
 #include "/lib/sampling/erp.glsl"
+#include "/lib/sampling/ign.glsl"
+#include "/lib/sampling/bayer.glsl"
 #include "/lib/lighting/blackbody.glsl"
 #include "/lib/lighting/light_data.glsl"
 #include "/lib/lighting/fresnel.glsl"
@@ -165,8 +167,7 @@ uniform float waterFogDistSmooth;
 #endif
 
 #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-    #include "/lib/sampling/ign.glsl"
-    #include "/lib/sampling/bayer.glsl"
+    //#include "/lib/sampling/ign.glsl"
     #include "/lib/shadows/common.glsl"
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -217,7 +218,7 @@ void main() {
         vec4 albedo = texture(gtexture, texcoord) * glcolor;
         albedo.a *= WEATHER_OPACITY * 0.01;
 
-        float threshold = GetBayerValue(ivec2(gl_FragCoord.xy));
+        float threshold = InterleavedGradientNoise(gl_FragCoord.xy);
         if (albedo.a <= threshold) {discard; return;}
 
         albedo.rgb = RGBToLinear(albedo.rgb);// * glcolor.rgb);

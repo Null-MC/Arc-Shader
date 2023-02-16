@@ -94,6 +94,7 @@ const bool colortex11Clear = false;
 #define REFLECTION_MODE 2 // [0 1 2]
 #define MATERIAL_WET_DARKEN 80 // [0 10 20 30 40 50 60 70 80 90 100 11 120 130 140 150 160 170 180 190 200]
 //#define MATERIAL_SMOOTH_NORMALS
+#define PARTICLE_PBR
 #define SSS_ENABLED
 #define SSS_STRENGTH 120 // [10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200]
 #define SSS_MAXDIST 6 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
@@ -191,12 +192,12 @@ const bool colortex11Clear = false;
 #define VL_DITHER
 #define VL_PARTICLES
 #define AO_TYPE 2 // [0 1 2]
-#define SSAO_SAMPLES 6 // [2 4 6 8 10 12 14 16 24 32]
-#define SSAO_INTENSITY 30 // [5 10 15 20 25 30 35 40 45 50 60 70 80 90 100]
-#define SSAO_SCALE 8.0
+#define SSAO_SAMPLES 4 // [2 4 6 8 10 12 14 16 24 32]
+#define SSAO_INTENSITY 100 // [5 10 15 20 25 30 35 40 45 50 60 70 80 90 100]
+#define SSAO_SCALE 20.0
 #define SSAO_BIAS 0.02
-#define SSAO_RADIUS 0.3 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
-#define SSAO_MAX_DIST 1.6
+#define SSAO_RADIUS 0.6 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
+#define SSAO_MAX_DIST 4.0
 //#define SSAO_UPSCALE
 
 //#define DOF_ENABLED
@@ -207,7 +208,7 @@ const bool colortex11Clear = false;
 
 
 // Debug Options
-#define DEBUG_VIEW 0 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
+#define DEBUG_VIEW 0 // [0 1 2 3 4 24 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
 //#define DEBUG_EXPOSURE_METERS
 #define DITHER_FINAL
 #define PARTICLE_OPACITY 0.8
@@ -219,7 +220,6 @@ const bool colortex11Clear = false;
 //#define SKY_DITHER
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
-#define PARTICLE_PBR
 
 #if SSR_QUALITY == 2
     #define SSR_SCALE 1

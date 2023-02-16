@@ -9,7 +9,7 @@
         #if defined RENDER_TEXTURED || defined RENDER_WEATHER
             //colorMap *= glcolor;
 
-            float threshold = GetBayerValue(ivec2(gl_FragCoord.xy));
+            float threshold = InterleavedGradientNoise(gl_FragCoord.xy);
             if (colorMap.a <= threshold) {discard; return;}
         #else
             if (colorMap.a < alphaTestRef) {discard; return;}

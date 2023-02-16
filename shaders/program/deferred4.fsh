@@ -142,8 +142,8 @@ void main() {
     float clipDepth = texelFetch(depthtex0, itexFull, 0).r;
 
     vec3 shadowColor = vec3(1.0);
-    float occlusion = 5.0;
-    float shadowF = 5.0;
+    float occlusion = 1.0;
+    float shadowF = 1.0;
     float sssF = 0.0;
 
     if (clipDepth < 1.0) {

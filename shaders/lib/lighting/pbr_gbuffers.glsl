@@ -86,7 +86,7 @@
                 return;
             }
         #elif defined RENDER_TEXTURED
-            float threshold = GetScreenBayerValue();
+            float threshold = InterleavedGradientNoise(gl_FragCoord.xy);
             if (colorMap.a <= threshold) {
                 discard;
                 return;
@@ -257,7 +257,7 @@
 
         #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT
             if (!isMissingNormal && !isMissingTangent) {
-                #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && !(defined RENDER_ENTITIES || defined RENDER_TEXTURED)
+                #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && !(defined RENDER_ENTITIES || defined RENDER_TEXTURED || defined RENDER_HAND)
                     ApplyDirectionalLightmap(lm.x, viewPos, viewNormal, material.normal);
                 #endif
             }

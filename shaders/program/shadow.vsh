@@ -63,11 +63,11 @@ uniform float far;
 #endif
 
 #include "/lib/matrix.glsl"
+#include "/lib/sampling/noise.glsl"
 #include "/lib/celestial/position.glsl"
 #include "/lib/shadows/common.glsl"
 
 #if WAVING_MODE != WAVING_NONE
-    #include "/lib/sampling/noise.glsl"
     #include "/lib/world/wind.glsl"
     #include "/lib/world/waving.glsl"
 #endif

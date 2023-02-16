@@ -69,6 +69,7 @@ uniform sampler3D TEX_CLOUD_NOISE;
 uniform sampler2D TEX_BRDF;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
+uniform sampler2D depthtex2;
 uniform sampler2D noisetex;
 
 #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
