@@ -139,8 +139,8 @@ uniform int fogMode;
 #endif
 
 uniform float eyeHumidity;
-uniform vec3 waterScatterColor;
 uniform vec3 waterAbsorbColor;
+uniform vec3 waterScatterColor;
 uniform float waterFogDistSmooth;
 
 #ifdef IRIS_FEATURE_SSBO
@@ -191,88 +191,113 @@ uniform float waterFogDistSmooth;
     #include "/lib/lighting/volumetric.glsl"
 #endif
 
-#include "/lib/lighting/basic_forward.glsl"
+#ifdef IS_IRIS
+    #include "/lib/lighting/basic_forward.glsl"
+#else
+    #include "/lib/lighting/basic_gbuffers.glsl"
+#endif
 
 
-/* RENDERTARGETS: 2,1 */
-layout(location = 0) out vec4 outColor0;
-layout(location = 1) out vec4 outColor1;
-
+#ifdef IS_IRIS
+    /* RENDERTARGETS: 2,1 */
+    layout(location = 0) out vec4 outColor0;
+    layout(location = 1) out vec4 outColor1;
+#else
+    /* RENDERTARGETS: 0 */
+    layout(location = 0) out uvec4 outColor0;
+#endif
 
 void main() {
     vec3 worldPos = cameraPosition + localPos;
     if (worldPos.y >= SKY_CLOUD_LEVEL) {discard; return;}
 
-    float opacityThreshold = 1.0 - (253.5/255.0) * rainStrength * WeatherOpacityF;// mix(1.0, 0.2, rainStrength);
+    #ifdef IS_IRIS
+        //float opacityThreshold = 1.0 - (253.5/255.0) * rainStrength * WeatherOpacityF;// mix(1.0, 0.2, rainStrength);
 
-    vec4 albedo = texture(gtexture, texcoord);
-    if (albedo.a < opacityThreshold) {discard; return;}
+        vec4 albedo = texture(gtexture, texcoord) * glcolor;
+        albedo.a *= WEATHER_OPACITY * 0.01;
 
-    albedo.rgb = RGBToLinear(albedo.rgb);// * glcolor.rgb);
-    //albedo.a *= WEATHER_OPACITY * 0.01;
+        float threshold = GetBayerValue(ivec2(gl_FragCoord.xy));
+        if (albedo.a <= threshold) {discard; return;}
 
-    LightData lightData;
-    lightData.occlusion = 1.0;
-    lightData.blockLight = lmcoord.x;
-    lightData.skyLight = lmcoord.y;
-    lightData.geoNoL = geoNoL;
-    lightData.parallaxShadow = 1.0;
+        albedo.rgb = RGBToLinear(albedo.rgb);// * glcolor.rgb);
+        albedo.a = 1.0;
 
-    lightData.transparentScreenDepth = gl_FragCoord.z;
-    lightData.opaqueScreenDepth = texelFetch(depthtex1, ivec2(gl_FragCoord.xy), 0).r;
-    lightData.opaqueScreenDepthLinear = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
-    lightData.transparentScreenDepthLinear = linearizeDepthFast(lightData.transparentScreenDepth, near, far);
+        LightData lightData;
+        lightData.occlusion = 1.0;
+        lightData.blockLight = lmcoord.x;
+        lightData.skyLight = lmcoord.y;
+        lightData.geoNoL = geoNoL;
+        lightData.parallaxShadow = 1.0;
 
-    #ifdef SKY_ENABLED
-        //lightData.skyLightLevels = skyLightLevels;
-        //lightData.sunTransmittanceEye = sunTransmittanceEye;
-        //lightData.moonTransmittanceEye = moonTransmittanceEye;
+        lightData.transparentScreenDepth = gl_FragCoord.z;
+        lightData.opaqueScreenDepth = texelFetch(depthtex1, ivec2(gl_FragCoord.xy), 0).r;
+        lightData.opaqueScreenDepthLinear = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
+        lightData.transparentScreenDepthLinear = linearizeDepthFast(lightData.transparentScreenDepth, near, far);
 
-        float fragElevation = GetAtmosphereElevation(worldPos);
+        #ifdef SKY_ENABLED
+            //lightData.skyLightLevels = skyLightLevels;
+            //lightData.sunTransmittanceEye = sunTransmittanceEye;
+            //lightData.moonTransmittanceEye = moonTransmittanceEye;
 
-        #ifdef IS_IRIS
-            lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
-            lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
-        #else
-            lightData.sunTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.x);
-            lightData.moonTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.y);
+            float fragElevation = GetAtmosphereElevation(worldPos);
+
+            #ifdef IS_IRIS
+                lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
+                lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
+            #else
+                lightData.sunTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.x);
+                lightData.moonTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.y);
+            #endif
         #endif
-    #endif
 
-    #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-        #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-            for (int i = 0; i < 4; i++) {
-                lightData.shadowPos[i] = shadowPos[i];
-                lightData.shadowBias[i] = shadowBias[i];
-            }
+        #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                for (int i = 0; i < 4; i++) {
+                    lightData.shadowPos[i] = shadowPos[i];
+                    lightData.shadowBias[i] = shadowBias[i];
+                }
 
-            lightData.shadowCascade = GetShadowSampleCascade(shadowPos, shadowPcfSize);
-            SetNearestDepths(lightData);
-            //lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData.shadowPos, vec2(0.0), lightData.shadowCascade);
-            //lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData.shadowPos, vec2(0.0), lightData.shadowCascade);
+                lightData.shadowCascade = GetShadowSampleCascade(shadowPos, shadowPcfSize);
+                SetNearestDepths(lightData);
+                //lightData.opaqueShadowDepth = GetNearestOpaqueDepth(lightData.shadowPos, vec2(0.0), lightData.shadowCascade);
+                //lightData.transparentShadowDepth = GetNearestTransparentDepth(lightData.shadowPos, vec2(0.0), lightData.shadowCascade);
 
-            float minTransparentDepth = min(lightData.shadowPos[lightData.shadowCascade].z, lightData.transparentShadowDepth);
-            lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - minTransparentDepth, 0.0) * 3.0 * far;
-        #elif SHADOW_TYPE != SHADOW_TYPE_NONE
-            lightData.shadowPos = shadowPos;
-            lightData.shadowBias = shadowBias;
+                float minTransparentDepth = min(lightData.shadowPos[lightData.shadowCascade].z, lightData.transparentShadowDepth);
+                lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - minTransparentDepth, 0.0) * 3.0 * far;
+            #elif SHADOW_TYPE != SHADOW_TYPE_NONE
+                lightData.shadowPos = shadowPos;
+                lightData.shadowBias = shadowBias;
 
-            lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
-            lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
+                lightData.opaqueShadowDepth = SampleOpaqueDepth(lightData.shadowPos.xy, vec2(0.0));
+                lightData.transparentShadowDepth = SampleTransparentDepth(lightData.shadowPos.xy, vec2(0.0));
 
-            lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.shadowPos.z, 0.0) * 3.0 * far;
+                lightData.waterShadowDepth = max(lightData.opaqueShadowDepth - lightData.shadowPos.z, 0.0) * 3.0 * far;
+            #endif
         #endif
+
+        vec4 color = BasicLighting(lightData, albedo, viewNormal);
+        //color = vec4(0.0, 0.0, 1000.0, 1.0);
+        //color.a = 1.0;
+
+        vec4 outLuminance = vec4(0.0);
+        outLuminance.r = log2(luminance(color.rgb) + EPSILON);
+        outLuminance.a = color.a;
+        outColor1 = outLuminance;
+
+        color.rgb = clamp(color.rgb * sceneExposure, vec3(0.0), vec3(65000));
+        outColor0 = vec4(color.rgb, color.a);
+    #else
+        mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
+        
+        vec4 colorMap, normalMap, specularMap, lightingMap;
+        BasicLighting(dFdXY, colorMap);
+
+        uvec4 data;
+        data.r = packUnorm4x8(colorMap);
+        data.g = packUnorm4x8(normalMap);
+        data.b = packUnorm4x8(specularMap);
+        data.a = packUnorm4x8(lightingMap);
+        outColor0 = data;
     #endif
-
-    vec4 color = BasicLighting(lightData, albedo, viewNormal);
-    //color = vec4(0.0, 0.0, 1000.0, 1.0);
-    color.a = 1.0;
-
-    vec4 outLuminance = vec4(0.0);
-    outLuminance.r = log2(luminance(color.rgb) + EPSILON);
-    outLuminance.a = color.a;
-    outColor1 = outLuminance;
-
-    color.rgb = clamp(color.rgb * sceneExposure, vec3(0.0), vec3(65000));
-    outColor0 = vec4(color.rgb, color.a);
 }

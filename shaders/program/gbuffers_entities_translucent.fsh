@@ -60,7 +60,7 @@ flat in int materialId;
 #ifdef AF_ENABLED
     in vec4 spriteBounds;
 
-    uniform float viewHeight;
+    //uniform float viewHeight;
 #endif
 
 #if defined SKY_VL_ENABLED || defined WORLD_WATER_ENABLED

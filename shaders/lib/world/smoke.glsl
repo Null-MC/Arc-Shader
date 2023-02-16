@@ -2,23 +2,20 @@ const float isotropicPhase = 0.25 / PI;
 const float SmokeSpeed = 18.0;
 
 
-float GetSmokeDensity(const in sampler3D tex, const in vec3 worldPos, const in float time) {
-    vec3 worldTex = worldPos.xzy * vec3(1.0, 1.0, 4.0);
-    vec3 t;
+float SmokeFBM(vec3 texPos) {
+    float accum = 0.0;
+    float weight = 1.0;
+    float maxWeight = 0.0;
+    for (int i = 0; i < 4; i++) {
+        float p = texture(TEX_CLOUD_NOISE, texPos).g;
+        accum += p * weight;
+        maxWeight += weight;
 
-    t = worldTex / 128.0;
-    t.xz -= time * 4.0 * SmokeSpeed;
-    float texDensity1 = textureLod(tex, t, 0).r;
+        texPos *= 2.2;
+        weight *= 1.3;
+    }
 
-    t = worldTex / 64.0;
-    t.xz += time * 2.0 * SmokeSpeed;
-    float texDensity2 = textureLod(tex, t, 0).r;
-
-    t = worldTex / 32.0;
-    t.y += time * 1.0 * SmokeSpeed;
-    float texDensity3 = textureLod(tex, t, 0).r;
-
-    return 0.4 * texDensity1 * texDensity2 + 0.6 * pow3(texDensity3 * texDensity2);
+    return accum / maxWeight;
 }
 
 vec3 GetVolumetricSmoke(const in LightData lightData, inout vec3 transmittance, const in vec3 nearViewPos, const in vec3 farViewPos) {
@@ -57,8 +54,9 @@ vec3 GetVolumetricSmoke(const in LightData lightData, inout vec3 transmittance, 
         vec3 traceLocalPos = localStart + localStep * (i + dither);
         vec3 traceWorldPos = cameraPosition + traceLocalPos;
 
-        float texDensity = GetSmokeDensity(TEX_CLOUD_NOISE, traceWorldPos, time);
-        texDensity = 0.04 + 0.16 * pow(texDensity, 2.4) * VL_SMOKE_DENSITY;
+        vec3 traceTexPos = traceWorldPos.xzy * vec3(0.001, 0.001, 0.004);
+        float texDensity = 1.0 - SmokeFBM(traceTexPos);
+        texDensity = 0.5 * pow(texDensity, 4.0);// * SmokeDensityF;
 
         const vec3 SmokeAbsorptionCoefficient = texDensity * SmokeAbsorptionCoefficientBase;
         vec3 SmokeScatteringCoefficient = texDensity * SmokeScatteringCoefficientBase;

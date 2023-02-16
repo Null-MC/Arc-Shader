@@ -219,6 +219,7 @@ const bool colortex11Clear = false;
 //#define SKY_DITHER
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
+#define PARTICLE_PBR
 
 #if SSR_QUALITY == 2
     #define SSR_SCALE 1
@@ -273,7 +274,7 @@ const float DirectionalLightmapStrengthF = DIRECTIONAL_LIGHTMAP_STRENGTH * 0.01;
 const float RefractionStrengthF = REFRACTION_STRENGTH * 0.01;
 const float WaterWaveDepthF = WATER_WAVE_DEPTH * 0.01;
 const float shadowPcfSize = SHADOW_PCF_SIZE * 0.01;
-//const float SmokeDensityF = VL_SMOKE_DENSITY * 0.01;
+const float SmokeDensityF = VL_SMOKE_DENSITY * 0.01;
 const float MaterialWetDarkenF = MATERIAL_WET_DARKEN * 0.01;
 
 const float shadowDistanceRenderMul = 1.0;

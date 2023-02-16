@@ -72,8 +72,22 @@
             colorMap = textureGrad(gtexture, atlasCoord, dFdXY[0], dFdXY[1]);
         #endif
 
+        #ifdef RENDER_TEXTURED
+            colorMap *= glcolor;
+        #else
+            colorMap.rgb *= glcolor.rgb;
+        #endif
+
+        //colorMap.a *= 0.5;
+
         #ifdef RENDER_ENTITIES
             if (colorMap.a < 10.0/255.0 && entityId != ENTITY_BOAT) {
+                discard;
+                return;
+            }
+        #elif defined RENDER_TEXTURED
+            float threshold = GetScreenBayerValue();
+            if (colorMap.a <= threshold) {
                 discard;
                 return;
             }
@@ -83,10 +97,6 @@
                 return;
             }
         #endif
-
-        //#ifndef RENDER_TEXTURED
-            colorMap.rgb *= glcolor.rgb;
-        //#endif
 
         #ifdef RENDER_ENTITIES
             colorMap.rgb = mix(colorMap.rgb, entityColor.rgb, entityColor.a);

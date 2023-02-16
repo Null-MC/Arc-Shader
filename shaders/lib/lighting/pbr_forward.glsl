@@ -229,7 +229,7 @@
                     }
                 //#endif
 
-                #if defined PARALLAX_ENABLED && PARALLAX_SHAPE == PARALLAX_SHAPE_SHARP
+                #if defined PARALLAX_ENABLED && !defined RENDER_TEXTURED && PARALLAX_SHAPE == PARALLAX_SHAPE_SHARP
                     float dO = max(texDepth - traceCoordDepth.z, 0.0);
                     if (dO >= 0.95 / 255.0 && materialId != MATERIAL_WATER) {
                         //#ifdef PARALLAX_USE_TEXELFETCH
@@ -246,10 +246,14 @@
                 // TODO: Is this helping or hurting performance doing discard on transparent?
                 if (material.albedo.a < 1.5/255.0) discard;
 
-                #ifdef RENDER_ENTITIES
-                    ApplyHardCodedMaterials(material, entityId);
+                #ifdef RENDER_TEXTURED
+                    // TODO
                 #else
-                    ApplyHardCodedMaterials(material, materialId, worldPos);
+                    #ifdef RENDER_ENTITIES
+                        ApplyHardCodedMaterials(material, entityId);
+                    #else
+                        ApplyHardCodedMaterials(material, materialId, worldPos);
+                    #endif
                 #endif
             #endif
 

@@ -26,7 +26,8 @@ const float AirSpeed = 20.0;
         const float inverseStepCountF = rcp(SKY_VL_SAMPLES);
         
         #ifdef VL_DITHER
-            float dither = Bayer16(gl_FragCoord.xy);
+            //float dither = Bayer16(gl_FragCoord.xy);
+            float dither = InterleavedGradientNoise(gl_FragCoord.xy);
         #else
             const float dither = 0.0;
         #endif
@@ -108,7 +109,11 @@ const float AirSpeed = 20.0;
 
         scattering = vec3(0.0);
         transmittance = vec3(1.0);
-        for (int i = 1; i < SKY_VL_SAMPLES; i++) {
+        for (int i = 1; i <= SKY_VL_SAMPLES; i++) {
+            #ifdef VL_DITHER
+                if (i == SKY_VL_SAMPLES) dither = 0.0;
+            #endif
+            
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 const float sampleBias = 0.0;
 
@@ -280,7 +285,7 @@ const float AirSpeed = 20.0;
     }
 
     void GetWaterVolumetricLighting(out vec3 scattering, out vec3 transmittance, const in vec2 scatteringF, const in vec3 localViewDir, const in float nearDist, const in float farDist) {
-        const float inverseStepCountF = rcp(WATER_VL_SAMPLES - 1);
+        const float inverseStepCountF = rcp(WATER_VL_SAMPLES);
 
         #ifdef SHADOW_CLOUD
             vec3 localLightDir = GetShadowLightLocalDir();
@@ -290,7 +295,8 @@ const float AirSpeed = 20.0;
         #endif
 
         #ifdef VL_DITHER
-            float dither = Bayer16(gl_FragCoord.xy);
+            //float dither = Bayer16(gl_FragCoord.xy);
+            float dither = InterleavedGradientNoise(gl_FragCoord.xy);
         #else
             const float dither = 0.0;
         #endif
@@ -354,7 +360,11 @@ const float AirSpeed = 20.0;
 
         scattering = vec3(0.0);
         transmittance = vec3(1.0);
-        for (int i = 1; i < WATER_VL_SAMPLES; i++) {
+        for (int i = 1; i <= WATER_VL_SAMPLES; i++) {
+            #ifdef VL_DITHER
+                if (i == WATER_VL_SAMPLES) dither = 0.0;
+            #endif
+
             transparentDepth = 1.0;
             float traceLightDist = far;
 

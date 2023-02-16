@@ -469,7 +469,7 @@ void main() {
 
         #if defined SKY_VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             vec3 vlScatter, vlExt;
-            GetVolumetricLighting(vlScatter, vlExt, localViewDir, near, min(length(viewPos), far));
+            GetVolumetricLighting(vlScatter, vlExt, localViewDir, near, min(length(viewPos) - 0.05, far));
             color = color * vlExt + vlScatter;
         #endif
     #else

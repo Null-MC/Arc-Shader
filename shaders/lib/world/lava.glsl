@@ -42,9 +42,9 @@ void ApplyLavaMaterial(inout PbrMaterial material, const in vec3 geoViewNormal, 
 
     float temp = 1000.0 + 15000.0 * t;
     material.albedo.rgb = 0.002 + blackbody(temp) * t * 2.0;
-    material.smoothness = 0.38 * pow(1.0 - t, 4);
+    material.smoothness = 0.28 * pow(1.0 - t, 2.0);
     material.emission = saturate(3.0 * t);
-    material.f0 = 0.05;
+    material.f0 = 0.06 - 0.02 * t;
     material.hcm = -1;
 
     float heightMax = 0.8 - 0.22 * NoU;

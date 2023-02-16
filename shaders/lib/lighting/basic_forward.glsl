@@ -63,14 +63,14 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
             vec3 skyAmbient = skyColorLux * max(skyLightLevels.x, 0.0);
         #else
             vec3 localNormal = mat3(gbufferModelViewInverse) * viewNormal;
-            vec3 skyAmbient = GetFancySkyAmbientLight(localNormal, skyLight);
+            vec3 skyAmbient = GetFancySkyAmbientLight(localNormal) * smoothstep(0.0, 1.0, skyLight);
 
             vec3 sunColorFinal = lightData.sunTransmittance * skySunColor * SunLux;// * GetSunLux();
             vec3 moonColorFinal = lightData.moonTransmittance * skyMoonColor * MoonLux * GetMoonPhaseLevel();// * GetMoonLux();
             vec3 skyLightColor = 0.2 * (sunColorFinal + moonColorFinal);
 
             if (isEyeInWater == 1) {
-                vec3 sunAbsorption = exp(-max(lightData.waterShadowDepth, 0.0) * waterExtinctionInv) * shadowFinal;
+                vec3 sunAbsorption = exp(-max(lightData.waterShadowDepth, 0.0) * waterExtinctionInv) * shadow;
                 vec3 viewAbsorption = exp(-max(lightData.opaqueScreenDepthLinear, 0.0) * waterExtinctionInv);
 
                 // #if SHADOW_TYPE == SHADOW_TYPE_CASCADED

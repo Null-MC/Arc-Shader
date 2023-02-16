@@ -142,11 +142,10 @@
             shadow *= lightLeakFix;
         #endif
 
-        #if !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
+        #if !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT || defined RENDER_TEXTURED)
             const vec3 deferredSigma = vec3(3.0, 3.0, 0.2);// 3.0 / (viewDist + 1.0));
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && defined SHADOW_BLUR
-
                 #ifdef SHADOW_COLOR
                     vec4 shadowDeferred = BilateralGaussianDepthBlurRGBA_7x(BUFFER_SHADOW, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, deferredSigma);
                     shadowDeferred.rgb *= shadowDeferred.a;
@@ -173,7 +172,7 @@
             // #endif
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                #if defined SHADOW_BLUR && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
+                #if defined SHADOW_BLUR && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT || defined RENDER_TEXTURED)
                     #ifdef SHADOW_COLOR
                         shadowColor *= shadowDeferred.rgb;
                     #else
@@ -232,7 +231,7 @@
                 #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                     #ifdef SSS_ENABLED
                         if (material.scattering > EPSILON) {
-                            #if defined SSS_BLUR && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
+                            #if defined SSS_BLUR && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT || defined RENDER_TEXTURED)
                                 //shadowSSS = textureLod(colortex1, texcoord, 0).r;
                                 const vec3 sssDeferredSigma = vec3(3.0, 3.0, 0.2);// / (viewDist + 1.0);
                                 shadowSSS = BilateralGaussianDepthBlur_7x(colortex1, viewSize, depthtex1, viewSize, lightData.opaqueScreenDepthLinear, sssDeferredSigma, 0);
@@ -287,7 +286,7 @@
         float skyLight = lightData.skyLight;
         float occlusion = lightData.occlusion;
 
-        #if AO_TYPE == AO_TYPE_SS && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT)
+        #if AO_TYPE == AO_TYPE_SS && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT || defined RENDER_TEXTURED)
             occlusion = min(occlusion, giaoDeferred.a);
         #endif
 
