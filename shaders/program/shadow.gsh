@@ -13,10 +13,7 @@ in vec2 vTexcoord[3];
 in vec4 vColor[3];
 in float vNoV[3];
 flat in int vBlockId[3];
-
-#if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-    flat in vec3 vOriginPos[3];
-#endif
+flat in vec3 vOriginPos[3];
 
 in vec3 vViewPos[3];
 
@@ -54,6 +51,10 @@ uniform float far;
 
 #ifdef IRIS_FEATURE_SSBO
     #include "/lib/ssbo/scene.glsl"
+
+    #ifdef LIGHT_COLOR_ENABLED
+        #include "/lib/ssbo/lighting.glsl"
+    #endif
 #endif
 
 #include "/lib/matrix.glsl"
@@ -92,17 +93,6 @@ void main() {
         if (entityId == ENTITY_LIGHTNING_BOLT) return;
     }
 
-    #ifdef SHADOW_EXCLUDE_FOLIAGE
-        if (
-            renderStage == MC_RENDER_STAGE_TERRAIN_SOLID ||
-            renderStage == MC_RENDER_STAGE_TERRAIN_CUTOUT ||
-            renderStage == MC_RENDER_STAGE_TERRAIN_CUTOUT_MIPPED ||
-            renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT)
-        {
-            if (vBlockId[0] >= 10000 && vBlockId[0] <= 10004) return;
-        }
-    #endif
-
     #if defined IS_IRIS && !defined PHYSICS_OCEAN
         // Iris does not cull water backfaces
         if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && vBlockId[0] == MATERIAL_WATER) {
@@ -110,8 +100,34 @@ void main() {
         }
     #endif
 
+    if (
+        renderStage == MC_RENDER_STAGE_TERRAIN_SOLID ||
+        renderStage == MC_RENDER_STAGE_TERRAIN_CUTOUT ||
+        renderStage == MC_RENDER_STAGE_TERRAIN_CUTOUT_MIPPED ||
+        renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT)
+    {
+        #ifdef SHADOW_EXCLUDE_FOLIAGE
+            if (vBlockId[0] >= 10000 && vBlockId[0] <= 10004) return;
+        #endif
+
+        #ifdef LIGHT_COLOR_ENABLED
+            switch (vBlockId[0]) {
+                case MATERIAL_TORCH:
+                    AddSceneLight(vOriginPos[0], vec4(blockLightColor, 15.0));
+                    break;
+                case MATERIAL_SOUL_TORCH:
+                    AddSceneLight(vOriginPos[0], vec4(0.397, 0.738, 0.909, 8.0));
+                    break;
+                case MATERIAL_REDSTONE_TORCH:
+                    AddSceneLight(vOriginPos[0], vec4(0.904, 0.338, 0.237, 2.0));
+                    break;
+            }
+        #endif
+    }
+
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        int shadowTile = GetShadowCascade(vOriginPos[0], 2.0);
+        vec3 shadowOriginPos = (shadowModelViewEx * vec4(vOriginPos[0], 1.0)).xyz;
+        int shadowTile = GetShadowCascade(shadowOriginPos, 2.0);
         if (shadowTile < 0) return;
 
         #ifndef SHADOW_EXCLUDE_ENTITIES
@@ -124,7 +140,7 @@ void main() {
         for (int c = cascadeMin; c <= cascadeMax; c++) {
             if (c != shadowTile) {
                 // duplicate geometry if intersecting overlapping cascades
-                if (!CascadeIntersectsPosition(vOriginPos[0], c)) continue;
+                if (!CascadeIntersectsPosition(shadowOriginPos, c)) continue;
             }
 
             for (int v = 0; v < 3; v++) {

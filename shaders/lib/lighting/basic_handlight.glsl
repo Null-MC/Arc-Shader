@@ -12,10 +12,12 @@ vec3 _ApplyHandLighting(const in vec3 albedo, const in vec3 lightPos, const in i
 
     if (itemId > 0 && itemId <= 5) {
         vec3 itemColor = itemLightColors[itemId-1];
-        handLightColor = RGBToLinear(itemColor) * BlockLightLux * attenuation;
+        handLightColor = RGBToLinear(itemColor);
     }
     else
-        handLightColor = attenuation * blockLightColor;
+        handLightColor = blockLightColor;
+
+    handLightColor *= BlockLightLux * attenuation;
 
     return invPI * albedo * handLightColor;
 }

@@ -50,7 +50,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
     vec3 diffuse = vec3(0.0);
 
     #ifndef RENDER_WEATHER
-        diffuse += albedo.rgb * pow3(lightData.blockLight) * blockLightColor;
+        diffuse += albedo.rgb * pow3(lightData.blockLight) * blockLightColor * BlockLightLux;
     #endif
 
     vec3 waterExtinctionInv = 1.0 - waterAbsorbColor;

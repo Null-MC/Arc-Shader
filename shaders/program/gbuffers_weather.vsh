@@ -179,7 +179,7 @@ void main() {
         sceneExposure = GetExposure();
     
         #ifdef HANDLIGHT_ENABLED
-            blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
+            blockLightColor = blackbody(BLOCKLIGHT_TEMP);
         #endif
 
         #ifdef SKY_ENABLED

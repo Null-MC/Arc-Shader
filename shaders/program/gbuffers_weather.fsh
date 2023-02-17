@@ -213,8 +213,6 @@ void main() {
     if (worldPos.y >= SKY_CLOUD_LEVEL) {discard; return;}
 
     #ifdef IS_IRIS
-        //float opacityThreshold = 1.0 - (253.5/255.0) * rainStrength * WeatherOpacityF;// mix(1.0, 0.2, rainStrength);
-
         vec4 albedo = texture(gtexture, texcoord) * glcolor;
         albedo.a *= WEATHER_OPACITY * 0.01;
 

@@ -207,6 +207,11 @@ const bool colortex11Clear = false;
 #define DOF_MAX_SIZE 10.0 // [5.0 10.0 15.0 20.0 25.0 30.0]
 
 
+// Colored Lighting
+#define LIGHT_COLOR_ENABLED
+#define LIGHT_COLOR_NEIGHBORS
+
+
 // Debug Options
 #define DEBUG_VIEW 0 // [0 1 2 3 4 24 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
 //#define DEBUG_EXPOSURE_METERS

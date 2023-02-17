@@ -161,6 +161,8 @@ void ApplyHardCodedMaterials(inout PbrMaterial material, const in int materialId
             material.smoothness = 0.06;
             material.scattering = 0.0;
             material.porosity = 0.8;
+
+            //material.normal = // round
         }
     }
 

@@ -92,7 +92,7 @@ void main() {
     #ifndef IRIS_FEATURE_SSBO
         sceneExposure = GetExposure();
 
-        blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
+        blockLightColor = blackbody(BLOCKLIGHT_TEMP);
 
         #ifdef SKY_ENABLED
             skyLightLevels = GetSkyLightLevels();

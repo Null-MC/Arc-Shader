@@ -350,9 +350,19 @@
         #endif
 
         #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
-            vec3 blockLightDiffuse = pow2(lightData.blockLight)*blockLightColor;
+            vec3 blockLightDiffuse = pow2(lightData.blockLight)*blockLightColor * BlockLightLux;
         #else
-            vec3 blockLightDiffuse = pow4(lightData.blockLight)*blockLightColor;
+            vec3 blockLightDiffuse = pow4(lightData.blockLight)*blockLightColor * BlockLightLux;
+        #endif
+
+        //ivec3 blockPos;
+        //int gridIndex = GetSceneLightGridIndex(localPos, blockPos);
+        //return vec4(vec3((gridIndex / float(LIGHT_SIZE_XYZ)) * 1000.0), 1.0);
+        //return vec4((blockPos / 8.0) * 1000.0, 1.0);
+        //return vec4(vec3(1000.0 * int(gridIndex >= 0 && all(greaterThanEqual(blockPos, vec3(0.0))))), 1.0);
+
+        #ifdef LIGHT_COLOR_ENABLED
+            blockLightDiffuse = GetSceneLighting(localPos) * 1000.0;
         #endif
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT

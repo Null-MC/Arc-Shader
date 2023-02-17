@@ -173,6 +173,7 @@ uniform float waterFogDistSmooth;
 #ifdef IRIS_FEATURE_SSBO
     #include "/lib/ssbo/scene.glsl"
     #include "/lib/ssbo/vogel_disk.glsl"
+    #include "/lib/ssbo/lighting.glsl"
 #endif
 
 #include "/lib/atlas.glsl"

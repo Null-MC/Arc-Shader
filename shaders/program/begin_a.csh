@@ -1,3 +1,4 @@
+#define RENDER_BEGIN_SCENE
 #define RENDER_BEGIN
 #define RENDER_COMPUTE
 
@@ -36,19 +37,11 @@ const ivec3 workGroups = ivec3(1, 1, 1);
         uniform vec3 upPosition;
         uniform int worldTime;
 
-        // uniform vec3 shadowLightPosition;
-        // uniform vec3 sunPosition;
-        // uniform vec3 moonPosition;
-        // uniform int moonPhase;
-        // uniform float wetness;
-
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-            //uniform mat4 gbufferModelView;
             uniform mat4 shadowModelView;
             uniform float far;
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                //uniform mat4 gbufferModelView;
                 uniform mat4 gbufferPreviousModelView;
                 uniform mat4 gbufferPreviousProjection;
                 uniform mat4 gbufferProjection;
@@ -58,6 +51,7 @@ const ivec3 workGroups = ivec3(1, 1, 1);
     #endif
 
     #include "/lib/ssbo/scene.glsl"
+    #include "/lib/ssbo/lighting.glsl"
     #include "/lib/lighting/blackbody.glsl"
 
     #ifdef SKY_ENABLED
@@ -68,7 +62,6 @@ const ivec3 workGroups = ivec3(1, 1, 1);
         
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             #include "/lib/matrix.glsl"
-            //#include "/lib/celestial/position.glsl"
             #include "/lib/shadows/common.glsl"
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -83,9 +76,11 @@ const ivec3 workGroups = ivec3(1, 1, 1);
 
 void main() {
     #ifdef IRIS_FEATURE_SSBO
+        SceneLightCount = 0;
+
         sceneExposure = GetExposure();
 
-        blockLightColor = blackbody(BLOCKLIGHT_TEMP) * BlockLightLux;
+        blockLightColor = blackbody(BLOCKLIGHT_TEMP);
 
         #ifdef SKY_ENABLED
             skyLightLevels = GetSkyLightLevels();

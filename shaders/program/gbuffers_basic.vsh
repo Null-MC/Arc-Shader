@@ -9,6 +9,7 @@ out vec2 lmcoord;
 out vec2 texcoord;
 out vec4 glcolor;
 out float geoNoL;
+out vec3 localPos;
 out vec3 viewPos;
 out vec3 viewNormal;
 out vec3 viewTangent;
@@ -58,6 +59,7 @@ attribute vec3 at_midBlock;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform vec3 cameraPosition;
+uniform int renderStage;
 uniform int worldTime;
 
 #ifndef ANIM_USE_WORLDTIME
@@ -79,10 +81,16 @@ uniform int worldTime;
 
 
 void main() {
+    #if BLOCK_OUTLINE == BLOCK_OUTLINE_NONE
+        if (renderStage == MC_RENDER_STAGE_OUTLINE) {
+            gl_Position = vec4(10.0);
+            return;
+        }
+    #endif
+
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     glcolor = gl_Color;
 
-    vec3 localPos;
     BasicVertex(localPos);
 }

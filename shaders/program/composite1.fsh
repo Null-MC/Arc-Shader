@@ -162,6 +162,10 @@ uniform float eyeHumidity;
 #ifdef IRIS_FEATURE_SSBO
     #include "/lib/ssbo/scene.glsl"
     #include "/lib/ssbo/vogel_disk.glsl"
+
+    #ifdef LIGHT_COLOR_ENABLED
+        #include "/lib/ssbo/lighting.glsl"
+    #endif
 #endif
 
 #include "/lib/depth.glsl"

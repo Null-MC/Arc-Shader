@@ -10,10 +10,7 @@ out vec2 vTexcoord;
 out vec4 vColor;
 out float vNoV;
 flat out int vBlockId;
-
-#if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-    flat out vec3 vOriginPos;
-#endif
+flat out vec3 vOriginPos;
 
 out vec3 vViewPos;
 
@@ -145,12 +142,10 @@ void main() {
 
     vViewPos = (gbufferModelView * vec4(shadowLocalPos, 1.0)).xyz;
     
-    #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        //vOriginPos = floor(vaPosition + chunkOffset + at_midBlock / 64.0 + fract(cameraPosition));
-        vOriginPos = floor(gl_Vertex.xyz + at_midBlock / 64.0 + fract(cameraPosition));
+    //vOriginPos = floor(vaPosition + chunkOffset + at_midBlock / 64.0 + fract(cameraPosition));
+    vOriginPos = floor(gl_Vertex.xyz + at_midBlock / 64.0 + fract(cameraPosition));
 
-        vOriginPos = (gl_ModelViewMatrix * vec4(vOriginPos, 1.0)).xyz;
-        vOriginPos = (shadowModelViewInverse * vec4(vOriginPos, 1.0)).xyz;
-        vOriginPos = (shadowModelViewEx * vec4(vOriginPos, 1.0)).xyz;
-    #endif
+    vOriginPos = (gl_ModelViewMatrix * vec4(vOriginPos, 1.0)).xyz;
+    vOriginPos = (shadowModelViewInverse * vec4(vOriginPos, 1.0)).xyz;
+    //vOriginPos = (shadowModelViewEx * vec4(vOriginPos, 1.0)).xyz;
 }
