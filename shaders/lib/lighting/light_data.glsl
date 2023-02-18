@@ -4,6 +4,7 @@ struct LightData {
     float blockLight;
     float skyLight;
     float geoNoL;
+    vec3 geoNormal;
 
     //vec2 skyLightLevels;
     vec3 sunTransmittance;

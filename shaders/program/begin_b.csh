@@ -7,7 +7,7 @@
 
 layout (local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
-const ivec3 workGroups = ivec3(16, 8, 16);
+const ivec3 workGroups = ivec3(8, 4, 8);
 
 #ifdef IRIS_FEATURE_SSBO
     uniform vec3 cameraPosition;
@@ -23,7 +23,7 @@ void main() {
 
         SceneLightMapCounts[gridIndex] = 0;
 
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < LIGHT_MASK_SIZE; i++)
             SceneLightPositionMask[gridIndex][i] = 0u;
     #endif
 

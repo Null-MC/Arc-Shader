@@ -75,9 +75,9 @@ uniform float far;
 void ApplyCommonProperties(const in int v) {
     gLocalPos = vLocalPos[v];
     gTexcoord = vTexcoord[v];
-    gColor = vColor[v];
     gBlockId = vBlockId[v];
     gViewPos = vViewPos[v];
+    gColor = vColor[v];
 
     #ifdef PHYSICS_OCEAN
         physics_gLocalPosition = physics_vLocalPosition[v];
@@ -111,17 +111,55 @@ void main() {
         #endif
 
         #ifdef LIGHT_COLOR_ENABLED
+            vec4 lightColor = vec4(0.0);
+
             switch (vBlockId[0]) {
+                case MATERIAL_SEA_LANTERN:
+                    lightColor = vec4(0.839, 0.890, 0.851, 15.0);
+                    break;
+                case MATERIAL_REDSTONE_LAMP:
+                    lightColor = vec4(0.953, 0.796, 0.496, 15.0);
+                    break;
                 case MATERIAL_TORCH:
-                    AddSceneLight(vOriginPos[0], vec4(blockLightColor, 15.0));
+                    lightColor = vec4(0.934, 0.771, 0.395, 12.0);
+                    break;
+                case MATERIAL_LANTERN:
+                    lightColor = vec4(0.906, 0.737, 0.451, 12.0);
                     break;
                 case MATERIAL_SOUL_TORCH:
-                    AddSceneLight(vOriginPos[0], vec4(0.397, 0.738, 0.909, 8.0));
+                    lightColor = vec4(0.510, 0.831, 0.851, 12.0);
                     break;
                 case MATERIAL_REDSTONE_TORCH:
-                    AddSceneLight(vOriginPos[0], vec4(0.904, 0.338, 0.237, 2.0));
+                    lightColor = vec4(0.992, 0.471, 0.357, 7.0);
+                    break;
+                case MATERIAL_MAGMA:
+                    lightColor = vec4(0.804, 0.424, 0.149, 3.0);
+                    break;
+                case MATERIAL_GLOWSTONE:
+                    lightColor = vec4(0.742, 0.668, 0.468, 15.0);
+                    break;
+                case MATERIAL_GLOW_LICHEN:
+                    lightColor = vec4(0.232, 0.414, 0.214, 7.0);
+                    break;
+                case MATERIAL_END_ROD:
+                    lightColor = vec4(0.957, 0.929, 0.875, 14.0);
+                    break;
+                case MATERIAL_FIRE:
+                    lightColor = vec4(0.851, 0.616, 0.239, 15.0);
+                    break;
+                case MATERIAL_NETHER_PORTAL:
+                    lightColor = vec4(0.502, 0.165, 0.831, 11.0);
+                    break;
+                case MATERIAL_CAVEVINE_BERRIES:
+                    lightColor = vec4(0.717, 0.541, 0.188, 14.0);
+                    break;
+                case MATERIAL_AMETHYST_CLUSTER:
+                    lightColor = vec4(0.537, 0.412, 0.765, 5.0);
                     break;
             }
+
+            if (any(greaterThan(lightColor, vec4(EPSILON))))
+                AddSceneLight(vOriginPos[0], lightColor);
         #endif
     }
 

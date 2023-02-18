@@ -314,6 +314,9 @@ suffix.CAMERA_SATURATION=%
 
 screen.EFFECT_OPTIONS=Effects
 
+screen.EFFECT_COLORED_LIGHTING=Colored Lighting
+
+option.LIGHT_COLOR_ENABLED=Enabled
 
 screen.EFFECT_BLOOM_OPTIONS=Bloom
 

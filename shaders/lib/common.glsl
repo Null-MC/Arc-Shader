@@ -208,8 +208,9 @@ const bool colortex11Clear = false;
 
 
 // Colored Lighting
-#define LIGHT_COLOR_ENABLED
+//#define LIGHT_COLOR_ENABLED
 #define LIGHT_COLOR_NEIGHBORS
+//#define LIGHT_DEBUG_MASK
 
 
 // Debug Options
@@ -337,6 +338,8 @@ const float shadowPixelSize = 1.0 / shadowMapSize;
 #ifdef SKY_VL_NOISE
 #endif
 #ifdef SHADOW_BLUR
+#endif
+#ifdef LIGHT_COLOR_ENABLED
 #endif
 
 #ifdef PHYSICS_OCEAN

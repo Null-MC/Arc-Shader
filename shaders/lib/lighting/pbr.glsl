@@ -364,7 +364,7 @@
         vec3 localNormal = mat3(gbufferModelViewInverse) * normalize(viewNormal);
 
         #ifdef LIGHT_COLOR_ENABLED
-            blockLightDiffuse = GetSceneLighting(localPos, localNormal) * 1000.0;
+            blockLightDiffuse = GetSceneLighting(localPos, lightData.geoNormal, localNormal) * lightData.blockLight * 1000.0;
         #endif
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT

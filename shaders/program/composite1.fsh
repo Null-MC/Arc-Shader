@@ -282,6 +282,10 @@ void main() {
     vec3 localViewDir = normalize(localPos);
     vec3 viewDir = normalize(viewPos);
 
+    vec3 dX = dFdx(localPos);
+    vec3 dY = dFdy(localPos);
+    lightData.geoNormal = normalize(cross(dX, dY));
+
     #ifdef SKY_ENABLED
         //lightData.skyLightLevels = skyLightLevels;
         //lightData.sunTransmittanceEye = sunTransmittanceEye;
@@ -351,17 +355,11 @@ void main() {
                 #endif
 
                 #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                    vec3 dX = dFdx(localPos);
-                    vec3 dY = dFdy(localPos);
-
-                    vec3 shadowLocalPos = localPos;
-
-                    vec3 geoNormal = normalize(cross(dX, dY));
-                    vec3 localLightDir = GetShadowLightLocalDir();
-                    float geoNoL = max(dot(geoNormal, localLightDir), 0.0);
-
                     float viewDist = length(viewPos);
-                    shadowLocalPos += geoNormal * viewDist * SHADOW_NORMAL_BIAS * max(1.0 - geoNoL, 0.0);
+                    vec3 localLightDir = GetShadowLightLocalDir();
+                    float geoNoL = max(dot(lightData.geoNormal, localLightDir), 0.0);
+                    float bias = viewDist * SHADOW_NORMAL_BIAS * max(1.0 - geoNoL, 0.0);
+                    vec3 shadowLocalPos = localPos + lightData.geoNormal * bias;
 
                     #ifndef IRIS_FEATURE_SSBO
                         mat4 shadowModelViewEx = BuildShadowViewMatrix();
