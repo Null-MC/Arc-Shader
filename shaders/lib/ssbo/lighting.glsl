@@ -1,12 +1,13 @@
-#define LIGHT_MAX_COUNT 16384 // 1048576
-#define LIGHT_SIZE_X 32
-#define LIGHT_SIZE_Y 16
-#define LIGHT_SIZE_Z 32
-#define LIGHT_SIZE_XYZ 16384
+#define LIGHT_MAX_COUNT 200000 // 1048576
+#define LIGHT_SIZE_X 64
+#define LIGHT_SIZE_Y 32
+#define LIGHT_SIZE_Z 64
+#define LIGHT_SIZE_XYZ 131072
 #define LIGHT_REGION_SIZE 8.0
 #define LIGHT_REGION_MAX_COUNT 8
 
 const ivec3 SceneLightGridSize = ivec3(LIGHT_SIZE_X, LIGHT_SIZE_Y, LIGHT_SIZE_Z);
+const vec3 LightGridCenter = (SceneLightGridSize * LIGHT_REGION_SIZE) / 2.0;
 
 
 #if defined RENDER_BEGIN || defined RENDER_SHADOW
@@ -24,19 +25,18 @@ const ivec3 SceneLightGridSize = ivec3(LIGHT_SIZE_X, LIGHT_SIZE_Y, LIGHT_SIZE_Z)
     uint[LIGHT_SIZE_XYZ][16] SceneLightPositionMask;              // SIZE * 64 = 8388608
 };
 
-bool GetSceneLightGridPosition(const in vec3 position, out ivec3 gridPos, out ivec3 blockPos) {
-    const vec3 gridCenter = (SceneLightGridSize * LIGHT_REGION_SIZE) / 2.0;
-
+ivec3 GetSceneLightGridPosition(const in vec3 position) {
     vec3 cameraOffset = fract(cameraPosition / LIGHT_REGION_SIZE) * LIGHT_REGION_SIZE;
-    gridPos = ivec3(floor((position + cameraOffset + gridCenter) / LIGHT_REGION_SIZE + 0.001));
+    return ivec3(floor((position + cameraOffset + LightGridCenter) / LIGHT_REGION_SIZE + 0.001));
+}
 
-    if (any(lessThan(gridPos, ivec3(0.0))) || any(greaterThanEqual(gridPos, SceneLightGridSize))) {
-        // blockPos = ivec3(0);
-        // blockPos = ivec3(0);
-        return false;
-    }
+bool GetSceneLightGridPosition(const in vec3 position, out ivec3 gridPos, out ivec3 blockPos) {
+    vec3 cameraOffset = fract(cameraPosition / LIGHT_REGION_SIZE) * LIGHT_REGION_SIZE;
+    gridPos = ivec3(floor((position + cameraOffset + LightGridCenter) / LIGHT_REGION_SIZE + 0.001));
 
-    blockPos = ivec3(floor(position + cameraOffset + gridCenter - gridPos * LIGHT_REGION_SIZE + 0.001));
+    if (any(lessThan(gridPos, ivec3(0.0))) || any(greaterThanEqual(gridPos, SceneLightGridSize))) return false;
+
+    blockPos = ivec3(floor(position + cameraOffset + LightGridCenter - gridPos * LIGHT_REGION_SIZE + 0.001));
     return true;
 }
 
@@ -54,7 +54,6 @@ void AddSceneLight(const in vec3 position, const in vec4 color) {
     uint bitIndex = maskIndex & 31;
     uint bit = 1 << bitIndex;
 
-    //uint maskData = 1 << bitIndex;
     uint status = atomicOr(SceneLightPositionMask[gridIndex][intIndex], bit);
     if ((status & bit) != 0) return;
 
@@ -69,72 +68,30 @@ void AddSceneLight(const in vec3 position, const in vec4 color) {
     SceneLightColor[lightIndex] = color;
 
     #ifdef LIGHT_COLOR_NEIGHBORS
-        // Add to neighbor cells if they intersect light range
-        ivec3 neighborMin = max(gridPos - 1, ivec3(0));
-        ivec3 neighborMax = min(gridPos + 1, SceneLightGridSize - 1);
+        ivec3 rangeGridPosMin = GetSceneLightGridPosition(position - color.a);
+        ivec3 rangeGridPosMax = GetSceneLightGridPosition(position + color.a);
 
-        for (int z = neighborMin.z; z <= neighborMax.z; z++) {
-            if (color.a > blockPos.x) {
-                // TODO: Add to -X
-                int neighborGridIndex = gridIndex - 1 + z * (LIGHT_SIZE_Y * LIGHT_SIZE_X);
-                int neighborLightIndex = atomicAdd(SceneLightMapCounts[neighborGridIndex], 1);
-                if (neighborLightIndex < LIGHT_REGION_MAX_COUNT)
-                    SceneLightMap[neighborGridIndex][neighborLightIndex] = lightIndex;
-            }
-            if (blockPos.x + color.a > LIGHT_REGION_SIZE) {
-                // TODO: Add to +X
-                int neighborGridIndex = gridIndex + 1 + z * (LIGHT_SIZE_Y * LIGHT_SIZE_X);
-                int neighborLightIndex = atomicAdd(SceneLightMapCounts[neighborGridIndex], 1);
-                if (neighborLightIndex < LIGHT_REGION_MAX_COUNT)
-                    SceneLightMap[neighborGridIndex][neighborLightIndex] = lightIndex;
+        for (int z = rangeGridPosMin.z; z <= rangeGridPosMax.z; z++) {
+            for (int y = rangeGridPosMin.y; y <= rangeGridPosMax.y; y++) {
+                for (int x = rangeGridPosMin.x; x <= rangeGridPosMax.x; x++) {
+                    if (x == 0 && y == 0 && z == 0) continue;
+                    // TODO: skip if outside max bounds
+
+                    int neighborGridIndex = GetSceneLightGridIndex(ivec3(x, y, z));
+
+                    int neighborLightIndex = atomicAdd(SceneLightMapCounts[neighborGridIndex], 1);
+                    if (neighborLightIndex < LIGHT_REGION_MAX_COUNT)
+                        SceneLightMap[neighborGridIndex][neighborLightIndex] = lightIndex;
+                }
             }
         }
-
-        for (int x = neighborMin.x; x <= neighborMax.x; x++) {
-            if (color.a > blockPos.z) {
-                // TODO: Add to -Z
-                int neighborGridIndex = gridIndex - (LIGHT_SIZE_Y * LIGHT_SIZE_X) + x;
-                int neighborLightIndex = atomicAdd(SceneLightMapCounts[neighborGridIndex], 1);
-                if (neighborLightIndex < LIGHT_REGION_MAX_COUNT)
-                    SceneLightMap[neighborGridIndex][neighborLightIndex] = lightIndex;
-            }
-            if (blockPos.z + color.a > LIGHT_REGION_SIZE) {
-                // TODO: Add to +Z
-                int neighborGridIndex = gridIndex + (LIGHT_SIZE_Y * LIGHT_SIZE_X) + x;
-                int neighborLightIndex = atomicAdd(SceneLightMapCounts[neighborGridIndex], 1);
-                if (neighborLightIndex < LIGHT_REGION_MAX_COUNT)
-                    SceneLightMap[neighborGridIndex][neighborLightIndex] = lightIndex;
-            }
-        }
-
-        // for (int z = neighborMin.z; z <= neighborMax.z; z++) {
-        //     for (int y = neighborMin.y; y <= neighborMax.y; y++) {
-        //         for (int x = neighborMin.x; x <= neighborMax.x; x++) {
-        //             if (x == 0 && y == 0 && z == 0) continue;
-
-        //             int neighborGridIndex = gridIndex
-        //                 + z * (LIGHT_SIZE_Y * LIGHT_SIZE_X)
-        //                 + y * LIGHT_SIZE_X
-        //                 + x;
-
-        //             int neighborLightIndex = atomicAdd(SceneLightMapCounts[neighborGridIndex], 1);
-        //             if (neighborLightIndex < LIGHT_REGION_MAX_COUNT)
-        //                 SceneLightMap[neighborGridIndex][neighborLightIndex] = lightIndex;
-        //         }
-        //     }
-        // }
     #endif
 }
 
-vec3 GetSceneLighting(const in vec3 position) {
+vec3 GetSceneLighting(const in vec3 position, const in vec3 normal) {
     ivec3 gridPos, blockPos;
     if (!GetSceneLightGridPosition(position, gridPos, blockPos)) return vec3(0.0);
     int gridIndex = GetSceneLightGridIndex(gridPos);
-    //return vec3(gridIndex > 0 ? 1.0 : 0.0);
-    //return vec3(SceneLightCount > 8 ? 1.0 : 0.0);
-
-    int gridLightCount = SceneLightMapCounts[gridIndex];
-    //return vec3(gridLightCount > 8 ? 1.0 : 0.0);
 
     uint maskIndex = (blockPos.z << 6) | (blockPos.y << 3) | blockPos.x;
     uint intIndex = maskIndex >> 5;
@@ -143,16 +100,19 @@ vec3 GetSceneLighting(const in vec3 position) {
     uint mask = SceneLightPositionMask[gridIndex][intIndex];
     //return vec3((mask & bit) != 0 ? 1.0 : 0.0);
 
-
     vec3 color = vec3(0.0);
     for (int i = 0; i < min(SceneLightMapCounts[gridIndex], LIGHT_REGION_MAX_COUNT); i++) {
         int lightIndex = SceneLightMap[gridIndex][i];
-        //if (lightIndex)
         vec3 lightPosition = SceneLightPosition[lightIndex] - fract(cameraPosition) + 0.5;
         vec4 lightColor = SceneLightColor[lightIndex];
 
-        float lightAtt = saturate(lightColor.a - length(position - lightPosition));
-        color += lightColor.rgb * lightAtt;
+        vec3 lightVec = lightPosition - position;
+        float lightDist = length(lightVec);
+        vec3 lightDir = lightVec / max(lightDist, EPSILON);
+
+        float NoLm = max(dot(normal, lightDir), 0.0);
+        float lightAtt = (lightColor.a * 0.25) / (lightDist*lightDist);
+        color += lightColor.rgb * NoLm * lightAtt;
     }
 
     return color;

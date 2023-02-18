@@ -361,8 +361,10 @@
         //return vec4((blockPos / 8.0) * 1000.0, 1.0);
         //return vec4(vec3(1000.0 * int(gridIndex >= 0 && all(greaterThanEqual(blockPos, vec3(0.0))))), 1.0);
 
+        vec3 localNormal = mat3(gbufferModelViewInverse) * normalize(viewNormal);
+
         #ifdef LIGHT_COLOR_ENABLED
-            blockLightDiffuse = GetSceneLighting(localPos) * 1000.0;
+            blockLightDiffuse = GetSceneLighting(localPos, localNormal) * 1000.0;
         #endif
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
@@ -401,8 +403,6 @@
         #endif
 
         #ifdef SKY_ENABLED
-            vec3 localNormal = mat3(gbufferModelViewInverse) * normalize(viewNormal);
-
             vec2 sphereCoord = DirectionToUV(localNormal);
             sphereCoord.y = clamp(sphereCoord.y, 0.5/16.0, 15.5/16.0);
 
