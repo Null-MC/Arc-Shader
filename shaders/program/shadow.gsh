@@ -69,6 +69,10 @@ uniform float far;
 #include "/lib/celestial/position.glsl"
 #include "/lib/shadows/common.glsl"
 
+#if defined IRIS_FEATURE_SSBO && defined LIGHT_COLOR_ENABLED
+    #include "/lib/lighting/colored_block.glsl"
+#endif
+
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     #include "/lib/shadows/csm.glsl"
 #elif SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -119,93 +123,7 @@ void main() {
         #endif
 
         #ifdef LIGHT_COLOR_ENABLED
-            vec4 lightColor = vec4(0.0);
-            vec3 lightOffset = vec3(0.0);
-            float flicker = 0.0;
-
-            #ifdef LIGHT_FLICKER_ENABLED
-                float time = frameTimeCounter / 3600.0;
-                vec3 worldPos = cameraPosition + vOriginPos[0];
-
-                vec3 texPos = fract(worldPos.xzy * vec3(0.02, 0.02, 0.04));
-                texPos.z += 1200.0 * time;
-
-                float flickerNoise = texture(TEX_CLOUD_NOISE, texPos).g;
-            #endif
-
-            switch (vBlockId[0]) {
-                case MATERIAL_SEA_LANTERN:
-                    lightColor = vec4(0.635, 0.909, 0.793, 15.0);
-                    break;
-                case MATERIAL_REDSTONE_LAMP:
-                    lightColor = vec4(0.953, 0.796, 0.496, 15.0);
-                    break;
-                case MATERIAL_TORCH:
-                    #ifdef LIGHT_FLICKER_ENABLED
-                        float temp = mix(2400, 3600, 1.0 - flickerNoise);
-                        lightColor = vec4(blackbody(temp), 12.0);
-                    #else
-                        lightColor = vec4(0.934, 0.771, 0.395, 12.0);
-                    #endif
-                    flicker = 0.16;
-                    break;
-                case MATERIAL_LANTERN:
-                    lightColor = vec4(0.906, 0.737, 0.451, 12.0);
-                    break;
-                case MATERIAL_SOUL_TORCH:
-                    lightColor = vec4(0.510, 0.831, 0.851, 12.0);
-                    break;
-                case MATERIAL_REDSTONE_TORCH:
-                    lightColor = vec4(0.992, 0.471, 0.357, 7.0);
-                    break;
-                case MATERIAL_MAGMA:
-                    lightColor = vec4(0.804, 0.424, 0.149, 3.0);
-                    break;
-                case MATERIAL_GLOWSTONE:
-                    lightColor = vec4(0.742, 0.668, 0.468, 15.0);
-                    break;
-                case MATERIAL_GLOW_LICHEN:
-                    lightColor = vec4(0.232, 0.414, 0.214, 7.0);
-                    break;
-                case MATERIAL_END_ROD:
-                    lightColor = vec4(0.957, 0.929, 0.875, 14.0);
-                    break;
-                case MATERIAL_FIRE:
-                    lightColor = vec4(0.851, 0.616, 0.239, 15.0);
-                    break;
-                case MATERIAL_NETHER_PORTAL:
-                    lightColor = vec4(0.502, 0.165, 0.831, 11.0);
-                    break;
-                case MATERIAL_CAVEVINE_BERRIES:
-                    lightColor = vec4(0.717, 0.541, 0.188, 14.0);
-                    break;
-                case MATERIAL_AMETHYST_CLUSTER:
-                    lightColor = vec4(0.537, 0.412, 0.765, 5.0);
-                    break;
-                case MATERIAL_BREWING_STAND:
-                    lightColor = vec4(0.636, 0.509, 0.179, 3.0);
-                    break;
-            }
-
-            if (any(greaterThan(lightColor, vec4(EPSILON)))) {
-                if (vBlockId[0] == MATERIAL_TORCH) {
-                    //vec3 texPos = worldPos.xzy * vec3(0.04, 0.04, 0.02);
-                    //texPos.z += 2.0 * time;
-
-                    //vec2 s = texture(TEX_CLOUD_NOISE, texPos).rg;
-
-                    //lightOffset = 0.08 * hash44(vec4(worldPos * 0.04, 2.0 * time)).xyz - 0.04;
-                    //lightOffset = 0.12 * hash44(vec4(worldPos * 0.04, 4.0 * time)).xyz - 0.06;
-                }
-
-                #ifdef LIGHT_FLICKER_ENABLED
-                    if (flicker > EPSILON) {
-                        lightColor.rgb *= 1.0 - flicker * flickerNoise;
-                    }
-                #endif
-
-                AddSceneLight(vOriginPos[0] + lightOffset, lightColor);
-            }
+            AddSceneBlockLight(vBlockId[0], vOriginPos[0]);
         #endif
     }
 

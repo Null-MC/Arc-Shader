@@ -349,12 +349,6 @@
             float metalDarkF = mix(roughL * METAL_AMBIENT, 1.0, 1.0 - pow2(material.f0));
         #endif
 
-        #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
-            vec3 blockLightDiffuse = pow2(lightData.blockLight)*blockLightColor * BlockLightLux;
-        #else
-            vec3 blockLightDiffuse = pow4(lightData.blockLight)*blockLightColor * BlockLightLux;
-        #endif
-
         //ivec3 blockPos;
         //int gridIndex = GetSceneLightGridIndex(localPos, blockPos);
         //return vec4(vec3((gridIndex / float(LIGHT_SIZE_XYZ)) * 1000.0), 1.0);
@@ -364,8 +358,18 @@
         vec3 localNormal = mat3(gbufferModelViewInverse) * normalize(viewNormal);
 
         #ifdef LIGHT_COLOR_ENABLED
-            blockLightDiffuse = GetSceneLighting(localPos, lightData.geoNormal, localNormal) * lightData.blockLight * 1000.0;
+            vec3 blockLightDiffuse = GetSceneLighting(localPos, lightData.geoNormal, localNormal, lightData.blockLight);
+        #else
+            #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
+                vec3 blockLightDiffuse = vec3(pow2(lightData.blockLight));
+            #else
+                vec3 blockLightDiffuse = vec3(pow4(lightData.blockLight));
+            #endif
+
+            blockLightDiffuse *= blockLightColor;
         #endif
+
+        blockLightDiffuse *= BlockLightLux;
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
             vec3 specularTint = GetHCM_Tint(material.albedo.rgb, material.hcm);

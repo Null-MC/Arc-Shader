@@ -212,6 +212,7 @@ const bool colortex11Clear = false;
 #define LIGHT_COLOR_NEIGHBORS
 //#define LIGHT_DEBUG_MASK
 #define LIGHT_FLICKER_ENABLED
+//#define LIGHT_FALLBACK
 
 
 // Debug Options

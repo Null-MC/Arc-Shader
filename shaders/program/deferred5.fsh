@@ -140,7 +140,7 @@ uniform float fogEnd;
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         uniform sampler2D shadowtex0;
         uniform sampler2D shadowtex1;
-        uniform usampler2D shadowcolor1;
+        //uniform usampler2D shadowcolor1;
 
         uniform mat4 shadowProjection;
         uniform mat4 shadowModelView;
@@ -150,6 +150,10 @@ uniform float fogEnd;
             uniform sampler2DShadow shadowtex1HW;
         #endif
     #endif
+#endif
+
+#if defined IRIS_FEATURE_SSBO && defined LIGHT_COLOR_ENABLED && (!defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE)
+    uniform sampler2D shadowtex0;
 #endif
 
 uniform float blindness;

@@ -10,8 +10,11 @@ layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 const ivec3 workGroups = ivec3(1, 1, 1);
 
 #ifdef IRIS_FEATURE_SSBO
+    uniform vec3 cameraPosition;
     uniform float viewWidth;
     uniform float viewHeight;
+
+    uniform float nightVision;
 
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         uniform sampler2D BUFFER_HDR_PREVIOUS;
@@ -21,8 +24,6 @@ const ivec3 workGroups = ivec3(1, 1, 1);
         uniform ivec2 eyeBrightness;
     #endif
 
-    uniform float nightVision;
-
     #if MC_VERSION >= 11900
         uniform float darknessFactor;
     #endif
@@ -31,7 +32,6 @@ const ivec3 workGroups = ivec3(1, 1, 1);
         uniform sampler3D texSunTransmittance;
 
         uniform mat4 gbufferModelView;
-        uniform vec3 cameraPosition;
         uniform float eyeAltitude;
         uniform float rainStrength;
         uniform vec3 upPosition;

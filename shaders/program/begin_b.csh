@@ -7,7 +7,7 @@
 
 layout (local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
-const ivec3 workGroups = ivec3(12, 8, 12);
+const ivec3 workGroups = ivec3(16, 8, 16);
 
 #ifdef IRIS_FEATURE_SSBO
     uniform vec3 cameraPosition;
@@ -19,12 +19,13 @@ const ivec3 workGroups = ivec3(12, 8, 12);
 void main() {
     #ifdef IRIS_FEATURE_SSBO
         ivec3 pos = ivec3(gl_GlobalInvocationID);
-        int gridIndex = pos.z * (LIGHT_SIZE_Y * LIGHT_SIZE_X) + pos.y * LIGHT_SIZE_X + pos.x;
+        if (any(greaterThanEqual(pos, SceneLightGridSize))) return;
+        uint gridIndex = GetSceneLightGridIndex(pos);
 
-        SceneLightMapCounts[gridIndex] = 0;
+        SceneLightMaps[gridIndex].LightCount = 0u;
 
         for (int i = 0; i < LIGHT_MASK_SIZE; i++)
-            SceneLightPositionMask[gridIndex][i] = 0u;
+            SceneLightMaps[gridIndex].Mask[i] = 0u;
     #endif
 
     barrier();

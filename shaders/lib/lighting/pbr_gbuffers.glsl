@@ -243,7 +243,7 @@
         // if (any(isnan(_viewNormal)))
         //     _viewNormal = vec3(0.0, 0.0, 1.0);
 
-        #ifdef RENDER_TEXTURED
+        #if defined RENDER_TEXTURED && defined SHADOW_ENABLED
             material.normal = GetShadowLightViewDir();
         #else
             if (materialId != MATERIAL_LAVA)
