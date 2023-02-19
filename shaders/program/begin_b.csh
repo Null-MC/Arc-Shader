@@ -7,7 +7,7 @@
 
 layout (local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
-const ivec3 workGroups = ivec3(8, 4, 8);
+const ivec3 workGroups = ivec3(12, 8, 12);
 
 #ifdef IRIS_FEATURE_SSBO
     uniform vec3 cameraPosition;

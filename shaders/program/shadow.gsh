@@ -37,6 +37,12 @@ uniform int worldTime;
 uniform int entityId;
 uniform float far;
 
+#ifdef LIGHT_COLOR_ENABLED
+    uniform sampler3D TEX_CLOUD_NOISE;
+
+    uniform float frameTimeCounter;
+#endif
+
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     uniform float near;
 
@@ -58,6 +64,8 @@ uniform float far;
 #endif
 
 #include "/lib/matrix.glsl"
+#include "/lib/sampling/noise.glsl"
+#include "/lib/lighting/blackbody.glsl"
 #include "/lib/celestial/position.glsl"
 #include "/lib/shadows/common.glsl"
 
@@ -112,16 +120,34 @@ void main() {
 
         #ifdef LIGHT_COLOR_ENABLED
             vec4 lightColor = vec4(0.0);
+            vec3 lightOffset = vec3(0.0);
+            float flicker = 0.0;
+
+            #ifdef LIGHT_FLICKER_ENABLED
+                float time = frameTimeCounter / 3600.0;
+                vec3 worldPos = cameraPosition + vOriginPos[0];
+
+                vec3 texPos = fract(worldPos.xzy * vec3(0.02, 0.02, 0.04));
+                texPos.z += 1200.0 * time;
+
+                float flickerNoise = texture(TEX_CLOUD_NOISE, texPos).g;
+            #endif
 
             switch (vBlockId[0]) {
                 case MATERIAL_SEA_LANTERN:
-                    lightColor = vec4(0.839, 0.890, 0.851, 15.0);
+                    lightColor = vec4(0.635, 0.909, 0.793, 15.0);
                     break;
                 case MATERIAL_REDSTONE_LAMP:
                     lightColor = vec4(0.953, 0.796, 0.496, 15.0);
                     break;
                 case MATERIAL_TORCH:
-                    lightColor = vec4(0.934, 0.771, 0.395, 12.0);
+                    #ifdef LIGHT_FLICKER_ENABLED
+                        float temp = mix(2400, 3600, 1.0 - flickerNoise);
+                        lightColor = vec4(blackbody(temp), 12.0);
+                    #else
+                        lightColor = vec4(0.934, 0.771, 0.395, 12.0);
+                    #endif
+                    flicker = 0.16;
                     break;
                 case MATERIAL_LANTERN:
                     lightColor = vec4(0.906, 0.737, 0.451, 12.0);
@@ -156,15 +182,36 @@ void main() {
                 case MATERIAL_AMETHYST_CLUSTER:
                     lightColor = vec4(0.537, 0.412, 0.765, 5.0);
                     break;
+                case MATERIAL_BREWING_STAND:
+                    lightColor = vec4(0.636, 0.509, 0.179, 3.0);
+                    break;
             }
 
-            if (any(greaterThan(lightColor, vec4(EPSILON))))
-                AddSceneLight(vOriginPos[0], lightColor);
+            if (any(greaterThan(lightColor, vec4(EPSILON)))) {
+                if (vBlockId[0] == MATERIAL_TORCH) {
+                    //vec3 texPos = worldPos.xzy * vec3(0.04, 0.04, 0.02);
+                    //texPos.z += 2.0 * time;
+
+                    //vec2 s = texture(TEX_CLOUD_NOISE, texPos).rg;
+
+                    //lightOffset = 0.08 * hash44(vec4(worldPos * 0.04, 2.0 * time)).xyz - 0.04;
+                    //lightOffset = 0.12 * hash44(vec4(worldPos * 0.04, 4.0 * time)).xyz - 0.06;
+                }
+
+                #ifdef LIGHT_FLICKER_ENABLED
+                    if (flicker > EPSILON) {
+                        lightColor.rgb *= 1.0 - flicker * flickerNoise;
+                    }
+                #endif
+
+                AddSceneLight(vOriginPos[0] + lightOffset, lightColor);
+            }
         #endif
     }
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-        vec3 shadowOriginPos = (shadowModelViewEx * vec4(vOriginPos[0], 1.0)).xyz;
+        vec3 shadowOriginPos = vOriginPos[0] + fract(cameraPosition);
+        shadowOriginPos = (shadowModelViewEx * vec4(shadowOriginPos, 1.0)).xyz;
         int shadowTile = GetShadowCascade(shadowOriginPos, 2.0);
         if (shadowTile < 0) return;
 

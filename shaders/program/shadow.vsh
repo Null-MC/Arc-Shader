@@ -143,9 +143,10 @@ void main() {
     vViewPos = (gbufferModelView * vec4(shadowLocalPos, 1.0)).xyz;
     
     //vOriginPos = floor(vaPosition + chunkOffset + at_midBlock / 64.0 + fract(cameraPosition));
-    vOriginPos = floor(gl_Vertex.xyz + at_midBlock / 64.0 + fract(cameraPosition));
+    vOriginPos = gl_Vertex.xyz + at_midBlock / 64.0;
 
     vOriginPos = (gl_ModelViewMatrix * vec4(vOriginPos, 1.0)).xyz;
     vOriginPos = (shadowModelViewInverse * vec4(vOriginPos, 1.0)).xyz;
+    //vOriginPos += fract(cameraPosition);
     //vOriginPos = (shadowModelViewEx * vec4(vOriginPos, 1.0)).xyz;
 }

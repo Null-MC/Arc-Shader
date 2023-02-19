@@ -211,6 +211,7 @@ const bool colortex11Clear = false;
 //#define LIGHT_COLOR_ENABLED
 #define LIGHT_COLOR_NEIGHBORS
 //#define LIGHT_DEBUG_MASK
+#define LIGHT_FLICKER_ENABLED
 
 
 // Debug Options
