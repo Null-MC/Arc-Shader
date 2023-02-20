@@ -83,7 +83,7 @@ vec3 WetnessDarkenSurface(const in vec3 albedo, const in float porosity, const i
 
         vec3 snowDX = dFdx(snowPos);
         vec3 snowDY = dFdy(snowPos);
-        if (!all(lessThan(abs(snowDX), vec3(EPSILON))) && !all(lessThan(abs(snowDY), vec3(EPSILON)))) {
+        if (!all(lessThan(abs(snowDX), EPSILON3)) && !all(lessThan(abs(snowDY), EPSILON3))) {
             float s = smoothstep(0.7, 0.9, totalSnow * 2.0 * max(NoU - 0.5, 0.0));
             material.normal = mix(material.normal, normalize(cross(snowDY, snowDX)), s);
         }

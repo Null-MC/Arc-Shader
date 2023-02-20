@@ -71,13 +71,11 @@ float GetOldPbr_Emission(const in float specularB) {
     void PopulateMaterial(out PbrMaterial material, const in vec4 colorMap, const in vec3 normalMap, const in vec4 specularMap) {
         material.albedo.rgb = RGBToLinear(colorMap.rgb);
         material.albedo.a = colorMap.a;
+        material.normal = vec3(0.0);
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR
-            if (all(lessThan(normalMap.xy, vec2(EPSILON))))
-                material.normal = vec3(0.0, 0.0, 1.0);
-            else {
+            if (any(greaterThan(normalMap.xy, EPSILON2)))
                 material.normal = GetLabPbr_Normal(normalMap.xy);
-            }
 
             material.occlusion = normalMap.b;
             material.smoothness = specularMap.r;
@@ -89,11 +87,8 @@ float GetOldPbr_Emission(const in float specularB) {
 
             if (material.f0 < EPSILON) material.f0 = 0.04;
         #elif MATERIAL_FORMAT == MATERIAL_FORMAT_OLDPBR
-            if (all(lessThan(normalMap.xyz, vec3(EPSILON))))
-                material.normal = vec3(0.0, 0.0, 1.0);
-            else {
+            if (any(greaterThan(normalMap.xyz, EPSILON3)))
                 material.normal = GetOldPbr_Normal(normalMap);
-            }
 
             material.f0 = specularMap.g;
             //material.hcm = specularMap.g >= 0.5 ? 15 : -1;
@@ -103,11 +98,8 @@ float GetOldPbr_Emission(const in float specularB) {
             material.emission = GetOldPbr_Emission(specularMap.b);
             material.hcm = -1;
         #elif MATERIAL_FORMAT == MATERIAL_FORMAT_PATRIX
-            if (normalMap.x < EPSILON && normalMap.y < EPSILON)
-                material.normal = vec3(0.0, 0.0, 1.0);
-            else {
+            if (any(greaterThan(normalMap.xy, EPSILON2)))
                 material.normal = GetLabPbr_Normal(normalMap.xy);
-            }
 
             material.smoothness = specularMap.r;
             material.scattering = GetLabPbr_SSS(specularMap.b);

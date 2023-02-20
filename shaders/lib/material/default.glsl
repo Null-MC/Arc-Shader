@@ -17,7 +17,7 @@ void ApplyHardCodedMaterials(inout PbrMaterial material, const in int materialId
 
     float noiseTheta = 0.0;
 
-    if (materialId == MATERIAL_WATER) {
+    if (materialId == BLOCK_WATER) {
         material.smoothness = WATER_SMOOTH;
         material.f0 = 0.02;
         material.porosity = 0.0;

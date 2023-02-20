@@ -37,7 +37,7 @@
             #endif
 
             #ifdef RENDER_WATER
-                if (materialId == MATERIAL_WATER && isEyeInWater == 1) {
+                if (materialId == BLOCK_WATER && isEyeInWater == 1) {
                     vec2 waterScatteringF = GetWaterScattering(reflectDir);
                     return GetWaterFogColor(sunColorFinalEye, moonColorFinalEye, waterScatteringF);
                 }
@@ -75,7 +75,6 @@
 
     vec4 PbrLighting2(const in PbrMaterial material, const in LightData lightData, const in vec3 viewPos) {
         vec2 viewSize = vec2(viewWidth, viewHeight);
-        vec3 viewNormal = normalize(material.normal);
         vec3 viewDir = normalize(viewPos);
         float viewDist = length(viewPos);
 
@@ -87,7 +86,17 @@
             vec2 screenUV = gl_FragCoord.xy / viewSize;
         #endif
 
-        //return vec4(viewNormal * 1000.0, 1.0);
+        vec3 viewNormal = material.normal;
+        bool hasNormal = any(greaterThan(viewNormal, EPSILON3));
+
+        //if (!hasNormal) return vec4(vec3(1000.0), 1.0);
+
+        if (hasNormal)
+            viewNormal = normalize(viewNormal);
+        else
+            viewNormal = vec3(0.0);
+
+        //return vec4(material.normal * 1000.0, 1.0);
 
         #ifdef SKY_ENABLED
             vec3 sunColorFinalEye = sunTransmittanceEye * skySunColor * SunLux;// * max(lightData.skyLightLevels.x, 0.0);
@@ -168,7 +177,7 @@
             //float sssDist = 0.0;
 
             // #ifdef RENDER_WATER
-            //     if (materialId != MATERIAL_WATER) {
+            //     if (materialId != BLOCK_WATER) {
             // #endif
 
             #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -355,9 +364,14 @@
         //return vec4((blockPos / 8.0) * 1000.0, 1.0);
         //return vec4(vec3(1000.0 * int(gridIndex >= 0 && all(greaterThanEqual(blockPos, vec3(0.0))))), 1.0);
 
-        vec3 localNormal = mat3(gbufferModelViewInverse) * normalize(viewNormal);
+        vec3 localNormal = vec3(0.0);
 
-        #if defined LIGHT_COLOR_ENABLED && defined IRIS_FEATURE_SSBO
+        if (hasNormal)
+            localNormal = mat3(gbufferModelViewInverse) * viewNormal;
+
+        //return vec4(localNormal * 600.0 + 600.0, 1.0);
+
+        #if defined LIGHT_COLOR_ENABLED && defined IRIS_FEATURE_SSBO && defined SHADOW_ENABLED
             vec3 blockLightDiffuse = GetSceneLighting(localPos, lightData.geoNormal, localNormal, lightData.blockLight);
         #else
             #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
@@ -370,6 +384,7 @@
         #endif
 
         blockLightDiffuse *= BlockLightLux;
+        //return vec4(blockLightDiffuse, 1.0);
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
             vec3 specularTint = GetHCM_Tint(material.albedo.rgb, material.hcm);
@@ -391,7 +406,7 @@
         #if REFLECTION_MODE != REFLECTION_MODE_NONE
             iblF = GetFresnel(material.albedo.rgb, material.f0, material.hcm, NoVm, roughL);
 
-            if (any(greaterThan(reflectColor, vec3(EPSILON)))) {
+            if (any(greaterThan(reflectColor, EPSILON3))) {
                 vec2 envBRDF = textureLod(TEX_BRDF, vec2(NoVm, rough), 0).rg;
 
                 iblSpec = min(iblF * envBRDF.r + envBRDF.g, 1.0);
@@ -419,7 +434,7 @@
             bool applyWaterAbsorption = isEyeInWater == 1;
 
             #ifdef RENDER_WATER
-                if (materialId == MATERIAL_WATER) applyWaterAbsorption = false;
+                if (materialId == BLOCK_WATER) applyWaterAbsorption = false;
             #endif
 
             #ifdef RENDER_COMPOSITE
@@ -452,7 +467,7 @@
                     vec3 sssAlbedo = material.albedo.rgb;
 
                     #ifdef SSS_NORMALIZE_ALBEDO
-                        if (all(lessThan(sssAlbedo, vec3(EPSILON)))) albedo = vec3(1.0);
+                        if (all(lessThan(sssAlbedo, EPSILON3))) albedo = vec3(1.0);
                         albedo = 1.73 * normalize(albedo);
                     #endif
 
@@ -535,7 +550,7 @@
         #endif
 
         #if defined RENDER_WATER && defined WORLD_WATER_ENABLED
-            if (materialId == MATERIAL_WATER) {
+            if (materialId == BLOCK_WATER) {
                 float waterRefractEta = isEyeInWater == 1
                     ? IOR_WATER / IOR_AIR
                     : IOR_AIR / IOR_WATER;
@@ -772,7 +787,7 @@
                 #ifndef SKY_VL_ENABLED
                     float fogF = 1.0;
                     #ifdef RENDER_WATER
-                        if (materialId == MATERIAL_WATER)
+                        if (materialId == BLOCK_WATER)
                             fogF = 1.0 - reflectF;
                     #endif
 

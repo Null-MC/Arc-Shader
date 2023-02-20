@@ -194,7 +194,7 @@ const float AirSpeed = 20.0;
                 if (traceShadowClipPos.z - transparentShadowDepth >= EPSILON) {
                     vec3 shadowColor = GetShadowColor(traceShadowClipPos.xy);
 
-                    if (!any(greaterThan(shadowColor, vec3(EPSILON)))) shadowColor = vec3(1.0);
+                    if (!any(greaterThan(shadowColor, EPSILON3))) shadowColor = vec3(1.0);
                     shadowColor = normalize(shadowColor) * 1.73;
 
                     sampleColor *= shadowColor;

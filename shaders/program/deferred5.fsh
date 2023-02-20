@@ -152,7 +152,7 @@ uniform float fogEnd;
     #endif
 #endif
 
-#if defined IRIS_FEATURE_SSBO && defined LIGHT_COLOR_ENABLED && (!defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE)
+#if defined IRIS_FEATURE_SSBO && defined LIGHT_COLOR_ENABLED && !defined SHADOW_ENABLED
     uniform sampler2D shadowtex0;
 #endif
 
@@ -302,8 +302,15 @@ void main() {
     vec3 localViewDir = normalize(localPos);
     vec3 viewDir = normalize(viewPos);
 
+    vec3 dX = dFdx(localPos);
+    vec3 dY = dFdy(localPos);
+
     PbrMaterial material;
     vec3 color;
+
+    #if defined IRIS_FEATURE_SSBO && defined LIGHT_COLOR_ENABLED && !defined SHADOW_ENABLED
+        color.r = 0.0 * texture(shadowtex0, vec2(0.0)).r;
+    #endif
 
     // SKY
     if (lightData.opaqueScreenDepth > 1.0 - EPSILON) {
@@ -330,10 +337,8 @@ void main() {
         
         PopulateMaterial(material, colorMap.rgb, normalMap, specularMap);
 
-        vec3 dX = dFdx(localPos);
-        vec3 dY = dFdy(localPos);
-        float dDist2 = dot(dX, dY);
-        if (dDist2 > 0.001)
+        //float dDist2 = dot(dX, dY);
+        //if (abs(dX.z) + abs(dY.z) < 0.1)
             lightData.geoNormal = normalize(cross(dX, dY));
     }
 
@@ -437,6 +442,8 @@ void main() {
     else {
         color = PbrLighting2(material, lightData, viewPos).rgb;
     }
+
+    //color = (lightData.geoNormal * 0.5 + 0.5) * 1000.0;
 
     #ifdef SKY_ENABLED
         vec3 localLightDir = GetShadowLightLocalDir();

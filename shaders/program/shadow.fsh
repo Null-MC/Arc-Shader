@@ -79,7 +79,7 @@ void main() {
     #endif
 
     vec4 sampleColor;
-    if (gBlockId == MATERIAL_WATER) {
+    if (gBlockId == BLOCK_WATER) {
         sampleColor = vec4(1.0, 1.0, 1.0, 0.1);
     }
     else {

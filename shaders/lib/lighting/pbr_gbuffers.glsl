@@ -9,7 +9,7 @@
 
         //normalMap.xyz = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).xyz;
         normalMap.xyz = texture(normals, texcoord).xyz;
-        bool isMissingNormal = all(lessThan(normalMap.xy, vec2(EPSILON)));
+        bool isMissingNormal = all(lessThan(normalMap.xy, EPSILON2));
         bool isMissingTangent = any(isnan(viewTangent));
 
         vec2 atlasCoord = texcoord;
@@ -24,7 +24,7 @@
             #ifdef RENDER_ENTITIES
                 if (entityId == ENTITY_ITEM_FRAME || entityId == ENTITY_PHYSICSMOD_SNOW) skipParallax = true;
             #else
-                if (materialId == MATERIAL_LAVA) skipParallax = true;
+                if (materialId == BLOCK_LAVA) skipParallax = true;
             #endif
 
             float texDepth = 1.0;
@@ -161,7 +161,7 @@
         PbrMaterial material;
 
         #if LAVA_TYPE == LAVA_FANCY && defined RENDER_TERRAIN
-            if (materialId == MATERIAL_LAVA) {
+            if (materialId == BLOCK_LAVA) {
                 ApplyLavaMaterial(material, _viewNormal, worldPos, viewPos);
             }
             else {
@@ -179,7 +179,7 @@
                     #if defined PARALLAX_ENABLED && !defined RENDER_TEXTURED
                         #if PARALLAX_SHAPE == PARALLAX_SHAPE_SHARP
                             float dO = max(texDepth - traceCoordDepth.z, 0.0);
-                            if (dO >= 2.0 / 255.0) {
+                            if (dO >= 0.5 / 255.0) {
                                 #ifdef PARALLAX_USE_TEXELFETCH
                                     material.normal = GetParallaxSlopeNormal(atlasCoord, traceCoordDepth.z, tanViewDir);
                                 #else
@@ -211,7 +211,7 @@
         #endif
 
         #if defined SKY_ENABLED && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE) && (defined RENDER_TERRAIN || defined RENDER_WATER)
-            if (isEyeInWater != 1 && materialId != MATERIAL_WATER && materialId != MATERIAL_LAVA) {
+            if (isEyeInWater != 1 && materialId != BLOCK_WATER && materialId != BLOCK_LAVA) {
                 vec3 tanUpDir = normalize(upPosition) * matTBN;
                 float NoU = dot(material.normal, tanUpDir);
 
@@ -246,7 +246,7 @@
         #if defined RENDER_TEXTURED && defined SHADOW_ENABLED
             material.normal = GetShadowLightViewDir();
         #else
-            if (materialId != MATERIAL_LAVA)
+            if (materialId != BLOCK_LAVA)
                 material.normal = normalize(matTBN * material.normal);
         #endif
 

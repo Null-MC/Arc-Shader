@@ -145,5 +145,5 @@ vec3 CalculateExtinction(const in vec3 apparantColor, const in float scatterDist
     vec3 a = apparantColor - vec3(0.8);
     vec3 s = vec3(1.9) - apparantColor + 3.5 * pow2(a);
 
-    return min(rcp(max(s * scatterDistance, vec3(EPSILON))), 1.0);
+    return min(rcp(max(s * scatterDistance, EPSILON3)), 1.0);
 }

@@ -210,6 +210,7 @@ const bool colortex11Clear = false;
 // Colored Lighting
 //#define LIGHT_COLOR_ENABLED
 #define LIGHT_FLICKER_ENABLED
+//#define LIGHT_LAVA_ENABLED
 #define LIGHT_BIN_MAX_COUNT 24 // [4 8 12 16 20 24 32 48 64 96 128]
 #define LIGHT_BIN_SIZE 8 // [4 8 16]
 #define LIGHT_SIZE_XZ 16 // [4 8 16 32 64]
@@ -269,7 +270,10 @@ const vec3 POWDER_SNOW_COLOR = vec3(0.820, 0.868, 0.879);
 
 const vec3 handOffsetMain = vec3(0.6, -0.3, -0.2);
 const vec3 handOffsetAlt = vec3(-0.6, -0.3, -0.2);
+
 const vec3 luma_factor = vec3(0.2126, 0.7152, 0.0722);
+const vec2 EPSILON2 = vec2(EPSILON);
+const vec3 EPSILON3 = vec3(EPSILON);
 const float invPI = 1.0 / PI;
 
 const float wetnessHalflife = 300.0;
@@ -412,7 +416,7 @@ float f0ToIOR(const in float f0) {
 
 vec3 f0ToIOR(const in vec3 f0) {
     vec3 sqrt_f0 = sqrt(max(f0, vec3(0.02)));
-    return (1.0f + sqrt_f0) / max(1.0f - sqrt_f0, vec3(EPSILON));
+    return (1.0f + sqrt_f0) / max(1.0f - sqrt_f0, EPSILON3);
 }
 
 vec3 IORToF0(const in vec3 ior) {

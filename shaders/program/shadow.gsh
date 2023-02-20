@@ -120,7 +120,7 @@ void main() {
 
     #if defined IS_IRIS && !defined PHYSICS_OCEAN
         // Iris does not cull water backfaces
-        if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && vBlockId[0] == MATERIAL_WATER) {
+        if (renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT && vBlockId[0] == BLOCK_WATER) {
             if (vNoV[0] <= 0.0 && vNoV[1] <= 0.0 && vNoV[2] <= 0.0) return;
         }
     #endif

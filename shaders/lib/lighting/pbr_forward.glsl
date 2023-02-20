@@ -61,7 +61,7 @@
         #endif
 
         #if defined WORLD_WATER_ENABLED && defined RENDER_WATER
-            if (materialId == MATERIAL_WATER) {
+            if (materialId == BLOCK_WATER) {
                 material.albedo = vec4(waterFoamColor, 0.0);
                 material.normal = vec3(0.0, 0.0, 1.0);
                 material.occlusion = 1.0;
@@ -215,7 +215,7 @@
                 //#endif
 
                 //#if MATERIAL_FORMAT != MATERIAL_FORMAT_LABPBR
-                    if (materialId == MATERIAL_WATER) {
+                    if (materialId == BLOCK_WATER) {
                         //material.albedo = vec4(1.0, 0.0, 0.0, 1.0);
                         material.f0 = 0.02;
                         material.smoothness = WATER_SMOOTH;// += 0.96 * step(material.smoothness, EPSILON);
@@ -231,7 +231,7 @@
 
                 #if defined PARALLAX_ENABLED && !defined RENDER_TEXTURED && PARALLAX_SHAPE == PARALLAX_SHAPE_SHARP
                     float dO = max(texDepth - traceCoordDepth.z, 0.0);
-                    if (dO >= 0.95 / 255.0 && materialId != MATERIAL_WATER) {
+                    if (dO >= 0.95 / 255.0 && materialId != BLOCK_WATER) {
                         //#ifdef PARALLAX_USE_TEXELFETCH
                         //    material.normal = GetParallaxSlopeNormal(atlasCoord, traceCoordDepth.z, tanViewDir);
                         //#else
@@ -282,7 +282,7 @@
         mat3 matTBN = mat3(_viewTangent, _viewBinormal, _viewNormal);
         
         #if !(defined RENDER_HAND || defined RENDER_TEXTURED)
-            if (materialId != MATERIAL_WATER) {
+            if (materialId != BLOCK_WATER) {
                 #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && !(defined RENDER_ENTITIES || defined RENDER_TEXTURED)
                     ApplyDirectionalLightmap(lightData.blockLight, viewPos, viewNormal, material.normal);
                 #endif
@@ -302,7 +302,7 @@
             material.normal = -material.normal;
 
         #if defined RENDER_WATER && defined PHYSICS_OCEAN
-            if (materialId != MATERIAL_WATER)
+            if (materialId != BLOCK_WATER)
                 material.normal = matTBN * material.normal;
         #else
             material.normal = matTBN * material.normal;

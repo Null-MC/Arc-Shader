@@ -172,7 +172,7 @@ void main() {
             vec3 dX = dFdx(localPos);
             vec3 dY = dFdy(localPos);
 
-            if (all(greaterThan(abs(dX) + abs(dY), vec3(EPSILON)))) {
+            if (all(greaterThan(abs(dX) + abs(dY), EPSILON3))) {
                 vec3 geoNormal = normalize(cross(dX, dY));
 
                 float viewDist = length(localPos);

@@ -316,13 +316,13 @@ void main() {
             
             BasicLighting(dFdXY, colorMap);
 
-            #ifdef SHADOW_ENABLED
-                vec3 _viewNormal = GetShadowLightViewDir();
-            #else
-                vec3 _viewNormal = normalize(viewNormal);
-            #endif
+            // #ifdef SHADOW_ENABLED
+            //     vec3 _viewNormal = GetShadowLightViewDir();
+            // #else
+            //     vec3 _viewNormal = normalize(viewNormal);
+            // #endif
 
-            normalMap = vec4(_viewNormal * 0.5 + 0.5, 1.0);
+            normalMap = vec4(0.0, 0.0, 0.0, 1.0);
             specularMap = vec4(0.0, 0.04, 0.0, 0.0);
             lightingMap = vec4(lmcoord, 1.0, 1.0);
         #endif

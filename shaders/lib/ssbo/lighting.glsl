@@ -4,6 +4,7 @@
 //#define LIGHT_DEBUG_MASK
 
 const ivec3 SceneLightGridSize = ivec3(LIGHT_SIZE_XZ, LIGHT_SIZE_Y, LIGHT_SIZE_XZ);
+const ivec3 SceneLightSize = SceneLightGridSize * LIGHT_BIN_SIZE;
 const vec3 LightGridCenter = (SceneLightGridSize * LIGHT_BIN_SIZE) / 2.0;
 const int lightMaskBitCount = int(log2(LIGHT_BIN_SIZE));
 
@@ -149,6 +150,9 @@ ivec2 GetSceneLightUV(const in uint gridIndex, const in uint gridLightIndex) {
             return vec3((mask & bit) != 0 ? 1.0 : 0.0);
         #endif
 
+        bool hasGeoNormal = any(greaterThan(abs(geoNormal), EPSILON3));
+        bool hasTexNormal = any(greaterThan(abs(texNormal), EPSILON3));
+
         vec3 color = vec3(0.0);
         for (int i = 0; i < min(SceneLightMaps[gridIndex].LightCount, LIGHT_BIN_MAX_COUNT); i++) {
             ivec2 uv = GetSceneLightUV(gridIndex, i);
@@ -163,19 +167,31 @@ ivec2 GetSceneLightUV(const in uint gridIndex, const in uint gridLightIndex) {
             //float lightAtt = (light.color.a * 0.25) / (lightDist*lightDist);
             float lightAtt = 1.0 - saturate(lightDist / light.range);
             //lightAtt = pow(lightAtt, 0.5);
-            lightAtt = pow3(lightAtt);
+            lightAtt = pow5(lightAtt);
             
             // if (light.range > EPSILON)
             //     lightAtt *= saturate(15.0 / min(light.range, 15.0));
 
-            float NoLm = max(dot(texNormal, lightDir), 0.0);
+            float NoLm = 1.0;
 
-            if (any(greaterThan(abs(geoNormal), vec3(0.001))))
-                NoLm *= step(0.0, dot(geoNormal, lightDir));
+            if (hasTexNormal) {
+                NoLm *= max(dot(texNormal, lightDir), 0.0);
 
-            color += RGBToLinear(light.color.rgb) * NoLm * lightAtt;
+                if (hasGeoNormal)
+                    NoLm *= step(0.0, dot(geoNormal, lightDir));
+            }
+
+            color += light.color.rgb * NoLm * lightAtt;
         }
 
-        return color * blockLight;
+        color *= blockLight;
+
+        #ifdef LIGHT_FALLBACK
+            vec3 offsetPos = position + LightGridCenter;
+            float fade = minOf(min(offsetPos, SceneLightSize - offsetPos)) / 15.0;
+            color = mix(pow4(blockLight) * blockLightColor, color, saturate(fade));
+        #endif
+
+        return color;
     }
 #endif
