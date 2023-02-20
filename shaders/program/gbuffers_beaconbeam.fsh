@@ -1,6 +1,6 @@
-#define RENDER_FRAG
-#define RENDER_GBUFFER
 #define RENDER_BEACONBEAM
+#define RENDER_GBUFFER
+#define RENDER_FRAG
 
 #include "/lib/constants.glsl"
 #include "/lib/common.glsl"

@@ -255,7 +255,7 @@
         //     material.albedo.rgb = WetnessDarkenSurface(material.albedo.rgb, material.porosity, 1.0);
         // }
 
-        #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT && !defined LIGHT_COLOR_ENABLED
+        #if MATERIAL_FORMAT != MATERIAL_FORMAT_DEFAULT && !(defined LIGHT_COLOR_ENABLED && defined IRIS_FEATURE_SSBO)
             if (!isMissingNormal && !isMissingTangent) {
                 #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0 && !(defined RENDER_ENTITIES || defined RENDER_TEXTURED || defined RENDER_HAND)
                     ApplyDirectionalLightmap(lm.x, viewPos, viewNormal, material.normal);

@@ -278,6 +278,7 @@ void main() {
     #endif
 
     LightData lightData;
+    lightData.geoNormal = vec3(0.0);
 
     lightData.opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
 
@@ -301,10 +302,6 @@ void main() {
     vec3 localViewDir = normalize(localPos);
     vec3 viewDir = normalize(viewPos);
 
-    vec3 dX = dFdx(localPos);
-    vec3 dY = dFdy(localPos);
-    lightData.geoNormal = normalize(cross(dX, dY));
-
     PbrMaterial material;
     vec3 color;
 
@@ -315,6 +312,8 @@ void main() {
         lightData.blockLight = 1.0;
         lightData.occlusion = 1.0;
         lightData.geoNoL = 1.0;
+
+        // TODO: populate material defaults?
     }
     else {
         uvec4 deferredData = texelFetch(BUFFER_DEFERRED, iTex, 0);
@@ -330,6 +329,12 @@ void main() {
         lightData.parallaxShadow = lightingMap.w;
         
         PopulateMaterial(material, colorMap.rgb, normalMap, specularMap);
+
+        vec3 dX = dFdx(localPos);
+        vec3 dY = dFdy(localPos);
+        float dDist2 = dot(dX, dY);
+        if (dDist2 > 0.001)
+            lightData.geoNormal = normalize(cross(dX, dY));
     }
 
     #ifdef SKY_ENABLED

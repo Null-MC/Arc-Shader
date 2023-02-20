@@ -357,7 +357,7 @@
 
         vec3 localNormal = mat3(gbufferModelViewInverse) * normalize(viewNormal);
 
-        #ifdef LIGHT_COLOR_ENABLED
+        #if defined LIGHT_COLOR_ENABLED && defined IRIS_FEATURE_SSBO
             vec3 blockLightDiffuse = GetSceneLighting(localPos, lightData.geoNormal, localNormal, lightData.blockLight);
         #else
             #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0

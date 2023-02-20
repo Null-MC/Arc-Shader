@@ -315,8 +315,26 @@ suffix.CAMERA_SATURATION=%
 screen.EFFECT_OPTIONS=Effects
 
 screen.EFFECT_COLORED_LIGHTING=Colored Lighting
+screen.EFFECT_COLORED_LIGHTING.comment=Requires Iris 1.6+!
 
 option.LIGHT_COLOR_ENABLED=Enabled
+option.LIGHT_COLOR_ENABLED.comment=Requires Iris 1.6+!
+
+option.LIGHT_FLICKER_ENABLED=Flickering
+option.LIGHT_FLICKER_ENABLED.comment=Causes flame-based light sources to flicker when enabled.
+
+option.LIGHT_BIN_SIZE=Bin Size
+
+option.LIGHT_BIN_MAX_COUNT=Bin Max Lights
+
+option.LIGHT_SIZE_XZ=Horizontal Bounds
+option.LIGHT_SIZE_XZ.comment=The range of the colored-light volume in the horizontal/XZ direction.
+
+option.LIGHT_SIZE_Y=Vertical Bounds
+option.LIGHT_SIZE_Y.comment=The range of the colored-light volume in the vertical/Y direction.
+
+option.LIGHT_FALLBACK=Fallback
+option.LIGHT_FALLBACK.comment=Determines how lights outside the bounds of coloring are handled.
 
 screen.EFFECT_BLOOM_OPTIONS=Bloom
 

@@ -24,32 +24,22 @@ void AddSceneBlockLight(const in int blockId, const in vec3 blockLocalPos) {
             lightRange = 15.0;
             break;
         case MATERIAL_TORCH:
-            #ifdef LIGHT_FLICKER_ENABLED
-                float torchTemp = mix(2600, 3600, 1.0 - flickerNoise);
-                lightColor = vec3(0.8 * blackbody(torchTemp));
-            #else
-                lightColor = vec3(0.934, 0.771, 0.395);
-            #endif
+            lightColor = vec3(0.934, 0.771, 0.395);
             lightRange = 12.0;
             flicker = 0.1;
             break;
         case MATERIAL_LANTERN:
             lightColor = vec3(0.906, 0.737, 0.451);
             lightRange = 12.0;
-            flicker = 0.1;
+            flicker = 0.05;
             break;
         case MATERIAL_SOUL_TORCH:
-            #ifdef LIGHT_FLICKER_ENABLED
-                float soulTorchTemp = mix(1200, 1800, flickerNoise);
-                lightColor = vec3(0.6 * saturate(1.0 - blackbody(soulTorchTemp)));
-            #else
-                lightColor = vec3(0.510, 0.831, 0.851);
-            #endif
+            lightColor = vec3(0.510, 0.831, 0.851);
             lightRange = 12.0;
             flicker = 0.1;
             break;
         case MATERIAL_REDSTONE_TORCH:
-            lightColor = vec3(0.992, 0.471, 0.357);
+            lightColor = vec3(0.697, 0.130, 0.051);
             lightRange = 7.0;
             break;
         case MATERIAL_MAGMA:
@@ -106,7 +96,53 @@ void AddSceneBlockLight(const in int blockId, const in vec3 blockLocalPos) {
             lightRange = 10.0;
             //flicker = 0.3;
             break;
+        case MATERIAL_CANDLES_1:
+            lightColor = vec3(0.697, 0.654, 0.458);
+            lightRange = 3.0;
+            flicker = 0.06;
+            break;
+        case MATERIAL_CANDLES_2:
+            lightColor = vec3(0.697, 0.654, 0.458);
+            lightRange = 6.0;
+            flicker = 0.06;
+            break;
+        case MATERIAL_CANDLES_3:
+            lightColor = vec3(0.697, 0.654, 0.458);
+            lightRange = 9.0;
+            flicker = 0.06;
+            break;
+        case MATERIAL_CANDLES_4:
+            lightColor = vec3(0.697, 0.654, 0.458);
+            lightRange = 12.0;
+            flicker = 0.06;
+            break;
+        case MATERIAL_SHROOMLIGHT:
+            lightColor = vec3(0.848, 0.469, 0.205);
+            lightRange = 15.0;
+            break;
+        case MATERIAL_BEACON:
+            lightColor = vec3(1.0, 1.0, 1.0);
+            lightRange = 15.0;
+            break;
     }
+
+    #ifdef LIGHT_FLICKER_ENABLED
+        if (blockId == MATERIAL_TORCH || blockId == MATERIAL_LANTERN || blockId == MATERIAL_FIRE) {
+            float torchTemp = mix(2600, 3400, 1.0 - flickerNoise);
+            lightColor = blackbody(torchTemp);
+        }
+
+        if (blockId == MATERIAL_SOUL_TORCH) {
+            float soulTorchTemp = mix(1200, 1800, flickerNoise);
+            lightColor = 0.6 * saturate(1.0 - blackbody(soulTorchTemp));
+        }
+
+        if (blockId == MATERIAL_CANDLES_1 || blockId == MATERIAL_CANDLES_2
+         || blockId == MATERIAL_CANDLES_3 || blockId == MATERIAL_CANDLES_4) {
+            float candleTemp = mix(1900, 2400, 1.0 - flickerNoise);
+            lightColor = 0.4 * blackbody(candleTemp);
+        }
+    #endif
 
     if (lightRange > EPSILON) {
         // if (blockId == MATERIAL_TORCH) {

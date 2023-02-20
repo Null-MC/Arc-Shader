@@ -97,6 +97,19 @@ void ApplyCommonProperties(const in int v) {
 }
 
 void main() {
+    if (renderStage == MC_RENDER_STAGE_TERRAIN_SOLID
+     || renderStage == MC_RENDER_STAGE_TERRAIN_CUTOUT
+     || renderStage == MC_RENDER_STAGE_TERRAIN_CUTOUT_MIPPED
+     || renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT) {
+        #ifdef SHADOW_EXCLUDE_FOLIAGE
+            if (vBlockId[0] >= 10000 && vBlockId[0] <= 10004) return;
+        #endif
+
+        #if defined LIGHT_COLOR_ENABLED && defined IRIS_FEATURE_SSBO
+            AddSceneBlockLight(vBlockId[0], vOriginPos[0]);
+        #endif
+    }
+
     if (renderStage == MC_RENDER_STAGE_ENTITIES) {
         #ifdef SHADOW_EXCLUDE_ENTITIES
             return;
@@ -111,21 +124,6 @@ void main() {
             if (vNoV[0] <= 0.0 && vNoV[1] <= 0.0 && vNoV[2] <= 0.0) return;
         }
     #endif
-
-    if (
-        renderStage == MC_RENDER_STAGE_TERRAIN_SOLID ||
-        renderStage == MC_RENDER_STAGE_TERRAIN_CUTOUT ||
-        renderStage == MC_RENDER_STAGE_TERRAIN_CUTOUT_MIPPED ||
-        renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT)
-    {
-        #ifdef SHADOW_EXCLUDE_FOLIAGE
-            if (vBlockId[0] >= 10000 && vBlockId[0] <= 10004) return;
-        #endif
-
-        #ifdef LIGHT_COLOR_ENABLED
-            AddSceneBlockLight(vBlockId[0], vOriginPos[0]);
-        #endif
-    }
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         vec3 shadowOriginPos = vOriginPos[0] + fract(cameraPosition);

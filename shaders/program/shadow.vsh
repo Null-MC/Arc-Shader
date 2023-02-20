@@ -28,6 +28,7 @@ uniform mat4 shadowModelViewInverse;
 uniform mat4 gbufferModelView;
 uniform vec3 cameraPosition;
 uniform int isEyeInWater;
+uniform int blockEntityID;
 uniform int entityId;
 
 uniform float rainStrength;
@@ -86,7 +87,9 @@ uniform float far;
 
 void main() {
     vBlockId = -1;
-    if (renderStage != MC_RENDER_STAGE_ENTITIES)
+    if (renderStage == MC_RENDER_STAGE_BLOCK_ENTITIES)
+        vBlockId = blockEntityID;
+    else if (renderStage != MC_RENDER_STAGE_ENTITIES)
         vBlockId = int(mc_Entity.x + 0.5);
 
     vLocalPos = gl_Vertex.xyz;
