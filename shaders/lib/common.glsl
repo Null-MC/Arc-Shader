@@ -210,13 +210,11 @@ const bool colortex11Clear = false;
 // Colored Lighting
 //#define LIGHT_COLOR_ENABLED
 #define LIGHT_FLICKER_ENABLED
-#define LIGHT_BIN_MAX_COUNT 64 // [4 8 12 16 20 24 32 48 64 96 128]
-#define LIGHT_BIN_SIZE 16 // [4 8 16]
-#define LIGHT_SIZE_XZ 64 // [4 8 16 32 64]
-#define LIGHT_SIZE_Y 32 // [4 8 16 32]
+#define LIGHT_BIN_MAX_COUNT 24 // [4 8 12 16 20 24 32 48 64 96 128]
+#define LIGHT_BIN_SIZE 8 // [4 8 16]
+#define LIGHT_SIZE_XZ 16 // [4 8 16 32 64]
+#define LIGHT_SIZE_Y 8 // [4 8 16 32]
 //#define LIGHT_FALLBACK
-#define LIGHT_COLOR_NEIGHBORS
-//#define LIGHT_DEBUG_MASK
 
 
 // Debug Options

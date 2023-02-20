@@ -1,8 +1,11 @@
 #define LIGHT_MAX_COUNT 4200000000u
 #define LIGHT_MASK_SIZE (LIGHT_BIN_SIZE*LIGHT_BIN_SIZE*LIGHT_BIN_SIZE/32)
+#define LIGHT_COLOR_NEIGHBORS
+//#define LIGHT_DEBUG_MASK
 
 const ivec3 SceneLightGridSize = ivec3(LIGHT_SIZE_XZ, LIGHT_SIZE_Y, LIGHT_SIZE_XZ);
 const vec3 LightGridCenter = (SceneLightGridSize * LIGHT_BIN_SIZE) / 2.0;
+const int lightMaskBitCount = int(log2(LIGHT_BIN_SIZE));
 
 
 struct SceneLightData {
@@ -74,8 +77,7 @@ ivec2 GetSceneLightUV(const in uint gridIndex, const in uint gridLightIndex) {
         if (!GetSceneLightGridCell(gridPos, gridCell, blockCell)) return;
         uint gridIndex = GetSceneLightGridIndex(gridCell);
 
-        const int bits = int(log2(LIGHT_BIN_SIZE));
-        uint maskIndex = (blockCell.z << (bits * 2)) | (blockCell.y << bits) | blockCell.x;
+        uint maskIndex = (blockCell.z << (lightMaskBitCount * 2)) | (blockCell.y << lightMaskBitCount) | blockCell.x;
         uint intIndex = maskIndex >> 5;
         uint bitIndex = maskIndex & 31;
         uint bit = 1 << bitIndex;
@@ -121,13 +123,15 @@ ivec2 GetSceneLightUV(const in uint gridIndex, const in uint gridLightIndex) {
     vec3 GetSceneLighting(const in vec3 position, const in vec3 geoNormal, const in vec3 texNormal, const in float blockLight) {
         ivec3 gridCell, blockCell;
         vec3 gridPos = GetLightGridPosition(position + 0.01 * geoNormal);
-        if (!GetSceneLightGridCell(gridPos, gridCell, blockCell)) {
-            #ifdef LIGHT_FALLBACK
+
+        #ifdef LIGHT_FALLBACK
+            // TODO: Add padding/interpolation?
+            if (!GetSceneLightGridCell(gridPos, gridCell, blockCell))
                 return pow4(blockLight) * blockLightColor;
-            #else
+        #else
+            if (!GetSceneLightGridCell(gridPos, gridCell, blockCell))
                 return vec3(0.0);
-            #endif
-        }
+        #endif
 
         uint gridIndex = GetSceneLightGridIndex(gridCell);
 
@@ -137,7 +141,7 @@ ivec2 GetSceneLightUV(const in uint gridIndex, const in uint gridLightIndex) {
         //return blockCell / float(LIGHT_BIN_SIZE);
 
         #ifdef LIGHT_DEBUG_MASK
-            uint maskIndex = (blockCell.z << 4) | (blockCell.y << 2) | blockCell.x;
+            uint maskIndex = (blockCell.z << (lightMaskBitCount * 2)) | (blockCell.y << lightMaskBitCount) | blockCell.x;
             uint intIndex = maskIndex >> 5;
             uint bitIndex = maskIndex & 31;
             uint bit = 1 << bitIndex;
