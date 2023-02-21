@@ -231,7 +231,7 @@
         #endif
 
         #if defined RENDER_TERRAIN || defined RENDER_WATER
-            if (materialId == 103) {
+            if (materialId == BLOCK_CHOCOLATE) {
                 material.albedo = vec4(1.0);
                 material.albedo.rgb = RGBToLinear(vec3(0.212, 0.090, 0.082));
                 material.smoothness = 0.6;
