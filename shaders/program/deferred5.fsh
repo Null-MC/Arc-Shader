@@ -41,12 +41,8 @@ in vec2 texcoord;
     //    flat in vec3 skyLightColor;
     //#endif
 
-    #ifdef SHADOW_COLOR
+    #if defined SHADOW_COLOR && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         uniform sampler2D BUFFER_DEFERRED2;
-        //uniform sampler2D shadowcolor0;
-    #endif
-
-    #if defined SHADOW_COLOR || defined SSS_ENABLED
         uniform sampler2D shadowcolor0;
     #endif
 #endif
@@ -152,8 +148,8 @@ uniform float fogEnd;
     #endif
 #endif
 
-#if defined IRIS_FEATURE_SSBO && defined LIGHT_COLOR_ENABLED && !defined SHADOW_ENABLED
-    uniform sampler2D shadowtex0;
+#if defined IRIS_FEATURE_SSBO && defined LIGHT_COLOR_ENABLED && (!defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE)
+    uniform sampler2D shadowcolor0;
 #endif
 
 uniform float blindness;
@@ -307,10 +303,6 @@ void main() {
 
     PbrMaterial material;
     vec3 color;
-
-    #if defined IRIS_FEATURE_SSBO && defined LIGHT_COLOR_ENABLED && !defined SHADOW_ENABLED
-        color.r = 0.0 * texture(shadowtex0, vec2(0.0)).r;
-    #endif
 
     // SKY
     if (lightData.opaqueScreenDepth > 1.0 - EPSILON) {

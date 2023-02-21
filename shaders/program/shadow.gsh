@@ -110,6 +110,10 @@ void main() {
         #endif
     }
 
+    #if !defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE
+        return;
+    #endif
+
     if (renderStage == MC_RENDER_STAGE_ENTITIES) {
         #ifdef SHADOW_EXCLUDE_ENTITIES
             return;
@@ -172,7 +176,7 @@ void main() {
 
             gl_Position = shadowProjectionEx * gl_in[v].gl_Position;
 
-            #if SHADOW_TYPE == 2
+            #if SHADOW_TYPE == SHADOW_TYPE_DISTORTED
                 gl_Position.xyz = distort(gl_Position.xyz);
             #endif
 

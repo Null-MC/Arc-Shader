@@ -115,6 +115,7 @@ uniform float nightVision;
 uniform float blindness;
 uniform int worldTime;
 
+uniform vec3 fogColor;
 uniform vec3 waterAbsorbColor;
 uniform float waterFogDistSmooth;
 

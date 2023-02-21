@@ -121,77 +121,95 @@ ivec2 GetSceneLightUV(const in uint gridIndex, const in uint gridLightIndex) {
         #endif
     }
 #elif !defined RENDER_BEGIN
-    vec3 GetSceneLighting(const in vec3 position, const in vec3 geoNormal, const in vec3 texNormal, const in float blockLight) {
+    int GetSceneLights(const in vec3 position, out uint gridIndex) {
         ivec3 gridCell, blockCell;
-        vec3 gridPos = GetLightGridPosition(position + 0.01 * geoNormal);
+        vec3 gridPos = GetLightGridPosition(position);
 
-        #ifdef LIGHT_FALLBACK
-            // TODO: Add padding/interpolation?
-            if (!GetSceneLightGridCell(gridPos, gridCell, blockCell))
-                return pow4(blockLight) * blockLightColor;
-        #else
-            if (!GetSceneLightGridCell(gridPos, gridCell, blockCell))
-                return vec3(0.0);
-        #endif
+        if (!GetSceneLightGridCell(gridPos, gridCell, blockCell))
+            return -1;
 
-        uint gridIndex = GetSceneLightGridIndex(gridCell);
-
-        //return gridPos / (LIGHT_BIN_SIZE * SceneLightGridSize);
-        //return vec3(SceneLightMapCounts[gridIndex] > 8u ? 1.0 : 0.0);
-        //return vec3(gridCell) / SceneLightGridSize;
-        //return blockCell / float(LIGHT_BIN_SIZE);
-
-        #ifdef LIGHT_DEBUG_MASK
-            uint maskIndex = (blockCell.z << (lightMaskBitCount * 2)) | (blockCell.y << lightMaskBitCount) | blockCell.x;
-            uint intIndex = maskIndex >> 5;
-            uint bitIndex = maskIndex & 31;
-            uint bit = 1 << bitIndex;
-            uint mask = SceneLightMaps[gridIndex].Mask[intIndex];
-            return vec3((mask & bit) != 0 ? 1.0 : 0.0);
-        #endif
-
-        bool hasGeoNormal = any(greaterThan(abs(geoNormal), EPSILON3));
-        bool hasTexNormal = any(greaterThan(abs(texNormal), EPSILON3));
-
-        vec3 color = vec3(0.0);
-        for (int i = 0; i < min(SceneLightMaps[gridIndex].LightCount, LIGHT_BIN_MAX_COUNT); i++) {
-            ivec2 uv = GetSceneLightUV(gridIndex, i);
-            uint lightIndex = imageLoad(imgSceneLights, uv).r;
-            SceneLightData light = SceneLights[lightIndex];
-
-            vec3 lightVec = light.position - position;
-            float lightDist = length(lightVec);
-            vec3 lightDir = lightVec / max(lightDist, EPSILON);
-            lightDist = max(lightDist - 0.5, 0.0);
-
-            //float lightAtt = (light.color.a * 0.25) / (lightDist*lightDist);
-            float lightAtt = 1.0 - saturate(lightDist / light.range);
-            //lightAtt = pow(lightAtt, 0.5);
-            lightAtt = pow5(lightAtt);
-            
-            // if (light.range > EPSILON)
-            //     lightAtt *= saturate(15.0 / min(light.range, 15.0));
-
-            float NoLm = 1.0;
-
-            if (hasTexNormal) {
-                NoLm *= max(dot(texNormal, lightDir), 0.0);
-
-                if (hasGeoNormal)
-                    NoLm *= step(0.0, dot(geoNormal, lightDir));
-            }
-
-            color += light.color.rgb * NoLm * lightAtt;
-        }
-
-        color *= blockLight;
-
-        #ifdef LIGHT_FALLBACK
-            vec3 offsetPos = position + LightGridCenter;
-            float fade = minOf(min(offsetPos, SceneLightSize - offsetPos)) / 15.0;
-            color = mix(pow4(blockLight) * blockLightColor, color, saturate(fade));
-        #endif
-
-        return color;
+        gridIndex = GetSceneLightGridIndex(gridCell);
+        return min(int(SceneLightMaps[gridIndex].LightCount), LIGHT_BIN_MAX_COUNT);
     }
+
+    SceneLightData GetSceneLight(const in uint gridIndex, const in int binLightIndex) {
+        ivec2 uv = GetSceneLightUV(gridIndex, binLightIndex);
+        uint globalLightIndex = imageLoad(imgSceneLights, uv).r;
+        return SceneLights[globalLightIndex];
+    }
+
+    // vec3 GetSceneLighting(const in PbrMaterial material, const in vec3 position, const in vec3 geoNormal, const in vec3 texNormal, const in float blockLight) {
+    //     ivec3 gridCell, blockCell;
+    //     vec3 gridPos = GetLightGridPosition(position + 0.01 * geoNormal);
+
+    //     #ifdef LIGHT_FALLBACK
+    //         // TODO: Add padding/interpolation?
+    //         if (!GetSceneLightGridCell(gridPos, gridCell, blockCell))
+    //             return pow4(blockLight) * blockLightColor;
+    //     #else
+    //         if (!GetSceneLightGridCell(gridPos, gridCell, blockCell))
+    //             return vec3(0.0);
+    //     #endif
+
+    //     uint gridIndex = GetSceneLightGridIndex(gridCell);
+
+    //     //return vec3(SceneLightCount > 8u ? 1.0 : 0.0);
+    //     //return gridPos / (LIGHT_BIN_SIZE * SceneLightGridSize);
+    //     //return vec3(SceneLightMapCounts[gridIndex] > 8u ? 1.0 : 0.0);
+    //     //return vec3(gridCell) / SceneLightGridSize;
+    //     //return blockCell / float(LIGHT_BIN_SIZE);
+
+    //     #ifdef LIGHT_DEBUG_MASK
+    //         uint maskIndex = (blockCell.z << (lightMaskBitCount * 2)) | (blockCell.y << lightMaskBitCount) | blockCell.x;
+    //         uint intIndex = maskIndex >> 5;
+    //         uint bitIndex = maskIndex & 31;
+    //         uint bit = 1 << bitIndex;
+    //         uint mask = SceneLightMaps[gridIndex].Mask[intIndex];
+    //         return vec3((mask & bit) != 0 ? 1.0 : 0.0);
+    //     #endif
+
+    //     bool hasGeoNormal = any(greaterThan(abs(geoNormal), EPSILON3));
+    //     bool hasTexNormal = any(greaterThan(abs(texNormal), EPSILON3));
+
+    //     vec3 color = vec3(0.0);
+    //     for (int i = 0; i < min(SceneLightMaps[gridIndex].LightCount, LIGHT_BIN_MAX_COUNT); i++) {
+    //         ivec2 uv = GetSceneLightUV(gridIndex, i);
+    //         uint lightIndex = imageLoad(imgSceneLights, uv).r;
+    //         SceneLightData light = SceneLights[lightIndex];
+
+    //         vec3 lightVec = light.position - position;
+    //         float lightDist = length(lightVec);
+    //         vec3 lightDir = lightVec / max(lightDist, EPSILON);
+    //         lightDist = max(lightDist - 0.5, 0.0);
+
+    //         //float lightAtt = (light.color.a * 0.25) / (lightDist*lightDist);
+    //         float lightAtt = 1.0 - saturate(lightDist / light.range);
+    //         //lightAtt = pow(lightAtt, 0.5);
+    //         lightAtt = pow5(lightAtt);
+            
+    //         // if (light.range > EPSILON)
+    //         //     lightAtt *= saturate(15.0 / min(light.range, 15.0));
+
+    //         float NoLm = 1.0;
+
+    //         if (hasTexNormal) {
+    //             NoLm *= max(dot(texNormal, lightDir), 0.0);
+
+    //             if (hasGeoNormal)
+    //                 NoLm *= step(0.0, dot(geoNormal, lightDir));
+    //         }
+
+    //         color += light.color.rgb * NoLm * lightAtt;
+    //     }
+
+    //     color *= blockLight;
+
+    //     #ifdef LIGHT_FALLBACK
+    //         vec3 offsetPos = position + LightGridCenter;
+    //         float fade = minOf(min(offsetPos, SceneLightSize - offsetPos)) / 15.0;
+    //         color = mix(pow4(blockLight) * blockLightColor, color, saturate(fade));
+    //     #endif
+
+    //     return color;
+    // }
 #endif

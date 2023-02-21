@@ -73,7 +73,7 @@ const float AirSpeed = 20.0;
         vec3 localLightDir = GetShadowLightLocalDir();
         vec3 localSunDir = GetSunLocalDir();
 
-        #if SKY_CLOUD_LEVEL >= 0
+        #if SKY_CLOUD_LEVEL >= 0 && defined WORLD_CLOUDS_ENABLED
             // TODO: this data probably already exists before this method
             float cloudVisibleDist = -1.0;
             float cloudVisibleF = 1.0;

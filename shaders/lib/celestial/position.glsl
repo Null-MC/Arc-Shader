@@ -44,29 +44,27 @@ vec3 GetMoonViewDir() {
     return -GetSunViewDir();
 }
 
-//#if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-    vec3 GetShadowLightLocalPosition() {
-        #ifdef WORLD_END
-            return GetEndSunPosition();
-        #else
-            vec3 sunDir = GetFixedSunPosition();
+vec3 GetShadowLightLocalPosition() {
+    #ifdef WORLD_END
+        return GetEndSunPosition();
+    #else
+        vec3 sunDir = GetFixedSunPosition();
 
-            if (worldTime >= 13000 && worldTime <= 23000)
-                sunDir = -sunDir;
+        if (worldTime >= 13000 && worldTime <= 23000)
+            sunDir = -sunDir;
 
-            return sunDir;
-        #endif
-    }
+        return sunDir;
+    #endif
+}
 
-    vec3 GetShadowLightLocalDir() {
-        return normalize(GetShadowLightLocalPosition());
-    }
+vec3 GetShadowLightLocalDir() {
+    return normalize(GetShadowLightLocalPosition());
+}
 
-    vec3 GetShadowLightViewPosition() {
-        return mat3(gbufferModelView) * GetShadowLightLocalPosition();
-    }
+vec3 GetShadowLightViewPosition() {
+    return mat3(gbufferModelView) * GetShadowLightLocalPosition();
+}
 
-    vec3 GetShadowLightViewDir() {
-        return normalize(GetShadowLightViewPosition());
-    }
-//#endif
+vec3 GetShadowLightViewDir() {
+    return normalize(GetShadowLightViewPosition());
+}

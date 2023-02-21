@@ -125,6 +125,7 @@
         float NoV = dot(viewNormal, -viewDir);
         float NoVm = max(NoV, 0.0);
         vec3 viewUpDir = normalize(upPosition);
+        vec3 localViewDir = mat3(gbufferModelViewInverse) * viewDir;
 
         #if DEBUG_VIEW == DEBUG_VIEW_WHITEWORLD
             vec3 albedo = vec3(1.0);
@@ -371,8 +372,73 @@
 
         //return vec4(localNormal * 600.0 + 600.0, 1.0);
 
-        #if defined LIGHT_COLOR_ENABLED && defined IRIS_FEATURE_SSBO && defined SHADOW_ENABLED
-            vec3 blockLightDiffuse = GetSceneLighting(localPos, lightData.geoNormal, localNormal, lightData.blockLight);
+        #if defined RENDER_DEFERRED && defined IRIS_FEATURE_SSBO && defined LIGHT_COLOR_ENABLED && (!defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE)
+            if (gl_FragCoord.x > viewWidth)
+                return vec4(texture(shadowcolor0, vec2(0.0)).rgb, 1.0);
+        #endif
+
+        #if defined LIGHT_COLOR_ENABLED && defined IRIS_FEATURE_SSBO
+            uint gridIndex;
+            int lightCount = GetSceneLights(localPos + 0.01 * lightData.geoNormal, gridIndex);
+
+            vec3 blockLightDiffuse;
+            if (lightCount >= 0) {
+                bool hasGeoNormal = any(greaterThan(abs(lightData.geoNormal), EPSILON3));
+                bool hasTexNormal = any(greaterThan(abs(localNormal), EPSILON3));
+
+                vec3 lightColor = vec3(0.0);
+                for (int i = 0; i < lightCount; i++) {
+                    SceneLightData light = GetSceneLight(gridIndex, i);
+
+                    vec3 lightVec = light.position - localPos;
+                    float lightDist = length(lightVec);
+                    vec3 lightDir = lightVec / max(lightDist, EPSILON);
+                    lightDist = max(lightDist - 0.5, 0.0);
+
+                    //float lightAtt = (light.color.a * 0.25) / (lightDist*lightDist);
+                    float lightAtt = 1.0 - saturate(lightDist / light.range);
+                    //lightAtt = pow(lightAtt, 0.5);
+                    lightAtt = pow5(lightAtt);
+                    
+                    float NoLm = 1.0;
+
+                    if (hasTexNormal) {
+                        NoLm *= max(dot(localNormal, lightDir), 0.0);
+
+                        if (hasGeoNormal)
+                            NoLm *= step(0.0, dot(lightData.geoNormal, lightDir));
+                    }
+
+                    float sss = 0.0;
+                    if (material.scattering > EPSILON) {
+                        float lightVoL = dot(localViewDir, lightDir);
+
+                        sss = 8.0 * material.scattering * mix(
+                            ComputeVolumetricScattering(lightVoL, -0.2),
+                            ComputeVolumetricScattering(lightVoL, 0.4),
+                            0.65);
+                    }
+
+                    lightColor += ((1.0 - NoLm) * max(sss, 0.0) + NoLm) * light.color.rgb * lightAtt;
+                }
+
+                lightColor *= lightData.blockLight;
+
+                #ifdef LIGHT_FALLBACK
+                    vec3 offsetPos = localPos + LightGridCenter;
+                    float fade = minOf(min(offsetPos, SceneLightSize - offsetPos)) / 15.0;
+                    lightColor = mix(pow4(lightData.blockLight) * blockLightColor, lightColor, saturate(fade));
+                #endif
+
+                blockLightDiffuse = lightColor;
+            }
+            else {
+                #ifdef LIGHT_FALLBACK
+                    blockLightDiffuse = pow4(lightData.blockLight) * blockLightColor;
+                #else
+                    blockLightDiffuse = vec3(0.0);
+                #endif
+            }
         #else
             #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
                 vec3 blockLightDiffuse = vec3(pow2(lightData.blockLight));
@@ -460,7 +526,6 @@
             sunDiffuse *= skyLightColorShadow * max(1.0 - sunF, 0.0);
 
             float VoL = dot(viewDir, viewLightDir);
-            vec3 localViewDir = mat3(gbufferModelViewInverse) * viewDir;
 
             #if defined SSS_ENABLED && defined SKY_ENABLED
                 if (material.scattering > 0.0) {

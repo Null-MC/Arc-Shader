@@ -72,8 +72,8 @@ uniform float far;
 
 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
     #include "/lib/shadows/csm.glsl"
-#elif SHADOW_TYPE != SHADOW_TYPE_NONE
-    #include "/lib/shadows/basic.glsl"
+//#else
+//    #include "/lib/shadows/basic.glsl"
 #endif
 
 #ifdef WATER_WAVE_ENABLED

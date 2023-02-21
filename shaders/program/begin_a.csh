@@ -28,7 +28,7 @@ const ivec3 workGroups = ivec3(1, 1, 1);
         uniform float darknessFactor;
     #endif
 
-    #ifdef SKY_ENABLED
+    #if defined SKY_ENABLED || defined LIGHT_COLOR_ENABLED
         uniform sampler3D texSunTransmittance;
 
         uniform mat4 gbufferModelView;
@@ -37,7 +37,7 @@ const ivec3 workGroups = ivec3(1, 1, 1);
         uniform vec3 upPosition;
         uniform int worldTime;
 
-        #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        #if (defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE) || defined LIGHT_COLOR_ENABLED
             uniform mat4 shadowModelView;
             uniform float far;
 
@@ -52,6 +52,8 @@ const ivec3 workGroups = ivec3(1, 1, 1);
 
     #include "/lib/ssbo/scene.glsl"
     #include "/lib/ssbo/lighting.glsl"
+
+    #include "/lib/matrix.glsl"
     #include "/lib/lighting/blackbody.glsl"
 
     #ifdef SKY_ENABLED
@@ -61,13 +63,20 @@ const ivec3 workGroups = ivec3(1, 1, 1);
         #include "/lib/world/sky.glsl"
         
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-            #include "/lib/matrix.glsl"
             #include "/lib/shadows/common.glsl"
 
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 #include "/lib/shadows/csm.glsl"
             #endif
         #endif
+    #endif
+
+    #if defined LIGHT_COLOR_ENABLED && (!defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE)
+        #ifndef SKY_ENABLED
+            #include "/lib/celestial/position.glsl"
+        #endif
+        
+        #include "/lib/shadows/common.glsl"
     #endif
 
     #include "/lib/camera/exposure.glsl"
@@ -105,26 +114,28 @@ void main() {
             #endif
         #endif
 
-        #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        #if (defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE) || defined LIGHT_COLOR_ENABLED
             shadowModelViewEx = BuildShadowViewMatrix();
 
-            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                cascadeSize[0] = GetCascadeDistance(0);
-                cascadeSize[1] = GetCascadeDistance(1);
-                cascadeSize[2] = GetCascadeDistance(2);
-                cascadeSize[3] = GetCascadeDistance(3);
-
-                for (int i = 0; i < 4; i++) {
-                    shadowProjectionPos[i] = GetShadowCascadeClipPos(i);
-                    cascadeProjection[i] = GetShadowCascadeProjectionMatrix(i, cascadeViewMin[i], cascadeViewMax[i]);
-
-                    shadowProjectionSize[i] = 2.0 / vec2(
-                        cascadeProjection[i][0].x,
-                        cascadeProjection[i][1].y);
-                }
-            #else
+            #if SHADOW_TYPE != SHADOW_TYPE_CASCADED
                 shadowProjectionEx = BuildShadowProjectionMatrix();
             #endif
+        #endif
+
+        #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE == SHADOW_TYPE_CASCADED
+            cascadeSize[0] = GetCascadeDistance(0);
+            cascadeSize[1] = GetCascadeDistance(1);
+            cascadeSize[2] = GetCascadeDistance(2);
+            cascadeSize[3] = GetCascadeDistance(3);
+
+            for (int i = 0; i < 4; i++) {
+                shadowProjectionPos[i] = GetShadowCascadeClipPos(i);
+                cascadeProjection[i] = GetShadowCascadeProjectionMatrix(i, cascadeViewMin[i], cascadeViewMax[i]);
+
+                shadowProjectionSize[i] = 2.0 / vec2(
+                    cascadeProjection[i][0].x,
+                    cascadeProjection[i][1].y);
+            }
         #endif
     #endif
 
