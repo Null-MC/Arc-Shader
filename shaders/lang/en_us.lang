@@ -383,6 +383,10 @@ option.DOF_STEP_SIZE=Step Size
 
 option.DOF_MAX_SIZE=Max Size
 
+option.AA_TYPE=AntiAliasing
+value.AA_TYPE.0=None
+value.AA_TYPE.1=FXAA
+
 
 option.IS_IRIS=Using Iris?
 option.IS_IRIS.comment=Turn this on if you are using Iris or Oculus; turn off for Optifine.

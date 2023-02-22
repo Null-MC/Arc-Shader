@@ -231,6 +231,7 @@ const bool colortex11Clear = false;
 //#define SKY_DITHER
 //#define AF_ENABLED
 #define AF_SAMPLES 16.0
+#define AA_TYPE 1 // [0 1]
 
 #if SSR_QUALITY == 2
     #define SSR_SCALE 1

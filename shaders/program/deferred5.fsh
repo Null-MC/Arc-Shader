@@ -166,10 +166,6 @@ uniform float waterFogDistSmooth;
 #ifdef IRIS_FEATURE_SSBO
     #include "/lib/ssbo/scene.glsl"
     #include "/lib/ssbo/vogel_disk.glsl"
-
-    #ifdef LIGHT_COLOR_ENABLED
-        #include "/lib/ssbo/lighting.glsl"
-    #endif
 #endif
 
 #include "/lib/depth.glsl"
@@ -196,12 +192,13 @@ uniform float waterFogDistSmooth;
     #include "/lib/celestial/position.glsl"
     #include "/lib/celestial/transmittance.glsl"
     #include "/lib/world/sky.glsl"
-    #include "/lib/world/scattering.glsl"
 
     #ifdef IS_IRIS
         #include "/lib/sky/lightning.glsl"
     #endif
 #endif
+
+#include "/lib/world/scattering.glsl"
 
 #ifdef SKY_ENABLED
     #include "/lib/sky/hillaire_render.glsl"
@@ -235,6 +232,12 @@ uniform float waterFogDistSmooth;
 
     #if SHADOW_CONTACT != SHADOW_CONTACT_NONE
         #include "/lib/shadows/contact.glsl"
+    #endif
+#endif
+
+#ifdef IRIS_FEATURE_SSBO
+    #ifdef LIGHT_COLOR_ENABLED
+        #include "/lib/ssbo/lighting.glsl"
     #endif
 #endif
 

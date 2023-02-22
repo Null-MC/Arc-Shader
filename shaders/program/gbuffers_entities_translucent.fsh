@@ -174,7 +174,6 @@ uniform float waterFogDistSmooth;
 #ifdef IRIS_FEATURE_SSBO
     #include "/lib/ssbo/scene.glsl"
     #include "/lib/ssbo/vogel_disk.glsl"
-    #include "/lib/ssbo/lighting.glsl"
 #endif
 
 #include "/lib/atlas.glsl"
@@ -208,20 +207,19 @@ uniform float waterFogDistSmooth;
     #include "/lib/celestial/position.glsl"
     #include "/lib/celestial/transmittance.glsl"
     #include "/lib/world/sky.glsl"
-    #include "/lib/world/scattering.glsl"
-
-    #include "/lib/sky/hillaire_render.glsl"
-    #include "/lib/sky/clouds.glsl"
-    #include "/lib/sky/stars.glsl"
 #endif
 
 #include "/lib/world/weather.glsl"
 #include "/lib/world/fog_vanilla.glsl"
+#include "/lib/world/scattering.glsl"
 
 #ifdef SKY_ENABLED
     #include "/lib/sky/hillaire.glsl"
+    #include "/lib/sky/hillaire_render.glsl"
     #include "/lib/world/fog_fancy.glsl"
     #include "/lib/lighting/basic.glsl"
+    #include "/lib/sky/clouds.glsl"
+    #include "/lib/sky/stars.glsl"
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #include "/lib/sampling/ign.glsl"
@@ -238,6 +236,12 @@ uniform float waterFogDistSmooth;
         #if defined SKY_VL_ENABLED || defined WATER_VL_ENABLED
             #include "/lib/lighting/volumetric.glsl"
         #endif
+    #endif
+#endif
+
+#ifdef IRIS_FEATURE_SSBO
+    #ifdef LIGHT_COLOR_ENABLED
+        #include "/lib/ssbo/lighting.glsl"
     #endif
 #endif
 

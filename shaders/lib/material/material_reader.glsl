@@ -60,8 +60,11 @@ float GetOldPbr_Emission(const in float specularB) {
             //material.porosity = GetOldPbr_Porosity(specularMap.r, specularMap.g);
         #endif
 
+        material.normal = vec3(0.0);
+        if (any(greaterThan(normalMap.xyz, vec3(0.5/255.0))))
+            material.normal = normalize(normalMap.xyz * 2.0 - 1.0);
+
         material.smoothness = specularMap.r;
-        material.normal = normalize(normalMap.xyz * 2.0 - 1.0);
         material.porosity = GetLabPbr_Porosity(specularMap.b);
         material.scattering = GetLabPbr_SSS(specularMap.b);
         material.emission = specularMap.a;

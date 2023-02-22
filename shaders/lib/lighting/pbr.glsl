@@ -87,16 +87,16 @@
         #endif
 
         vec3 viewNormal = material.normal;
-        bool hasNormal = any(greaterThan(viewNormal, EPSILON3));
+        bool hasNormal = any(greaterThan(abs(viewNormal), vec3(0.0)));
 
-        //if (!hasNormal) return vec4(vec3(1000.0), 1.0);
+        //if (!hasNormal) return vec4(1000.0, 0.0, 0.0, 1.0);
 
         if (hasNormal)
             viewNormal = normalize(viewNormal);
         else
             viewNormal = vec3(0.0);
 
-        //return vec4(material.normal * 1000.0, 1.0);
+        //return vec4(viewNormal * 600.0 + 600.0, 1.0);
 
         #ifdef SKY_ENABLED
             vec3 sunColorFinalEye = sunTransmittanceEye * skySunColor * SunLux;// * max(lightData.skyLightLevels.x, 0.0);
@@ -191,8 +191,10 @@
 
                     shadow *= shadowDeferred.a;
                 #else
-                    shadow *= step(EPSILON, lightData.geoNoL);
-                    shadow *= step(EPSILON, NoL);
+                    if (hasNormal) {
+                        shadow *= step(EPSILON, lightData.geoNoL);
+                        shadow *= step(EPSILON, NoL);
+                    }
 
                     // TODO: more stuff needs to go in here!
                 #endif
@@ -367,7 +369,7 @@
 
         vec3 localNormal = vec3(0.0);
 
-        if (hasNormal)
+        //if (hasNormal)
             localNormal = mat3(gbufferModelViewInverse) * viewNormal;
 
         //return vec4(localNormal * 600.0 + 600.0, 1.0);
@@ -379,7 +381,8 @@
 
         #if defined LIGHT_COLOR_ENABLED && defined IRIS_FEATURE_SSBO
             uint gridIndex;
-            int lightCount = GetSceneLights(localPos + 0.01 * lightData.geoNormal, gridIndex);
+            vec3 lightFragPos = localPos + 0.01 * lightData.geoNormal;
+            int lightCount = GetSceneLights(lightFragPos, gridIndex);
 
             vec3 blockLightDiffuse;
             if (lightCount >= 0) {
@@ -389,8 +392,9 @@
                 vec3 lightColor = vec3(0.0);
                 for (int i = 0; i < lightCount; i++) {
                     SceneLightData light = GetSceneLight(gridIndex, i);
+                    vec3 lightVec = light.position - lightFragPos;
+                    if (dot(lightVec, lightVec) >= pow2(light.range)) continue;
 
-                    vec3 lightVec = light.position - localPos;
                     float lightDist = length(lightVec);
                     vec3 lightDir = lightVec / max(lightDist, EPSILON);
                     lightDist = max(lightDist - 0.5, 0.0);
@@ -413,9 +417,9 @@
                     if (material.scattering > EPSILON) {
                         float lightVoL = dot(localViewDir, lightDir);
 
-                        sss = 8.0 * material.scattering * mix(
+                        sss = 3.0 * material.scattering * mix(
                             ComputeVolumetricScattering(lightVoL, -0.2),
-                            ComputeVolumetricScattering(lightVoL, 0.4),
+                            ComputeVolumetricScattering(lightVoL, 0.6),
                             0.65);
                     }
 

@@ -121,15 +121,29 @@ uniform float far;
 
     uniform sampler2D BUFFER_HDR_OPAQUE;
 
+    #if AA_TYPE == AA_FXAA
+        uniform sampler2D BUFFER_LUM_OPAQUE;
+    #endif
+
     #ifdef BLOOM_ENABLED
         uniform sampler2D BUFFER_BLOOM;
+    #endif
 
+    #ifdef IRIS_FEATURE_SSBO
+        #include "/lib/ssbo/scene.glsl"
+    #endif
+
+    #ifdef BLOOM_ENABLED
         #include "/lib/camera/bloom.glsl"
     #endif
 
     #include "/lib/sampling/bayer.glsl"
     #include "/lib/camera/tonemap.glsl"
     #include "/lib/camera/wetness.glsl"
+
+    #if AA_TYPE == AA_FXAA
+        #include "/lib/fxaa_2.glsl"
+    #endif
 #endif
 
 vec2 viewSize;
@@ -170,14 +184,18 @@ layout(location = 0) out vec3 outColor0;
     }
 
     vec3 GetFinalColor() {
-        vec2 texFinal = texcoord;
+        //vec2 texFinal = texcoord;
 
         //if (isEyeInWater == 1)
         //    texFinal = GetWetnessSkew(texcoord);
 
-        vec3 color = MC_RENDER_QUALITY == 1.0
-            ? texelFetch(BUFFER_HDR_OPAQUE, ivec2(texFinal * viewSize), 0).rgb
-            : textureLod(BUFFER_HDR_OPAQUE, texFinal, 0).rgb;
+        #if AA_TYPE == AA_FXAA
+            vec3 color = FXAA(texcoord, sceneExposure);
+        #else
+            vec3 color = MC_RENDER_QUALITY == 1.0
+                ? texelFetch(BUFFER_HDR_OPAQUE, ivec2(texcoord * viewSize), 0).rgb
+                : textureLod(BUFFER_HDR_OPAQUE, texcoord, 0).rgb;
+        #endif
 
         //float lum = texelFetch(BUFFER_LUMINANCE, itex, 0).r;
 
@@ -187,7 +205,7 @@ layout(location = 0) out vec3 outColor0;
                 vec2 tileMin, tileMax;
                 GetBloomTileInnerBounds(i, tileMin, tileMax);
 
-                vec2 tileTex = texFinal * (tileMax - tileMin) + tileMin;
+                vec2 tileTex = texcoord * (tileMax - tileMin) + tileMin;
                 tileTex = clamp(tileTex, tileMin, tileMax);
 
                 bloom += textureLod(BUFFER_BLOOM, tileTex, 0).rgb;

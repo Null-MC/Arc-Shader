@@ -158,6 +158,10 @@ void main() {
 
         #if AO_TYPE == AO_TYPE_SS || (defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || defined SSS_BLUR))
             uvec4 gbufferData = texelFetch(BUFFER_DEFERRED, itexFull, 0);
+
+            vec3 viewNormal = unpackUnorm4x8(gbufferData.g).xyz;
+            bool hasNormal = any(greaterThan(viewNormal, vec3(0.0)));
+            viewNormal = hasNormal ? normalize(viewNormal * 2.0 - 1.0) : vec3(0.0);
         #endif
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || (defined SSS_ENABLED && defined SSS_BLUR))
@@ -218,8 +222,11 @@ void main() {
 
             #ifdef SHADOW_BLUR
                 shadowF = gbufferLightMap.a;
-                shadowF *= step(EPSILON, lightData.geoNoL);
-                //shadowF *= lightData.geoNoL;
+
+                if (hasNormal) {
+                    shadowF *= step(EPSILON, lightData.geoNoL);
+                    //shadowF *= lightData.geoNoL;
+                }
 
                 if (shadowF > EPSILON)
                     shadowF *= GetShadowing(lightData);
@@ -247,8 +254,8 @@ void main() {
 
         #if AO_TYPE == AO_TYPE_SS
             //uint deferredNormal = texelFetch(BUFFER_DEFERRED, itexFull, 0).g;
-            vec3 viewNormal = unpackUnorm4x8(gbufferData.g).xyz;
-            viewNormal = normalize(viewNormal * 2.0 - 1.0);
+            //vec3 viewNormal = unpackUnorm4x8(gbufferData.g).xyz;
+            //viewNormal = normalize(viewNormal * 2.0 - 1.0);
             
             //float rad = SSAO_RADIUS / max(-viewPos.z, 1.0);
             float rad = SSAO_RADIUS / (length(viewPos) + 1.0);
