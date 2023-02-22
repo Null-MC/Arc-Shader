@@ -380,62 +380,66 @@
         #endif
 
         #if defined LIGHT_COLOR_ENABLED && defined IRIS_FEATURE_SSBO
-            uint gridIndex;
-            vec3 lightFragPos = localPos + 0.01 * lightData.geoNormal;
-            int lightCount = GetSceneLights(lightFragPos, gridIndex);
-
             vec3 blockLightDiffuse;
-            if (lightCount >= 0) {
-                bool hasGeoNormal = any(greaterThan(abs(lightData.geoNormal), EPSILON3));
-                bool hasTexNormal = any(greaterThan(abs(localNormal), EPSILON3));
+            //if (all(greaterThan(viewPos, -vec3(shadowDistance))) && all(lessThan(viewPos, vec3(shadowDistance)))) {
+                uint gridIndex;
+                vec3 lightFragPos = localPos + 0.01 * lightData.geoNormal;
+                int lightCount = GetSceneLights(lightFragPos, gridIndex);
 
-                vec3 lightColor = vec3(0.0);
-                for (int i = 0; i < lightCount; i++) {
-                    SceneLightData light = GetSceneLight(gridIndex, i);
-                    vec3 lightVec = light.position - lightFragPos;
-                    if (dot(lightVec, lightVec) >= pow2(light.range)) continue;
+                if (gridIndex >= 0 && lightCount > 0) {
+                    bool hasGeoNormal = any(greaterThan(abs(lightData.geoNormal), EPSILON3));
+                    bool hasTexNormal = any(greaterThan(abs(localNormal), EPSILON3));
 
-                    float lightDist = length(lightVec);
-                    vec3 lightDir = lightVec / max(lightDist, EPSILON);
-                    lightDist = max(lightDist - 0.5, 0.0);
+                    vec3 lightColor = vec3(0.0);
+                    for (int i = 0; i < lightCount; i++) {
+                        SceneLightData light = GetSceneLight(gridIndex, i);
+                        vec3 lightVec = light.position - lightFragPos;
+                        if (dot(lightVec, lightVec) >= pow2(light.range)) continue;
 
-                    //float lightAtt = (light.color.a * 0.25) / (lightDist*lightDist);
-                    float lightAtt = 1.0 - saturate(lightDist / light.range);
-                    //lightAtt = pow(lightAtt, 0.5);
-                    lightAtt = pow5(lightAtt);
-                    
-                    float NoLm = 1.0;
+                        float lightDist = length(lightVec);
+                        vec3 lightDir = lightVec / max(lightDist, EPSILON);
+                        lightDist = max(lightDist - 0.5, 0.0);
 
-                    if (hasTexNormal) {
-                        NoLm *= max(dot(localNormal, lightDir), 0.0);
+                        //float lightAtt = (light.color.a * 0.25) / (lightDist*lightDist);
+                        float lightAtt = 1.0 - saturate(lightDist / light.range);
+                        //lightAtt = pow(lightAtt, 0.5);
+                        lightAtt = pow5(lightAtt);
+                        
+                        float NoLm = 1.0;
 
-                        if (hasGeoNormal)
-                            NoLm *= step(0.0, dot(lightData.geoNormal, lightDir));
+                        if (hasTexNormal) {
+                            NoLm *= max(dot(localNormal, lightDir), 0.0);
+
+                            if (hasGeoNormal)
+                                NoLm *= step(0.0, dot(lightData.geoNormal, lightDir));
+                        }
+
+                        float sss = 0.0;
+                        if (material.scattering > EPSILON) {
+                            float lightVoL = dot(localViewDir, lightDir);
+
+                            sss = 3.0 * material.scattering * mix(
+                                ComputeVolumetricScattering(lightVoL, -0.2),
+                                ComputeVolumetricScattering(lightVoL, 0.6),
+                                0.65);
+                        }
+
+                        lightColor += ((1.0 - NoLm) * max(sss, 0.0) + NoLm) * light.color.rgb * lightAtt;
                     }
 
-                    float sss = 0.0;
-                    if (material.scattering > EPSILON) {
-                        float lightVoL = dot(localViewDir, lightDir);
+                    lightColor *= lightData.blockLight;
 
-                        sss = 3.0 * material.scattering * mix(
-                            ComputeVolumetricScattering(lightVoL, -0.2),
-                            ComputeVolumetricScattering(lightVoL, 0.6),
-                            0.65);
-                    }
+                    #ifdef LIGHT_FALLBACK
+                        // TODO: shrink to shadow bounds
+                        vec3 offsetPos = localPos + LightGridCenter;
+                        //vec3 maxSize = SceneLightSize
+                        float fade = minOf(min(offsetPos, SceneLightSize - offsetPos)) / 15.0;
+                        lightColor = mix(pow4(lightData.blockLight) * blockLightColor, lightColor, saturate(fade));
+                    #endif
 
-                    lightColor += ((1.0 - NoLm) * max(sss, 0.0) + NoLm) * light.color.rgb * lightAtt;
+                    blockLightDiffuse = lightColor;
                 }
-
-                lightColor *= lightData.blockLight;
-
-                #ifdef LIGHT_FALLBACK
-                    vec3 offsetPos = localPos + LightGridCenter;
-                    float fade = minOf(min(offsetPos, SceneLightSize - offsetPos)) / 15.0;
-                    lightColor = mix(pow4(lightData.blockLight) * blockLightColor, lightColor, saturate(fade));
-                #endif
-
-                blockLightDiffuse = lightColor;
-            }
+            //}
             else {
                 #ifdef LIGHT_FALLBACK
                     blockLightDiffuse = pow4(lightData.blockLight) * blockLightColor;
@@ -523,6 +527,7 @@
             }
 
             ambient += skyAmbient;
+            //return vec4(skyAmbient, 1.0);
 
             vec3 sunF = GetFresnel(material.albedo.rgb, material.f0, material.hcm, LoHm, roughL);
 

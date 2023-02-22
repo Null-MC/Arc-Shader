@@ -211,11 +211,11 @@ const bool colortex11Clear = false;
 //#define LIGHT_COLOR_ENABLED
 #define LIGHT_FLICKER_ENABLED
 //#define LIGHT_LAVA_ENABLED
-#define LIGHT_BIN_MAX_COUNT 24 // [4 8 12 16 20 24 32 48 64 96 128]
+#define LIGHT_BIN_MAX_COUNT 24 // [4 8 12 16 20 24 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 110 120 130 140 150]
 #define LIGHT_BIN_SIZE 8 // [4 8 16]
 #define LIGHT_SIZE_XZ 16 // [4 8 16 32 64]
 #define LIGHT_SIZE_Y 8 // [4 8 16 32]
-//#define LIGHT_FALLBACK
+#define LIGHT_FALLBACK
 
 
 // Debug Options

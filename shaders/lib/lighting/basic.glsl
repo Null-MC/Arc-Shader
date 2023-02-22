@@ -114,7 +114,7 @@
 #if defined SKY_ENABLED && defined RENDER_FRAG
     vec3 GetFancySkyAmbientLight(const in vec3 localNormal) {
         vec2 sphereCoord = DirectionToUV(localNormal);
-        vec3 irradiance = textureLod(BUFFER_IRRADIANCE, vec2(0.5), 0).rgb;
+        vec3 irradiance = textureLod(BUFFER_IRRADIANCE, sphereCoord, 0).rgb;
 
         #if !defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE
             irradiance *= 2.0;
