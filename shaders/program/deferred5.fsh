@@ -57,7 +57,7 @@ uniform sampler2D depthtex1;
 uniform sampler2D depthtex2;
 uniform sampler2D noisetex;
 
-#if AO_TYPE == AO_TYPE_SS
+#if defined SSGI_ENABLED || AO_TYPE == AO_TYPE_SS
     uniform sampler2D BUFFER_GI_AO;
 #endif
 

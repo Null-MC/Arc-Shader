@@ -5,19 +5,22 @@
 #include "/lib/common.glsl"
 
 in vec2 texcoord;
-//flat in float exposure;
+
+#if !defined IRIS_FEATURE_SSBO
+    flat in float sceneExposure;
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
+        flat in int luminanceLod;
+    #endif
+
+    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+        flat in float averageLuminance;
+        flat in float EV100;
+    #endif
+#endif
 
 #ifdef BLOOM_ENABLED
     flat in int bloomTileCount;
-#endif
-
-#if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
-    flat in int luminanceLod;
-#endif
-
-#if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-    flat in float averageLuminance;
-    flat in float EV100;
 #endif
 
 uniform float viewWidth;
@@ -58,8 +61,8 @@ uniform float far;
     uniform sampler2D depthtex2;
 
     #include "/lib/sampling/bilateral_gaussian.glsl"
-#elif DEBUG_VIEW == DEBUG_VIEW_DEFERRED_A0
-    // Deferred Ambient Occlusion
+#elif DEBUG_VIEW == DEBUG_VIEW_DEFERRED_GI || DEBUG_VIEW == DEBUG_VIEW_DEFERRED_A0
+    // Deferred GI/AO
     uniform sampler2D BUFFER_GI_AO;
 
     uniform sampler2D depthtex0;
@@ -283,13 +286,17 @@ void main() {
         float opaqueScreenDepthLinear = linearizeDepthFast(opaqueScreenDepth, near, far);
         vec4 shadow = BilateralGaussianDepthBlurRGBA_7x(BUFFER_SHADOW, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, vec3(6.0, 6.0, 0.01));
         color = shadow.rgb * shadow.a;
-    #elif DEBUG_VIEW == DEBUG_VIEW_DEFERRED_A0
-        // Deferred Ambient Occlusion
+    #elif DEBUG_VIEW == DEBUG_VIEW_DEFERRED_GI || DEBUG_VIEW == DEBUG_VIEW_DEFERRED_A0
+        // Deferred GI/AO
         ivec2 iTex = ivec2(gl_FragCoord.xy);
         float opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
         float opaqueScreenDepthLinear = linearizeDepthFast(opaqueScreenDepth, near, far);
-        float occlusion = BilateralGaussianDepthBlur_7x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, vec3(6.0, 6.0, 0.01), 3);
-        color = vec3(occlusion);
+        #if DEBUG_VIEW == DEBUG_VIEW_DEFERRED_GI
+            //color = BilateralGaussianDepthBlurRGB_7x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, vec3(6.0, 6.0, 0.01));
+            color = textureLod(BUFFER_GI_AO, texcoord, 0.0).rgb;
+        #else
+            color = vec3(BilateralGaussianDepthBlur_7x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, vec3(6.0, 6.0, 0.01), 3));
+        #endif
     #elif DEBUG_VIEW == DEBUG_VIEW_SHADOW_COLOR
         // Shadow Color
         color = textureLod(shadowcolor0, texcoord, 0).rgb;

@@ -9,7 +9,6 @@ out vec2 texcoord;
 
 #ifndef IRIS_FEATURE_SSBO
     flat out float sceneExposure;
-    
     flat out vec3 blockLightColor;
 
     #ifdef SKY_ENABLED
@@ -23,29 +22,6 @@ out vec2 texcoord;
             flat out vec3 moonTransmittanceEye;
         #endif
     #endif
-#endif
-
-#if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
-    uniform sampler2D BUFFER_HDR_PREVIOUS;
-
-    uniform float viewWidth;
-    uniform float viewHeight;
-#endif
-
-#if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
-    uniform ivec2 eyeBrightness;
-#endif
-
-#ifdef SKY_ENABLED
-    #ifdef IS_IRIS
-        uniform sampler3D texSunTransmittance;
-    #else
-        uniform sampler3D colortex12;
-    #endif
-
-    uniform vec3 skyColor;
-    uniform float wetness;
-    uniform float eyeAltitude;
 #endif
 
 uniform vec3 cameraPosition;
@@ -63,13 +39,39 @@ uniform vec3 upPosition;
 uniform int moonPhase;
 uniform int worldTime;
 
-//uniform int isEyeInWater;
-uniform float nightVision;
-uniform float blindness;
+#ifdef SKY_ENABLED
+    #ifdef IS_IRIS
+        uniform sampler3D texSunTransmittance;
+    #else
+        uniform sampler3D colortex12;
+    #endif
 
-#if MC_VERSION >= 11900
-    uniform float darknessFactor;
+    uniform vec3 skyColor;
+    uniform float wetness;
+    uniform float eyeAltitude;
 #endif
+
+#ifndef IRIS_FEATURE_SSBO
+    uniform float nightVision;
+
+    #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
+        uniform sampler2D BUFFER_HDR_PREVIOUS;
+
+        uniform float viewWidth;
+        uniform float viewHeight;
+    #endif
+
+    #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_EYEBRIGHTNESS
+        uniform ivec2 eyeBrightness;
+    #endif
+
+    #if MC_VERSION >= 11900
+        uniform float darknessFactor;
+    #endif
+#endif
+
+//uniform int isEyeInWater;
+uniform float blindness;
 
 #include "/lib/lighting/blackbody.glsl"
 

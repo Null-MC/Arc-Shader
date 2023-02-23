@@ -11,10 +11,20 @@ uniform usampler2D BUFFER_DEFERRED;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex2;
 
+#ifdef SSGI_ENABLED
+    uniform sampler2D BUFFER_HDR_PREVIOUS;
+#endif
+
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjectionInverse;
 uniform float viewWidth;
 uniform float viewHeight;
+
+#ifdef SSGI_ENABLED
+    uniform mat4 gbufferPreviousModelView;
+    uniform mat4 gbufferPreviousProjection;
+    uniform vec3 previousCameraPosition;
+#endif
 
 #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || (defined SSS_ENABLED && defined SSS_BLUR))
     uniform sampler2D shadowtex0;
@@ -72,7 +82,7 @@ uniform float viewHeight;
 
 
 /* RENDERTARGETS: 9,10,1 */
-#if AO_TYPE == AO_TYPE_SS
+#if defined SSGI_ENABLED || AO_TYPE == AO_TYPE_SS
     layout(location = 0) out vec4 outGIAO;
 #endif
 #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
@@ -84,21 +94,21 @@ uniform float viewHeight;
     #endif
 #endif
 
-float SampleOcclusion(const in vec2 sampleTex, const in vec3 viewPos, const in vec3 cnorm) {
-    vec2 viewSize = vec2(viewWidth, viewHeight);
-    float sampleClipDepth = texelFetch(depthtex0, ivec2(sampleTex * viewSize), 0).r;
-    vec3 sampleClipPos = vec3(sampleTex, sampleClipDepth) * 2.0 - 1.0;
-    vec3 sampleViewPos = unproject(gbufferProjectionInverse * vec4(sampleClipPos, 1.0));
+// float SampleOcclusion(const in vec2 sampleTex, const in vec3 viewPos, const in vec3 cnorm) {
+//     vec2 viewSize = vec2(viewWidth, viewHeight);
+//     float sampleClipDepth = texelFetch(depthtex0, ivec2(sampleTex * viewSize), 0).r;
+//     vec3 sampleClipPos = vec3(sampleTex, sampleClipDepth) * 2.0 - 1.0;
+//     vec3 sampleViewPos = unproject(gbufferProjectionInverse * vec4(sampleClipPos, 1.0));
 
-    vec3 diff = sampleViewPos - viewPos;
-    float l = length(diff);
-    vec3 v = diff / (l+1.0);
-    float d = l * SSAO_SCALE;
-    float ao = max(dot(cnorm, v) - SSAO_BIAS, 0.0) * rcp(1.0 + d);
-    return ao * smoothstep(SSAO_MAX_DIST, SSAO_MAX_DIST * 0.5, l);
-}
+//     vec3 diff = sampleViewPos - viewPos;
+//     float l = length(diff);
+//     vec3 v = diff / (l+1.0);
+//     float d = l * SSAO_SCALE;
+//     float ao = max(dot(cnorm, v) - SSAO_BIAS, 0.0) * rcp(1.0 + d);
+//     return ao * smoothstep(SSAO_MAX_DIST, SSAO_MAX_DIST * 0.5, l);
+// }
 
-float GetSpiralOcclusion(const in vec2 uv, const in vec3 viewPos, const in vec3 viewNormal, const in float rad) {
+vec4 GetSpiralOcclusion(const in vec2 uv, const in vec3 viewPos, const in vec3 viewNormal, const in float rad) {
     const float inv = rcp(SSAO_SAMPLES);
 
     #ifdef IRIS_FEATURE_SSBO
@@ -112,10 +122,11 @@ float GetSpiralOcclusion(const in vec2 uv, const in vec3 viewPos, const in vec3 
 
     float rStep = inv * rad;
 
-    float radius = 0.0;
+    float radius = rStep;
     vec2 offset;
 
     float ao = 0.0;
+    vec3 gi = vec3(0.0);
     for (int i = 0; i < SSAO_SAMPLES; i++) {
         #ifdef IRIS_FEATURE_SSBO
             offset = (rotation * ssaoDiskOffset[i]) * radius;
@@ -129,10 +140,50 @@ float GetSpiralOcclusion(const in vec2 uv, const in vec3 viewPos, const in vec3 
 
         radius += rStep;
 
-        ao += SampleOcclusion(uv + offset, viewPos, viewNormal);
+        vec2 sampleUV = uv + offset;
+        if (sampleUV != saturate(sampleUV)) continue;
+
+        //ao += SampleOcclusion(uv + offset, viewPos, viewNormal);
+        vec2 viewSize = vec2(viewWidth, viewHeight);
+        float sampleClipDepth = texelFetch(depthtex0, ivec2(sampleUV * viewSize), 0).r;
+
+        if (sampleClipDepth >= 1.0) {
+            //gi += 1.0;
+            //ao += 0.0;
+            continue;
+        }
+
+        vec3 sampleClipPos = vec3(sampleUV, sampleClipDepth) * 2.0 - 1.0;
+        vec3 sampleViewPos = unproject(gbufferProjectionInverse * vec4(sampleClipPos, 1.0));
+
+        vec3 diff = sampleViewPos - viewPos;
+        float l = length(diff);
+        vec3 sampleNormal = diff / l;//(l+1.0);
+        float d = l * SSAO_SCALE;
+
+        float sampleNoLm = max(dot(viewNormal, sampleNormal) + SSAO_BIAS, 0.0);
+
+        #if AO_TYPE == AO_TYPE_SS
+            float aoF = sampleNoLm * rcp(1.0 + d);
+            ao += aoF * smoothstep(SSAO_MAX_DIST, SSAO_MAX_DIST * 0.5, l);
+        #endif
+
+        #ifdef SSGI_ENABLED
+            //vec3 viewPosPrev = (gbufferModelViewInverse * vec4(sampleViewPos, 1.0)).xyz + cameraPosition;
+            //viewPosPrev = (gbufferPreviousModelView * vec4(viewPosPrev - previousCameraPosition, 1.0)).xyz;
+            //viewPosPrev = unproject(gbufferPreviousProjection * vec4(viewPosPrev, 1.0)) * 0.5 + 0.5;
+
+            float giF = sampleNoLm / (l + 1.0);
+
+            //ivec2 giSamplePos = ivec2((viewPosPrev.xy) * (viewSize / exp2(SSR_QUALITY)));
+            ivec2 gi_uv = ivec2(sampleUV * (viewSize / exp2(SSR_QUALITY)));
+            vec3 sampleColor = texelFetch(BUFFER_HDR_PREVIOUS, gi_uv, 0).rgb;
+            //vec3 sampleColor = textureLod(BUFFER_HDR_PREVIOUS, sampleUV, 0.0).rgb;
+            gi += sampleColor * giF; //smoothstep(SSAO_MAX_DIST, SSAO_MAX_DIST * 0.5, l);
+        #endif
     }
 
-    return ao * inv;
+    return vec4(10.0 * gi, ao) * inv;
 }
 
 void main() {
@@ -141,8 +192,8 @@ void main() {
 
     float clipDepth = texelFetch(depthtex0, itexFull, 0).r;
 
+    vec4 GI_AO = vec4(0.0, 0.0, 0.0, 1.0);
     vec3 shadowColor = vec3(1.0);
-    float occlusion = 1.0;
     float shadowF = 1.0;
     float sssF = 0.0;
 
@@ -156,7 +207,7 @@ void main() {
 
         vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
 
-        #if AO_TYPE == AO_TYPE_SS || (defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || defined SSS_BLUR))
+        #if defined SSGI_ENABLED || AO_TYPE == AO_TYPE_SS || (defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || defined SSS_BLUR))
             uvec4 gbufferData = texelFetch(BUFFER_DEFERRED, itexFull, 0);
 
             vec3 viewNormal = unpackUnorm4x8(gbufferData.g).xyz;
@@ -252,7 +303,7 @@ void main() {
             #endif
         #endif
 
-        #if AO_TYPE == AO_TYPE_SS
+        #if defined SSGI_ENABLED || AO_TYPE == AO_TYPE_SS
             //uint deferredNormal = texelFetch(BUFFER_DEFERRED, itexFull, 0).g;
             //vec3 viewNormal = unpackUnorm4x8(gbufferData.g).xyz;
             //viewNormal = normalize(viewNormal * 2.0 - 1.0);
@@ -260,13 +311,13 @@ void main() {
             //float rad = SSAO_RADIUS / max(-viewPos.z, 1.0);
             float rad = SSAO_RADIUS / (length(viewPos) + 1.0);
 
-            occlusion = GetSpiralOcclusion(texcoord, viewPos, viewNormal, rad);
-            occlusion = 1.0 - saturate(occlusion * SSAO_INTENSITY);
+            GI_AO = GetSpiralOcclusion(texcoord, viewPos, viewNormal, rad);
+            GI_AO.a = 1.0 - saturate(GI_AO.a * SSAO_INTENSITY);
         #endif
     }
 
-    #if AO_TYPE == AO_TYPE_SS
-        outGIAO = vec4(vec3(0.0), occlusion);
+    #if defined SSGI_ENABLED || AO_TYPE == AO_TYPE_SS
+        outGIAO = GI_AO;
     #endif
 
     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE

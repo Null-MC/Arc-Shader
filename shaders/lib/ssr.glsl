@@ -19,7 +19,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
         screenRay *= ssrPixelSize.x / abs(screenRay.x);
 
     #ifndef SSR_HIZ
-        #if SSR_QUALITY == 0
+        #if SSR_QUALITY == 2
             screenRay *= 3.0;
         #elif SSR_QUALITY == 1
             screenRay *= 2.0;
@@ -27,7 +27,7 @@ vec4 GetReflectColor(const in sampler2D depthtex, const in vec3 viewPos, const i
     #endif
 
     vec3 lastTracePos = clipPos + screenRay;
-    //#if SSR_QUALITY != 2
+    //#if SSR_QUALITY != 0
         lastTracePos += screenRay * GetScreenBayerValue();
     //#endif
 

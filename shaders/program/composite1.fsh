@@ -56,7 +56,7 @@ in vec2 texcoord;
     #endif
 #endif
 
-#if AO_TYPE == AO_TYPE_SS
+#if defined SSGI_ENABLED || AO_TYPE == AO_TYPE_SS
     uniform sampler2D BUFFER_GI_AO;
 #endif
 

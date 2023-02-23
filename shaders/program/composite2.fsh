@@ -74,7 +74,7 @@ void main() {
     outColor0 = vec4(color, lum);
 
     #if REFLECTION_MODE == REFLECTION_MODE_SCREEN
-        #if SSR_QUALITY == 2
+        #if SSR_QUALITY == 0
             ivec2 iuv = ivec2(gl_FragCoord.xy * SSR_SCALE);
             float depth = texelFetch(depthtex0, iuv, 0).r;
         #else

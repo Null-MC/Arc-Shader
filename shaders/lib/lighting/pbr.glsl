@@ -164,9 +164,10 @@
                 #endif
             #endif
 
-            #if AO_TYPE == AO_TYPE_SS
+            #if defined SSGI_ENABLED || AO_TYPE == AO_TYPE_SS
                 #ifdef SSGI_ENABLED
                     vec4 giaoDeferred = BilateralGaussianDepthBlurRGBA_7x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, deferredSigma);
+                    //vec4 giaoDeferred = textureLod(BUFFER_GI_AO, texcoord, 0.0);
                 #else
                     vec4 giaoDeferred = vec4(vec3(0.0), BilateralGaussianDepthBlur_7x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, lightData.opaqueScreenDepthLinear, deferredSigma, 3));
                 #endif
@@ -474,6 +475,11 @@
         vec3 ambient = vec3(MinWorldLux);
         vec3 diffuse = albedo * blockLightDiffuse * metalDarkF;
         vec3 specular = vec3(0.0);
+
+        #if defined SSGI_ENABLED && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT || defined RENDER_TEXTURED)
+            ambient += (giaoDeferred.rgb / sceneExposure) * SSGIStrengthF;
+            //return vec4(giaoDeferred.rgb / sceneExposure, 1.0);
+        #endif
 
         vec3 iblF = vec3(0.0);
         vec3 iblSpec = vec3(0.0);
