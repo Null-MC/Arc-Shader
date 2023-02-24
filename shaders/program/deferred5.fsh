@@ -325,7 +325,7 @@ void main() {
         vec4 lightingMap = unpackUnorm4x8(deferredData.a);
         
         lightData.occlusion = normalMap.a;
-        lightData.blockLight = lightingMap.x;
+        lightData.blockLight = lightingMap.x;//saturate((lightingMap.x - (0.5/15.0)) * (16.0/15.0));
         lightData.skyLight = lightingMap.y;
         lightData.geoNoL = lightingMap.z * 2.0 - 1.0;
         lightData.parallaxShadow = lightingMap.w;

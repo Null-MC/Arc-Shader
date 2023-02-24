@@ -373,6 +373,13 @@ option.SSAO_RADIUS=Radius
 option.SSAO_SAMPLES=Sample Count
 
 
+screen.EFFECT_GI_OPTIONS=Global Illumination
+
+option.SSGI_ENABLED=Enabled
+
+option.SSGI_STRENGTH=Strength
+
+
 screen.EFFECT_DOF_OPTIONS=Depth-of-Field
 
 option.DOF_ENABLED=Enabled

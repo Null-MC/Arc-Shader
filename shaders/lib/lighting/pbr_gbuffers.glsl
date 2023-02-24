@@ -223,9 +223,9 @@
             if (materialId == ENTITY_PHYSICSMOD_SNOW) {
                 material.albedo.rgb = SNOW_COLOR;
 
-                material.scattering = GetPhysicsSnowScattering(localPos);
-                material.smoothness = GetPhysicsSnowSmooth(localPos);
-                material.normal = GetPhysicsSnowNormal(localPos, viewDist);
+                material.scattering = GetPhysicsSnowScattering(worldPos);
+                material.smoothness = GetPhysicsSnowSmooth(worldPos);
+                material.normal = GetPhysicsSnowNormal(worldPos, viewDist);
                 material.f0 = 0.02;
             }
         #endif

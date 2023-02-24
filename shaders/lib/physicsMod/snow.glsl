@@ -2,7 +2,7 @@
 // https://www.shadertoy.com/view/3dVXDc
 
 #define PHYSICS_SNOW_NOISE 0.06
-#define PHYSICS_SNOW_RESOLUTION 64 // [16 32 64 128]
+#define PHYSICS_SNOW_RESOLUTION 128 // [16 32 64 128]
 
 
 float noise3D(const in vec3 p) {
@@ -142,5 +142,5 @@ float GetPhysicsSnowScattering(const in vec3 worldPos) {
 
 float GetPhysicsSnowSmooth(const in vec3 worldPos) {
 	float v = 1.0 - fbm(worldPos * 0.6);
-	return saturate(0.2 + 0.2 * v);
+	return saturate(0.1 + 0.1 * v);
 }

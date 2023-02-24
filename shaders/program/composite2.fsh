@@ -82,7 +82,7 @@ void main() {
         #endif
 
         #ifdef SSR_IGNORE_HAND
-            #if SSR_QUALITY == 2
+            #if SSR_QUALITY == 0
                 float depthT1 = texelFetch(depthtex1, iuv, 0).r;
                 float depthT2 = texelFetch(depthtex2, iuv, 0).r;
             #else

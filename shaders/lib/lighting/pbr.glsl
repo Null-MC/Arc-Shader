@@ -380,8 +380,8 @@
                 return vec4(texture(shadowcolor0, vec2(0.0)).rgb, 1.0);
         #endif
 
+        vec3 blockLightDiffuse, blockLightSpecular;
         #if defined LIGHT_COLOR_ENABLED && defined IRIS_FEATURE_SSBO
-            vec3 blockLightDiffuse;
             //if (all(greaterThan(viewPos, -vec3(shadowDistance))) && all(lessThan(viewPos, vec3(shadowDistance)))) {
                 uint gridIndex;
                 vec3 lightFragPos = localPos + 0.01 * lightData.geoNormal;
@@ -391,7 +391,8 @@
                     bool hasGeoNormal = any(greaterThan(abs(lightData.geoNormal), EPSILON3));
                     bool hasTexNormal = any(greaterThan(abs(localNormal), EPSILON3));
 
-                    vec3 lightColor = vec3(0.0);
+                    vec3 accumDiffuse = vec3(0.0);
+                    vec3 accumSpecular = vec3(0.0);
                     for (int i = 0; i < lightCount; i++) {
                         SceneLightData light = GetSceneLight(gridIndex, i);
                         vec3 lightVec = light.position - lightFragPos;
@@ -406,59 +407,85 @@
                         //lightAtt = pow(lightAtt, 0.5);
                         lightAtt = pow5(lightAtt);
                         
-                        float NoLm = 1.0;
+                        float lightNoLm = 1.0;
+                        //float lightLoHm = 1.0; // TODO!!!
+
+                        vec3 lightHalfDir = normalize(lightDir + -localViewDir);
+                        float lightLoHm = max(dot(lightDir, lightHalfDir), 0.0);
 
                         if (hasTexNormal) {
-                            NoLm *= max(dot(localNormal, lightDir), 0.0);
-
-                            if (hasGeoNormal)
-                                NoLm *= step(0.0, dot(lightData.geoNormal, lightDir));
+                            lightNoLm = max(dot(localNormal, lightDir), 0.0);
                         }
 
                         float sss = 0.0;
                         if (material.scattering > EPSILON) {
                             float lightVoL = dot(localViewDir, lightDir);
 
-                            sss = 3.0 * material.scattering * mix(
+                            sss = 3.0 * material.scattering * max(mix(
                                 ComputeVolumetricScattering(lightVoL, -0.2),
                                 ComputeVolumetricScattering(lightVoL, 0.6),
-                                0.65);
+                                0.65), 0.0);
                         }
 
-                        lightColor += ((1.0 - NoLm) * max(sss, 0.0) + NoLm) * light.color.rgb * lightAtt;
+                        float sampleShadow = 1.0;
+                        if (hasTexNormal && hasGeoNormal)
+                            sampleShadow = step(0.0, dot(lightData.geoNormal, lightDir));
+
+                        #ifdef LIGHT_COLOR_PBR
+                            float lightNoHm = max(dot(localNormal, lightHalfDir), 0.0);
+                            float lightVoHm = max(dot(localViewDir, lightHalfDir), 0.0);
+                            vec3 lightF = GetFresnel(material.albedo.rgb, material.f0, material.hcm, lightVoHm, roughL);
+                            
+                            vec3 lightDiffuse = GetDiffuse_Burley(albedo, NoVm, lightNoLm, lightLoHm, roughL) * sampleShadow * (1.0 - sss);
+                            lightDiffuse += invPI * albedo * sss * (1.0 - lightNoLm);
+                            //lightDiffuse *= (1.0 - lightF);
+
+                            vec3 lightSpecular = GetSpecularBRDF(lightF, NoVm, lightNoLm, lightNoHm, roughL) * sampleShadow;
+                        #else
+                            vec3 lightDiffuse = invPI * albedo * ((1.0 - lightNoLm) * sss + lightNoLm * sampleShadow);
+                            const vec3 lightSpecular = vec3(0.0);
+                        #endif
+
+                        accumDiffuse += PI * lightDiffuse * light.color.rgb * lightAtt;
+                        accumSpecular += lightSpecular * light.color.rgb * lightAtt;
                     }
 
-                    lightColor *= lightData.blockLight;
+                    accumDiffuse *= lightData.blockLight * BlockLightLux;
+                    accumSpecular *= lightData.blockLight * BlockLightLux;
 
                     #ifdef LIGHT_FALLBACK
                         // TODO: shrink to shadow bounds
                         vec3 offsetPos = localPos + LightGridCenter;
                         //vec3 maxSize = SceneLightSize
                         float fade = minOf(min(offsetPos, SceneLightSize - offsetPos)) / 15.0;
-                        lightColor = mix(pow4(lightData.blockLight) * blockLightColor, lightColor, saturate(fade));
+                        accumDiffuse = mix(pow4(lightData.blockLight) * blockLightColor, accumDiffuse, saturate(fade));
                     #endif
 
-                    blockLightDiffuse = lightColor;
+                    blockLightDiffuse = accumDiffuse;
+                    blockLightSpecular = accumSpecular;
                 }
             //}
             else {
                 #ifdef LIGHT_FALLBACK
-                    blockLightDiffuse = pow4(lightData.blockLight) * blockLightColor;
+                    blockLightDiffuse = albedo * pow4(lightData.blockLight) * blockLightColor * BlockLightLux;
                 #else
                     blockLightDiffuse = vec3(0.0);
                 #endif
+
+                blockLightSpecular = vec3(0.0);
             }
         #else
             #if DIRECTIONAL_LIGHTMAP_STRENGTH > 0
-                vec3 blockLightDiffuse = vec3(pow2(lightData.blockLight));
+                blockLightDiffuse = vec3(pow2(lightData.blockLight));
             #else
-                vec3 blockLightDiffuse = vec3(pow4(lightData.blockLight));
+                blockLightDiffuse = vec3(pow4(lightData.blockLight));
             #endif
 
-            blockLightDiffuse *= blockLightColor;
+            blockLightDiffuse *= albedo * blockLightColor * BlockLightLux;
+            blockLightSpecular = vec3(0.0);
         #endif
 
-        blockLightDiffuse *= BlockLightLux;
+        //blockLightDiffuse *= BlockLightLux;
         //return vec4(blockLightDiffuse, 1.0);
 
         #if MATERIAL_FORMAT == MATERIAL_FORMAT_LABPBR || MATERIAL_FORMAT == MATERIAL_FORMAT_DEFAULT
@@ -473,8 +500,8 @@
 
         vec4 final = vec4(albedo, material.albedo.a);
         vec3 ambient = vec3(MinWorldLux);
-        vec3 diffuse = albedo * blockLightDiffuse * metalDarkF;
-        vec3 specular = vec3(0.0);
+        vec3 diffuse = blockLightDiffuse * metalDarkF;
+        vec3 specular = blockLightSpecular;
 
         #if defined SSGI_ENABLED && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT || defined RENDER_TEXTURED)
             ambient += (giaoDeferred.rgb / sceneExposure) * SSGIStrengthF;
