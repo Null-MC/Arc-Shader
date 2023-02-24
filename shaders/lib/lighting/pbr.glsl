@@ -427,10 +427,13 @@
                                 0.65), 0.0);
                         }
 
+                        // WARN: This breaks on PhysicsMod snow cause geoNormal isn't smooth
                         float sampleShadow = 1.0;
-                        if (hasTexNormal && hasGeoNormal)
-                            sampleShadow = step(0.0, dot(lightData.geoNormal, lightDir));
-
+                        #ifdef LIGHT_COLOR_NORMAL_CHECK
+                            if (hasTexNormal && hasGeoNormal)
+                                sampleShadow = step(0.0, dot(lightData.geoNormal, lightDir));
+                        #endif
+                        
                         #ifdef LIGHT_COLOR_PBR
                             float lightNoHm = max(dot(localNormal, lightHalfDir), 0.0);
                             float lightVoHm = max(dot(localViewDir, lightHalfDir), 0.0);
