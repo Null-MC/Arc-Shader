@@ -380,6 +380,7 @@ option.DOF_ENABLED=Enabled
 option.DOF_SCALE=Scale
 
 option.DOF_STEP_SIZE=Step Size
+option.DOF_STEP_SIZE.comment=Smaller values will provide a higher quality blur at the cost of performance.
 
 option.DOF_MAX_SIZE=Max Size
 

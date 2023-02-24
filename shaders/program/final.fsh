@@ -292,8 +292,9 @@ void main() {
         float opaqueScreenDepth = texelFetch(depthtex1, iTex, 0).r;
         float opaqueScreenDepthLinear = linearizeDepthFast(opaqueScreenDepth, near, far);
         #if DEBUG_VIEW == DEBUG_VIEW_DEFERRED_GI
-            //color = BilateralGaussianDepthBlurRGB_7x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, vec3(6.0, 6.0, 0.01));
-            color = textureLod(BUFFER_GI_AO, texcoord, 0.0).rgb;
+            vec4 gi_ao = BilateralGaussianDepthBlurRGBA_7x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, vec3(6.0, 6.0, 0.01));
+            //vec4 gi_ao = textureLod(BUFFER_GI_AO, texcoord, 0.0);
+            color = gi_ao.rgb * SSGIStrengthF * gi_ao.a;
         #else
             color = vec3(BilateralGaussianDepthBlur_7x(BUFFER_GI_AO, viewSize, depthtex0, viewSize, opaqueScreenDepthLinear, vec3(6.0, 6.0, 0.01), 3));
         #endif

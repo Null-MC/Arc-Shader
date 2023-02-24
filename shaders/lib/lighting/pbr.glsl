@@ -478,7 +478,7 @@
 
         #if defined SSGI_ENABLED && !(defined RENDER_WATER || defined RENDER_HAND_WATER || defined RENDER_ENTITIES_TRANSLUCENT || defined RENDER_TEXTURED)
             ambient += (giaoDeferred.rgb / sceneExposure) * SSGIStrengthF;
-            //return vec4(giaoDeferred.rgb / sceneExposure, 1.0);
+            //return vec4((giaoDeferred.rgb / sceneExposure) * SSGIStrengthF, 1.0);
         #endif
 
         vec3 iblF = vec3(0.0);

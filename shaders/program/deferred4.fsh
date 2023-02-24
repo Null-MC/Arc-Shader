@@ -164,26 +164,26 @@ vec4 GetSpiralOcclusion(const in vec2 uv, const in vec3 viewPos, const in vec3 v
         float sampleNoLm = max(dot(viewNormal, sampleNormal) + SSAO_BIAS, 0.0);
 
         #if AO_TYPE == AO_TYPE_SS
-            float aoF = sampleNoLm * rcp(1.0 + d);
+            float aoF = sampleNoLm / (l + 1.0);
             ao += aoF * smoothstep(SSAO_MAX_DIST, SSAO_MAX_DIST * 0.5, l);
         #endif
 
         #ifdef SSGI_ENABLED
-            //vec3 viewPosPrev = (gbufferModelViewInverse * vec4(sampleViewPos, 1.0)).xyz + cameraPosition;
-            //viewPosPrev = (gbufferPreviousModelView * vec4(viewPosPrev - previousCameraPosition, 1.0)).xyz;
-            //viewPosPrev = unproject(gbufferPreviousProjection * vec4(viewPosPrev, 1.0)) * 0.5 + 0.5;
+            vec3 samplePrev = (gbufferModelViewInverse * vec4(sampleViewPos, 1.0)).xyz + cameraPosition;
+            samplePrev = (gbufferPreviousModelView * vec4(samplePrev - previousCameraPosition, 1.0)).xyz;
+            samplePrev = unproject(gbufferPreviousProjection * vec4(samplePrev, 1.0)) * 0.5 + 0.5;
 
             float giF = sampleNoLm / (l + 1.0);
 
             //ivec2 giSamplePos = ivec2((viewPosPrev.xy) * (viewSize / exp2(SSR_QUALITY)));
-            ivec2 gi_uv = ivec2(sampleUV * (viewSize / exp2(SSR_QUALITY)));
+            ivec2 gi_uv = ivec2(samplePrev.xy * (viewSize / exp2(SSR_QUALITY)));
             vec3 sampleColor = texelFetch(BUFFER_HDR_PREVIOUS, gi_uv, 0).rgb;
             //vec3 sampleColor = textureLod(BUFFER_HDR_PREVIOUS, sampleUV, 0.0).rgb;
             gi += sampleColor * giF; //smoothstep(SSAO_MAX_DIST, SSAO_MAX_DIST * 0.5, l);
         #endif
     }
 
-    return vec4(10.0 * gi, ao) * inv;
+    return vec4(30.0 * gi, ao) * inv;
 }
 
 void main() {
@@ -199,11 +199,10 @@ void main() {
 
     if (clipDepth < 1.0) {
         float handClipDepth = texelFetch(depthtex2, itexFull, 0).r;
+        bool isHand = handClipDepth > clipDepth;
 
         vec3 clipPos = vec3(texcoord, clipDepth) * 2.0 - 1.0;
-
-        if (handClipDepth > clipDepth)
-            clipPos.z /= MC_HAND_DEPTH;
+        if (isHand) clipPos.z /= MC_HAND_DEPTH;
 
         vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
 
@@ -304,15 +303,12 @@ void main() {
         #endif
 
         #if defined SSGI_ENABLED || AO_TYPE == AO_TYPE_SS
-            //uint deferredNormal = texelFetch(BUFFER_DEFERRED, itexFull, 0).g;
-            //vec3 viewNormal = unpackUnorm4x8(gbufferData.g).xyz;
-            //viewNormal = normalize(viewNormal * 2.0 - 1.0);
-            
-            //float rad = SSAO_RADIUS / max(-viewPos.z, 1.0);
-            float rad = SSAO_RADIUS / (length(viewPos) + 1.0);
+            if (!isHand) {
+                float rad = SSAO_RADIUS / (length(viewPos) + 1.0);
 
-            GI_AO = GetSpiralOcclusion(texcoord, viewPos, viewNormal, rad);
-            GI_AO.a = 1.0 - saturate(GI_AO.a * SSAO_INTENSITY);
+                GI_AO = GetSpiralOcclusion(texcoord, viewPos, viewNormal, rad);
+                GI_AO.a = 1.0 - saturate(GI_AO.a * SSAO_INTENSITY);
+            }
         #endif
     }
 
