@@ -8,6 +8,8 @@
 in vec2 texcoord;
 
 uniform sampler2D BUFFER_SKY_LUT;
+uniform sampler3D TEX_SUN_TRANSMIT;
+uniform sampler3D TEX_MULTI_SCATTER;
 
 uniform vec3 cameraPosition;
 uniform float rainStrength;
