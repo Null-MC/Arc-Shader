@@ -43,7 +43,7 @@ vec3 getValFromMultiScattLUT(const in sampler3D tex, const in vec3 pos, const in
         
         // Non-linear mapping of altitude angle. See Section 5.3 of the paper.
         float v = 0.5 + 0.5 * sign(altitudeAngle) * sqrt(abs(altitudeAngle) * 2.0 / PI);
-        vec2 uv = vec2(azimuthAngle / (2.0*PI), v);
+        vec2 uv = vec2(azimuthAngle / TAU, v);
         
         return textureLod(BUFFER_SKY_LUT, uv, lod).rgb;
     }

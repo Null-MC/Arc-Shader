@@ -8,6 +8,7 @@
 in vec2 texcoord;
 
 uniform usampler2D BUFFER_DEFERRED;
+uniform sampler2D BUFFER_DEPTH_PREV;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex2;
 
@@ -145,7 +146,8 @@ vec4 GetSpiralOcclusion(const in vec2 uv, const in vec3 viewPos, const in vec3 v
 
         //ao += SampleOcclusion(uv + offset, viewPos, viewNormal);
         vec2 viewSize = vec2(viewWidth, viewHeight);
-        float sampleClipDepth = texelFetch(depthtex0, ivec2(sampleUV * viewSize), 0).r;
+        //float sampleClipDepth = texelFetch(depthtex0, ivec2(sampleUV * viewSize), 0).r;
+        float sampleClipDepth = textureLod(BUFFER_DEPTH_PREV, sampleUV, 0.0).r;
 
         if (sampleClipDepth >= 1.0) {
             //gi += 1.0;
@@ -169,21 +171,22 @@ vec4 GetSpiralOcclusion(const in vec2 uv, const in vec3 viewPos, const in vec3 v
         #endif
 
         #ifdef SSGI_ENABLED
-            vec3 samplePrev = (gbufferModelViewInverse * vec4(sampleViewPos, 1.0)).xyz + cameraPosition;
-            samplePrev = (gbufferPreviousModelView * vec4(samplePrev - previousCameraPosition, 1.0)).xyz;
-            samplePrev = unproject(gbufferPreviousProjection * vec4(samplePrev, 1.0)) * 0.5 + 0.5;
+            //vec3 samplePrev = (gbufferModelViewInverse * vec4(sampleViewPos, 1.0)).xyz + cameraPosition;
+            //samplePrev = (gbufferPreviousModelView * vec4(samplePrev - previousCameraPosition, 1.0)).xyz;
+            //samplePrev = unproject(gbufferPreviousProjection * vec4(samplePrev, 1.0)) * 0.5 + 0.5;
 
             float giF = sampleNoLm / (l + 1.0);
 
             //ivec2 giSamplePos = ivec2((viewPosPrev.xy) * (viewSize / exp2(SSR_QUALITY)));
-            ivec2 gi_uv = ivec2(samplePrev.xy * (viewSize / exp2(SSR_QUALITY)));
-            vec3 sampleColor = texelFetch(BUFFER_HDR_PREVIOUS, gi_uv, 0).rgb;
-            //vec3 sampleColor = textureLod(BUFFER_HDR_PREVIOUS, sampleUV, 0.0).rgb;
+            //ivec2 gi_uv = ivec2(samplePrev.xy * (viewSize / exp2(SSR_QUALITY)));
+            //vec3 sampleColor = texelFetch(BUFFER_HDR_PREVIOUS, gi_uv, 0).rgb;
+            vec3 sampleColor = textureLod(BUFFER_HDR_PREVIOUS, sampleUV, 0.0).rgb;
+            sampleColor /= luminance(sampleColor) + 1.0; //smoothstep(SSAO_MAX_DIST, SSAO_MAX_DIST * 0.5, l);
             gi += sampleColor * giF; //smoothstep(SSAO_MAX_DIST, SSAO_MAX_DIST * 0.5, l);
         #endif
     }
 
-    return vec4(30.0 * gi, ao) * inv;
+    return vec4(10.0 * gi, ao) * inv;
 }
 
 void main() {

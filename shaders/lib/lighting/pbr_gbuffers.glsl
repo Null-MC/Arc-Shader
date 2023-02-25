@@ -207,7 +207,7 @@
         #endif
 
         #if AO_TYPE == AO_TYPE_VANILLA
-            material.occlusion *= pow2(glcolor.a);
+            material.occlusion *= glcolor.a;
         #endif
 
         #if defined SKY_ENABLED && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE) && (defined RENDER_TERRAIN || defined RENDER_WATER)

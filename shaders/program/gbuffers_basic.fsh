@@ -43,10 +43,12 @@ void main() {
             colorMap.rgb = vec3(0.8);
         #elif BLOCK_OUTLINE == BLOCK_OUTLINE_FANCY
             vec3 worldPos = fract(cameraPosition) + localPos;
-            float offset = (worldPos.x + worldPos.y + worldPos.z) * 10.0;
+            float offset = (worldPos.x + worldPos.y + worldPos.z) * 16.0;
             colorMap.rgb = step(1.0, mod(offset, 2.0)) * vec3(1.0, 1.0, 0.0);
             specularMap.a = 0.06;
         #endif
+
+        normalMap.xyz = vec3(0.0);
     }
     else {
         mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));

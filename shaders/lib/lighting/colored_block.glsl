@@ -244,7 +244,7 @@ void AddSceneBlockLight(const in int blockId, const in vec3 blockLocalPos) {
         if (blockId == BLOCK_CANDLES_1 || blockId == BLOCK_CANDLES_2
          || blockId == BLOCK_CANDLES_3 || blockId == BLOCK_CANDLES_4
          || blockId == BLOCK_CANDLE_CAKE_LIT || blockId == BLOCK_JACK_O_LANTERN) {
-            float candleTemp = mix(2200, 3200, flickerNoise);
+            float candleTemp = mix(2600, 3600, flickerNoise);
             lightColor = 0.7 * blackbody(candleTemp);
         }
     #endif

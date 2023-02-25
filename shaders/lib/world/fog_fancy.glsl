@@ -46,11 +46,13 @@ vec4 GetFancyFog(const in vec3 localPos, const in vec3 localSunDir, const in flo
     #endif
 
     //psiMS *= 0.4;
-    psiMS *= (eyeBrightnessSmooth.y / 240.0);
+    float eyeLight = eyeBrightnessSmooth.y / 240.0;
+    //lightTransmittance *= eyeLight;
+    //psiMS *= eyeLight;
 
     vec3 rayleighInScattering = rayleighScattering * (rayleighPhaseValue * lightTransmittance + psiMS);
     vec3 mieInScattering = mieScattering * (miePhaseValue * lightTransmittance + psiMS);
-    vec3 inScattering = (rayleighInScattering + mieInScattering);
+    vec3 inScattering = (rayleighInScattering + mieInScattering) * eyeLight;
 
     // Integrated scattering within path segment.
     vec3 scatteringIntegral = (inScattering - inScattering * sampleTransmittance) / extinction;
