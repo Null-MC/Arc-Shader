@@ -1,11 +1,11 @@
-vec3 GetTransmittance(const in sampler3D tex, const in float elevation, const in float skyLightLevel) {
+vec3 GetTransmittance(const in float elevation, const in float skyLightLevel) {
     vec3 uv = getAtmosLUT_UV(skyLightLevel, elevation);
-    return textureLod(tex, uv, 0).rgb;
+    return textureLod(TEX_SUN_TRANSMIT, uv, 0).rgb;
 }
 
-vec3 GetWorldTransmittance(const in sampler3D tex, const in float worldY, const in float skyLightLevel) {
+vec3 GetWorldTransmittance(const in float worldY, const in float skyLightLevel) {
     float elevation = GetScaledSkyHeight(worldY);
-    return GetTransmittance(tex, elevation, skyLightLevel);
+    return GetTransmittance(elevation, skyLightLevel);
 }
 
 float GetSunLux() {

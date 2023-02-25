@@ -28,14 +28,8 @@ in vec2 texcoord;
 #ifdef SKY_ENABLED
     uniform sampler2D BUFFER_SKY_LUT;
     uniform sampler2D BUFFER_IRRADIANCE;
-
-    #ifdef IS_IRIS
-        uniform sampler3D texSunTransmittance;
-        uniform sampler3D texMultipleScattering;
-    #else
-        uniform sampler3D colortex12;
-        uniform sampler3D colortex13;
-    #endif
+    uniform sampler3D TEX_SUN_TRANSMIT;
+    uniform sampler3D TEX_MULTI_SCATTER;
 
     #ifdef SHADOW_COLOR
         uniform sampler2D BUFFER_DEFERRED2;
@@ -211,6 +205,10 @@ uniform float eyeHumidity;
 #include "/lib/lighting/basic.glsl"
 #include "/lib/world/fog_vanilla.glsl"
 
+#if defined WORLD_WATER_ENABLED && defined WATER_CAUSTICS
+    #include "/lib/world/caustics.glsl"
+#endif
+
 #ifdef SKY_ENABLED
     #include "/lib/sky/hillaire.glsl"
     #include "/lib/world/fog_fancy.glsl"
@@ -346,13 +344,8 @@ void main() {
                 vec3 upDir = normalize(upPosition);
                 float fragElevation = GetAtmosphereElevation(worldPos);
 
-                #ifdef IS_IRIS
-                    lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
-                    lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
-                #else
-                    lightData.sunTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.x);
-                    lightData.moonTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.y);
-                #endif
+                lightData.sunTransmittance = GetTransmittance(fragElevation, skyLightLevels.x);
+                lightData.moonTransmittance = GetTransmittance(fragElevation, skyLightLevels.y);
 
                 #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                     float viewDist = length(viewPos);
@@ -431,6 +424,21 @@ void main() {
                         // TODO: ?
                     #endif
                 }
+                #ifdef WATER_CAUSTICS
+                    else {
+                        float waterDepth = lightData.opaqueShadowDepth - lightData.shadowPos.z - lightData.shadowBias;
+                        if (waterDepth >= 0.0) {
+                            #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
+                                float ShadowMaxDepth = far * 3.0;
+                            #else
+                                float ShadowMaxDepth = far * 2.0;
+                            #endif
+
+                            vec3 caustics = GetWaterCaustics(worldPos, localLightDir, waterDepth * ShadowMaxDepth);
+                            final += material.albedo.rgb * caustics * skySunColor * SunLux;
+                        }
+                    }
+                #endif
             }
             else if (lightData.transparentScreenDepth >= 1.0) {
                 #if defined WATER_VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE

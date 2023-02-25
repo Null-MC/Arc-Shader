@@ -40,7 +40,7 @@ flat out mat2 atlasBounds;
         flat out vec2 skyLightLevels;
 
         flat out vec3 skySunColor;
-
+        
         #ifdef WORLD_MOON_ENABLED
             flat out vec3 skyMoonColor;
         #endif
@@ -57,6 +57,8 @@ flat out mat2 atlasBounds;
 #endif
 
 #ifdef SKY_ENABLED
+    uniform sampler3D TEX_SUN_TRANSMIT;
+    
     uniform vec3 upPosition;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;

@@ -45,14 +45,8 @@ uniform sampler2D lightmap;
     #ifdef SKY_ENABLED
         uniform sampler2D BUFFER_SKY_LUT;
         uniform sampler2D BUFFER_IRRADIANCE;
-
-        #ifdef IS_IRISX
-            uniform sampler3D texSunTransmittance;
-            uniform sampler3D texMultipleScattering;
-        #else
-            uniform sampler3D colortex12;
-            uniform sampler3D colortex13;
-        #endif
+        uniform sampler3D TEX_SUN_TRANSMIT;
+        uniform sampler3D TEX_MULTI_SCATTER;
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             uniform sampler2D shadowtex0;
@@ -263,13 +257,8 @@ void main() {
                 vec3 worldPos = cameraPosition + localPos;
                 float fragElevation = GetAtmosphereElevation(worldPos);
 
-                #ifdef IS_IRISX
-                    lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
-                    lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
-                #else
-                    lightData.sunTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.x);
-                    lightData.moonTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.y);
-                #endif
+                lightData.sunTransmittance = GetTransmittance(fragElevation, skyLightLevels.x);
+                lightData.moonTransmittance = GetTransmittance(fragElevation, skyLightLevels.y);
             #endif
 
             #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE

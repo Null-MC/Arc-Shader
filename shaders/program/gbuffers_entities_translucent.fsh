@@ -81,14 +81,8 @@ uniform sampler2D TEX_BRDF;
 #ifdef SKY_ENABLED
     uniform sampler2D BUFFER_SKY_LUT;
     uniform sampler2D BUFFER_IRRADIANCE;
-
-    #ifdef IS_IRIS
-        uniform sampler3D texSunTransmittance;
-        uniform sampler3D texMultipleScattering;
-    #else
-        uniform sampler3D colortex12;
-        uniform sampler3D colortex13;
-    #endif
+    uniform sampler3D TEX_SUN_TRANSMIT;
+    uniform sampler3D TEX_MULTI_SCATTER;
 #endif
 
 uniform mat4 shadowProjection;
@@ -213,6 +207,10 @@ uniform float waterFogDistSmooth;
 #include "/lib/world/fog_vanilla.glsl"
 #include "/lib/world/scattering.glsl"
 
+#ifdef WORLD_WATER_ENABLED
+    #include "/lib/world/caustics.glsl"
+#endif
+
 #ifdef SKY_ENABLED
     #include "/lib/sky/hillaire.glsl"
     #include "/lib/sky/hillaire_render.glsl"
@@ -273,18 +271,10 @@ void main() {
     #if !defined IRIS_FEATURE_SSBO && defined SKY_ENABLED
         float eyeElevation = GetScaledSkyHeight(eyeAltitude);
 
-        #ifdef IS_IRIS
-            sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
-        #else
-            sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
-        #endif
+        sunTransmittanceEye = GetTransmittance(eyeElevation, skyLightLevels.x);
 
         #ifdef WORLD_MOON_ENABLED
-            #ifdef IS_IRIS
-                moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
-            #else
-                moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);
-            #endif
+            moonTransmittanceEye = GetTransmittance(eyeElevation, skyLightLevels.y);
         #endif
     #endif
     

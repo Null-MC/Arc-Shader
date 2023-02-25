@@ -336,8 +336,15 @@ option.LIGHT_SIZE_Y.comment=The range of the colored-light volume in the vertica
 option.LIGHT_LAVA_ENABLED=Lava
 option.LIGHT_LAVA_ENABLED.comment=Lava is disabled by default since large lakes will blow up the light limit very quickly.
 
+option.LIGHT_COLOR_PBR=PBR
+option.LIGHT_COLOR_PBR.comment=Enables Physically-Based-Lighting for dynamic/colored light sources. Disabling will use a simple lighting model that is lighter on performance.
+
+option.LIGHT_COLOR_NORMAL_CHECK=Reduce Leaking
+option.LIGHT_COLOR_NORMAL_CHECK.comment=Reduces the amount of light leaked through walls by accounting for the geometry-normal.
+
 option.LIGHT_FALLBACK=Fallback
 option.LIGHT_FALLBACK.comment=Determines how lights outside the bounds of coloring are handled.
+
 
 screen.EFFECT_BLOOM_OPTIONS=Bloom
 

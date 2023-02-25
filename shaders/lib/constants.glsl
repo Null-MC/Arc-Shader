@@ -97,10 +97,14 @@
 
 #define BUFFER_BLOOM colortex2
 
-#ifdef IS_IRIS
+#if defined IS_IRIS && defined IRIS_FEATURE_CUSTOM_TEXTURE_NAME
+	#define TEX_SUN_TRANSMIT texSunTransmittance
+	#define TEX_MULTI_SCATTER texMultipleScattering
 	#define TEX_CLOUD_NOISE texCloudNoise
 	#define TEX_BRDF texBRDF
 #else
+	#define TEX_SUN_TRANSMIT colortex12
+	#define TEX_MULTI_SCATTER colortex13
 	#define TEX_CLOUD_NOISE colortex14
 	#define TEX_BRDF colortex15
 #endif

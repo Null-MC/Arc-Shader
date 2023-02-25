@@ -33,18 +33,10 @@
             float eyeElevation = GetScaledSkyHeight(cameraPosition.y);
             float fragElevation = GetAtmosphereElevation(worldPos);
 
-            #ifdef IS_IRIS
-                lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
-            #else
-                lightData.sunTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.x);
-            #endif
+            lightData.sunTransmittance = GetTransmittance(fragElevation, skyLightLevels.x);
 
             #ifdef WORLD_MOON_ENABLED
-                #ifdef IS_IRIS
-                    lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
-                #else
-                    lightData.moonTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.y);
-                #endif
+                lightData.moonTransmittance = GetTransmittance(fragElevation, skyLightLevels.y);
             #endif
         #endif
 

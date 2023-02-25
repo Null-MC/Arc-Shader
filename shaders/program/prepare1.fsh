@@ -8,13 +8,8 @@
 in vec2 texcoord;
 flat in vec3 localSunDir;
 
-#ifdef IS_IRIS
-    uniform sampler3D texSunTransmittance;
-    uniform sampler3D texMultipleScattering;
-#else
-    uniform sampler3D colortex12;
-    uniform sampler3D colortex13;
-#endif
+uniform sampler3D TEX_SUN_TRANSMIT;
+uniform sampler3D TEX_MULTI_SCATTER;
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
@@ -54,13 +49,8 @@ vec3 raymarchScattering(const in vec3 pos, const in vec3 rayDir, const in vec3 s
         
         vec3 sampleTransmittance = exp(-dt*extinction);
 
-        #ifdef IS_IRIS
-            vec3 sunTransmittance = getValFromTLUT(texSunTransmittance, newPos, sunDir);
-            vec3 psiMS = getValFromMultiScattLUT(texMultipleScattering, newPos, sunDir);
-        #else
-            vec3 sunTransmittance = getValFromTLUT(colortex12, newPos, sunDir);
-            vec3 psiMS = getValFromMultiScattLUT(colortex13, newPos, sunDir);
-        #endif
+        vec3 sunTransmittance = getValFromTLUT(TEX_SUN_TRANSMIT, newPos, sunDir);
+        vec3 psiMS = getValFromMultiScattLUT(TEX_MULTI_SCATTER, newPos, sunDir);
         
         vec3 rayleighInScattering = rayleighScattering * (rayleighPhaseValue*sunTransmittance + psiMS);
         vec3 mieInScattering = mieScattering * (miePhaseValue*sunTransmittance + psiMS);

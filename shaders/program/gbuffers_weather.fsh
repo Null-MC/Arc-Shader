@@ -55,14 +55,8 @@ uniform sampler3D TEX_CLOUD_NOISE;
 #ifdef SKY_ENABLED
     uniform sampler2D noisetex;
     uniform usampler2D shadowcolor1;
-
-    #ifdef IS_IRIS
-        uniform sampler3D texSunTransmittance;
-        uniform sampler3D texMultipleScattering;
-    #else
-        uniform sampler3D colortex12;
-        uniform sampler3D colortex13;
-    #endif
+    uniform sampler3D TEX_SUN_TRANSMIT;
+    uniform sampler3D TEX_MULTI_SCATTER;
 
     uniform float frameTimeCounter;
     uniform vec3 upPosition;
@@ -241,13 +235,8 @@ void main() {
 
             float fragElevation = GetAtmosphereElevation(worldPos);
 
-            #ifdef IS_IRIS
-                lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
-                lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
-            #else
-                lightData.sunTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.x);
-                lightData.moonTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.y);
-            #endif
+            lightData.sunTransmittance = GetTransmittance(fragElevation, skyLightLevels.x);
+            lightData.moonTransmittance = GetTransmittance(fragElevation, skyLightLevels.y);
         #endif
 
         #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE

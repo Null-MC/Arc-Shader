@@ -387,7 +387,7 @@
                 vec3 lightFragPos = localPos + 0.01 * lightData.geoNormal;
                 int lightCount = GetSceneLights(lightFragPos, gridIndex);
 
-                if (gridIndex >= 0 && lightCount > 0) {
+                if (gridIndex >= 0) {
                     bool hasGeoNormal = any(greaterThan(abs(lightData.geoNormal), EPSILON3));
                     bool hasTexNormal = any(greaterThan(abs(localNormal), EPSILON3));
 
@@ -741,8 +741,9 @@
                     float waterOpaqueViewDist = length(waterOpaqueViewPos);
                     float waterViewDepthFinal = max(waterOpaqueViewDist - viewDist, 0.0);
 
+                    vec3 waterOpaqueLocalPos = (gbufferModelViewInverse * vec4(waterOpaqueViewPos, 1.0)).xyz;
+
                     #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
-                        vec3 waterOpaqueLocalPos = (gbufferModelViewInverse * vec4(waterOpaqueViewPos, 1.0)).xyz;
 
                         // WARN: This doesn't work right when the dFdxy pos is skewed by refraction
                         // vec3 dX = dFdx(waterOpaqueLocalPos);
@@ -830,6 +831,15 @@
                     float sunVerticalDepth = waterViewDepthFinal * max(-localViewDir.y, 0.0);
                     float fakeSunDist = sunVerticalDepth / max(localLightDir.y, EPSILON);
                     refractColor *= exp(-fakeSunDist * waterExtinctionInv);
+
+                    #ifdef WATER_CAUSTICS
+                        float waterDepth = waterOpaqueShadowDepth - waterOpaqueShadowPos.z + waterShadowBias;
+                        if (waterDepth >= 0.0) {
+                            vec3 waterOpaqueWorldPos = waterOpaqueLocalPos + cameraPosition;
+                            vec3 caustics = GetWaterCaustics(waterOpaqueWorldPos, localLightDir, waterDepth * ShadowMaxDepth);
+                            refractColor += material.albedo.rgb * caustics * skySunColor * SunLux;
+                        }
+                    #endif
                     
                     #if defined WATER_VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                         vec3 vlScatter, vlExt;

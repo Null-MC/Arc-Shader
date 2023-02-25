@@ -106,11 +106,7 @@ uniform float far;
 #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
     // Sun Transmission LUT
     uniform float rainStrength;
-    #ifdef IS_IRIS
-        uniform sampler3D texSunTransmittance;
-    #else
-        uniform sampler3D colortex12;
-    #endif
+    uniform sampler3D TEX_SUN_TRANSMIT;
 #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SKY
     // Sky LUT
     uniform sampler2D BUFFER_SKY_LUT;
@@ -355,11 +351,7 @@ void main() {
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SUN_TRANSMISSION
         // Sun Transmission LUT
         vec3 t3 = vec3(texcoord, rainStrength);
-        #ifdef IS_IRIS
-            color = textureLod(texSunTransmittance, t3, 0).rgb;
-        #else
-            color = textureLod(colortex12, t3, 0).rgb;
-        #endif
+        color = textureLod(TEX_SUN_TRANSMIT, t3, 0).rgb;
     #elif DEBUG_VIEW == DEBUG_VIEW_LUT_SKY
         // Sky LUT
         color = 2.0 * textureLod(BUFFER_SKY_LUT, texcoord, 0).rgb;

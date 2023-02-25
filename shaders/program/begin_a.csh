@@ -29,7 +29,7 @@ const ivec3 workGroups = ivec3(1, 1, 1);
     #endif
 
     #if defined SKY_ENABLED || defined LIGHT_COLOR_ENABLED
-        uniform sampler3D texSunTransmittance;
+        uniform sampler3D TEX_SUN_TRANSMIT;
 
         uniform mat4 gbufferModelView;
         uniform float eyeAltitude;
@@ -97,20 +97,12 @@ void main() {
 
             skySunColor = GetSunColor();
 
-            #ifdef IS_IRIS
-                sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
-            #else
-                sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
-            #endif
+            sunTransmittanceEye = GetTransmittance(eyeElevation, skyLightLevels.x);
 
             #ifdef WORLD_MOON_ENABLED
                 skyMoonColor = GetMoonColor();
 
-                #ifdef IS_IRIS
-                    moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
-                #else
-                    moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);
-                #endif
+                moonTransmittanceEye = GetTransmittance(eyeElevation, skyLightLevels.y);
             #endif
         #endif
 

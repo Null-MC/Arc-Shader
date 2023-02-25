@@ -87,6 +87,7 @@ const bool colortex11Clear = false;
 #define WATER_VL_ENABLED
 #define WATER_VL_SAMPLES 6 // [4 6 8 12 16 24]
 #define WATER_VL_NOISE
+//#define WATER_CAUSTICS
 
 
 // Material Options

@@ -28,14 +28,8 @@ in vec2 texcoord;
 #ifdef SKY_ENABLED
     uniform sampler2D BUFFER_SKY_LUT;
     uniform sampler2D BUFFER_IRRADIANCE;
-
-    #ifdef IS_IRIS
-        uniform sampler3D texSunTransmittance;
-        uniform sampler3D texMultipleScattering;
-    #else
-        uniform sampler3D colortex12;
-        uniform sampler3D colortex13;
-    #endif
+    uniform sampler3D TEX_SUN_TRANSMIT;
+    uniform sampler3D TEX_MULTI_SCATTER;
 
     //#ifdef SHADOW_ENABLED
     //    flat in vec3 skyLightColor;
@@ -209,6 +203,10 @@ uniform float waterFogDistSmooth;
 #include "/lib/world/fog_vanilla.glsl"
 #include "/lib/lighting/basic.glsl"
 
+#if defined WORLD_WATER_ENABLED && defined WATER_CAUSTICS
+    #include "/lib/world/caustics.glsl"
+#endif
+
 #ifdef SKY_ENABLED
     #include "/lib/sky/hillaire.glsl"
     #include "/lib/world/fog_fancy.glsl"
@@ -341,18 +339,10 @@ void main() {
         vec3 upDir = normalize(upPosition);
         float fragElevation = GetAtmosphereElevation(worldPos);
 
-        #ifdef IS_IRIS
-            lightData.sunTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.x);
-        #else
-            lightData.sunTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.x);
-        #endif
+        lightData.sunTransmittance = GetTransmittance(fragElevation, skyLightLevels.x);
 
         #ifdef WORLD_MOON_ENABLED
-            #ifdef IS_IRIS
-                lightData.moonTransmittance = GetTransmittance(texSunTransmittance, fragElevation, skyLightLevels.y);
-            #else
-                lightData.moonTransmittance = GetTransmittance(colortex12, fragElevation, skyLightLevels.y);
-            #endif
+            lightData.moonTransmittance = GetTransmittance(fragElevation, skyLightLevels.y);
         #endif
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE

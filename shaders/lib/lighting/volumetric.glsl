@@ -185,11 +185,7 @@ const float AirSpeed = 20.0;
             vec3 sampleColor = vec3(1.0);
 
             #ifdef SHADOW_COLOR
-                #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
-                    float transparentShadowDepth = SampleTransparentDepth(traceShadowClipPos.xy, vec2(0.0));
-                #else
-                    float transparentShadowDepth = SampleTransparentDepth(traceShadowClipPos.xy, vec2(0.0));
-                #endif
+                float transparentShadowDepth = SampleTransparentDepth(traceShadowClipPos.xy, vec2(0.0));
 
                 if (traceShadowClipPos.z - transparentShadowDepth >= EPSILON) {
                     vec3 shadowColor = GetShadowColor(traceShadowClipPos.xy);
@@ -211,31 +207,19 @@ const float AirSpeed = 20.0;
             float dt = localStepLength * atmosScale;// * texDensity;
             vec3 sampleTransmittance = exp(-dt*extinction);
 
-            #ifdef IS_IRIS
-                vec3 sunTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.x);
-            #else
-                vec3 sunTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.x);
-            #endif
+            vec3 sunTransmittance = GetTransmittance(sampleElevation, skyLightLevels.x);
 
             vec3 lightTransmittance = sunTransmittance * skySunColor * SunLux;
 
             #ifdef WORLD_MOON_ENABLED
-                #ifdef IS_IRIS
-                    vec3 moonTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.y);
-                #else
-                    vec3 moonTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.y);
-                #endif
+                vec3 moonTransmittance = GetTransmittance(sampleElevation, skyLightLevels.y);
 
                 lightTransmittance += moonTransmittance * skyMoonColor * MoonLux * GetMoonPhaseLevel();
             #endif
 
             lightTransmittance *= sampleColor * sampleF;
 
-            #ifdef IS_IRIS
-                vec3 psiMS = getValFromMultiScattLUT(texMultipleScattering, atmosPos, localSunDir);
-            #else
-                vec3 psiMS = getValFromMultiScattLUT(colortex13, atmosPos, localSunDir);
-            #endif
+            vec3 psiMS = getValFromMultiScattLUT(TEX_MULTI_SCATTER, atmosPos, localSunDir);
 
             psiMS *= (sampleF*0.6 + 0.4) * SKY_FANCY_LUM * (eyeBrightnessSmooth.y / 240.0);
 
@@ -254,20 +238,12 @@ const float AirSpeed = 20.0;
 
 #ifdef WATER_VL_ENABLED
     vec3 GetScatteredLighting(const in vec2 scatteringF, const in float elevation) {
-        #ifdef IS_IRIS
-            vec3 sunTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.x);
-        #else
-            vec3 sunTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.x);
-        #endif
+        vec3 sunTransmittance = GetTransmittance(elevation, skyLightLevels.x);
 
         vec3 result = scatteringF.x * sunTransmittance * skySunColor * SunLux * max(skyLightLevels.x, 0.0);
 
         #ifdef WORLD_MOON_ENABLED
-            #ifdef IS_IRIS
-                vec3 moonTransmittance = GetTransmittance(texSunTransmittance, elevation, skyLightLevels.y);
-            #else
-                vec3 moonTransmittance = GetTransmittance(colortex12, elevation, skyLightLevels.y);
-            #endif
+            vec3 moonTransmittance = GetTransmittance(elevation, skyLightLevels.y);
 
             result += scatteringF.y * moonTransmittance * skyMoonColor * MoonLux * max(skyLightLevels.y, 0.0) * GetMoonPhaseLevel();
         #endif

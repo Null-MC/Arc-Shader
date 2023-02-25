@@ -19,31 +19,19 @@ vec4 GetFancyFog(const in vec3 localPos, const in vec3 localSunDir, const in flo
 
     vec3 sunColorSky = SunLux * GetSunColor();
 
-    #ifdef IS_IRIS
-        vec3 sunTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.x) * sunColorSky;
-    #else
-        vec3 sunTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.x) * sunColorSky;
-    #endif
+    vec3 sunTransmittance = GetTransmittance(sampleElevation, skyLightLevels.x) * sunColorSky;
 
     vec3 lightTransmittance = sunTransmittance;
 
     #ifdef WORLD_MOON_ENABLED
         vec3 moonColorSky = MoonLux * GetMoonColor();
 
-        #ifdef IS_IRIS
-            vec3 moonTransmittance = GetTransmittance(texSunTransmittance, sampleElevation, skyLightLevels.y) * moonColorSky;
-        #else
-            vec3 moonTransmittance = GetTransmittance(colortex12, sampleElevation, skyLightLevels.y) * moonColorSky;
-        #endif
+        vec3 moonTransmittance = GetTransmittance(sampleElevation, skyLightLevels.y) * moonColorSky;
 
         lightTransmittance += moonTransmittance;
     #endif
 
-    #ifdef IS_IRIS
-        vec3 psiMS = getValFromMultiScattLUT(texMultipleScattering, atmosPos, localSunDir) * SKY_FANCY_LUM;
-    #else
-        vec3 psiMS = getValFromMultiScattLUT(colortex13, atmosPos, localSunDir) * SKY_FANCY_LUM;
-    #endif
+    vec3 psiMS = getValFromMultiScattLUT(atmosPos, localSunDir) * SKY_FANCY_LUM;
 
     //psiMS *= 0.4;
     float eyeLight = eyeBrightnessSmooth.y / 240.0;

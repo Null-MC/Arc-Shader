@@ -19,6 +19,7 @@
 
 uniform sampler2D noisetex;
 uniform sampler2D BUFFER_SKY_LUT;
+uniform sampler3D TEX_SUN_TRANSMIT;
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;

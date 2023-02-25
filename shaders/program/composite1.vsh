@@ -37,11 +37,7 @@ out vec2 texcoord;
 #endif
 
 #ifdef SKY_ENABLED
-    #ifdef IS_IRIS
-        uniform sampler3D texSunTransmittance;
-    #else
-        uniform sampler3D colortex12;
-    #endif
+    uniform sampler3D TEX_SUN_TRANSMIT;
 
     uniform vec3 skyColor;
     uniform float wetness;
@@ -123,20 +119,12 @@ void main() {
 
             skySunColor = GetSunColor();
 
-            #ifdef IS_IRIS
-                sunTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.x);
-            #else
-                sunTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.x);
-            #endif
+            sunTransmittanceEye = GetTransmittance(eyeElevation, skyLightLevels.x);
 
             #ifdef WORLD_MOON_ENABLED
                 skyMoonColor = GetMoonColor();
 
-                #ifdef IS_IRIS
-                    moonTransmittanceEye = GetTransmittance(texSunTransmittance, eyeElevation, skyLightLevels.y);
-                #else
-                    moonTransmittanceEye = GetTransmittance(colortex12, eyeElevation, skyLightLevels.y);
-                #endif
+                moonTransmittanceEye = GetTransmittance(eyeElevation, skyLightLevels.y);
             #endif
         #endif
     #endif
