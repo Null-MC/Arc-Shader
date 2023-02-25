@@ -49,8 +49,8 @@ vec3 raymarchScattering(const in vec3 pos, const in vec3 rayDir, const in vec3 s
         
         vec3 sampleTransmittance = exp(-dt*extinction);
 
-        vec3 sunTransmittance = getValFromTLUT(TEX_SUN_TRANSMIT, newPos, sunDir);
-        vec3 psiMS = getValFromMultiScattLUT(TEX_MULTI_SCATTER, newPos, sunDir);
+        vec3 sunTransmittance = getValFromTLUT(newPos, sunDir);
+        vec3 psiMS = getValFromMultiScattLUT(newPos, sunDir);
         
         vec3 rayleighInScattering = rayleighScattering * (rayleighPhaseValue*sunTransmittance + psiMS);
         vec3 mieInScattering = mieScattering * (miePhaseValue*sunTransmittance + psiMS);

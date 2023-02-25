@@ -219,7 +219,7 @@ const float AirSpeed = 20.0;
 
             lightTransmittance *= sampleColor * sampleF;
 
-            vec3 psiMS = getValFromMultiScattLUT(TEX_MULTI_SCATTER, atmosPos, localSunDir);
+            vec3 psiMS = getValFromMultiScattLUT(atmosPos, localSunDir);
 
             psiMS *= (sampleF*0.6 + 0.4) * SKY_FANCY_LUM * (eyeBrightnessSmooth.y / 240.0);
 

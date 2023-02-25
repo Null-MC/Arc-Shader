@@ -64,7 +64,7 @@ vec3 GetCloudColor(const in vec3 cloudPos, const in vec3 localViewDir, const in 
         ComputeVolumetricScattering(sun_VoL, 0.86),
         0.3);
 
-    vec3 sunTransmittance = getValFromTLUT(TEX_SUN_TRANSMIT, atmosPos, localSunDir);
+    vec3 sunTransmittance = getValFromTLUT(atmosPos, localSunDir);
 
     #ifdef WORLD_MOON_ENABLED
         vec3 localMoonDir = GetMoonLocalDir();
@@ -75,7 +75,7 @@ vec3 GetCloudColor(const in vec3 cloudPos, const in vec3 localViewDir, const in 
             ComputeVolumetricScattering(moon_VoL, 0.86),
             0.3);
 
-        vec3 moonTransmittance = getValFromTLUT(TEX_SUN_TRANSMIT, atmosPos, localMoonDir);
+        vec3 moonTransmittance = getValFromTLUT(atmosPos, localMoonDir);
     #endif
 
     vec3 sunColorFinal = sunTransmittance * skySunColor * SunLux;// * smoothstep(-0.06, 0.6, skyLightLevels.x);

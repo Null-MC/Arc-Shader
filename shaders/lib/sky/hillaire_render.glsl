@@ -1,21 +1,21 @@
-vec3 getValFromTLUT(const in sampler3D tex, const in vec3 pos, const in vec3 sunDir) {
+vec3 getValFromTLUT(const in vec3 pos, const in vec3 sunDir) {
     float height = length(pos);
     vec3 up = pos / height;
 
     float sunCosZenithAngle = dot(sunDir, up);
     vec3 uv = getAtmosLUT_UV(sunCosZenithAngle, height);
     
-    return textureLod(tex, uv, 0).rgb;
+    return textureLod(TEX_SUN_TRANSMIT, uv, 0).rgb;
 }
 
-vec3 getValFromMultiScattLUT(const in sampler3D tex, const in vec3 pos, const in vec3 sunDir) {
+vec3 getValFromMultiScattLUT(const in vec3 pos, const in vec3 sunDir) {
     float height = length(pos);
     vec3 up = pos / height;
 
     float sunCosZenithAngle = dot(sunDir, up);
     vec3 uv = getAtmosLUT_UV(sunCosZenithAngle, height);
     
-    return textureLod(tex, uv, 0).rgb;
+    return textureLod(TEX_MULTI_SCATTER, uv, 0).rgb;
 }
 
 #ifndef RENDER_PREPARE_SKY_LUT
