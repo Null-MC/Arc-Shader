@@ -192,11 +192,11 @@ const bool colortex11Clear = false;
 #define VL_DITHER
 #define VL_PARTICLES
 #define AO_TYPE 2 // [0 1 2]
-#define SSAO_SAMPLES 24 // [2 4 6 8 10 12 14 16 24 32]
-#define SSAO_INTENSITY 100 // [5 10 15 20 25 30 35 40 45 50 60 70 80 90 100]
-#define SSAO_SCALE 0.4
+#define SSAO_SAMPLES 12 // [2 4 6 8 10 12 14 16 24 32]
+#define SSAO_INTENSITY 4 // [5 10 15 20 25 30 35 40 45 50 60 70 80 90 100]
+#define SSAO_SCALE 0.1
 #define SSAO_BIAS 0.02
-#define SSAO_RADIUS 4.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
+#define SSAO_RADIUS 3.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0]
 #define SSAO_MAX_DIST 1.0
 //#define SSAO_UPSCALE
 #define SSGI_ENABLED

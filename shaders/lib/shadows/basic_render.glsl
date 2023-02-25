@@ -34,7 +34,7 @@
         p2 = distort(p2) * 0.5 + 0.5;
 
         //return abs(p2 - p1) * shadowPixelSize;
-        return vec2(16.0 * shadowPixelSize);
+        return vec2(shadowPixelSize);
     }
 
     #if SHADOW_FILTER != 0

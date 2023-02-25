@@ -21,11 +21,9 @@ uniform mat4 gbufferProjectionInverse;
 uniform float viewWidth;
 uniform float viewHeight;
 
-#ifdef SSGI_ENABLED
-    uniform mat4 gbufferPreviousModelView;
-    uniform mat4 gbufferPreviousProjection;
-    uniform vec3 previousCameraPosition;
-#endif
+uniform mat4 gbufferPreviousModelView;
+uniform mat4 gbufferPreviousProjection;
+uniform vec3 previousCameraPosition;
 
 #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || (defined SSS_ENABLED && defined SSS_BLUR))
     uniform sampler2D shadowtex0;
@@ -166,8 +164,8 @@ vec4 GetSpiralOcclusion(const in vec2 uv, const in vec3 viewPos, const in vec3 v
         float sampleNoLm = max(dot(viewNormal, sampleNormal) + SSAO_BIAS, 0.0);
 
         #if AO_TYPE == AO_TYPE_SS
-            float aoF = sampleNoLm / (l + 1.0);
-            ao += aoF * smoothstep(SSAO_MAX_DIST, SSAO_MAX_DIST * 0.5, l);
+            float aoF = sampleNoLm / (l + 2.0);
+            ao += aoF;// * smoothstep(SSAO_MAX_DIST, SSAO_MAX_DIST * 0.5, l);
         #endif
 
         #ifdef SSGI_ENABLED
@@ -177,16 +175,13 @@ vec4 GetSpiralOcclusion(const in vec2 uv, const in vec3 viewPos, const in vec3 v
 
             float giF = sampleNoLm / (l + 1.0);
 
-            //ivec2 giSamplePos = ivec2((viewPosPrev.xy) * (viewSize / exp2(SSR_QUALITY)));
-            //ivec2 gi_uv = ivec2(samplePrev.xy * (viewSize / exp2(SSR_QUALITY)));
-            //vec3 sampleColor = texelFetch(BUFFER_HDR_PREVIOUS, gi_uv, 0).rgb;
             vec3 sampleColor = textureLod(BUFFER_HDR_PREVIOUS, sampleUV, 0.0).rgb;
-            sampleColor /= luminance(sampleColor) + 1.0; //smoothstep(SSAO_MAX_DIST, SSAO_MAX_DIST * 0.5, l);
-            gi += sampleColor * giF; //smoothstep(SSAO_MAX_DIST, SSAO_MAX_DIST * 0.5, l);
+            sampleColor /= luminance(sampleColor) + 1.0;
+            gi += sampleColor * giF;
         #endif
     }
 
-    return vec4(10.0 * gi, ao) * inv;
+    return vec4(20.0 * gi, ao) * inv;
 }
 
 void main() {
@@ -309,7 +304,10 @@ void main() {
             if (!isHand) {
                 float rad = SSAO_RADIUS / (length(viewPos) + 1.0);
 
-                GI_AO = GetSpiralOcclusion(texcoord, viewPos, viewNormal, rad);
+                vec3 viewPosPrev = localPos + cameraPosition - previousCameraPosition;
+                viewPosPrev = (gbufferPreviousModelView * vec4(viewPosPrev, 1.0)).xyz;
+
+                GI_AO = GetSpiralOcclusion(texcoord, viewPosPrev, viewNormal, rad);
                 GI_AO.a = 1.0 - saturate(GI_AO.a * SSAO_INTENSITY);
             }
         #endif
