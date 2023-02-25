@@ -18,12 +18,12 @@ uniform sampler2D depthtex2;
 
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjectionInverse;
-uniform float viewWidth;
-uniform float viewHeight;
-
 uniform mat4 gbufferPreviousModelView;
 uniform mat4 gbufferPreviousProjection;
 uniform vec3 previousCameraPosition;
+uniform vec3 cameraPosition;
+uniform float viewWidth;
+uniform float viewHeight;
 
 #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || (defined SSS_ENABLED && defined SSS_BLUR))
     uniform sampler2D shadowtex0;
@@ -40,7 +40,6 @@ uniform vec3 previousCameraPosition;
     uniform mat4 gbufferModelView;
     uniform mat4 shadowModelView;
     uniform mat4 shadowProjection;
-    uniform vec3 cameraPosition;
     //uniform float rainStrength;
     //uniform int moonPhase;
     uniform int worldTime;
@@ -203,6 +202,7 @@ void main() {
         if (isHand) clipPos.z /= MC_HAND_DEPTH;
 
         vec3 viewPos = unproject(gbufferProjectionInverse * vec4(clipPos, 1.0));
+        vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 
         #if defined SSGI_ENABLED || AO_TYPE == AO_TYPE_SS || (defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || defined SSS_BLUR))
             uvec4 gbufferData = texelFetch(BUFFER_DEFERRED, itexFull, 0);
@@ -218,8 +218,6 @@ void main() {
             //uint gbufferLightData = texelFetch(BUFFER_DEFERRED, itexFull, 0).a;
             vec4 gbufferLightMap = unpackUnorm4x8(gbufferData.a);
             lightData.geoNoL = gbufferLightMap.z * 2.0 - 1.0;
-
-            vec3 localPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 
             vec3 dX = dFdx(localPos);
             vec3 dY = dFdy(localPos);
