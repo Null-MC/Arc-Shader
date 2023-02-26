@@ -131,5 +131,5 @@ void main() {
         #endif
     #endif
 
-    barrier();
+    //barrier();
 }

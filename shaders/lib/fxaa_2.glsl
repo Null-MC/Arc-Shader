@@ -10,11 +10,6 @@ float sampleLuma(const in vec2 uv, const in float exposure) {
     return max(exp2(lum) - EPSILON, 0.0) * exposure;
 }
 
-float sampleLumaOffset(const in vec2 uv, const in ivec2 offset, const in float exposure) {
-	float lum = textureLodOffset(BUFFER_LUM_OPAQUE, uv, 0.0, offset).r;
-    return max(exp2(lum) - EPSILON, 0.0) * exposure;
-}
-
 // Performs FXAA post-process anti-aliasing as described in the Nvidia FXAA white paper and the associated shader code.
 vec3 FXAA(const in vec2 uv, const in float exposure) {
 	vec2 viewSize = vec2(viewWidth, viewHeight);
@@ -26,10 +21,14 @@ vec3 FXAA(const in vec2 uv, const in float exposure) {
 	float lumaCenter = luminance(colorCenter);
 	
 	// Luma at the four direct neighbours of the current fragment.
-	float lumaDown 	= sampleLumaOffset(uv, ivec2( 0,-1), exposure);
-	float lumaUp 	= sampleLumaOffset(uv, ivec2( 0, 1), exposure);
-	float lumaLeft 	= sampleLumaOffset(uv, ivec2(-1, 0), exposure);
-	float lumaRight = sampleLumaOffset(uv, ivec2( 1, 0), exposure);
+	float lumaDown  = textureLodOffset(BUFFER_LUM_OPAQUE, uv, 0.0, ivec2( 0,-1)).r;
+	float lumaUp    = textureLodOffset(BUFFER_LUM_OPAQUE, uv, 0.0, ivec2( 0, 1)).r;
+	float lumaLeft  = textureLodOffset(BUFFER_LUM_OPAQUE, uv, 0.0, ivec2(-1, 0)).r;
+	float lumaRight = textureLodOffset(BUFFER_LUM_OPAQUE, uv, 0.0, ivec2( 1, 0)).r;
+    lumaDown  = max(exp2(lumaDown)  - EPSILON, 0.0) * exposure;
+    lumaUp    = max(exp2(lumaUp)    - EPSILON, 0.0) * exposure;
+    lumaLeft  = max(exp2(lumaLeft)  - EPSILON, 0.0) * exposure;
+    lumaRight = max(exp2(lumaRight) - EPSILON, 0.0) * exposure;
 	
 	// Find the maximum and minimum luma around the current fragment.
 	float lumaMin = min(lumaCenter, min(min(lumaDown, lumaUp), min(lumaLeft, lumaRight)));
@@ -42,10 +41,14 @@ vec3 FXAA(const in vec2 uv, const in float exposure) {
 	if (lumaRange < max(FXAA_EDGE_THRESHOLD_MIN, lumaMax * FXAA_EDGE_THRESHOLD_MAX)) return colorCenter;
 	
 	// Query the 4 remaining corners lumas.
-	float lumaDownLeft 	= sampleLumaOffset(uv, ivec2(-1,-1), exposure);
-	float lumaUpRight 	= sampleLumaOffset(uv, ivec2( 1, 1), exposure);
-	float lumaUpLeft 	= sampleLumaOffset(uv, ivec2(-1, 1), exposure);
-	float lumaDownRight = sampleLumaOffset(uv, ivec2( 1,-1), exposure);
+	float lumaDownLeft  = textureLodOffset(BUFFER_LUM_OPAQUE, uv, 0.0, ivec2(-1,-1)).r;
+	float lumaUpRight   = textureLodOffset(BUFFER_LUM_OPAQUE, uv, 0.0, ivec2( 1, 1)).r;
+	float lumaUpLeft    = textureLodOffset(BUFFER_LUM_OPAQUE, uv, 0.0, ivec2(-1, 1)).r;
+	float lumaDownRight = textureLodOffset(BUFFER_LUM_OPAQUE, uv, 0.0, ivec2( 1,-1)).r;
+    lumaDownLeft  = max(exp2(lumaDownLeft)  - EPSILON, 0.0) * exposure;
+    lumaUpRight   = max(exp2(lumaUpRight)   - EPSILON, 0.0) * exposure;
+    lumaUpLeft    = max(exp2(lumaUpLeft)    - EPSILON, 0.0) * exposure;
+    lumaDownRight = max(exp2(lumaDownRight) - EPSILON, 0.0) * exposure;
 	
 	// Combine the four edges lumas (using intermediary variables for future computations with the same values).
 	float lumaDownUp = lumaDown + lumaUp;

@@ -28,5 +28,5 @@ void main() {
             SceneLightMaps[gridIndex].Mask[i] = 0u;
     #endif
 
-    barrier();
+    //barrier();
 }
