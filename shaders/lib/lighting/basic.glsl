@@ -54,8 +54,8 @@
                         
                         #ifdef PHYSICS_OCEAN
                             physics_localPosition = gl_Vertex.xyz;
-                            physics_localWaviness = physics_GetWaviness(ivec2(gl_Vertex.xz + 0.5));
-                            float depth = physics_waveHeight(gl_Vertex.xyz, PHYSICS_ITERATIONS_OFFSET, physics_localWaviness, physics_gameTime);
+                            physics_localWaviness = physics_GetWaviness(ivec2(physics_localPosition.xz + 0.5));
+                            float depth = physics_waveHeight(physics_localPosition.xyz, PHYSICS_ITERATIONS_OFFSET, physics_localWaviness, physics_gameTime);
                             physics_localPosition.y += depth;
                         #else
                             float waveDepth = GetWaveDepth(skyLight);

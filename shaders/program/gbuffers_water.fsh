@@ -185,6 +185,7 @@ uniform float waterRoughSmooth;
 #endif
 
 #include "/lib/atlas.glsl"
+#include "/lib/blocks.glsl"
 #include "/lib/depth.glsl"
 #include "/lib/matrix.glsl"
 #include "/lib/sampling/bayer.glsl"

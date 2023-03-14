@@ -60,6 +60,7 @@ uniform float far;
     #include "/lib/ssbo/scene.glsl"
 #endif
 
+#include "/lib/blocks.glsl"
 #include "/lib/matrix.glsl"
 #include "/lib/sampling/noise.glsl"
 #include "/lib/celestial/position.glsl"

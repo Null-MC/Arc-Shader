@@ -55,6 +55,7 @@ uniform ivec2 atlasSize;
 #endif
 
 #include "/lib/atlas.glsl"
+#include "/lib/blocks.glsl"
 #include "/lib/sampling/bayer.glsl"
 #include "/lib/sampling/linear.glsl"
 #include "/lib/sampling/noise.glsl"

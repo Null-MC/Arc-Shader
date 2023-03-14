@@ -63,6 +63,7 @@ uniform float far;
     #endif
 #endif
 
+#include "/lib/blocks.glsl"
 #include "/lib/matrix.glsl"
 #include "/lib/sampling/noise.glsl"
 #include "/lib/lighting/blackbody.glsl"

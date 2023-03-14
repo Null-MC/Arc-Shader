@@ -400,7 +400,7 @@
 
                         float lightDist = length(lightVec);
                         vec3 lightDir = lightVec / max(lightDist, EPSILON);
-                        lightDist = max(lightDist - 0.5, 0.0);
+                        //lightDist = max(lightDist - 0.5, 0.0);
 
                         //float lightAtt = (light.color.a * 0.25) / (lightDist*lightDist);
                         float lightAtt = 1.0 - saturate(lightDist / light.range);
@@ -453,8 +453,8 @@
                         accumSpecular += lightSpecular * light.color.rgb * lightAtt;
                     }
 
-                    accumDiffuse *= lightData.blockLight * BlockLightLux;
-                    accumSpecular *= lightData.blockLight * BlockLightLux;
+                    accumDiffuse *= BlockLightLux;// * lightData.blockLight;
+                    accumSpecular *= BlockLightLux;// * lightData.blockLight;
 
                     #ifdef LIGHT_FALLBACK
                         // TODO: shrink to shadow bounds
@@ -618,7 +618,7 @@
         #endif
 
         //return vec4(diffuse, 1.0);
-        //return vec4(specular, 1.0);
+        //return vec4(localNormal * 600.0 + 600.0, 1.0);
 
         #if defined SKY_ENABLED && defined WORLD_WATER_ENABLED
             vec3 localSunDir = GetSunLocalDir();

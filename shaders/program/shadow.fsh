@@ -56,6 +56,7 @@ uniform int entityId;
     uniform float rainStrength;
 #endif
 
+#include "/lib/blocks.glsl"
 #include "/lib/sampling/noise.glsl"
 #include "/lib/celestial/position.glsl"
 

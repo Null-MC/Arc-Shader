@@ -166,8 +166,10 @@ void ApplyHardCodedMaterials(inout PbrMaterial material, const in int materialId
         }
     }
 
-    if (noiseTheta > 0.0) {
-        vec3 texPos = floor(worldPos * 16.0 + 0.01) / 16.0 + floor(worldPos + 0.5)/32.0;
-        material.normal = GetRandomNormal(texPos, noiseTheta);
-    }
+    #ifdef VANILLA_NOISE_ENABLED
+        if (noiseTheta > 0.0) {
+            vec3 texPos = floor(worldPos * 16.0 + 0.01) / 16.0 + floor(worldPos + 0.5)/32.0;
+            material.normal = GetRandomNormal(texPos, noiseTheta);
+        }
+    #endif
 }
