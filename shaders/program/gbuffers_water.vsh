@@ -131,6 +131,7 @@ uniform float blindness;
 #include "/lib/matrix.glsl"
 #include "/lib/sampling/noise.glsl"
 #include "/lib/lighting/blackbody.glsl"
+#include "/lib/blocks.glsl"
 
 #if defined WORLD_WATER_ENABLED && defined WATER_WAVE_ENABLED
     #include "/lib/world/wind.glsl"

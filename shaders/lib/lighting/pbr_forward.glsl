@@ -71,7 +71,7 @@
                 #if defined WATER_WAVE_ENABLED || defined PHYSICS_OCEAN
                     #ifdef PHYSICS_OCEAN
                         WavePixelData waveData = physics_wavePixel(physics_localPosition, physics_localWaviness, physics_iterationsNormal, physics_gameTime);
-                        vec3 waveNormal = physics_waveNormal(waveData, physics_localWaviness);
+                        vec3 waveNormal = physics_waveNormal(physics_localPosition.xz, waveData.direction, physics_localWaviness, physics_gameTime);
 
                         #ifdef WATER_FOAM_ENABLED
                             waveAmplitude = waveData.height * pow(max(waveNormal.y, 0.0), 4.0);

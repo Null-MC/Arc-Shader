@@ -63,6 +63,8 @@ uniform int worldTime;
     uniform vec3 chunkOffset;
 #endif
 
+#include "/lib/blocks.glsl"
+
 #ifdef SKY_ENABLED
     #include "/lib/sampling/noise.glsl"
     #include "/lib/world/wind.glsl"

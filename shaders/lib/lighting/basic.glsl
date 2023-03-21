@@ -4,18 +4,19 @@
         vec3 normal = gl_Normal;
 
         #if defined RENDER_TERRAIN || defined RENDER_WATER
+            int blockId = int(mc_Entity.x + 0.5);
             float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
         #endif
 
         #if defined SKY_ENABLED && defined RENDER_TERRAIN && WAVING_MODE != WAVING_NONE
-            if (mc_Entity.x >= 10001.0 && mc_Entity.x <= 10004.0) {
+            if (blockId >= 10001 && blockId <= 10004) {
                 float wavingRange = GetWavingRange(skyLight);
                 localPos += GetWavingOffset(wavingRange);
             }
         #endif
 
         #ifdef RENDER_WATER
-            if (abs(mc_Entity.x - 100.0) < 0.5) {
+            if (blockId == BLOCK_WATER) {
                 #ifndef PHYSICS_OCEAN
                     // if (all(greaterThan(mc_midTexCoord, vec4(EPSILON)))) {
                     //     if (isEyeInWater == 1 && gl_Normal.y > 0.01) {
@@ -53,20 +54,20 @@
                         vec3 worldPos = _localPos + cameraPosition;
                         
                         #ifdef PHYSICS_OCEAN
-                            physics_localPosition = gl_Vertex.xyz;
-                            physics_localWaviness = physics_GetWaviness(ivec2(physics_localPosition.xz + 0.5));
-                            float depth = physics_waveHeight(physics_localPosition.xyz, PHYSICS_ITERATIONS_OFFSET, physics_localWaviness, physics_gameTime);
-                            physics_localPosition.y += depth;
+                            physics_localPosition = localPos;
+                            physics_localWaviness = physics_GetWaviness(ivec2(localPos.xz));
+                            float waveDepth = physics_waveHeight(localPos, physics_localWaviness, physics_gameTime);
+                            physics_localPosition.y += waveDepth;
                         #else
-                            float waveDepth = GetWaveDepth(skyLight);
+                            float waveMaxDepth = GetWaveDepth(skyLight);
                             float waterWorldScale = WATER_SCALE * rcp(2.0*WATER_RADIUS);
                             vec3 waterWorldPos = waterWorldScale * worldPos;
 
-                            float depth = 1.0 - GetWaves(waterWorldPos.xz, waveDepth, WATER_OCTAVES_VERTEX).y;
-                            depth = -depth * waveDepth * WaterWaveDepthF * posY;
+                            float waveDepth = 1.0 - GetWaves(waterWorldPos.xz, waveMaxDepth, WATER_OCTAVES_VERTEX).y;
+                            waveDepth = -waveDepth * waveMaxDepth * WaterWaveDepthF * posY;
                         #endif
 
-                        localPos.y += depth;
+                        localPos.y += waveDepth;
                     }
                 #endif
             }

@@ -119,7 +119,7 @@ void main() {
     if (vBlockId == BLOCK_WATER) {
         #ifdef PHYSICS_OCEAN
             physics_vLocalWaviness = physics_GetWaviness(ivec2(vLocalPos.xz));
-            float depth = physics_waveHeight(vLocalPos, PHYSICS_ITERATIONS_OFFSET, physics_vLocalWaviness, physics_gameTime);
+            float depth = physics_waveHeight(vLocalPos, physics_vLocalWaviness, physics_gameTime);
             vLocalPos.y += depth;
             physics_vLocalPosition = vLocalPos;
         #else
