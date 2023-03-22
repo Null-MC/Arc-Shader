@@ -8,7 +8,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
     vec3 worldPos = cameraPosition + localPos;
     vec3 localViewDir = normalize(localPos);
 
-    #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+    #if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #if defined SHADOW_PARTICLES || (!defined RENDER_TEXTURED && !defined RENDER_WEATHER)
             if (shadow > EPSILON) {
                 shadow *= GetShadowing(lightData);
@@ -56,7 +56,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
     vec3 waterExtinctionInv = 1.0 - waterAbsorbColor;
 
     //vec3 skyAmbient = vec3(pow(skyLight, 5.0));
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         #ifdef RENDER_WEATHER
             vec3 skyColorLux = RGBToLinear(skyColor);// * skyTint;
             skyColorLux = 20000.0 * skyColorLux;
@@ -114,7 +114,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
     float viewDist = length(viewPos);
     vec3 viewDir = viewPos / viewDist;
 
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         vec3 sunColorFinalEye = sunTransmittanceEye * skySunColor * SunLux;
         vec3 moonColorFinalEye = moonTransmittanceEye * skyMoonColor * MoonLux * GetMoonPhaseLevel();
 
@@ -151,7 +151,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
 
     #ifdef WORLD_WATER_ENABLED
         if (isEyeInWater == 1) {
-            #ifdef SKY_ENABLED
+            #ifdef WORLD_SKY_ENABLED
                 vec3 waterSunColorEye = sunColorFinalEye * max(skyLightLevels.x, 0.0);
                 vec3 waterMoonColorEye = moonColorFinalEye * max(skyLightLevels.y, 0.0);
                 vec2 waterScatteringF = GetWaterScattering(viewDir);
@@ -163,7 +163,7 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
 
             ApplyWaterFog(final.rgb, waterFogColor, viewDist);
 
-            #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined WATER_VL_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+            #if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED && defined WATER_VL_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 vec3 vlScatter, vlExt;
                 GetWaterVolumetricLighting(vlScatter, vlExt, waterScatteringF, localViewDir, near, viewDist);
                 final.rgb = final.rgb * vlExt + vlScatter;
@@ -172,20 +172,20 @@ vec4 BasicLighting(const in LightData lightData, const in vec4 albedo, const in 
         else {
     #endif
 
-        #if defined SKY_ENABLED && !defined SKY_VL_ENABLED
+        #if defined WORLD_SKY_ENABLED && !defined SKY_VL_ENABLED
             vec3 viewLightDir = GetShadowLightViewDir();
             float VoL = dot(viewLightDir, viewDir);
             vec3 localSunDir = GetSunLocalDir();
             vec4 scatteringTransmittance = GetFancyFog(localPos, localSunDir, VoL);
             final.rgb = final.rgb * scatteringTransmittance.a + scatteringTransmittance.rgb;
-        #elif !defined SKY_ENABLED
+        #elif !defined WORLD_SKY_ENABLED
             float fogFactor;
             vec3 fogColorFinal;
             GetFog(lightData, worldPos, viewPos, fogColorFinal, fogFactor);
             ApplyFog(final, fogColorFinal, fogFactor, 1.0/255.0);
         #endif
 
-        #ifdef SKY_ENABLED
+        #ifdef WORLD_SKY_ENABLED
             #if defined WORLD_CLOUDS_ENABLED && SKY_CLOUD_LEVEL > 0
                 float cloudDepthTest = SKY_CLOUD_LEVEL - worldPos.y;
                 cloudDepthTest *= sign(SKY_CLOUD_LEVEL - cameraPosition.y);

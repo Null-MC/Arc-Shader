@@ -8,11 +8,11 @@
             float skyLight = saturate((lmcoord.y - (0.5/16.0)) / (15.0/16.0));
         #endif
 
-        #if defined SKY_ENABLED && defined RENDER_TERRAIN && WAVING_MODE != WAVING_NONE
-            if (blockId >= 10001 && blockId <= 10004) {
-                float wavingRange = GetWavingRange(skyLight);
-                localPos += GetWavingOffset(wavingRange);
-            }
+        #if defined WORLD_SKY_ENABLED && defined RENDER_TERRAIN && WAVING_MODE != WAVING_NONE
+            //if (blockId >= 10001 && blockId <= 10004) {
+                //float wavingRange = GetWavingRange(skyLight);
+                ApplyWavingOffset(localPos, blockId, skyLight);
+            //}
         #endif
 
         #ifdef RENDER_WATER
@@ -86,7 +86,7 @@
             #ifdef SHADOW_ENABLED
                 vec3 lightDir = GetShadowLightViewDir();
                 geoNoL = dot(lightDir, viewNormal);
-            #elif defined SKY_ENABLED
+            #elif defined WORLD_SKY_ENABLED
                 vec3 upDir = normalize(upPosition);
                 vec3 sunLightDir = GetSunViewDir();
                 vec3 moonLightDir = GetMoonViewDir();
@@ -112,7 +112,7 @@
     }
 #endif
 
-#if defined SKY_ENABLED && defined RENDER_FRAG
+#if defined WORLD_SKY_ENABLED && defined RENDER_FRAG
     vec3 GetFancySkyAmbientLight(const in vec3 localNormal) {
         vec2 sphereCoord = DirectionToUV(localNormal);
         vec3 irradiance = textureLod(BUFFER_IRRADIANCE, sphereCoord, 0).rgb;

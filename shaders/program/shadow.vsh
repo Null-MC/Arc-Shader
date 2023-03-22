@@ -111,8 +111,8 @@ void main() {
 
     #if WAVING_MODE != WAVING_NONE
         if (vBlockId >= 10001 && vBlockId <= 10004) {
-            float wavingRange = GetWavingRange(skyLight);
-            vLocalPos += GetWavingOffset(wavingRange);
+            //float wavingRange = GetWavingRange(skyLight);
+            ApplyWavingOffset(vLocalPos, vBlockId, skyLight);
         }
     #endif
 

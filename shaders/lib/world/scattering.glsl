@@ -21,7 +21,7 @@ vec2 GetWaterScattering(const in float sun_VoL, const in float moon_VoL) {
 }
 
 vec2 GetWaterScattering(const in vec3 viewDir) {
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         vec3 sunViewDir = GetSunViewDir();
         float sun_VoL = dot(viewDir, sunViewDir);
 

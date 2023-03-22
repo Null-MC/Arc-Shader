@@ -25,7 +25,7 @@ uniform vec3 cameraPosition;
 uniform float viewWidth;
 uniform float viewHeight;
 
-#if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || (defined SSS_ENABLED && defined SSS_BLUR))
+#if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || (defined SSS_ENABLED && defined SSS_BLUR))
     uniform sampler2D shadowtex0;
     uniform sampler2D shadowtex1;
 
@@ -54,7 +54,7 @@ uniform float viewHeight;
 #include "/lib/sampling/noise.glsl"
 #include "/lib/sampling/ign.glsl"
 
-#if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || (defined SSS_ENABLED && defined SSS_BLUR))
+#if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || (defined SSS_ENABLED && defined SSS_BLUR))
     #include "/lib/matrix.glsl"
     //#include "/lib/lighting/blackbody.glsl"
     #include "/lib/lighting/light_data.glsl"

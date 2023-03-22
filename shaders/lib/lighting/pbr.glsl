@@ -26,7 +26,7 @@
 #endif
 
 #ifdef RENDER_FRAG
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         vec3 GetSkyReflectionColor(const in vec3 worldPos, const in vec3 viewDir, const in vec3 reflectDir, const in float rough) {
             vec3 sunColorFinalEye = sunTransmittanceEye * skySunColor * SunLux * max(skyLightLevels.x, 0.0);
 
@@ -98,7 +98,7 @@
 
         //return vec4(viewNormal * 600.0 + 600.0, 1.0);
 
-        #ifdef SKY_ENABLED
+        #ifdef WORLD_SKY_ENABLED
             vec3 sunColorFinalEye = sunTransmittanceEye * skySunColor * SunLux;// * max(lightData.skyLightLevels.x, 0.0);
             vec3 sunColorFinal = lightData.sunTransmittance * skySunColor * SunLux;// * max(lightData.skyLightLevels.x, 0.0);
 
@@ -132,7 +132,7 @@
         #else
             vec3 albedo = material.albedo.rgb;
 
-            #if defined WATER_POROSITY_DARKEN && defined WORLD_WATER_ENABLED && defined SKY_ENABLED && defined RENDER_COMPOSITE
+            #if defined WATER_POROSITY_DARKEN && defined WORLD_WATER_ENABLED && defined WORLD_SKY_ENABLED && defined RENDER_COMPOSITE
                 albedo = WetnessDarkenSurface(albedo, material.porosity, 1.0);
             #endif
         #endif
@@ -174,7 +174,7 @@
             #endif
         #endif
 
-        #ifdef SKY_ENABLED
+        #ifdef WORLD_SKY_ENABLED
             vec3 worldPos = cameraPosition + localPos;
             //float sssDist = 0.0;
 
@@ -311,7 +311,7 @@
                 skyLight = max(skyLight, shadowFinal);
         #endif
 
-        #if !(defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)
+        #if !(defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)
             skyLight *= occlusion;
         #endif
 
@@ -341,13 +341,13 @@
 
                     reflectColor = roughReflectColor.rgb * roughReflectColor.a;
 
-                    #ifdef SKY_ENABLED
+                    #ifdef WORLD_SKY_ENABLED
                         if (roughReflectColor.a + EPSILON < 1.0) {
                             vec3 skyReflectColor = GetSkyReflectionColor(worldPos, viewDir, reflectDir, rough) * skyLight;
                             reflectColor += skyReflectColor * (1.0 - roughReflectColor.a);
                         }
                     #endif
-                #elif REFLECTION_MODE == REFLECTION_MODE_SKY && defined SKY_ENABLED
+                #elif REFLECTION_MODE == REFLECTION_MODE_SKY && defined WORLD_SKY_ENABLED
                     reflectColor = GetSkyReflectionColor(worldPos, viewDir, reflectDir, rough) * skyLight;
                 #endif
             }
@@ -531,7 +531,7 @@
             }
         #endif
 
-        #ifdef SKY_ENABLED
+        #ifdef WORLD_SKY_ENABLED
             vec2 sphereCoord = DirectionToUV(localNormal);
             sphereCoord.y = clamp(sphereCoord.y, 0.5/16.0, 15.5/16.0);
 
@@ -572,7 +572,7 @@
 
             float VoL = dot(viewDir, viewLightDir);
 
-            #if defined SSS_ENABLED && defined SKY_ENABLED
+            #if defined SSS_ENABLED && defined WORLD_SKY_ENABLED
                 if (material.scattering > 0.0) {
                     vec3 sssAlbedo = material.albedo.rgb;
 
@@ -620,7 +620,7 @@
         //return vec4(diffuse, 1.0);
         //return vec4(localNormal * 600.0 + 600.0, 1.0);
 
-        #if defined SKY_ENABLED && defined WORLD_WATER_ENABLED
+        #if defined WORLD_SKY_ENABLED && defined WORLD_WATER_ENABLED
             vec3 localSunDir = GetSunLocalDir();
             float sun_VoL = dot(localSunDir, localViewDir);
 
@@ -894,7 +894,7 @@
         //return vec4(ambient, 1.0);
         //return vec4(final.rgb * (ambient * (1.0 - iblF) * occlusion), 1.0);
 
-        // #if !(defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)
+        // #if !(defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE)
         //     diffuse *= occlusion;
         // #endif
 
@@ -911,7 +911,7 @@
                             fogF = 1.0 - reflectF;
                     #endif
 
-                    #ifdef SKY_ENABLED
+                    #ifdef WORLD_SKY_ENABLED
                         vec3 localLightDir = GetShadowLightLocalDir();
                         float VoL = dot(localLightDir, localViewDir);
 

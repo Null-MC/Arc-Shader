@@ -12,7 +12,7 @@ in vec2 texcoord;
     
     flat in vec3 blockLightColor;
 
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         flat in vec2 skyLightLevels;
 
         flat in vec3 skySunColor;
@@ -25,7 +25,7 @@ in vec2 texcoord;
     #endif
 #endif
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     uniform sampler2D BUFFER_SKY_LUT;
     uniform sampler2D BUFFER_IRRADIANCE;
     uniform sampler3D TEX_SUN_TRANSMIT;
@@ -110,7 +110,7 @@ uniform float fogEnd;
     #endif
 #endif
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     uniform vec3 skyColor;
     uniform float rainStrength;
     uniform float wetness;
@@ -181,7 +181,7 @@ uniform float eyeHumidity;
     #include "/lib/sampling/bilateral_gaussian.glsl"
 //#endif
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     #include "/lib/sky/hillaire_common.glsl"
     #include "/lib/celestial/position.glsl"
     #include "/lib/celestial/transmittance.glsl"
@@ -191,9 +191,7 @@ uniform float eyeHumidity;
     #ifdef IS_IRIS
         #include "/lib/sky/lightning.glsl"
     #endif
-#endif
 
-#ifdef SKY_ENABLED
     #include "/lib/sky/hillaire_render.glsl"
     #include "/lib/sky/stars.glsl"
 
@@ -209,7 +207,7 @@ uniform float eyeHumidity;
     #include "/lib/world/caustics.glsl"
 #endif
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     #include "/lib/sky/hillaire.glsl"
     #include "/lib/world/fog_fancy.glsl"
 
@@ -239,7 +237,7 @@ uniform float eyeHumidity;
     #endif
 #endif
 
-#if !defined SKY_ENABLED && defined SMOKE_ENABLED
+#if !defined WORLD_SKY_ENABLED && defined SMOKE_ENABLED
     #include "/lib/camera/bloom.glsl"
     #include "/lib/world/smoke.glsl"
 #endif
@@ -284,7 +282,7 @@ void main() {
     vec3 dY = dFdy(localPos);
     lightData.geoNormal = normalize(cross(dX, dY));
 
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         //lightData.skyLightLevels = skyLightLevels;
         //lightData.sunTransmittanceEye = sunTransmittanceEye;
 
@@ -340,7 +338,7 @@ void main() {
                 PopulateMaterial(material, colorMap.rgb, normalMap, specularMap);
             }
 
-            #ifdef SKY_ENABLED
+            #ifdef WORLD_SKY_ENABLED
                 vec3 upDir = normalize(upPosition);
                 float fragElevation = GetAtmosphereElevation(worldPos);
 
@@ -414,7 +412,7 @@ void main() {
                 final = PbrLighting2(material, lightData, viewPos).rgb;
 
                 if (lightData.transparentScreenDepth < lightData.opaqueScreenDepth) {
-                    #if defined SKY_ENABLED && !defined SKY_VL_ENABLED
+                    #if defined WORLD_SKY_ENABLED && !defined SKY_VL_ENABLED
                         vec3 viewLightDir = GetShadowLightViewDir();
                         float VoL = dot(viewLightDir, viewDir);
                         vec3 localSunDir = GetSunLocalDir();
@@ -472,7 +470,7 @@ void main() {
 
     float minViewDist = min(lightData.opaqueScreenDepthLinear, lightData.transparentScreenDepthLinear);
 
-    #if defined SKY_ENABLED && defined SKY_VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+    #if defined WORLD_SKY_ENABLED && defined SKY_VL_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         if (isEyeInWater == 1 && lightData.opaqueScreenDepth > lightData.transparentScreenDepth) {
             vec3 vlScatter, vlExt;
             GetVolumetricLighting(vlScatter, vlExt, localViewDir, lightData.transparentScreenDepthLinear, lightData.opaqueScreenDepthLinear);
@@ -488,7 +486,7 @@ void main() {
 
     #ifdef WORLD_WATER_ENABLED
         if (isEyeInWater == 1) {
-            #if defined SKY_ENABLED && defined SHADOW_ENABLED && defined WATER_VL_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+            #if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED && defined WATER_VL_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 vec3 vlScatter, vlExt;
                 float maxWaterVLDist = min(minViewDist, min(shadowDistance, 64.0));
                 GetWaterVolumetricLighting(vlScatter, vlExt, waterScatteringF, localViewDir, near, maxWaterVLDist);

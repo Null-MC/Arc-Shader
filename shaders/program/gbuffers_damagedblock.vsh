@@ -21,12 +21,12 @@ flat out int materialId;
     out vec2 localCoord;
     out vec3 tanViewPos;
 
-    #if defined SKY_ENABLED && defined SHADOW_ENABLED
+    #if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED
         out vec3 tanLightPos;
     #endif
 #endif
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     #ifdef SHADOW_ENABLED
         uniform vec3 shadowLightPosition;
     #endif

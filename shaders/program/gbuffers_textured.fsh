@@ -20,7 +20,7 @@ flat in float tangentW;
 flat in int materialId;
 
 #ifdef IS_IRISX
-    #if defined SKY_ENABLED && defined SHADOW_ENABLED
+    #if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED
         #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
             in vec3 shadowPos[4];
             in float shadowBias[4];
@@ -42,7 +42,7 @@ uniform sampler2D lightmap;
     uniform sampler2D BUFFER_HDR_OPAQUE;
     uniform sampler2D TEX_BRDF;
 
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         uniform sampler2D BUFFER_SKY_LUT;
         uniform sampler2D BUFFER_IRRADIANCE;
         uniform sampler3D TEX_SUN_TRANSMIT;
@@ -96,7 +96,7 @@ uniform float far;
     uniform vec3 waterScatterColor;
     uniform float waterFogDistSmooth;
 
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         uniform float rainStrength;
         uniform int moonPhase;
         uniform float wetness;
@@ -136,7 +136,7 @@ uniform float far;
 #include "/lib/material/material.glsl"
 #include "/lib/material/material_reader.glsl"
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     #include "/lib/celestial/position.glsl"
 #endif
 
@@ -157,7 +157,7 @@ uniform float far;
     #include "/lib/lighting/brdf.glsl"
     #include "/lib/world/fog_vanilla.glsl"
 
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         #include "/lib/sky/hillaire_common.glsl"
         #include "/lib/celestial/transmittance.glsl"
         #include "/lib/world/sky.glsl"
@@ -249,7 +249,7 @@ void main() {
             lightData.opaqueScreenDepthLinear = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
             lightData.transparentScreenDepthLinear = linearizeDepthFast(lightData.transparentScreenDepth, near, far);
 
-            #ifdef SKY_ENABLED
+            #ifdef WORLD_SKY_ENABLED
                 //lightData.skyLightLevels = skyLightLevels;
                 //lightData.sunTransmittanceEye = sunTransmittanceEye;
                 //lightData.moonTransmittanceEye = moonTransmittanceEye;
@@ -261,7 +261,7 @@ void main() {
                 lightData.moonTransmittance = GetTransmittance(fragElevation, skyLightLevels.y);
             #endif
 
-            #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+            #if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
                 #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                     for (int i = 0; i < 4; i++) {
                         lightData.shadowPos[i] = shadowPos[i];

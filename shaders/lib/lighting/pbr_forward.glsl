@@ -29,7 +29,7 @@
             lightData.occlusion = pow2(glcolor.a);
         #endif
 
-        #ifdef SKY_ENABLED
+        #ifdef WORLD_SKY_ENABLED
             float eyeElevation = GetScaledSkyHeight(cameraPosition.y);
             float fragElevation = GetAtmosphereElevation(worldPos);
 
@@ -279,7 +279,7 @@
                     ApplyDirectionalLightmap(lightData.blockLight, viewPos, viewNormal, material.normal);
                 #endif
 
-                #if defined SKY_ENABLED && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE) && !(defined RENDER_HAND_WATER || defined RENDER_ENTITIES)
+                #if defined WORLD_SKY_ENABLED && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE) && !(defined RENDER_HAND_WATER || defined RENDER_ENTITIES)
                     if (isEyeInWater != 1) {
                         vec3 tanUpDir = normalize(upPosition) * matTBN;
                         float NoU = dot(material.normal, tanUpDir);
@@ -300,7 +300,7 @@
             material.normal = matTBN * material.normal;
         #endif
 
-        #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        #if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 lightData.shadowPos[0] = shadowPos[0];
                 lightData.shadowPos[1] = shadowPos[1];
@@ -332,7 +332,7 @@
 
         vec4 finalColor = PbrLighting2(material, lightData, viewPosFinal);
 
-        #ifdef SKY_ENABLED
+        #ifdef WORLD_SKY_ENABLED
             if (isEyeInWater != 1) {
                 vec3 localViewDir = normalize(localPos);
 

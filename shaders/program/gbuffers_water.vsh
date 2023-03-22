@@ -35,7 +35,7 @@ flat out mat2 atlasBounds;
         uniform int heldBlockLightValue2;
     #endif
 
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         flat out vec2 skyLightLevels;
 
         flat out vec3 skySunColor;
@@ -50,12 +50,12 @@ flat out mat2 atlasBounds;
     out vec2 localCoord;
     out vec3 tanViewPos;
 
-    #if defined SKY_ENABLED && defined SHADOW_ENABLED
+    #if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED
         out vec3 tanLightPos;
     #endif
 #endif
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     uniform sampler3D TEX_SUN_TRANSMIT;
 
     uniform vec3 upPosition;
@@ -142,7 +142,7 @@ uniform float blindness;
     #include "/lib/physicsMod/water.glsl"
 #endif
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     #include "/lib/sky/hillaire_common.glsl"
     #include "/lib/celestial/position.glsl"
     #include "/lib/celestial/transmittance.glsl"
@@ -191,7 +191,7 @@ void main() {
     //     ApplyShadows(localPos, viewDir);
     // #endif
     
-    #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+    #if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #ifndef IRIS_FEATURE_SSBO
             mat4 shadowModelViewEx = BuildShadowViewMatrix();
         #endif
@@ -224,7 +224,7 @@ void main() {
 
         blockLightColor = blackbody(BLOCKLIGHT_TEMP);
 
-        #ifdef SKY_ENABLED
+        #ifdef WORLD_SKY_ENABLED
             skyLightLevels = GetSkyLightLevels();
 
             skySunColor = GetSunColor();

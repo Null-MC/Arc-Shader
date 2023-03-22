@@ -188,7 +188,7 @@
                             }
                         #endif
 
-                        #if defined SKY_ENABLED && defined PARALLAX_SHADOWS_ENABLED
+                        #if defined WORLD_SKY_ENABLED && defined PARALLAX_SHADOWS_ENABLED
                             if (traceCoordDepth.z + EPSILON < 1.0) {
                                 vec3 tanLightDir = normalize(tanLightPos);
                                 
@@ -210,7 +210,7 @@
             material.occlusion *= glcolor.a;
         #endif
 
-        #if defined SKY_ENABLED && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE) && (defined RENDER_TERRAIN || defined RENDER_WATER)
+        #if defined WORLD_SKY_ENABLED && (WETNESS_MODE != WEATHER_MODE_NONE || SNOW_MODE != WEATHER_MODE_NONE) && (defined RENDER_TERRAIN || defined RENDER_WATER)
             if (isEyeInWater != 1 && materialId != BLOCK_WATER && materialId != BLOCK_LAVA) {
                 vec3 tanUpDir = normalize(upPosition) * matTBN;
                 float NoU = dot(material.normal, tanUpDir);

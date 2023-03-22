@@ -1,6 +1,6 @@
 #define WORLD_END
 #define SHADOW_ENABLED
-#define SKY_ENABLED
+#define WORLD_SKY_ENABLED
 #define WORLD_WATER_ENABLED
 //#define WIND_ENABLED
 

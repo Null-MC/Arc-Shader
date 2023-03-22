@@ -24,7 +24,7 @@ flat in int materialId;
     
     uniform mat4 gbufferProjection;
 
-    #if defined SKY_ENABLED && defined SHADOW_ENABLED
+    #if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED
         in vec3 tanLightPos;
     #endif
 #endif
@@ -47,7 +47,7 @@ uniform ivec2 atlasSize;
 uniform vec4 entityColor;
 uniform int entityId;
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     uniform vec3 upPosition;
     uniform float wetness;
 #endif

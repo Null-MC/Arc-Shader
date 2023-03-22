@@ -21,7 +21,7 @@ in float geoNoL;
 
     flat in vec3 blockLightColor;
 
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         flat in vec2 skyLightLevels;
 
         flat in vec3 skySunColor;
@@ -34,7 +34,7 @@ in float geoNoL;
     #endif
 #endif
 
-#if defined SKY_ENABLED && defined SHADOW_ENABLED
+#if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         in vec3 shadowPos[4];
         in float shadowBias[4];
@@ -52,7 +52,7 @@ uniform sampler2D BUFFER_SKY_LUT;
 uniform sampler2D BUFFER_IRRADIANCE;
 uniform sampler3D TEX_CLOUD_NOISE;
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     uniform sampler2D noisetex;
     uniform usampler2D shadowcolor1;
     uniform sampler3D TEX_SUN_TRANSMIT;
@@ -228,7 +228,7 @@ void main() {
         lightData.opaqueScreenDepthLinear = linearizeDepthFast(lightData.opaqueScreenDepth, near, far);
         lightData.transparentScreenDepthLinear = linearizeDepthFast(lightData.transparentScreenDepth, near, far);
 
-        #ifdef SKY_ENABLED
+        #ifdef WORLD_SKY_ENABLED
             //lightData.skyLightLevels = skyLightLevels;
             //lightData.sunTransmittanceEye = sunTransmittanceEye;
             //lightData.moonTransmittanceEye = moonTransmittanceEye;
@@ -239,7 +239,7 @@ void main() {
             lightData.moonTransmittance = GetTransmittance(fragElevation, skyLightLevels.y);
         #endif
 
-        #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+        #if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
             #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
                 for (int i = 0; i < 4; i++) {
                     lightData.shadowPos[i] = shadowPos[i];

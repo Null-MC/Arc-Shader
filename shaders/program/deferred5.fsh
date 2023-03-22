@@ -12,7 +12,7 @@ in vec2 texcoord;
 
     flat in vec3 blockLightColor;
 
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         flat in vec2 skyLightLevels;
 
         flat in vec3 skySunColor;
@@ -25,7 +25,7 @@ in vec2 texcoord;
     #endif
 #endif
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     uniform sampler2D BUFFER_SKY_LUT;
     uniform sampler2D BUFFER_IRRADIANCE;
     uniform sampler3D TEX_SUN_TRANSMIT;
@@ -74,7 +74,7 @@ uniform sampler2D noisetex;
     uniform sampler2D BUFFER_DEPTH_PREV;
 #endif
 
-#if !defined SKY_ENABLED && defined SMOKE_ENABLED
+#if !defined WORLD_SKY_ENABLED && defined SMOKE_ENABLED
     uniform sampler2D BUFFER_BLOOM;
 #endif
 
@@ -113,7 +113,7 @@ uniform float fogEnd;
     #endif
 #endif
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     uniform vec3 skyColor;
     uniform float rainStrength;
     uniform float wetness;
@@ -176,12 +176,13 @@ uniform float waterFogDistSmooth;
 #include "/lib/material/material_reader.glsl"
 #include "/lib/lighting/fresnel.glsl"
 #include "/lib/lighting/brdf.glsl"
+#include "/lib/world/fog_vanilla.glsl"
 
 //#if AO_TYPE == AO_TYPE_SS || (defined RSM_ENABLED && defined RSM_UPSCALE)
     #include "/lib/sampling/bilateral_gaussian.glsl"
 //#endif
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     #include "/lib/sky/hillaire_common.glsl"
     #include "/lib/celestial/position.glsl"
     #include "/lib/celestial/transmittance.glsl"
@@ -194,20 +195,19 @@ uniform float waterFogDistSmooth;
 
 #include "/lib/world/scattering.glsl"
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     #include "/lib/sky/hillaire_render.glsl"
     #include "/lib/sky/clouds.glsl"
     #include "/lib/sky/stars.glsl"
 #endif
 
-#include "/lib/world/fog_vanilla.glsl"
 #include "/lib/lighting/basic.glsl"
 
 #if defined WORLD_WATER_ENABLED && defined WATER_CAUSTICS
     #include "/lib/world/caustics.glsl"
 #endif
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     #include "/lib/sky/hillaire.glsl"
     #include "/lib/world/fog_fancy.glsl"
 
@@ -239,7 +239,7 @@ uniform float waterFogDistSmooth;
     #endif
 #endif
 
-#if !defined SKY_ENABLED && defined SMOKE_ENABLED
+#if !defined WORLD_SKY_ENABLED && defined SMOKE_ENABLED
     #include "/lib/camera/bloom.glsl"
     #include "/lib/world/smoke.glsl"
 #endif
@@ -335,7 +335,7 @@ void main() {
             lightData.geoNormal = normalize(cross(dX, dY));
     }
 
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         vec3 upDir = normalize(upPosition);
         float fragElevation = GetAtmosphereElevation(worldPos);
 
@@ -404,7 +404,7 @@ void main() {
             color = vec3(0.0);
         }
         else {
-            #ifdef SKY_ENABLED
+            #ifdef WORLD_SKY_ENABLED
                 #ifdef WORLD_END
                     color = GetFancySkyLuminance(cameraPosition.y, localViewDir, 0);
 
@@ -430,16 +430,16 @@ void main() {
 
     //color = (lightData.geoNormal * 0.5 + 0.5) * 1000.0;
 
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         vec3 localLightDir = GetShadowLightLocalDir();
         float VoL = dot(localLightDir, localViewDir);
     #endif
 
     if (lightData.opaqueScreenDepth >= 1.0) {
-        #if defined SKY_ENABLED && !defined SKY_VL_ENABLED
+        #if defined WORLD_SKY_ENABLED && !defined SKY_VL_ENABLED
             vec4 scatteringTransmittance = GetFancyFog(localPos, localSunDir, VoL);
             color = color * scatteringTransmittance.a + scatteringTransmittance.rgb;
-        // #elif !defined SKY_ENABLED
+        // #elif !defined WORLD_SKY_ENABLED
         //     float fogFactor;
         //     vec3 fogColorFinal;
         //     GetVanillaFog(lightData, viewPos, fogColorFinal, fogFactor);
@@ -447,7 +447,7 @@ void main() {
         #endif
     }
 
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         #if defined WORLD_CLOUDS_ENABLED && SKY_CLOUD_LEVEL > 0
             float minDepth = min(lightData.opaqueScreenDepth, lightData.transparentScreenDepth);
 

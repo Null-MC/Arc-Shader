@@ -23,7 +23,7 @@ out vec2 texcoord;
         uniform ivec2 eyeBrightness;
     #endif
 
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         flat out vec2 skyLightLevels;
 
         flat out vec3 skySunColor;
@@ -36,7 +36,7 @@ out vec2 texcoord;
     #endif
 #endif
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     uniform sampler3D TEX_SUN_TRANSMIT;
 
     uniform vec3 skyColor;
@@ -95,7 +95,7 @@ uniform float blindness;
 
     #include "/lib/lighting/blackbody.glsl"
 
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         #include "/lib/sky/hillaire_common.glsl"
         #include "/lib/celestial/position.glsl"
         #include "/lib/celestial/transmittance.glsl"
@@ -113,7 +113,7 @@ void main() {
 
         blockLightColor = blackbody(BLOCKLIGHT_TEMP);
 
-        #ifdef SKY_ENABLED
+        #ifdef WORLD_SKY_ENABLED
             skyLightLevels = GetSkyLightLevels();
             float eyeElevation = GetScaledSkyHeight(eyeAltitude);
 

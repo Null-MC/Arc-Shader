@@ -1,67 +1,128 @@
-vec3 fbm(vec3 pos) {
-    vec3 val = vec3(0);
-    float weight = 0.5;
-    float totalWeight = 0.0;
-    float frequency = 1.0;
-    for (int i = 0; i < 4; i++) {
-        val += hash33(pos * frequency) * weight;
-        totalWeight += weight;
-        weight /= 2.0;
-        frequency *= 0.5;
+const float wavingScale = 8.0;
+const float wavingHeight = 0.6;
+
+vec3 waving_fbm(const in vec3 worldPos) {
+    vec2 position = worldPos.xz * rcp(wavingScale);
+
+    float iter = 0.0;
+    float frequency = 3.0;
+    float speed = 1.0;
+    float weight = 1.0;
+    float height = 0.0;
+    float waveSum = 0.0;
+
+    float time = frameTimeCounter / 3.6;
+    
+    for (int i = 0; i < 8; i++) {
+        vec2 direction = vec2(sin(iter), cos(iter));
+        float x = dot(direction, position) * frequency + time * speed;
+        float wave = exp(sin(x) - 1.0);
+        float result = wave * cos(x);
+        vec2 force = result * weight * direction;
+        
+        position -= force * 0.03;
+        height += wave * weight;
+        iter += 12.0;
+        waveSum += weight;
+        weight *= 0.8;
+        frequency *= 1.1;
+        speed *= 1.3;
     }
 
-    return val / totalWeight;
+    position = (position * wavingScale) - worldPos.xz;
+    return vec3(position.x, height / waveSum * wavingHeight - 0.5 * wavingHeight, position.y);
 }
 
-float GetWavingRange(const in float skyLight) {
-    float blockTypeRange = (mc_Entity.x == 10002.0 || mc_Entity.x == 10004.0) ? 0.002 : 0.008;
-    float windSpeed = GetWindSpeed();
-    return blockTypeRange * windSpeed * skyLight;
+float GetWavingRange(const in int blockId, out uint attachment) {
+    float range = 0.0;
+    attachment = 0u;
+
+    switch (blockId) {
+        case BLOCK_DEAD_BUSH:
+        case BLOCK_SUNFLOWER_LOWER:
+        case BLOCK_SWEET_BERRY_BUSH:
+            // slow, attach bottom
+            range = 0.01;
+            attachment = 1u;
+            break;
+        case BLOCK_HANGING_ROOTS:
+            // slow, attach top
+            range = 0.01;
+            attachment = 2u;
+            break;
+        case BLOCK_ALLIUM:
+        case BLOCK_AZURE_BLUET:
+        case BLOCK_BEETROOTS:
+        case BLOCK_BLUE_ORCHID:
+        case BLOCK_CARROTS:
+        case BLOCK_CORNFLOWER:
+        case BLOCK_DANDELION:
+        case BLOCK_FERN:
+        case BLOCK_GRASS:
+        case BLOCK_LARGE_FERN_LOWER:
+        case BLOCK_LILAC_LOWER:
+        case BLOCK_LILY_OF_THE_VALLEY:
+        case BLOCK_OXEYE_DAISY:
+        case BLOCK_PEONY_LOWER:
+        case BLOCK_POPPY:
+        case BLOCK_POTATOES:
+        case BLOCK_ROSE_BUSH_LOWER:
+        case BLOCK_SAPLING:
+        case BLOCK_TALL_GRASS_LOWER:
+        case BLOCK_TULIP:
+        case BLOCK_WHEAT:
+        case BLOCK_WITHER_ROSE:
+            // fast, attach bottom
+            range = 0.06;
+            attachment = 1u;
+            break;
+        case BLOCK_SUNFLOWER_UPPER:
+            // slow, no attachment
+            range = 0.01;
+            break;
+        case BLOCK_LARGE_FERN_UPPER:
+        case BLOCK_LEAVES:
+        case BLOCK_LILAC_UPPER:
+        case BLOCK_PEONY_UPPER:
+        case BLOCK_ROSE_BUSH_UPPER:
+        case BLOCK_TALL_GRASS_UPPER:
+            // fast, no attachment
+            range = 0.06;
+            break;
+    }
+
+    return range;
 }
 
-vec3 GetWavingOffset(const in float range) {
-    #if WAVING_MODE == WAVING_BLOCK
-        #if MC_VERSION >= 11700 && !defined IS_IRIS
-            vec3 worldPos = floor(vaPosition.xyz + chunkOffset + cameraPosition + 0.5);
-        #else
-            vec3 localPos = gl_Vertex.xyz + at_midBlock / 64.0;
-            localPos = (gl_ModelViewMatrix * vec4(localPos, 1.0)).xyz;
+void ApplyWavingOffset(inout vec3 position, const in int blockId, const in float strength) {
+    uint attachment;
+    float range = GetWavingRange(blockId, attachment);
+    if (range < EPSILON) return;
 
-            #ifdef RENDER_SHADOW
-                vec3 worldPos = (shadowModelViewInverse * vec4(localPos, 1.0)).xyz;
-            #else
-                vec3 worldPos = (gbufferModelViewInverse * vec4(localPos, 1.0)).xyz;
-            #endif
-
-            worldPos = floor(worldPos + cameraPosition);
-        #endif
+    #if defined RENDER_SHADOW
+        vec3 localPos = (shadowModelViewInverse * (gl_ModelViewMatrix * gl_Vertex)).xyz;
+        vec3 worldPos = localPos + cameraPosition;
     #else
-        vec3 localPos = (gl_ModelViewMatrix * gl_Vertex).xyz;
-
-        #ifdef RENDER_SHADOW
-            vec3 worldPos = (shadowModelViewInverse * vec4(localPos, 1.0)).xyz;
-        #else
-            vec3 worldPos = (gbufferModelViewInverse * vec4(localPos, 1.0)).xyz;
-        #endif
-
-        worldPos += cameraPosition;
-        //worldPos = floor(worldPos + cameraPosition);
+        vec3 localPos = (gbufferModelViewInverse * (gl_ModelViewMatrix * gl_Vertex)).xyz;
+        vec3 worldPos = localPos + cameraPosition;
     #endif
 
-    #ifdef ANIM_USE_WORLDTIME
-        float time = worldTime / 24.0;
-    #else
-        float time = frameTimeCounter;
-    #endif
+    vec3 offset = waving_fbm(worldPos);
 
-	vec3 hash = mod(fbm(worldPos) + 2.0*time, TAU);
-	vec3 offset = sin(hash) * range;
+    if (attachment != 0) {
+        float attachOffset = 0.0;
+        switch (attachment) {
+            case 1u:
+                attachOffset = 0.5;
+                break;
+            case 2u:
+                attachOffset = -0.5;
+                break;
+        }
 
-    // Prevent waving for blocks with the base attached to ground.
-    if (mc_Entity.x >= 10003.0 && mc_Entity.x <= 10004.0) {
-        float baseOffset = -at_midBlock.y / 64.0 + 0.5;
+        float baseOffset = -at_midBlock.y / 64.0 + attachOffset;
         offset *= clamp(baseOffset, 0.0, 1.0);
     }
 
-    return offset;
+    position += offset;// * range * strength;
 }

@@ -28,7 +28,7 @@ const ivec3 workGroups = ivec3(1, 1, 1);
         uniform float darknessFactor;
     #endif
 
-    #if defined SKY_ENABLED || defined LIGHT_COLOR_ENABLED
+    #if defined WORLD_SKY_ENABLED || defined LIGHT_COLOR_ENABLED
         uniform sampler3D TEX_SUN_TRANSMIT;
 
         uniform mat4 gbufferModelView;
@@ -57,7 +57,7 @@ const ivec3 workGroups = ivec3(1, 1, 1);
     #include "/lib/matrix.glsl"
     #include "/lib/lighting/blackbody.glsl"
 
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         #include "/lib/sky/hillaire_common.glsl"
         #include "/lib/celestial/position.glsl"
         #include "/lib/celestial/transmittance.glsl"
@@ -73,7 +73,7 @@ const ivec3 workGroups = ivec3(1, 1, 1);
     #endif
 
     #if defined LIGHT_COLOR_ENABLED && (!defined SHADOW_ENABLED || SHADOW_TYPE == SHADOW_TYPE_NONE)
-        #ifndef SKY_ENABLED
+        #ifndef WORLD_SKY_ENABLED
             #include "/lib/celestial/position.glsl"
         #endif
         
@@ -105,7 +105,7 @@ void main() {
 
         blockLightColor = blackbody(BLOCKLIGHT_TEMP);
 
-        #ifdef SKY_ENABLED
+        #ifdef WORLD_SKY_ENABLED
             skyLightLevels = GetSkyLightLevels();
             float eyeElevation = GetScaledSkyHeight(eyeAltitude);
 
@@ -120,7 +120,7 @@ void main() {
             #endif
         #endif
 
-        #if (defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE) || defined LIGHT_COLOR_ENABLED
+        #if (defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE) || defined LIGHT_COLOR_ENABLED
             shadowModelViewEx = BuildShadowViewMatrix();
 
             #if SHADOW_TYPE != SHADOW_TYPE_CASCADED
@@ -128,7 +128,7 @@ void main() {
             #endif
         #endif
 
-        #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE == SHADOW_TYPE_CASCADED
+        #if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE == SHADOW_TYPE_CASCADED
             cascadeSize[0] = GetCascadeDistance(0);
             cascadeSize[1] = GetCascadeDistance(1);
             cascadeSize[2] = GetCascadeDistance(2);

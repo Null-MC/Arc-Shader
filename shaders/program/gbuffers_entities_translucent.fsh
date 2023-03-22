@@ -23,7 +23,7 @@ flat in int materialId;
 
     flat in vec3 blockLightColor;
     
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         flat in vec2 skyLightLevels;
 
         flat in vec3 skySunColor;
@@ -42,12 +42,12 @@ flat in int materialId;
     
     //uniform mat4 gbufferProjection;
 
-    #if defined SKY_ENABLED && defined SHADOW_ENABLED
+    #if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED
         in vec3 tanLightPos;
     #endif
 #endif
 
-#if defined SKY_ENABLED && defined SHADOW_ENABLED
+#if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
         in vec3 shadowPos[4];
         in float shadowBias[4];
@@ -78,7 +78,7 @@ uniform sampler2D noisetex;
 uniform sampler2D BUFFER_HDR_OPAQUE;
 uniform sampler2D TEX_BRDF;
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     uniform sampler2D BUFFER_SKY_LUT;
     uniform sampler2D BUFFER_IRRADIANCE;
     uniform sampler3D TEX_SUN_TRANSMIT;
@@ -113,7 +113,7 @@ uniform vec3 fogColor;
 uniform vec3 waterAbsorbColor;
 uniform float waterFogDistSmooth;
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     uniform float eyeAltitude;
     uniform vec3 sunPosition;
     uniform vec3 moonPosition;
@@ -197,7 +197,7 @@ uniform float waterFogDistSmooth;
 
 #include "/lib/physicsMod/snow.glsl"
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     #include "/lib/sky/hillaire_common.glsl"
     #include "/lib/celestial/position.glsl"
     #include "/lib/celestial/transmittance.glsl"
@@ -212,7 +212,7 @@ uniform float waterFogDistSmooth;
     #include "/lib/world/caustics.glsl"
 #endif
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     #include "/lib/sky/hillaire.glsl"
     #include "/lib/sky/hillaire_render.glsl"
     #include "/lib/world/fog_fancy.glsl"
@@ -269,7 +269,7 @@ void main() {
     //     lightingMap = vec4(1.0);
     // }
 
-    #if !defined IRIS_FEATURE_SSBO && defined SKY_ENABLED
+    #if !defined IRIS_FEATURE_SSBO && defined WORLD_SKY_ENABLED
         float eyeElevation = GetScaledSkyHeight(eyeAltitude);
 
         sunTransmittanceEye = GetTransmittance(eyeElevation, skyLightLevels.x);

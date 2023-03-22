@@ -3,7 +3,7 @@ float GetFogFactor(const in float dist, const in float start, const in float end
     return saturate(pow(distFactor, density));
 }
 
-#ifndef SKY_ENABLED
+#ifndef WORLD_SKY_ENABLED
     float GetVanillaFogFactor(in vec3 viewPos) {
         if (gl_Fog.scale < EPSILON || gl_Fog.end < EPSILON) return 0.0;
 
@@ -57,7 +57,7 @@ float GetFogFactor(const in float dist, const in float start, const in float end
 
 #ifdef WORLD_WATER_ENABLED
     vec3 GetWaterFogColor(const in vec3 sunColorFinal, const in vec3 moonColorFinal, const in vec2 scatteringF) {
-        #ifdef SKY_ENABLED
+        #ifdef WORLD_SKY_ENABLED
             vec3 lightColor = scatteringF.x * sunColorFinal + scatteringF.y * moonColorFinal;
 
             vec3 ext = 1.0 - waterAbsorbColor;

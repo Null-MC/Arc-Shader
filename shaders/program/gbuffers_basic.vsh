@@ -27,12 +27,12 @@ flat out mat2 atlasBounds;
     out vec2 localCoord;
     out vec3 tanViewPos;
 
-    #if defined SKY_ENABLED && defined SHADOW_ENABLED
+    #if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED
         out vec3 tanLightPos;
     #endif
 #endif
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     uniform float rainStrength;
 
     #ifdef SHADOW_ENABLED
@@ -70,10 +70,10 @@ uniform int worldTime;
     uniform vec3 chunkOffset;
 #endif
 
-#ifdef SKY_ENABLED
-    #include "/lib/sampling/noise.glsl"
-    #include "/lib/world/wind.glsl"
-    #include "/lib/world/waving.glsl"
+#ifdef WORLD_SKY_ENABLED
+    //#include "/lib/sampling/noise.glsl"
+    //#include "/lib/world/wind.glsl"
+    //#include "/lib/world/waving.glsl"
 #endif
 
 #include "/lib/celestial/position.glsl"

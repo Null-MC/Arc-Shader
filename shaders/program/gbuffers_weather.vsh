@@ -19,7 +19,7 @@ out vec3 viewNormal;
 #ifndef IRIS_FEATURE_SSBO
     flat out float sceneExposure;
 
-    #ifdef SKY_ENABLED
+    #ifdef WORLD_SKY_ENABLED
         flat out vec2 skyLightLevels;
 
         flat out vec3 skySunColor;
@@ -41,7 +41,7 @@ out vec3 viewNormal;
     uniform int heldBlockLightValue2;
 #endif
 
-#ifdef SKY_ENABLED
+#ifdef WORLD_SKY_ENABLED
     uniform sampler3D TEX_SUN_TRANSMIT;
 
     uniform float eyeAltitude;
@@ -115,7 +115,7 @@ uniform float blindness;
 #include "/lib/sky/hillaire_common.glsl"
 #include "/lib/celestial/position.glsl"
 
-#if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+#if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
     #include "/lib/shadows/common.glsl"
 
     #if SHADOW_TYPE == SHADOW_TYPE_CASCADED
@@ -142,7 +142,7 @@ void main() {
 
     BasicVertex(localPos);
 
-    #if defined SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
+    #if defined WORLD_SKY_ENABLED && defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE
         #ifndef IRIS_FEATURE_SSBO
             mat4 shadowModelViewEx = BuildShadowViewMatrix();
         #endif
@@ -178,7 +178,7 @@ void main() {
             blockLightColor = blackbody(BLOCKLIGHT_TEMP);
         #endif
 
-        #ifdef SKY_ENABLED
+        #ifdef WORLD_SKY_ENABLED
             float eyeElevation = GetScaledSkyHeight(eyeAltitude);
             skyLightLevels = GetSkyLightLevels();
 

@@ -40,7 +40,7 @@ out vec2 texcoord;
     float GetEyeBrightnessLuminance() {
         vec2 eyeBrightnessLinear = saturate(eyeBrightness / 240.0);
 
-        #ifdef SKY_ENABLED
+        #ifdef WORLD_SKY_ENABLED
             vec2 skyLightLevels = GetSkyLightLevels();
             float eyeElevation = GetScaledSkyHeight(eyeAltitude);
 
@@ -62,7 +62,7 @@ out vec2 texcoord;
 
         float brightnessFinal = 0.0;//MinWorldLux;
 
-        #ifdef SKY_ENABLED
+        #ifdef WORLD_SKY_ENABLED
             brightnessFinal += max(blockLightBrightness, skyLightBrightness);
         #else
             brightnessFinal += blockLightBrightness;
