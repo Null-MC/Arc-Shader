@@ -214,6 +214,18 @@ void main() {
 
         #if defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE && (defined SHADOW_BLUR || (defined SSS_ENABLED && defined SSS_BLUR))
             LightData lightData;
+            lightData.occlusion = 1.0;
+            lightData.parallaxShadow = 1.0;
+            lightData.blockLight = 0.0;
+            lightData.skyLight = 0.0;
+            lightData.waterShadowDepth = 0.0;
+            lightData.opaqueScreenDepth = 0.0;
+            lightData.opaqueScreenDepthLinear = 0.0;
+            lightData.transparentScreenDepth = 0.0;
+            lightData.transparentScreenDepthLinear = 0.0;
+
+            lightData.sunTransmittance = vec3(0.0);
+            lightData.moonTransmittance = vec3(0.0);
 
             //uint gbufferLightData = texelFetch(BUFFER_DEFERRED, itexFull, 0).a;
             vec4 gbufferLightMap = unpackUnorm4x8(gbufferData.a);
@@ -223,10 +235,10 @@ void main() {
             vec3 dY = dFdy(localPos);
 
             if (all(greaterThan(abs(dX) + abs(dY), EPSILON3))) {
-                vec3 geoNormal = normalize(cross(dX, dY));
+                lightData.geoNormal = normalize(cross(dX, dY));
 
                 float viewDist = length(localPos);
-                localPos += geoNormal * viewDist * SHADOW_NORMAL_BIAS * max(1.0 - lightData.geoNoL, 0.0);
+                localPos += lightData.geoNormal * viewDist * SHADOW_NORMAL_BIAS * max(1.0 - lightData.geoNoL, 0.0);
             }
 
             #ifndef IRIS_FEATURE_SSBO
