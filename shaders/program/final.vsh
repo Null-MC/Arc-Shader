@@ -8,7 +8,9 @@ out vec2 texcoord;
 
 #ifndef IRIS_FEATURE_SSBO
     flat out float sceneExposure;
-    
+#endif
+
+#ifdef DEBUG_EXPOSURE_METERS
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
         flat out int luminanceLod;
         flat out float averageLuminance;
@@ -33,7 +35,7 @@ uniform int moonPhase;
 
 uniform float blindness;
 
-#ifndef IRIS_FEATURE_SSBO
+#ifdef DEBUG_EXPOSURE_METERS
     uniform float nightVision;
 
     #if CAMERA_EXPOSURE_MODE != EXPOSURE_MODE_MANUAL
@@ -58,10 +60,7 @@ uniform float blindness;
 #endif
 
 
-#ifndef IRIS_FEATURE_SSBO
-    //#include "/lib/lighting/blackbody.glsl"
-    //#include "/lib/celestial/position.glsl"
-    //#include "/lib/world/sky.glsl"
+#ifdef DEBUG_EXPOSURE_METERS
     #include "/lib/camera/exposure.glsl"
 #endif
 
@@ -74,7 +73,7 @@ void main() {
         bloomTileCount = GetBloomTileCount();
     #endif
 
-    #ifndef IRIS_FEATURE_SSBO
+    #ifdef DEBUG_EXPOSURE_METERS
         #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
             luminanceLod = GetLuminanceLod();
         #endif

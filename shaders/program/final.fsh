@@ -6,9 +6,11 @@
 
 in vec2 texcoord;
 
-#if !defined IRIS_FEATURE_SSBO
+#ifndef IRIS_FEATURE_SSBO
     flat in float sceneExposure;
+#endif
 
+#ifdef DEBUG_EXPOSURE_METERS
     #if CAMERA_EXPOSURE_MODE == EXPOSURE_MODE_MIPMAP
         flat in int luminanceLod;
     #endif
