@@ -27,7 +27,7 @@ uniform float viewHeight;
 
 void main() {
     #if BLOCK_OUTLINE == BLOCK_OUTLINE_NONE
-        gl_Position = vec4(10.0);
+        gl_Position = vec4(-1.0);
     #else
         lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
 

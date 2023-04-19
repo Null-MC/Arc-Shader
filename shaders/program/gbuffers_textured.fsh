@@ -135,6 +135,7 @@ uniform float far;
 #include "/lib/material/hcm.glsl"
 #include "/lib/material/material.glsl"
 #include "/lib/material/material_reader.glsl"
+#include "/lib/blocks.glsl"
 
 #ifdef WORLD_SKY_ENABLED
     #include "/lib/celestial/position.glsl"
