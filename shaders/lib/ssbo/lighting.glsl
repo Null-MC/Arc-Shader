@@ -17,7 +17,7 @@ struct SceneLightData {
 
 struct LightCellData {
     uint LightCount;
-    uint[LIGHT_MASK_SIZE] Mask;
+    uint Mask[LIGHT_MASK_SIZE];
 };
 
 #if defined RENDER_BEGIN || defined RENDER_SHADOW
@@ -40,7 +40,7 @@ struct LightCellData {
     layout(std430, binding = 3) readonly buffer localLightingData
 #endif
 {
-    LightCellData[] SceneLightMaps;
+    LightCellData SceneLightMaps[];
 };
 
 #ifdef RENDER_SHADOW
