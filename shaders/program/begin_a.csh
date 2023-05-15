@@ -36,6 +36,7 @@ const ivec3 workGroups = ivec3(1, 1, 1);
         uniform float eyeAltitude;
         uniform float rainStrength;
         uniform vec3 upPosition;
+        uniform int moonPhase;
         uniform int worldTime;
 
         #if (defined SHADOW_ENABLED && SHADOW_TYPE != SHADOW_TYPE_NONE) || defined LIGHT_COLOR_ENABLED

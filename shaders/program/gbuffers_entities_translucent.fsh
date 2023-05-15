@@ -110,6 +110,7 @@ uniform float blindness;
 uniform int worldTime;
 
 uniform vec3 fogColor;
+uniform vec3 waterScatterColor;
 uniform vec3 waterAbsorbColor;
 uniform float waterFogDistSmooth;
 

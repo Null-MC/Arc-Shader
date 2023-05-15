@@ -1,7 +1,7 @@
 void ApplyLightning(out vec3 diffuse, out vec3 specular, const in vec3 albedo, const in float f0, const in int hcm, const in float scattering, const in vec3 viewNormal, const in vec3 viewPos, const in vec3 viewDir, const in float NoVm, const in float roughL) {
     vec3 lightOffset = lightningBoltPosition.xyz - viewPos;
     vec3 lightDir = normalize(lightOffset);
-    float lightDist = length(lightPos);
+    float lightDist = length(lightOffset);
     float NoL = dot(viewNormal, lightDir);
     float NoLm = max(NoL, 0.0);
 
